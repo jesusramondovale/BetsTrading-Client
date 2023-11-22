@@ -1,3 +1,13 @@
+/*
+  Copyright © 2023 - Jesús Ramón DoVale
+
+  Licensed under the Android Studio License, Version 2.0 (the "License");
+  you may use this file only in compliance with the License.
+  You may obtain a copy of the License at
+
+*/
+
+
 import 'package:flutter/material.dart';
 
 void main() {
