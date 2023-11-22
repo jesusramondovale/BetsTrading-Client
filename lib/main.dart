@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Home: inicial'),
+      home: const MyHomePage(title: 'Home: initial'),
     );
   }
 }
@@ -117,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'Commit inicial',
+              'Commit initial',
             ),
             Text(
               '$_counter',
