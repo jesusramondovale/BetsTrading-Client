@@ -1,9 +1,11 @@
 import 'package:client_0_0_1/main.dart';
 import 'package:client_0_0_1/helpers.dart';
+import 'package:client_0_0_1/AuthService.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +17,11 @@ class LoginPage extends StatelessWidget {
         backgroundColor: Colors.white,
         title: const Text('Log In'),
         bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(2.0),
           child: Container(
             color: Colors.black, // Color de la barra negra
             height: 1.0, // Altura de la barra negra
-          ),
-          preferredSize: Size.fromHeight(2.0), // Altura de la barra negra
+          ), // Altura de la barra negra
         ),
       ),
 
@@ -39,11 +41,11 @@ class LoginPage extends StatelessWidget {
                       color: Colors.grey.withOpacity(1),
                       spreadRadius: 3,
                       blurRadius: 7,
-                      offset: Offset(0, 3),
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
-                child: LoginForm(),
+                child: const LoginForm(),
               ),
             ),
           ),
@@ -53,7 +55,7 @@ class LoginPage extends StatelessWidget {
 }
 
 class LoginForm extends StatefulWidget {
-  const LoginForm({Key? key}) : super(key: key);
+  const LoginForm({super.key});
 
   @override
   _LoginFormState createState() => _LoginFormState();
@@ -86,7 +88,7 @@ class _LoginFormState extends State<LoginForm> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
-              contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -95,7 +97,7 @@ class _LoginFormState extends State<LoginForm> {
               return null;
             },
           ),
-          SizedBox(height: 16.0),
+          const SizedBox(height: 16.0),
           TextFormField(
             controller: _passwordController,
             decoration: InputDecoration(
@@ -103,7 +105,7 @@ class _LoginFormState extends State<LoginForm> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
-              contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
             ),
             obscureText: true,
             validator: (value) {
@@ -113,30 +115,74 @@ class _LoginFormState extends State<LoginForm> {
               return null;
             },
           ),
-          SizedBox(height: 20.0),
+          const SizedBox(height: 20.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
-                    // TO-DO: Implementar la lógica de inicio de sesión
-                    Helpers().unimplementedAction("LogIn()",context);
+
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return const Dialog(
+
+                          backgroundColor: Colors.white,
+                          child: Padding(
+                            padding: EdgeInsets.all(20.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircularProgressIndicator(
+                                  strokeWidth: 5,
+                                  backgroundColor: Colors.blueGrey,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                  "Connecting to BetsTrading ..",
+                                  style: TextStyle(
+                                    color: Colors.blueGrey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                    //showDialog
+
+                    final result = await AuthService().logIn(
+                      _usernameController.text.trim(),
+                      _passwordController.text.trim(),
+                    );
+
+                    Navigator.of(context).pop();
+
+                    if (result['success']) {
+                      Helpers().logInPopDialog("Welcome", "Log-In success!" , _usernameController.text.trim(), context);
+                    } else {
+                      Helpers().popDialog("Oops...", "${result['message']}" , context);
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.black,
+                  backgroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
                 ),
-                child: Text(
+                child: const Text(
                   'Log In',
                   style: TextStyle(fontSize: 16.0, color: Colors.white),
                 ),
               ),
-              SizedBox(width: 16.0),
+              const SizedBox(width: 16.0),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -145,27 +191,27 @@ class _LoginFormState extends State<LoginForm> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.black12,
+                  backgroundColor: Colors.black12,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
                 ),
-                child: Text(
+                child: const Text(
                   'Register',
                   style: TextStyle(fontSize: 16.0, color: Colors.white),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 16.0),
+          const SizedBox(height: 16.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children : [
               TextButton(
                 onPressed: () {
                   // TO-DO: Implementar la lógica para la recuperación de contraseña
-                  Helpers().unimplementedAction("Password Recovery", context);
+                  Helpers().unimplementedAction("ResetPassword()", context);
                 },
                 child: const Text(
                   'Forgot Password?',
