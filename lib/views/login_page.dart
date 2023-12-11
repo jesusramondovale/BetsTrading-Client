@@ -1,8 +1,9 @@
 import 'package:client_0_0_1/main.dart';
 import 'package:client_0_0_1/helpers.dart';
 import 'package:client_0_0_1/AuthService.dart';
+import 'package:client_0_0_1/views/signin_page.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -56,186 +57,188 @@ class LoginPage extends StatelessWidget {
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
-
   @override
   _LoginFormState createState() => _LoginFormState();
 }
 
-class _LoginFormState extends State<LoginForm> {
-  final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  class _LoginFormState extends State<LoginForm> {
+    final _formKey = GlobalKey<FormState>();
+    final _usernameController = TextEditingController();
+    final _passwordController = TextEditingController();
 
-  @override
-  Widget build(BuildContext context) {
+    @override
+    Widget build(BuildContext context) {
 
-    return Form(
-      key: _formKey,
+      return Form(
+        key: _formKey,
 
-      child: Column(
+        child: Column(
 
-        children: [
-          Image.asset(
-            'assets/logo.png',
-            width: 200,
+          children: [
+            Image.asset(
+              'assets/logo.png',
+              width: 200,
 
-            fit: BoxFit.cover,
-          ),
-          TextFormField(
-            controller: _usernameController,
-            decoration: InputDecoration(
-              labelText: 'User name',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              fit: BoxFit.cover,
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your user name';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16.0),
-          TextFormField(
-            controller: _passwordController,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
+            TextFormField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                labelText: 'User name',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your user name';
+                }
+                return null;
+              },
             ),
-            obscureText: true,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your password';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
+            const SizedBox(height: 16.0),
+            TextFormField(
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              ),
+              obscureText: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your password';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
 
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (BuildContext context) {
-                        return const Dialog(
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return const Dialog(
 
-                          backgroundColor: Colors.white,
-                          child: Padding(
-                            padding: EdgeInsets.all(20.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CircularProgressIndicator(
-                                  strokeWidth: 5,
-                                  backgroundColor: Colors.blueGrey,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  "Connecting to BetsTrading ..",
-                                  style: TextStyle(
-                                    color: Colors.blueGrey,
-                                    fontSize: 16,
+                            backgroundColor: Colors.white,
+                            child: Padding(
+                              padding: EdgeInsets.all(20.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircularProgressIndicator(
+                                    strokeWidth: 5,
+                                    backgroundColor: Colors.blueGrey,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
                                   ),
-                                ),
-                              ],
+                                  SizedBox(height: 20),
+                                  Text(
+                                    "Connecting to BetsTrading ..",
+                                    style: TextStyle(
+                                      color: Colors.blueGrey,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                    //showDialog
+                          );
+                        },
+                      );
+                      //showDialog
 
-                    final result = await AuthService().logIn(
-                      _usernameController.text.trim(),
-                      _passwordController.text.trim(),
-                    );
+                      final result = await AuthService().logIn(
+                        _usernameController.text.trim(),
+                        _passwordController.text.trim(),
+                      );
 
-                    Navigator.of(context).pop();
+                      Navigator.of(context).pop();
 
-                    if (result['success']) {
-                      Helpers().logInPopDialog("Welcome", "Log-In success!" , _usernameController.text.trim(), context);
-                    } else {
-                      Helpers().popDialog("Oops...", "${result['message']}" , context);
+                      if (result['success']) {
+                        Helpers().logInPopDialog("Welcome", "Log-In success!" , _usernameController.text.trim(), context);
+                      } else {
+                        Helpers().popDialog("Oops...", "${result['message']}" , context);
+                      }
                     }
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
-                ),
-                child: const Text(
-                  'Log In',
-                  style: TextStyle(fontSize: 16.0, color: Colors.white),
-                ),
-              ),
-              const SizedBox(width: 16.0),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    // TO-DO: Implementar la lógica de registro
-                    Helpers().unimplementedAction("Register()",context);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black12,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                  child: const Text(
+                    'Log In',
+                    style: TextStyle(fontSize: 16.0, color: Colors.white),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
                 ),
-                child: const Text(
-                  'Register',
-                  style: TextStyle(fontSize: 16.0, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children : [
-              TextButton(
-                onPressed: () {
-                  // TO-DO: Implementar la lógica para la recuperación de contraseña
-                  Helpers().unimplementedAction("ResetPassword()", context);
-                },
-                child: const Text(
-                  'Forgot Password?',
-                  style: TextStyle(color: Colors.blue),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MyHomePage( title: "You're out!")),
-                  );
-                },
-                child: const Text(
-                  'Exit',
-                  style: TextStyle(color: Colors.blue),
-                ),
-              ),
+                const SizedBox(width: 16.0),
+                ElevatedButton(
+                  onPressed: () {
 
-            ]
-          )
+                      // Helpers().unimplementedAction("Register()",context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignIn()),
+                      );
 
-        ],
-      ),
-    );
-  }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black12,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+                  ),
+                  child: const Text(
+                    'Register',
+                    style: TextStyle(fontSize: 16.0, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children : [
+                TextButton(
+                  onPressed: () {
+                    // TO-DO: Implementar la lógica para la recuperación de contraseña
+                    Helpers().unimplementedAction("ResetPassword()", context);
+                  },
+                  child: const Text(
+                    'Forgot Password?',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MyHomePage( title: "You're out!")),
+                    );
+                  },
+                  child: const Text(
+                    'Exit',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                ),
+
+              ]
+            )
+
+          ],
+        ),
+      );
+    }
 }
