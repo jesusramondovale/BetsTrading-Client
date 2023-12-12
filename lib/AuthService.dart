@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
+
 
 class AuthService {
-  static const String apiUrl = 'https://192.168.1.38:44346/api/Auth';
+  static const String apiUrl = 'https://192.168.1.37:44346/api/Auth';
 
   Future<Map<String, dynamic>> logIn(String username, String password) async {
     try {
 
       final Map<String, dynamic> data = {'username': username, 'password': password};
-      bool _certificateCheck(X509Certificate cert, String host, int port) => true;
-      HttpClient client = new HttpClient()..badCertificateCallback = (_certificateCheck);
+      bool certificateCheck(X509Certificate cert, String host, int port) => true;
+      HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
 
       final HttpClientRequest request = await client.postUrl(Uri.parse("$apiUrl/LogIn"));
       request.headers.set('Content-Type', 'application/json');
@@ -32,40 +32,65 @@ class AuthService {
       if (e.runtimeType == TimeoutException) {
         return {'success': false, 'message': "Server not responding. Try again later"};
       }
-      if (e.runtimeType.toString() == "_ClientSocketException") {
+      if (e.runtimeType == SocketException) {
         return {'success': false, 'message': "Can't connect. Check your internet connection"};
       }
       return {'success': false, 'message': '$e'};
     }
   }
 
-  Future<Map<String, dynamic>> register(String username, String password) async {
-    final url = Uri.parse('$apiUrl/Register');
-    final Map<String, dynamic> data = {
-      'username': username,
-      'password': password,
-    };
-
+  Future<Map<String, dynamic>> register(
+      String idCard,
+      String fullName,
+      String password,
+      String address,
+      String country,
+      String gender,
+      String email,
+      DateTime birthday,
+      String creditCard,
+      String username,
+      ) async {
     try {
-      final response = await http.post(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(data),
-      );
+      final Map<String, dynamic> data = {
+        'idCard': idCard,
+        'fullName': fullName,
+        'password': password,
+        'address': address,
+        'country': country,
+        'gender': gender,
+        'email': email,
+        'birthday': birthday.toIso8601String(),
+        'creditCard': creditCard,
+        'username': username,
+      };
 
-      final Map<String, dynamic> result = jsonDecode(response.body);
+      bool certificateCheck(X509Certificate cert, String host, int port) => true;
+      HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
+
+      final HttpClientRequest request = await client.postUrl(Uri.parse('$apiUrl/Register'));
+      request.headers.set('Content-Type', 'application/json');
+      request.write(jsonEncode(data));
+
+      final HttpClientResponse response = await request.close();
 
       if (response.statusCode == 200) {
-        result['success'] = true;
+        final Map<String, dynamic> decodedBody = jsonDecode(await response.transform(utf8.decoder).join());
+        final String message = decodedBody['message'];
+        return {'success': true, 'message': message};
       } else {
-        result['success'] = false;
+        final Map<String, dynamic> decodedBody = jsonDecode(await response.transform(utf8.decoder).join());
+        final String message = decodedBody['message'];
+        return {'success': false, 'message': message};
       }
-
-      return result;
     } catch (e) {
-      return {'success': false, 'message': 'Error occurred: $e'};
+      if (e.runtimeType == TimeoutException) {
+        return {'success': false, 'message': "Server not responding. Try again later"};
+      }
+      if (e.runtimeType == SocketException) {
+        return {'success': false, 'message': "Can't connect. Check your internet connection"};
+      }
+      return {'success': false, 'message': '$e'};
     }
   }
 
