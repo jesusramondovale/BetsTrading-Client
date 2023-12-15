@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:client_0_0_1/main.dart';
 import 'package:client_0_0_1/helpers.dart';
 import 'package:client_0_0_1/AuthService.dart';
 import 'package:client_0_0_1/views/signin_page.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 
 
@@ -156,9 +159,12 @@ class LoginForm extends StatefulWidget {
                       );
                       //showDialog
 
+                      final passwordBytes = utf8.encode(_passwordController.text.trim());
+                      final hashedPassword = sha256.convert(passwordBytes);
+
                       final result = await AuthService().logIn(
                         _usernameController.text.trim(),
-                        _passwordController.text.trim(),
+                        hashedPassword.toString(),
                       );
 
                       Navigator.of(context).pop();

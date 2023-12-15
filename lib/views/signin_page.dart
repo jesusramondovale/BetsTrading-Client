@@ -73,6 +73,14 @@ class _SignInState extends State<SignIn> {
           }
 
           break;
+
+        /* TO-DO!!
+        case 3:
+          COMPRUEBA los validate() de todos los steps
+          Helpers().SignIn()
+          break;
+         */
+
         default:
 
           setState(() {

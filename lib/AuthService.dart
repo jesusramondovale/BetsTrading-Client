@@ -1,10 +1,16 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 
+
 class AuthService {
-  static const String apiUrl = 'https://192.168.1.37:44346/api/Auth';
+  static const PRIVATE_IP = '192.168.1.37';
+  static const PUBLIC_DOMAIN = '108.pool90-175-130.dynamic.orange.es';
+  static const API_URL = 'https://$PUBLIC_DOMAIN:44346/api/Auth';
+
 
   Future<Map<String, dynamic>> logIn(String username, String password) async {
     try {
@@ -13,7 +19,7 @@ class AuthService {
       bool certificateCheck(X509Certificate cert, String host, int port) => true;
       HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
 
-      final HttpClientRequest request = await client.postUrl(Uri.parse("$apiUrl/LogIn"));
+      final HttpClientRequest request = await client.postUrl(Uri.parse("$API_URL/LogIn"));
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonEncode(data));
 
@@ -28,11 +34,12 @@ class AuthService {
         final String message = decodedBody['message'];
         return {'success': false, 'message': message};
       }
-    } catch (e) {
-      if (e.runtimeType == TimeoutException) {
+    } on SocketException catch (e) {
+
+      if (e.osError?.errorCode == 111) { //Connection Refused
         return {'success': false, 'message': "Server not responding. Try again later"};
       }
-      if (e.runtimeType == SocketException) {
+      if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
         return {'success': false, 'message': "Can't connect. Check your internet connection"};
       }
       return {'success': false, 'message': '$e'};
@@ -68,7 +75,7 @@ class AuthService {
       bool certificateCheck(X509Certificate cert, String host, int port) => true;
       HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
 
-      final HttpClientRequest request = await client.postUrl(Uri.parse('$apiUrl/Register'));
+      final HttpClientRequest request = await client.postUrl(Uri.parse('$API_URL/Register'));
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonEncode(data));
 
