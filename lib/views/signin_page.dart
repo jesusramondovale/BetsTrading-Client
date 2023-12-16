@@ -1,3 +1,8 @@
+// ignore_for_file: prefer_interpolation_to_compose_strings
+
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,7 +25,17 @@ class _SignInState extends State<SignIn> {
   final _formKeys = List.generate(4, (_) => GlobalKey<FormBuilderState>());
   final GlobalKey<FormState> _creditCardFormKey = GlobalKey<FormState>();
 
-  bool _autoValidateCreditCardForm = false;
+  String _idCard = '';
+  String _fullName = '';
+  String _password = '';
+  String _address = '';
+  String _country = '';
+  String _gender = '';
+  String _email = '';
+  DateTime _birthday = DateTime.now();
+  String _username = '';
+
+  final bool _autoValidateCreditCardForm = false;
   int _currentStep = 0;
 
   @override
@@ -32,7 +47,6 @@ class _SignInState extends State<SignIn> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-
           child: Stepper(
             onStepTapped: _onStepTapped,
             currentStep: _currentStep,
@@ -45,54 +59,60 @@ class _SignInState extends State<SignIn> {
     );
   }
 
+  void _updateFormData() {
+    final basicInfoForm = _formKeys[0].currentState!;
+    final addressInfoForm = _formKeys[1].currentState!;
+    final credentialsForm = _formKeys[3].currentState!;
+
+    // Actualizar las variables con los valores de los campos
+    _idCard = basicInfoForm.fields['idCard']?.value ?? '';
+    _fullName = basicInfoForm.fields['fullName']?.value ?? '';
+    _address = addressInfoForm.fields['address']?.value ?? '';
+    _country = addressInfoForm.fields['country']?.value ?? '';
+    _gender = basicInfoForm.fields['gender']?.value ?? '';
+    _birthday = DateTime.tryParse(basicInfoForm.fields['birthday']?.value) ?? DateTime.now();
+    _username = basicInfoForm.fields['username']?.value ?? '';
+  }
   void _onStepTapped(int step) {
     setState(() => _currentStep = step);
   }
+  Future<void> _onStepContinue() async {
 
-  void _onStepContinue() {
-    if (_currentStep == _formKeys.length - 1)
-    {
-      Helpers().unimplementedAction("signIn()", context);
-    }
-    else {
-      switch (_currentStep) {
-        case 2:
-
-          if (_creditCardFormKey.currentState?.validate() ?? false) {
-
-            setState(() {
-              if (_currentStep < _formKeys.length - 1) {
-                _currentStep++;
-              }
-            });
-          } else {
-
-            setState(() {
-              _autoValidateCreditCardForm = true;
-            });
-          }
-
-          break;
-
-        /* TO-DO!!
-        case 3:
-          COMPRUEBA los validate() de todos los steps
-          Helpers().SignIn()
-          break;
-         */
-
-        default:
-
-          setState(() {
-            if (_currentStep < _formKeys.length - 1) {
-              _currentStep++;
-            }
-          });
-          break;
+    if (_validateAndSaveCurrentStep()) {
+      if (_currentStep == 2) {
+        _updateFormData();
       }
-    }
-  }
 
+      if (_currentStep == 3) {
+        final result = await AuthService().register(
+          _idCard,
+          _fullName,
+          _password,
+          _address,
+          _country,
+          _gender,
+          _email,
+          _birthday,
+          _cardNumberController.text,
+          _username,
+        );
+
+        if (result['success']) {
+          Helpers().logInPopDialog("Welcome", "Registration successfull!" , _username.trim(), context);
+        } else {
+          Helpers().popDialog("Oops...", "${result['message']}" , context);
+        }
+      }
+
+      if (_currentStep < 3){
+        setState(() {
+          _currentStep++;
+        });
+      }
+
+    }
+
+  }
   void _onStepCancel() {
     setState(() {
       if (_currentStep > 0) {
@@ -100,32 +120,30 @@ class _SignInState extends State<SignIn> {
       }
     });
   }
-
   List<Step> _buildSteps() {
     return [
       Step(
-        title: Text('Personal info'),
+        title: const Text('Personal info'),
         content: _buildBasicInfoStep(),
         isActive: _currentStep == 0,
       ),
       Step(
-        title: Text('Address'),
+        title: const Text('Address'),
         content: _buildAddressInfoStep(),
         isActive: _currentStep == 1,
       ),
       Step(
-        title: Text('Credit card'),
+        title: const Text('Credit card'),
         content: _buildCreditCardInfoStep(),
         isActive: _currentStep == 2,
       ),
       Step(
-        title: Text('Credentials'),
+        title: const Text('Credentials'),
         content: _buildCredentialsStep(),
         isActive: _currentStep == 3,
       ),
     ];
   }
-
   Widget _buildControls(BuildContext context, ControlsDetails details) {
     return Row(
       children: [
@@ -146,7 +164,6 @@ class _SignInState extends State<SignIn> {
       ],
     );
   }
-
   bool _validateAndSaveCurrentStep() {
     final currentForm = _formKeys[_currentStep].currentState;
     if (_currentStep == 2) {
@@ -157,7 +174,6 @@ class _SignInState extends State<SignIn> {
     }
     return false;
   }
-
   Future<void> _selectDate(BuildContext context) async {
     DateTime today = DateTime.now();
 
@@ -172,7 +188,6 @@ class _SignInState extends State<SignIn> {
       _formKeys[0].currentState?.fields['birthday']?.didChange(picked.day.toString()+"-"+picked.month.toString()+"-"+picked.year.toString());
     }
   }
-
   Widget _buildBasicInfoStep() {
     return FormBuilder(
       key: _formKeys[0],
@@ -183,7 +198,10 @@ class _SignInState extends State<SignIn> {
             const SizedBox(height: 4.5),
             _buildTextField('Full Name', 'fullName', Icons.person, false),
             const SizedBox(height: 10.0),
-            _buildTextField('Username', 'username', Icons.account_circle,false),
+            // Nuevo campo para ID Card
+            _buildTextField('ID Card', 'idCard', Icons.credit_card, false),
+            const SizedBox(height: 10.0),
+            _buildTextField('Username', 'username', Icons.account_circle, false),
             const SizedBox(height: 10.0),
             _buildGenderDropdown(),
             const SizedBox(height: 10.0),
@@ -199,7 +217,6 @@ class _SignInState extends State<SignIn> {
       ),
     );
   }
-
   Widget _buildAddressInfoStep() {
     return FormBuilder(
       key: _formKeys[1],
@@ -218,21 +235,6 @@ class _SignInState extends State<SignIn> {
       ),
     );
   }
-
-  List<String> _getTop50Countries() {
-    return [
-      'China', 'India', 'United States', 'Indonesia', 'Pakistan',
-      'Brazil', 'Nigeria', 'Bangladesh', 'Russia', 'Mexico',
-      'Japan', 'Ethiopia', 'Philippines', 'Egypt', 'Vietnam',
-      'DR Congo', 'Turkey', 'Iran', 'Germany', 'Thailand',
-      'United Kingdom', 'France', 'Italy', 'Tanzania', 'South Africa',
-      'Myanmar', 'Kenya', 'South Korea', 'Colombia', 'Spain',
-      // ... y 20 países más hasta completar 50 ...
-    ];
-  }
-
-  String _selectedCountry = '';
-
   Widget _buildCountryDropdown() {
     return FormBuilderDropdown(
       name: 'country',
@@ -267,7 +269,6 @@ class _SignInState extends State<SignIn> {
       }).toList(),
     );
   }
-
   Widget _buildCreditCardInfoStep() {
     return CreditCardForm(
       cardNumber: _cardNumberController.text,
@@ -285,7 +286,6 @@ class _SignInState extends State<SignIn> {
       cardHolderValidator: (value) => value != null && value.isNotEmpty ? null : 'Please enter card holder name',
     );
   }
-
   void _onCreditCardModelChange(CreditCardModel creditCardModel) {
     // Actualiza los controladores con el nuevo modelo
     _cardNumberController.text = creditCardModel.cardNumber;
@@ -293,7 +293,6 @@ class _SignInState extends State<SignIn> {
     _cardHolderNameController.text = creditCardModel.cardHolderName;
     _cvvCodeController.text = creditCardModel.cvvCode;
   }
-
   Widget _buildCredentialsStep() {
     return FormBuilder(
       key: _formKeys[3],
@@ -314,7 +313,6 @@ class _SignInState extends State<SignIn> {
       ),
     );
   }
-
   Widget _buildEmailField(String label, String name, IconData icon, bool readonly, {void Function()? onTap, bool isIconEnabled = true}) {
     return FormBuilderTextField(
       readOnly: readonly,
@@ -333,9 +331,16 @@ class _SignInState extends State<SignIn> {
         FormBuilderValidators.required(errorText: 'This field is required'),
         FormBuilderValidators.email(errorText: 'Enter a valid email address'), // Validación de email
       ]),
+      onChanged: (value) {
+        if (value != null && value.isNotEmpty) {
+          final currentForm = _formKeys[_currentStep].currentState;
+          if (currentForm?.fields[name]?.validate() ?? false) {
+            _email = value;
+          }
+        }
+      },
     );
   }
-
   Widget _buildTermsAndConditionsCheckbox() {
     return FormBuilderCheckbox(
       name: 'acceptTerms',
@@ -373,7 +378,6 @@ class _SignInState extends State<SignIn> {
       ),
     );
   }
-
   Widget _buildTextField(String label, String name, IconData icon, bool readonly,{bool obscureText = false, void Function()? onTap}) {
     return FormBuilderTextField(
       readOnly: readonly,
@@ -393,7 +397,6 @@ class _SignInState extends State<SignIn> {
       ),
     );
   }
-
   Widget _buildPasswordField(String label, String name, IconData icon, bool readonly, GlobalKey<FormBuilderState> formKey, {bool obscureText = true, void Function()? onTap}) {
     return FormBuilderTextField(
       readOnly: readonly,
@@ -413,8 +416,10 @@ class _SignInState extends State<SignIn> {
           return 'This field is required';
         }
         if (name == 'confirmPassword') {
-          final passwordValue = formKey.currentState?.fields['password']?.value;
-          if (val != passwordValue) {
+          final passwordBytes = utf8.encode(formKey.currentState?.fields['password']?.value.trim());
+          final hashedPassword = sha256.convert(passwordBytes);
+           _password = hashedPassword.toString();
+          if (val != formKey.currentState?.fields['password']?.value.trim()) {
             return 'Passwords not matching';
           }
         }
@@ -422,7 +427,6 @@ class _SignInState extends State<SignIn> {
       },
     );
   }
-
   Widget _buildGenderDropdown() {
     return FormBuilderDropdown(
       name: 'gender',
@@ -469,7 +473,6 @@ class _SignInState extends State<SignIn> {
       )).toList(),
     );
   }
-
   // Unused
   Widget _buildNumericField(String label, String name, IconData icon, bool readonly, {bool obscureText = false, void Function()? onTap, bool isIconEnabled = true}) {
     return FormBuilderTextField(

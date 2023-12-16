@@ -67,7 +67,7 @@ class AuthService {
         'country': country,
         'gender': gender,
         'email': email,
-        'birthday': birthday.toIso8601String(),
+        'birthday': birthday.toUtc().toIso8601String(),
         'creditCard': creditCard,
         'username': username,
       };
@@ -75,8 +75,8 @@ class AuthService {
       bool certificateCheck(X509Certificate cert, String host, int port) => true;
       HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
 
-      final HttpClientRequest request = await client.postUrl(Uri.parse('$API_URL/Register'));
-      request.headers.set('Content-Type', 'application/json');
+      final HttpClientRequest request = await client.postUrl(Uri.parse('$API_URL/SignIn'));
+      request.headers.set('Content-Type', 'application/json; charset=utf-8');
       request.write(jsonEncode(data));
 
       final HttpClientResponse response = await request.close();
@@ -90,14 +90,16 @@ class AuthService {
         final String message = decodedBody['message'];
         return {'success': false, 'message': message};
       }
-    } catch (e) {
-      if (e.runtimeType == TimeoutException) {
+    } on SocketException catch (e) {
+
+      if (e.osError?.errorCode == 111) { //Connection Refused
         return {'success': false, 'message': "Server not responding. Try again later"};
       }
-      if (e.runtimeType == SocketException) {
+      if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
         return {'success': false, 'message': "Can't connect. Check your internet connection"};
       }
       return {'success': false, 'message': '$e'};
+
     }
   }
 
