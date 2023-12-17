@@ -68,8 +68,21 @@ class _SignInState extends State<SignIn> {
     _address = addressInfoForm.fields['address']?.value ?? '';
     _country = addressInfoForm.fields['country']?.value ?? '';
     _gender = basicInfoForm.fields['gender']?.value ?? '';
-    _birthday = DateTime.tryParse(basicInfoForm.fields['birthday']?.value) ?? DateTime.now();
     _username = basicInfoForm.fields['username']?.value ?? '';
+
+    String? birthdayString = basicInfoForm.fields['birthday']?.value;
+    if (birthdayString != null && birthdayString.isNotEmpty) {
+      List<String> parts = birthdayString.split('-');
+      if (parts.length == 3) {
+        String day = parts[0].length == 1 ? '0' + parts[0] : parts[0];
+        String month = parts[1].length == 1 ? '0' + parts[1] : parts[1];
+        String year = parts[2];
+        String formattedBirthday = '$year-$month-$day';
+        _birthday = DateTime.tryParse(formattedBirthday) ?? DateTime.now();
+      }
+    } else {
+      _birthday = DateTime.now();
+    }
   }
   void _onStepTapped(int step) {
     setState(() => _currentStep = step);
@@ -174,7 +187,6 @@ class _SignInState extends State<SignIn> {
   }
   Future<void> _selectDate(BuildContext context) async {
     DateTime today = DateTime.now();
-
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime(today.year - 18, today.month, today.day),

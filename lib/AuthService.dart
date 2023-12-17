@@ -123,6 +123,8 @@ class AuthService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedBody = jsonDecode(await response.transform(utf8.decoder).join());
         final String message = decodedBody['message'];
+        final String token = decodedBody['userId'];
+        await _storage.write(key: 'sessionToken', value: token);
         return {'success': true, 'message': message};
       } else {
         final Map<String, dynamic> decodedBody = jsonDecode(await response.transform(utf8.decoder).join());

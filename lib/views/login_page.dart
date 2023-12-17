@@ -164,7 +164,7 @@ class LoginForm extends StatefulWidget {
                       Navigator.of(context).pop();
 
                       if (result['success']) {
-                        Helpers().logInPopDialog("Welcome", _usernameController.text.trim(), context);
+                        Helpers().logInPopDialog("Welcome", _usernameController.text.trim(),context);
                       } else {
                         Helpers().popDialog("Oops...", "${result['message']}" , context);
                       }
@@ -185,8 +185,6 @@ class LoginForm extends StatefulWidget {
                 const SizedBox(width: 16.0),
                 ElevatedButton(
                   onPressed: () {
-
-                      // Helpers().unimplementedAction("Register()",context);
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const SignIn()),

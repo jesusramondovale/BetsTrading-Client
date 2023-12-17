@@ -7,6 +7,8 @@ import 'AuthService.dart';
 
 class Helpers {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   void unimplementedAction(String action, BuildContext aContext) {
     showDialog(
       context: aContext,
@@ -70,10 +72,7 @@ class Helpers {
               onPressed: () async {
                 String? id = await _storage.read(key: 'sessionToken');
                 await AuthService().getUserInfo(id!);
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const MainMenuPage()),
-                      (Route<dynamic> route) => false,
-                );
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
               },
               child: const Text("Ok"),
             ),
