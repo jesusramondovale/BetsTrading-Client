@@ -41,6 +41,9 @@ dependencies:
   flutter_credit_card: ^4.0.1
   country_flags: ^2.2.0
   crypto: ^3.0.3
+  flutter_secure_storage: ^9.0.0
+  intl: ^0.18.1
+  country_codes: ^2.2.0
 
 dev_dependencies:
   flutter_test:

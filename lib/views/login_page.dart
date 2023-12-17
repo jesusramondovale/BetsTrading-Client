@@ -1,12 +1,12 @@
-import 'dart:convert';
+// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
 
-import 'package:client_0_0_1/main.dart';
+import 'dart:convert';
 import 'package:client_0_0_1/helpers.dart';
 import 'package:client_0_0_1/AuthService.dart';
 import 'package:client_0_0_1/views/signin_page.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter/services.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -15,18 +15,12 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      extendBodyBehindAppBar: false,  // Permite que el fondo se extienda detrás de la AppBar
+      extendBodyBehindAppBar: false,
       appBar: AppBar(
         scrolledUnderElevation: 0.0,
         backgroundColor: Colors.white,
-        title: const Text('Log In'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(2.0),
-          child: Container(
-            color: Colors.black, // Color de la barra negra
-            height: 1.0, // Altura de la barra negra
-          ), // Altura de la barra negra
-        ),
+        title: const Text(''),
+
       ),
 
       body: Container(
@@ -35,10 +29,10 @@ class LoginPage extends StatelessWidget {
             child: Center(
               child: Container(
                 width: 350,
-                margin: const EdgeInsets.only(top: 100.0, bottom: 20.0),
+                margin: const EdgeInsets.only(top: 80.0, bottom: 20.0),
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(1), // Agrega opacidad para que la imagen se vea debajo
+                  color: Colors.white.withOpacity(1),
                   borderRadius: BorderRadius.circular(15.0),
                   boxShadow: [
                     BoxShadow(
@@ -170,7 +164,7 @@ class LoginForm extends StatefulWidget {
                       Navigator.of(context).pop();
 
                       if (result['success']) {
-                        Helpers().logInPopDialog("Welcome", "Log-In success!" , _usernameController.text.trim(), context);
+                        Helpers().logInPopDialog("Welcome", _usernameController.text.trim(), context);
                       } else {
                         Helpers().popDialog("Oops...", "${result['message']}" , context);
                       }
@@ -219,7 +213,7 @@ class LoginForm extends StatefulWidget {
               children : [
                 TextButton(
                   onPressed: () {
-                    // TO-DO: Implementar la lógica para la recuperación de contraseña
+                    // TO-DO
                     Helpers().unimplementedAction("ResetPassword()", context);
                   },
                   child: const Text(
@@ -229,10 +223,7 @@ class LoginForm extends StatefulWidget {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const MyHomePage( title: "You're out!")),
-                    );
+                    SystemNavigator.pop();
                   },
                   child: const Text(
                     'Exit',

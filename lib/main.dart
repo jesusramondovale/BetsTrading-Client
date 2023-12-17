@@ -1,15 +1,10 @@
-/*
-  Copyright © 2023 - Jesús Ramón DoVale
+// ignore_for_file: library_private_types_in_public_api
 
-  Licensed under the Android Studio License, Version 2.0 (the "License");
-  you may use this file only in compliance with the License.
-  You may obtain a copy of the License at
-
-*/
-
+import 'package:client_0_0_1/AuthService.dart';
 import 'package:flutter/material.dart';
-import 'package:client_0_0_1/helpers.dart';
 import 'views/login_page.dart';
+import 'views/home_page.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,99 +13,62 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-
-      initialRoute: '/login',
-
+      title: 'Betrader',
       theme: ThemeData(
-
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const LoginPage(),
+      home: const SplashScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title
-  ;
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _SplashScreenState extends State<SplashScreen> {
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
+  @override
+  void initState() {
+    _checkAuthentication();
+    super.initState();
+
+  }
+
+  void _checkAuthentication() async {
+    // Verify if session active
+    bool isLoggedIn = await AuthService().isLoggedIn();
+
+    if (isLoggedIn) {
+      String? id = await _storage.read(key: 'sessionToken');
+      await AuthService().getUserInfo(id!);
+      _navigateToHome();
+    } else {
+      _navigateToLogin();
+    }
+  }
+
+  void _navigateToHome() {
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
+  }
+
+  void _navigateToLogin() {
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginPage()));
+  }
 
   @override
   Widget build(BuildContext context) {
-
-    return Scaffold(
-      appBar: AppBar(
-        scrolledUnderElevation: 0.0,
-        backgroundColor: Colors.white,
-        title: Text(widget.title),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(2.0),
-          child: Container(
-            color: Colors.black,
-            height: 1.0,
-          ),
-        ),
-      ),
+    return const Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Image.asset(
-              'assets/logo.png',
-              width: 350,
-
-              fit: BoxFit.cover,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Ubica los botones en el centro
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            margin: const EdgeInsets.fromLTRB(20,0,0,0),
-            child: FloatingActionButton(
-              onPressed: () {
-                Helpers().unimplementedAction("Question()", context);
-              },
-              child: const Icon(Icons.question_mark),
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.fromLTRB(0,0,20,0),
-            child: FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()));
-              },
-              child: const Icon(Icons.person),
-            ),
-          ),
-        ],
+        child: CircularProgressIndicator(),
       ),
     );
   }

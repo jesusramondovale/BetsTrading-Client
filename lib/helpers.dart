@@ -1,8 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:client_0_0_1/views/home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:client_0_0_1/main.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'AuthService.dart';
 
 class Helpers {
-
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   void unimplementedAction(String action, BuildContext aContext) {
     showDialog(
       context: aContext,
@@ -52,25 +56,23 @@ class Helpers {
       },
     );
   }
-  void logInPopDialog(String aTitle, String aBody, String aUser, BuildContext aContext) {
+  void logInPopDialog(String aTitle, String aUser, BuildContext aContext) {
     showDialog(
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.black,
           title: Text(
-              aTitle,
+              "$aTitle , $aUser",
               style: const TextStyle(color: Colors.white)),
-          content: Text(
-            aBody,
-            style: const TextStyle(fontSize: 16.0, color: Colors.white),
-          ),
           actions: [
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MyHomePage( title: aUser)),
+              onPressed: () async {
+                String? id = await _storage.read(key: 'sessionToken');
+                await AuthService().getUserInfo(id!);
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const MainMenuPage()),
+                      (Route<dynamic> route) => false,
                 );
               },
               child: const Text("Ok"),
@@ -325,7 +327,94 @@ class Helpers {
       {'name': 'Åland Islands', 'code': 'AX'},
     ];
   }
+  String? getCountryCode(String countryName) {
+    var countries = getTopCountries();
+    for (var country in countries) {
+      if (country['name'] == countryName) {
+        return country['code'];
+      }
+    }
+    return null;
+  }
+  Icon getIconForUserInfo(String key) {
+    switch (key) {
+      case 'fullname':
+        return const Icon(Icons.person);
+      case 'username':
+        return const Icon(Icons.account_circle);
+      case 'email':
+        return const Icon(Icons.email);
+      case 'birthday':
+        return const Icon(Icons.cake);
+      case 'address':
+        return const Icon(Icons.home);
+      case 'country':
+        return const Icon(Icons.flag);
+      case 'lastsession':
+        return const Icon(Icons.access_time);
+      default:
+        return const Icon(Icons.info_outline);
+    }
+  }
+  String capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
+  List<String> getAllGenders(){
+    return <String>[
+      'Masculine',
+      'Feminine',
+      'Non-Binary',
+      'Cisgender',
+      'TDI 1.9',
+      'Autobot',
+      'Genderqueer',
+      'Medabot Type KBT',
+      'Sonic the Hedhehog',
+      'Agender',
+      'Bigender',
+      'Napoleón Bonaparte',
+      'Doraemon',
+      'Transgender',
+      'Transfeminine',
+      'Decepticon',
+      'Transmasculine',
+      'LOL',
+      'Apache Combat Helicopter',
+      'Nigga',
+      'Medabot Type KWG',
+      'SSD Toshiba 512GB',
+      'Neutrois',
+      'Dont fucking know',
+      'Snorlax',
+      // Add more if necessary ...............
+    ];
+  }
+}
 
+class BlankImageWidget extends StatelessWidget {
+  const BlankImageWidget({super.key});
 
-
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(50),
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(
+              width: 300,
+              child: Image.asset('assets/logo.png', fit: BoxFit.contain),
+            ),
+            SizedBox(
+              width: 140,
+              child: Image.asset('assets/coming.png', fit: BoxFit.contain),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

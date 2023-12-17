@@ -1,11 +1,10 @@
-// ignore_for_file: prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_interpolation_to_compose_strings, use_build_context_synchronously, library_private_types_in_public_api
 
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
@@ -62,9 +61,8 @@ class _SignInState extends State<SignIn> {
   void _updateFormData() {
     final basicInfoForm = _formKeys[0].currentState!;
     final addressInfoForm = _formKeys[1].currentState!;
-    final credentialsForm = _formKeys[3].currentState!;
 
-    // Actualizar las variables con los valores de los campos
+
     _idCard = basicInfoForm.fields['idCard']?.value ?? '';
     _fullName = basicInfoForm.fields['fullName']?.value ?? '';
     _address = addressInfoForm.fields['address']?.value ?? '';
@@ -98,7 +96,7 @@ class _SignInState extends State<SignIn> {
         );
 
         if (result['success']) {
-          Helpers().logInPopDialog("Welcome", "Registration successfull!" , _username.trim(), context);
+          Helpers().logInPopDialog("Registration successful!" , _username.trim(), context);
         } else {
           Helpers().popDialog("Oops...", "${result['message']}" , context);
         }
@@ -253,7 +251,7 @@ class _SignInState extends State<SignIn> {
           value: countryMap['name'],
           child: Row(
             children: <Widget>[
-              CountryFlag.fromCountryCode(
+              CountryFlag. fromCountryCode(
                 countryMap['code']!,
                 height: 25,
                 width: 40,
@@ -287,7 +285,6 @@ class _SignInState extends State<SignIn> {
     );
   }
   void _onCreditCardModelChange(CreditCardModel creditCardModel) {
-    // Actualiza los controladores con el nuevo modelo
     _cardNumberController.text = creditCardModel.cardNumber;
     _expiryDateController.text = creditCardModel.expiryDate;
     _cardHolderNameController.text = creditCardModel.cardHolderName;
@@ -326,10 +323,10 @@ class _SignInState extends State<SignIn> {
         contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
       onTap: onTap,
-      keyboardType: TextInputType.emailAddress, // Especifica el tipo de teclado para emails
+      keyboardType: TextInputType.emailAddress,
       validator: FormBuilderValidators.compose([
         FormBuilderValidators.required(errorText: 'This field is required'),
-        FormBuilderValidators.email(errorText: 'Enter a valid email address'), // Validación de email
+        FormBuilderValidators.email(errorText: 'Enter a valid email address'),
       ]),
       onChanged: (value) {
         if (value != null && value.isNotEmpty) {
@@ -439,41 +436,14 @@ class _SignInState extends State<SignIn> {
         contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
       validator: FormBuilderValidators.required(),
-      items: [
-        'Masculine',
-        'Feminine',
-        'Non-Binary',
-        'Cisgender',
-        'TDI 1.9',
-        'Autobot',
-        'Genderqueer',
-        'Medabot Type KBT',
-        'Sonic the Hedhehog',
-        'Agender',
-        'Bigender',
-        'Napoleón Bonaparte',
-        'Doraemon',
-        'Transgender',
-        'Transfeminine',
-        'Decepticon',
-        'Transmasculine',
-        'LOL',
-        'Apache Combat Helicopter',
-        'Nigga',
-        'Medabot Type KWG',
-        'SSD Toshiba 512GB',
-        'Neutrois',
-        'Dont fucking know',
-        'Snorlax',
-
-        // .........
-      ].map((gender) => DropdownMenuItem(
+      items: Helpers().getAllGenders().map((gender) => DropdownMenuItem(
         value: gender,
         child: Text(gender),
       )).toList(),
     );
   }
-  // Unused
+
+  /* Unused
   Widget _buildNumericField(String label, String name, IconData icon, bool readonly, {bool obscureText = false, void Function()? onTap, bool isIconEnabled = true}) {
     return FormBuilderTextField(
       readOnly: readonly,
@@ -488,18 +458,17 @@ class _SignInState extends State<SignIn> {
       ),
       obscureText: obscureText,
       onTap: onTap,
-      keyboardType: TextInputType.number, // Establece el tipo de teclado a numérico
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Acepta solo dígitos
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       validator: FormBuilderValidators.compose([
         FormBuilderValidators.required(errorText: 'This field is required'),
-        FormBuilderValidators.numeric(errorText: 'Please enter a valid number'), // Validación adicional para números
+        FormBuilderValidators.numeric(errorText: 'Please enter a valid number'),
       ]),
     );
-  }
+  } */
 
   @override
   void dispose() {
-    // Limpia los controladores cuando el widget se destruya
     _cardNumberController.dispose();
     _expiryDateController.dispose();
     _cardHolderNameController.dispose();
