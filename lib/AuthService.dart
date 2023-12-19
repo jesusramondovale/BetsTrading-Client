@@ -46,7 +46,7 @@ class AuthService {
       if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
         return {'success': false, 'message': "Can't connect. Check your internet connection"};
       }
-      return {'success': false, 'message': '$e'};
+      return {'success': false, 'message': "Server not responding. Try again later"};
     }
     catch (e){
       return {'success': false, 'message': '$e'};
@@ -84,7 +84,7 @@ class AuthService {
       if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
         return {'success': false, 'message': "Can't connect. Check your internet connection"};
       }
-      return {'success': false, 'message': '$e'};
+      return {'success': false, 'message': "Server not responding. Try again later"};
     }
     catch (e){
       return {'success': false, 'message': '$e'};
@@ -139,7 +139,7 @@ class AuthService {
       if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
         return {'success': false, 'message': "Can't connect. Check your internet connection"};
       }
-      return {'success': false, 'message': '$e'};
+      return {'success': false, 'message': "Server not responding. Try again later"};
 
     }
   }
@@ -237,7 +237,7 @@ class AuthService {
       if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
         return {'success': false, 'message': "Can't connect. Check your internet connection"};
       }
-      return {'success': false, 'message': '$e'};
+      return {'success': false, 'message': "Server not responding. Try again later"};
     }
     catch (e){
       return {'success': false, 'message': '$e'};
