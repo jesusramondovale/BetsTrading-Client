@@ -1,12 +1,13 @@
 // ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
 
 import 'dart:convert';
-import 'package:client_0_0_1/helpers.dart';
-import 'package:client_0_0_1/AuthService.dart';
-import 'package:client_0_0_1/views/signin_page.dart';
+import 'package:client_0_0_1/services/AuthService.dart';
+import 'package:client_0_0_1/ui/signin_page.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import '../helpers/common.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -164,9 +165,9 @@ class LoginForm extends StatefulWidget {
                       Navigator.of(context).pop();
 
                       if (result['success']) {
-                        Helpers().logInPopDialog("Welcome", _usernameController.text.trim(),context);
+                        Common().logInPopDialog("Welcome", _usernameController.text.trim(),context);
                       } else {
-                        Helpers().popDialog("Oops...", "${result['message']}" , context);
+                        Common().popDialog("Oops...", "${result['message']}" , context);
                       }
                     }
                   },
@@ -212,7 +213,7 @@ class LoginForm extends StatefulWidget {
                 TextButton(
                   onPressed: () {
                     // TO-DO
-                    Helpers().unimplementedAction("ResetPassword()", context);
+                    Common().unimplementedAction("ResetPassword()", context);
                   },
                   child: const Text(
                     'Forgot Password?',

@@ -10,8 +10,9 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:country_flags/country_flags.dart';
 
-import 'package:client_0_0_1/AuthService.dart';
-import 'package:client_0_0_1/helpers.dart';
+import 'package:client_0_0_1/services/AuthService.dart';
+
+import '../helpers/common.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -109,9 +110,9 @@ class _SignInState extends State<SignIn> {
         );
 
         if (result['success']) {
-          Helpers().logInPopDialog("Registration successful!" , _username.trim(), context);
+          Common().logInPopDialog("Registration successful!" , _username.trim(), context);
         } else {
-          Helpers().popDialog("Oops...", "${result['message']}" , context);
+          Common().popDialog("Oops...", "${result['message']}" , context);
         }
       }
 
@@ -257,7 +258,7 @@ class _SignInState extends State<SignIn> {
         contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
       validator: FormBuilderValidators.required(),
-      items: Helpers().getTopCountries().map((countryMap) {
+      items: Common().getTopCountries().map((countryMap) {
         return DropdownMenuItem(
           alignment: AlignmentDirectional.center,
           value: countryMap['name'],
@@ -375,7 +376,7 @@ class _SignInState extends State<SignIn> {
                 ..onTap = ()
                 {
                   //TO-DO
-                  Helpers().unimplementedAction("seeTerms()", context);
+                  Common().unimplementedAction("seeTerms()", context);
                 },
             ),
           ],
@@ -448,7 +449,7 @@ class _SignInState extends State<SignIn> {
         contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
       validator: FormBuilderValidators.required(),
-      items: Helpers().getAllGenders().map((gender) => DropdownMenuItem(
+      items: Common().getAllGenders().map((gender) => DropdownMenuItem(
         value: gender,
         child: Text(gender),
       )).toList(),

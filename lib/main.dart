@@ -1,9 +1,9 @@
 // ignore_for_file: library_private_types_in_public_api
 
-import 'package:client_0_0_1/AuthService.dart';
+import '../services/AuthService.dart';
 import 'package:flutter/material.dart';
-import 'views/login_page.dart';
-import 'views/home_page.dart';
+import 'ui/login_page.dart';
+import 'ui/home_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {

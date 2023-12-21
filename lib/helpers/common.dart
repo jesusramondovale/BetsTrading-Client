@@ -1,14 +1,15 @@
-// ignore_for_file: use_build_context_synchronously
+import 'package:candlesticks/candlesticks.dart';
 
-import 'package:client_0_0_1/views/home_page.dart';
+import '../ui/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'AuthService.dart';
+import '../customWidgets/marketWidgets.dart';
+import '../services/AuthService.dart';
+import 'dart:math';
 
-class Helpers {
+class Common {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
   void unimplementedAction(String action, BuildContext aContext) {
     showDialog(
       context: aContext,
@@ -389,7 +390,39 @@ class Helpers {
       // Add more if necessary ...............
     ];
   }
+  List<Candle> generateRandomCandles(int count) {
+    Random random = Random();
+    List<Candle> candlesList = [];
+    DateTime startDate = DateTime.now().subtract(Duration(days: count));
+
+    // Inicializa el primer valor de 'open'
+    double lastClose = 1.065 + random.nextDouble() * (1.10 - 1.065);
+
+    for (int i = 0; i < count; i++) {
+      DateTime date = startDate.add(Duration(days: i));
+      double open = lastClose;
+      double close = 1.065 + random.nextDouble() * (1.10 - 1.065);
+      // Genera porcentajes aleatorios para 'high' y 'low'
+      double highPercentage = 0.005 + random.nextDouble() * 0.015; // Entre 0.5% y 2%
+      double lowPercentage = 0.005 + random.nextDouble() * 0.015; // Entre 0.5% y 2%
+      double high = max(open, close) * (1 + highPercentage);
+      high = min(high, 1.10); // Asegura que no sobrepase el máximo de 1.10
+      double low = min(open, close) * (1 - lowPercentage);
+      low = max(low, 1.065); // Asegura que no sea menor que el mínimo de 1.065
+      double volume = random.nextDouble() * 1000;
+
+      lastClose = close;
+
+      candlesList.add(Candle(date: date, open: open, close: close, high: high, low: low, volume: volume));
+    }
+
+    return candlesList;
+  }
+
+
+
 }
+
 
 class BlankImageWidget extends StatelessWidget {
   const BlankImageWidget({super.key});
@@ -417,3 +450,47 @@ class BlankImageWidget extends StatelessWidget {
     );
   }
 }
+
+class Bar extends StatelessWidget {
+  final double width;
+  final double height;
+  final double centerX;
+  final Paint paint;
+
+  Bar({
+    required this.width,
+    required this.height,
+    required this.centerX,
+    required this.paint,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(width, height),
+      painter: _BarPainter(centerX: centerX, thePaint: paint),
+    );
+  }
+}
+class _BarPainter extends CustomPainter {
+  final double centerX;
+  final Paint thePaint;
+
+  _BarPainter({required this.centerX, required this.thePaint});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Dibuja la barra en el centro X con el ancho y alto definidos
+    canvas.drawRect(
+      Rect.fromLTWH(centerX - size.width / 2, 0, size.width, size.height),
+      thePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
+}
+
+
