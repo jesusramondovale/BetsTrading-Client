@@ -3,7 +3,6 @@ import 'package:candlesticks/candlesticks.dart';
 import '../ui/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../customWidgets/marketWidgets.dart';
 import '../services/AuthService.dart';
 import 'dart:math';
 
@@ -451,46 +450,5 @@ class BlankImageWidget extends StatelessWidget {
   }
 }
 
-class Bar extends StatelessWidget {
-  final double width;
-  final double height;
-  final double centerX;
-  final Paint paint;
-
-  Bar({
-    required this.width,
-    required this.height,
-    required this.centerX,
-    required this.paint,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(width, height),
-      painter: _BarPainter(centerX: centerX, thePaint: paint),
-    );
-  }
-}
-class _BarPainter extends CustomPainter {
-  final double centerX;
-  final Paint thePaint;
-
-  _BarPainter({required this.centerX, required this.thePaint});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Dibuja la barra en el centro X con el ancho y alto definidos
-    canvas.drawRect(
-      Rect.fromLTWH(centerX - size.width / 2, 0, size.width, size.height),
-      thePaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
-}
 
 

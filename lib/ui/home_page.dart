@@ -2,15 +2,10 @@
 
 import '../customWidgets/marketWidgets.dart';
 import '../helpers/common.dart';
-import '../services/AuthService.dart';
 import 'package:client_0_0_1/ui/userinfo_page.dart';
-import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:intl/intl.dart';
 import 'package:candlesticks/candlesticks.dart';
-
-import '../enums/stocks.dart';
 import 'login_page.dart';
 
 class MyApp extends StatelessWidget {
@@ -74,8 +69,15 @@ class _MainMenuPageState extends State<MainMenuPage> {
     _pages = [
       //TODO:
       const BlankImageWidget(),
+
       Center(
-        child: Candlesticks(candles: candlesList),
+        child: Stack(
+          children: <Widget>[
+
+            Candlesticks(candles: candlesList),
+            GridWidget(gridLineSpacing: 0.5, gridLineColor: Colors.grey.withOpacity(0.8)),
+          ],
+        ),
       ),
       const BlankImageWidget(),
       const UserInfoPage(),
