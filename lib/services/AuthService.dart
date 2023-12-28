@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart';
 
 class AuthService {
 
@@ -95,21 +96,23 @@ class AuthService {
 
 
   Future<Map<String, dynamic>> register(String idCard,String fullName,String password,String address,
-      String country,String gender,String email,DateTime birthday,String creditCard,String username,
+      String country,String gender,String email,DateTime birthday,String creditCard,String username,String? profilePic
       ) async {
     try {
-      final Map<String, dynamic> data = {
-        'idCard': idCard,
-        'fullName': fullName,
-        'password': password,
-        'address': address,
-        'country': country,
-        'gender': gender,
-        'email': email,
-        'birthday': birthday.toUtc().toIso8601String(),
-        'creditCard': creditCard,
-        'username': username,
-      };
+      final Map<String,dynamic> data =
+        {
+          'idCard': idCard,
+          'fullName': fullName,
+          'password': password,
+          'address': address,
+          'country': country,
+          'gender': gender,
+          'email': email,
+          'birthday': birthday.toUtc().toIso8601String(),
+          'creditCard': creditCard,
+          'username': username,
+          'profilePic': profilePic
+        };
 
       bool certificateCheck(X509Certificate cert, String host, int port) => true;
       HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
@@ -214,7 +217,9 @@ class AuthService {
         final String birthday = decodedBody['birthday'];
         final String address = decodedBody['address'];
         final String country = decodedBody['country'];
+        final String profilepic = decodedBody['profilepic'];
         final String lastsession = decodedBody['lastsession'];
+
         await _storage.write(key: 'fullname', value: fullname);
         await _storage.write(key: 'username', value: username);
         await _storage.write(key: 'email', value: email);
@@ -222,6 +227,7 @@ class AuthService {
         await _storage.write(key: 'address', value: address);
         await _storage.write(key: 'country', value: country);
         await _storage.write(key: 'lastsession', value: lastsession);
+        await _storage.write(key: 'profilepic', value: profilepic);
 
         return {'success': true, 'message': decodedBody['message']};
       } else {
@@ -241,6 +247,44 @@ class AuthService {
     }
     catch (e){
       return {'success': false, 'message': '$e'};
+    }
+  }
+
+  Future<bool> uploadProfilePic(String? id, String? profilepic) async {
+    try {
+      final Map<String, dynamic> data = {'id': id , 'profilePic': profilepic};
+      bool certificateCheck(X509Certificate cert, String host, int port) => true;
+      HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
+
+      final HttpClientRequest request = await client.postUrl(Uri.parse("$API_URL/UploadPic"));
+      request.headers.set('Content-Type', 'application/json');
+      request.write(jsonEncode(data));
+
+      final HttpClientResponse response = await request.close();
+
+      if (response.statusCode == 200)
+      {
+        _storage.write(key: 'profilepic', value: profilepic);
+        return true;
+
+      }
+      else {
+        return false;
+      }
+
+    }
+    on SocketException catch (e) {
+
+      if (e.osError?.errorCode == 111) { //Connection Refused
+        return false;
+      }
+      if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
+        return false;
+      }
+      return false;
+    }
+    catch (e){
+      return false;
     }
   }
 

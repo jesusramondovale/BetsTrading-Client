@@ -1,10 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:candlesticks/candlesticks.dart';
-
+import 'package:image/image.dart' as img;
 import '../ui/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/AuthService.dart';
 import 'dart:math';
+import 'package:image_picker/image_picker.dart';
 
 class Common {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -417,7 +420,25 @@ class Common {
 
     return candlesList;
   }
+  Future<String> pickImageFromGallery() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
+    if (image != null) {
+      File imageFile = File(image.path);
+      img.Image originalImage = img.decodeImage(await imageFile.readAsBytes())!;
+      if (originalImage.width > 75 || originalImage.height > 75) {
+        img.Image resizedImage = img.copyResize(originalImage, width: 75, height: 75);
+        List<int> resizedImageBytes = img.encodeJpg(resizedImage);
+        return base64Encode(resizedImageBytes);
+      } else {
+        List<int> imageBytes = await imageFile.readAsBytes();
+        return base64Encode(imageBytes);
+      }
+    } else {
+      throw Exception('No image selected.');
+    }
+  }
 
 
 }

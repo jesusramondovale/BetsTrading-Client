@@ -33,13 +33,13 @@ class MainMenuPage extends StatefulWidget {
 
 class _MainMenuPageState extends State<MainMenuPage> {
   int _selectedIndex = 0;
-  List<Candle> candlesList = Common().generateRandomCandles(150);
+  late List<Candle> candlesList = Common().generateRandomCandles(150);
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String _username = '';
 
   final List<String> _titles = [
     'Home',
-    'Markets',
+    'Live Markets',
     'Settings',
     'Profile'
   ];
@@ -108,7 +108,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.auto_graph),
-            label: 'Markets',
+            label: 'Live Markets',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.settings),

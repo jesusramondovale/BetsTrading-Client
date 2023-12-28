@@ -10,7 +10,9 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:country_flags/country_flags.dart';
 
+
 import 'package:client_0_0_1/services/AuthService.dart';
+import 'package:http/http.dart';
 
 import '../helpers/common.dart';
 
@@ -34,6 +36,8 @@ class _SignInState extends State<SignIn> {
   String _email = '';
   DateTime _birthday = DateTime.now();
   String _username = '';
+  String _profilePic = '';
+
 
   final bool _autoValidateCreditCardForm = false;
   int _currentStep = 0;
@@ -62,9 +66,9 @@ class _SignInState extends State<SignIn> {
   void _updateFormData() {
     final basicInfoForm = _formKeys[0].currentState!;
     final addressInfoForm = _formKeys[1].currentState!;
+    final credentialsInfoForm = _formKeys[3].currentState!;
 
-
-    _idCard = basicInfoForm.fields['idCard']?.value ?? '';
+    _idCard = credentialsInfoForm.fields['idCard']?.value ?? '';
     _fullName = basicInfoForm.fields['fullName']?.value ?? '';
     _address = addressInfoForm.fields['address']?.value ?? '';
     _country = addressInfoForm.fields['country']?.value ?? '';
@@ -96,6 +100,7 @@ class _SignInState extends State<SignIn> {
       }
 
       if (_currentStep == 3) {
+        _updateFormData();
         final result = await AuthService().register(
           _idCard,
           _fullName,
@@ -107,6 +112,7 @@ class _SignInState extends State<SignIn> {
           _birthday,
           _cardNumberController.text,
           _username,
+          _profilePic
         );
 
         if (result['success']) {
@@ -209,9 +215,6 @@ class _SignInState extends State<SignIn> {
             const SizedBox(height: 4.5),
             _buildTextField('Full Name', 'fullName', Icons.person, false),
             const SizedBox(height: 10.0),
-            // Nuevo campo para ID Card
-            _buildTextField('ID Card', 'idCard', Icons.credit_card, false),
-            const SizedBox(height: 10.0),
             _buildTextField('Username', 'username', Icons.account_circle, false),
             const SizedBox(height: 10.0),
             _buildGenderDropdown(),
@@ -311,13 +314,14 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4),
+            _buildTextField('ID Card', 'idCard', Icons.credit_card, false),
+            const SizedBox(height: 10.0),
             _buildEmailField('Email', 'email', Icons.email, false),
             const SizedBox(height: 10.0),
             _buildPasswordField('Password', 'password', Icons.lock, false, _formKeys[3], obscureText: true),
             const SizedBox(height: 10.0),
             _buildPasswordField('Confirm Password', 'confirmPassword', Icons.lock, false, _formKeys[3], obscureText: true),
             _buildTermsAndConditionsCheckbox(),
-
           ],
         ),
       ),
@@ -395,6 +399,12 @@ class _SignInState extends State<SignIn> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
+        suffixIcon: name == 'fullName' ? IconButton(
+          icon: const Icon(Icons.camera_alt),
+          onPressed: () async {
+            _profilePic = await Common().pickImageFromGallery();
+          },
+        ) : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),

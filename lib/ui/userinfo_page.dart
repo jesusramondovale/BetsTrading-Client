@@ -1,10 +1,12 @@
+import 'dart:convert';
+
 import '../helpers/common.dart';
 import '../services/AuthService.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
-
+import 'dart:typed_data';
 import 'login_page.dart';
 
 class UserInfoPage extends StatefulWidget {
@@ -16,6 +18,13 @@ class UserInfoPage extends StatefulWidget {
 
 class _UserInfoPageState extends State<UserInfoPage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  Uint8List? _profilePicBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfilePic();
+  }
 
   Future<Map<String, String>> _readUserInfo() async {
     Map<String, String> userInfo = {};
@@ -40,6 +49,15 @@ class _UserInfoPageState extends State<UserInfoPage> {
     return userInfo;
   }
 
+  Future<void> _loadProfilePic() async {
+    String? profilePicBase64 = await _storage.read(key: 'profilepic');
+    if (profilePicBase64 != null && profilePicBase64.isNotEmpty) {
+      setState(() {
+        _profilePicBytes = base64Decode(profilePicBase64);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -52,7 +70,9 @@ class _UserInfoPageState extends State<UserInfoPage> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
-            List<Widget> listItems = snapshot.data!.entries.map((entry) {
+            List<Widget> listItems = [];
+
+            listItems.addAll(snapshot.data!.entries.map((entry) {
               String title = '';
               switch (entry.key) {
                 case "lastsession":
@@ -89,13 +109,40 @@ class _UserInfoPageState extends State<UserInfoPage> {
               } else {
                 subtitle = Text(entry.value);
               }
+              if (entry.key == 'fullname' && _profilePicBytes != null) {
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: MemoryImage(_profilePicBytes!),
+                  ),
+                  title: Text(title),
+                  subtitle: subtitle,
+                  trailing: IconButton(
+                    icon: const Icon(Icons.camera_alt),
+                    onPressed: () async {
+                      //Common().unimplementedAction("UploadImage()", context);
+                      String? sessionToken = await _storage.read(key: 'sessionToken');
+                      bool result = await AuthService().uploadProfilePic(sessionToken, await Common().pickImageFromGallery());
+                      if (result){
+                        _loadProfilePic();
+                        setState(() {
 
-              return ListTile(
-                leading: Common().getIconForUserInfo(entry.key),
-                title: Text(title),
-                subtitle: subtitle,
-              );
-            }).toList();
+                        });
+                        Common().popDialog("Success!", "Profile picture uploaded succefully", context);
+                      }
+                      else{
+                        Common().popDialog("Oops!", "An error has occurred while uploadind the profile pic", context);
+                      }
+                    },
+                  ),
+                );
+              } else {
+                return ListTile(
+                  leading: Common().getIconForUserInfo(entry.key),
+                  title: Text(title),
+                  subtitle: subtitle,
+                );
+              }
+            }).toList());
 
             listItems.add(
               ListTile(
