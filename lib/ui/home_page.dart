@@ -33,7 +33,8 @@ class MainMenuPage extends StatefulWidget {
 
 class _MainMenuPageState extends State<MainMenuPage> {
   int _selectedIndex = 0;
-  late List<Candle> candlesList = Common().generateRandomCandles(150);
+  late List<Candle> candlesList ;
+  late List<Widget> _pages;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String _username = '';
 
@@ -43,7 +44,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
     'Settings',
     'Profile'
   ];
-  late final List<Widget> _pages;
+
 
   void _onItemTapped(int index) {
     setState(() {
@@ -64,16 +65,18 @@ class _MainMenuPageState extends State<MainMenuPage> {
   void initState() {
     super.initState();
     _loadUserInfo();
+    candlesList = Common().generateRandomCandles(150);
 
-    candlesList = Common().generateRandomCandles(150); // Inicialización aquí
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _titles[3] = "Info  |  $_username";
     _pages = [
-      //TODO:
       const BlankImageWidget(),
-
       Center(
         child: Stack(
           children: <Widget>[
-
             Candlesticks(candles: candlesList),
             GridWidget(gridLineSpacing: 0.5, gridLineColor: Colors.grey.withOpacity(0.8)),
           ],
@@ -82,12 +85,6 @@ class _MainMenuPageState extends State<MainMenuPage> {
       const BlankImageWidget(),
       const UserInfoPage(),
     ];
-
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _titles[3] = "Info  |  $_username";
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
