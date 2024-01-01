@@ -1,11 +1,14 @@
 // ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
 
+import 'package:client_0_0_1/locale/localized_texts.dart';
+
 import '../customWidgets/marketWidgets.dart';
 import '../helpers/common.dart';
 import 'package:client_0_0_1/ui/userinfo_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:candlesticks/candlesticks.dart';
+import '../locale/localized_texts.dart';
 import 'login_page.dart';
 
 class MyApp extends StatelessWidget {
@@ -38,12 +41,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String _username = '';
 
-  final List<String> _titles = [
-    'Home',
-    'Live Markets',
-    'Settings',
-    'Profile'
-  ];
+
 
 
   void _onItemTapped(int index) {
@@ -71,7 +69,14 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    _titles[3] = "Info  |  $_username";
+    final strings = LocalizedStrings.of(context);
+    final List<String> titles = [
+      strings?.home ?? "Home",
+      strings?.liveMarkets ?? "Live Markets",
+      strings?.settings ?? 'Settings',
+      strings?.profile ?? 'Profile'
+    ];
+    titles[3] = "Info  |  $_username";
     _pages = [
       const BlankImageWidget(),
       Center(
@@ -89,7 +94,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        title: Text(_titles[_selectedIndex]),
+        title: Text(titles[_selectedIndex]),
       ),
       backgroundColor: Colors.white,
       body: IndexedStack(
@@ -99,17 +104,17 @@ class _MainMenuPageState extends State<MainMenuPage> {
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.black12,
         items: <BottomNavigationBarItem>[
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: strings?.home ?? "Home",
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.auto_graph),
-            label: 'Live Markets',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.auto_graph),
+            label: strings?.liveMarkets ?? 'Live Markets',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.settings),
+            label: strings?.settings ?? 'Settings',
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.account_circle),

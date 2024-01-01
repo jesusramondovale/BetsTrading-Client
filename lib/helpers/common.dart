@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:candlesticks/candlesticks.dart';
+import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:image/image.dart' as img;
 import '../ui/home_page.dart';
 import 'package:flutter/material.dart';
@@ -449,6 +450,7 @@ class BlankImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
     return Container(
       margin: const EdgeInsets.all(50),
       color: Colors.white,
@@ -460,10 +462,7 @@ class BlankImageWidget extends StatelessWidget {
               width: 300,
               child: Image.asset('assets/logo.png', fit: BoxFit.contain),
             ),
-            SizedBox(
-              width: 140,
-              child: Image.asset('assets/coming.png', fit: BoxFit.contain),
-            ),
+            Text(strings?.comingSoon ?? "Coming soon..."),
           ],
         ),
       ),

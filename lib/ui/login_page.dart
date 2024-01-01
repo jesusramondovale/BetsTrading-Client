@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:client_0_0_1/services/AuthService.dart';
 import 'package:client_0_0_1/ui/signin_page.dart';
+import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -66,6 +67,7 @@ class LoginForm extends StatefulWidget {
 
     @override
     Widget build(BuildContext context) {
+      final strings = LocalizedStrings.of(context);
 
       return Form(
         key: _formKey,
@@ -82,7 +84,7 @@ class LoginForm extends StatefulWidget {
             TextFormField(
               controller: _usernameController,
               decoration: InputDecoration(
-                labelText: 'User name',
+                labelText: strings?.username ?? 'User name',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
@@ -90,7 +92,7 @@ class LoginForm extends StatefulWidget {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your user name';
+                  return strings?.pleaseEnterUsername ?? 'Please enter your user name';
                 }
                 return null;
               },
@@ -99,7 +101,7 @@ class LoginForm extends StatefulWidget {
             TextFormField(
               controller: _passwordController,
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: strings?.password ??'Password',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
@@ -108,7 +110,7 @@ class LoginForm extends StatefulWidget {
               obscureText: true,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your password';
+                  return strings?.pleaseEnterPassword ?? 'Please enter your password';
                 }
                 return null;
               },
@@ -125,23 +127,23 @@ class LoginForm extends StatefulWidget {
                         context: context,
                         barrierDismissible: false,
                         builder: (BuildContext context) {
-                          return const Dialog(
+                          return Dialog(
 
                             backgroundColor: Colors.white,
                             child: Padding(
-                              padding: EdgeInsets.all(20.0),
+                              padding: const EdgeInsets.all(20.0),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  CircularProgressIndicator(
+                                  const CircularProgressIndicator(
                                     strokeWidth: 5,
                                     backgroundColor: Colors.blueGrey,
                                     valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
                                   ),
-                                  SizedBox(height: 20),
+                                  const SizedBox(height: 20),
                                   Text(
-                                    "Connecting to BetsTrading ..",
-                                    style: TextStyle(
+                                    strings?.connecting ?? "Connecting ...",
+                                    style: const TextStyle(
                                       color: Colors.blueGrey,
                                       fontSize: 16,
                                     ),
@@ -165,7 +167,7 @@ class LoginForm extends StatefulWidget {
                       Navigator.of(context).pop();
 
                       if (result['success']) {
-                        Common().logInPopDialog("Welcome", _usernameController.text.trim(),context);
+                        Common().logInPopDialog(strings?.welcome ?? "Welcome", _usernameController.text.trim(),context);
                       } else {
                         Common().popDialog("Oops...", "${result['message']}" , context);
                       }
@@ -178,9 +180,9 @@ class LoginForm extends StatefulWidget {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
                   ),
-                  child: const Text(
-                    'Log In',
-                    style: TextStyle(fontSize: 16.0, color: Colors.white),
+                  child: Text(
+                    strings?.logIn ?? 'Log In',
+                    style: const TextStyle(fontSize: 16.0, color: Colors.white),
                   ),
                 ),
                 const SizedBox(width: 16.0),
@@ -199,9 +201,9 @@ class LoginForm extends StatefulWidget {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
                   ),
-                  child: const Text(
-                    'Register',
-                    style: TextStyle(fontSize: 16.0, color: Colors.white),
+                  child: Text(
+                    strings?.signIn ?? 'Register',
+                    style: const TextStyle(fontSize: 16.0, color: Colors.white),
                   ),
                 ),
               ],
@@ -215,18 +217,18 @@ class LoginForm extends StatefulWidget {
                     // TO-DO
                     Common().unimplementedAction("ResetPassword()", context);
                   },
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(color: Colors.blue),
+                  child: Text(
+                    strings?.forgotPassword ?? 'Forgot Password?',
+                    style: const TextStyle(color: Colors.blue),
                   ),
                 ),
                 TextButton(
                   onPressed: () {
                     SystemNavigator.pop();
                   },
-                  child: const Text(
-                    'Exit',
-                    style: TextStyle(color: Colors.blue),
+                  child:  Text(
+                    strings?.exit ?? 'Exit',
+                    style: const TextStyle(color: Colors.blue),
                   ),
                 ),
 

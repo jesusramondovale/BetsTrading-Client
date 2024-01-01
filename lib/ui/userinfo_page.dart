@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:client_0_0_1/locale/localized_texts.dart';
+
 import '../helpers/common.dart';
 import '../services/AuthService.dart';
 import 'package:country_flags/country_flags.dart';
@@ -26,7 +28,8 @@ class _UserInfoPageState extends State<UserInfoPage> {
     _loadProfilePic();
   }
 
-  Future<Map<String, String>> _readUserInfo() async {
+  Future<Map<String, String>> _readUserInfo(context) async {
+    final strings = LocalizedStrings.of(context);
     Map<String, String> userInfo = {};
 
     List<String> keys = [
@@ -44,7 +47,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
         DateTime localDate = utcDate.toLocal();
         value = DateFormat("HH'h'mm (dd-MM-yyyy)").format(localDate);
       }
-      userInfo[key] = value ?? 'Not available';
+      userInfo[key] = value ?? strings?.notAvailable ?? 'Not available';
     }
     return userInfo;
   }
@@ -60,10 +63,11 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
     return Container(
       color: Colors.white,
       child: FutureBuilder<Map<String, String>>(
-        future: _readUserInfo(),
+        future: _readUserInfo(context),
         builder: (BuildContext context, AsyncSnapshot<Map<String, String>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -76,17 +80,27 @@ class _UserInfoPageState extends State<UserInfoPage> {
               String title = '';
               switch (entry.key) {
                 case "lastsession":
-                  title = 'Last Session';
+                  title = strings?.lastSession ?? 'Last Session';
                   break;
                 case "fullname":
-                  title = 'Full Name';
+                  title = strings?.fullName ?? 'Full Name';
                   break;
                 case "username":
-                  title = 'User Name';
+                  title = strings?.username ??'User Name';
                   break;
                 case "email":
-                  title = 'E-mail';
+                  title = strings?.email ?? 'E-mail';
                   break;
+                case "country":
+                  title = strings?.country ?? 'Country';
+                  break;
+                case "address":
+                  title = strings?.address ?? 'Address';
+                  break;
+                case "birthday":
+                  title = strings?.birthday ?? 'Birthday';
+                  break;
+
                 default:
                   title = Common().capitalizeFirstLetter(entry.key.toString());
               }
@@ -127,10 +141,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
                         setState(() {
 
                         });
-                        Common().popDialog("Success!", "Profile picture uploaded succefully", context);
+                        Common().popDialog(strings?.success ?? "Success!", strings?.profilePictureUploadedSuccessfully ?? "Profile picture uploaded succefully", context);
                       }
                       else{
-                        Common().popDialog("Oops!", "An error has occurred while uploadind the profile pic", context);
+                        Common().popDialog("Oops!", strings?.errorUploadingProfilePic ?? "An error has occurred while uploadind the profile pic", context);
                       }
                     },
                   ),
@@ -147,7 +161,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
             listItems.add(
               ListTile(
                 leading: const Icon(Icons.logout),
-                title: const Text('Log Out'),
+                title: Text(strings?.logOut ??'Log Out'),
                 onTap: () async {
                   String? id = await _storage.read(key: 'sessionToken');
                   final response = await AuthService().logOut(id.toString());
@@ -169,7 +183,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
             return ListView(children: listItems);
           } else {
-            return const Center(child: Text('No info available!'));
+            return Center(child: Text(strings?.noInfoAvailable ?? 'No info available!'));
           }
         },
       ),

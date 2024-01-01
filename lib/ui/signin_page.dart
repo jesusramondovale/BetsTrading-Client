@@ -8,11 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
+import '../locale/localized_texts.dart';
 import 'package:country_flags/country_flags.dart';
-
-
 import 'package:client_0_0_1/services/AuthService.dart';
-import 'package:http/http.dart';
 
 import '../helpers/common.dart';
 
@@ -44,9 +42,10 @@ class _SignInState extends State<SignIn> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign In'),
+        title: Text(strings?.signIn ?? 'Sign In'),
         backgroundColor: Colors.white,
       ),
       body: Padding(
@@ -56,14 +55,15 @@ class _SignInState extends State<SignIn> {
             currentStep: _currentStep,
             onStepContinue: _onStepContinue,
             onStepCancel: _onStepCancel,
-            steps: _buildSteps(),
+            steps: _buildSteps(context),
             controlsBuilder: _buildControls,
           ),
       ),
     );
   }
 
-  void _updateFormData() {
+  void _updateFormData(context) {
+    final strings = LocalizedStrings.of(context);
     final basicInfoForm = _formKeys[0].currentState!;
     final addressInfoForm = _formKeys[1].currentState!;
     final credentialsInfoForm = _formKeys[3].currentState!;
@@ -75,7 +75,7 @@ class _SignInState extends State<SignIn> {
     _gender = basicInfoForm.fields['gender']?.value ?? '';
     _username = basicInfoForm.fields['username']?.value ?? '';
 
-    String? birthdayString = basicInfoForm.fields['birthday']?.value;
+    String? birthdayString = strings?.birthday ?? basicInfoForm.fields['birthday']?.value;
     if (birthdayString != null && birthdayString.isNotEmpty) {
       List<String> parts = birthdayString.split('-');
       if (parts.length == 3) {
@@ -96,11 +96,11 @@ class _SignInState extends State<SignIn> {
 
     if (_validateAndSaveCurrentStep()) {
       if (_currentStep == 2) {
-        _updateFormData();
+        _updateFormData(context);
       }
 
       if (_currentStep == 3) {
-        _updateFormData();
+        _updateFormData(context);
         final result = await AuthService().register(
           _idCard,
           _fullName,
@@ -138,37 +138,39 @@ class _SignInState extends State<SignIn> {
       }
     });
   }
-  List<Step> _buildSteps() {
+  List<Step> _buildSteps(context) {
+    final strings = LocalizedStrings.of(context);
     return [
       Step(
-        title: const Text('Personal info'),
-        content: _buildBasicInfoStep(),
+        title: Text(strings?.personalInfo ?? 'Personal info'),
+        content: _buildBasicInfoStep(context),
         isActive: _currentStep == 0,
       ),
       Step(
-        title: const Text('Address'),
-        content: _buildAddressInfoStep(),
+        title: Text(strings?.address ?? 'Address'),
+        content: _buildAddressInfoStep(context),
         isActive: _currentStep == 1,
       ),
       Step(
-        title: const Text('Credit card'),
-        content: _buildCreditCardInfoStep(),
+        title: Text(strings?.creditCard ??'Credit card'),
+        content: _buildCreditCardInfoStep(context),
         isActive: _currentStep == 2,
       ),
       Step(
-        title: const Text('Credentials'),
-        content: _buildCredentialsStep(),
+        title: Text(strings?.credentials ?? 'Credentials'),
+        content: _buildCredentialsStep(context),
         isActive: _currentStep == 3,
       ),
     ];
   }
   Widget _buildControls(BuildContext context, ControlsDetails details) {
+    final strings = LocalizedStrings.of(context);
     return Row(
       children: [
         if (_currentStep > 0)
           TextButton(
             onPressed: details.onStepCancel,
-            child: const Text('Back'),
+            child: Text(strings?.back ?? 'Back'),
           ),
         const SizedBox(width: 8),
         TextButton(
@@ -177,7 +179,8 @@ class _SignInState extends State<SignIn> {
               details.onStepContinue?.call();
             }
           },
-          child: Text(_currentStep == _formKeys.length - 1 ? 'Sign In' : 'Continue'),
+          child: Text(_currentStep == _formKeys.length - 1 ? strings?.signIn ?? 'Sign In' :
+                                                             strings?.continueText ?? 'Continue'),
         ),
       ],
     );
@@ -205,7 +208,8 @@ class _SignInState extends State<SignIn> {
       _formKeys[0].currentState?.fields['birthday']?.didChange(picked.day.toString()+"-"+picked.month.toString()+"-"+picked.year.toString());
     }
   }
-  Widget _buildBasicInfoStep() {
+  Widget _buildBasicInfoStep(context) {
+    final strings = LocalizedStrings.of(context);
     return FormBuilder(
       key: _formKeys[0],
       child: SingleChildScrollView(
@@ -213,14 +217,15 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4.5),
-            _buildTextField('Full Name', 'fullName', Icons.person, false),
+            _buildTextField(context, strings?.fullName ?? 'Full Name', 'fullName', Icons.person, false),
             const SizedBox(height: 10.0),
-            _buildTextField('Username', 'username', Icons.account_circle, false),
+            _buildTextField(context , strings?.username ??'Username', 'username', Icons.account_circle, false),
             const SizedBox(height: 10.0),
             _buildGenderDropdown(),
             const SizedBox(height: 10.0),
             _buildTextField(
-              'Birthday',
+              context,
+              strings?.birthday ?? 'Birthday',
               'birthday',
               Icons.calendar_today,
               true,
@@ -231,7 +236,8 @@ class _SignInState extends State<SignIn> {
       ),
     );
   }
-  Widget _buildAddressInfoStep() {
+  Widget _buildAddressInfoStep(context) {
+    final strings = LocalizedStrings.of(context);
     return FormBuilder(
       key: _formKeys[1],
       child: SingleChildScrollView(
@@ -239,21 +245,22 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4),
-            _buildTextField('Address', 'address', Icons.location_on, false),
+            _buildTextField(context, strings?.address ?? 'Address', 'address', Icons.location_on, false),
             const SizedBox(height: 10.0),
-            _buildTextField('ZIP Code', 'zipCode', Icons.gps_fixed, false),
+            _buildTextField(context , strings?.zipCode ??'ZIP Code', 'zipCode', Icons.gps_fixed, false),
             const SizedBox(height: 10.0),
-            _buildCountryDropdown(),
+            _buildCountryDropdown(context),
           ],
         ),
       ),
     );
   }
-  Widget _buildCountryDropdown() {
+  Widget _buildCountryDropdown(context) {
+    final strings = LocalizedStrings.of(context);
     return FormBuilderDropdown(
       name: 'country',
       decoration: InputDecoration(
-        labelText: 'Country',
+        labelText: strings?.country ?? 'Country',
         prefixIcon: const Icon(Icons.flag),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
@@ -283,7 +290,8 @@ class _SignInState extends State<SignIn> {
       }).toList(),
     );
   }
-  Widget _buildCreditCardInfoStep() {
+  Widget _buildCreditCardInfoStep(context) {
+    final strings = LocalizedStrings.of(context);
     return CreditCardForm(
       cardNumber: _cardNumberController.text,
       expiryDate: _expiryDateController.text,
@@ -294,10 +302,10 @@ class _SignInState extends State<SignIn> {
       obscureCvv: false,
       obscureNumber: false,
       autovalidateMode: _autoValidateCreditCardForm ? AutovalidateMode.always : AutovalidateMode.disabled,
-      cardNumberValidator: (value) => value != null && value.isNotEmpty && value.length == 19 ? null : 'Please enter card number',
-      expiryDateValidator: (value) => value != null && value.isNotEmpty && value.length == 5 ? null : 'Enter a date',
-      cvvValidator: (value) => value != null && value.isNotEmpty && (value.length == 3 || value.length == 4) ? null : 'Please enter CVV',
-      cardHolderValidator: (value) => value != null && value.isNotEmpty ? null : 'Please enter card holder name',
+      cardNumberValidator: (value) => value != null && value.isNotEmpty && value.length == 19 ? null : strings?.pleaseEnterCardNumber ?? 'Please enter card number',
+      expiryDateValidator: (value) => value != null && value.isNotEmpty && value.length == 5 ? null : strings?.enterDate ?? 'Enter a date',
+      cvvValidator: (value) => value != null && value.isNotEmpty && (value.length == 3 || value.length == 4) ? null : strings?.pleaseEnterCVV ?? 'Please enter CVV',
+      cardHolderValidator: (value) => value != null && value.isNotEmpty ? null : strings?.pleaseEnterCardHolderName ?? 'Please enter card holder name',
     );
   }
   void _onCreditCardModelChange(CreditCardModel creditCardModel) {
@@ -306,7 +314,8 @@ class _SignInState extends State<SignIn> {
     _cardHolderNameController.text = creditCardModel.cardHolderName;
     _cvvCodeController.text = creditCardModel.cvvCode;
   }
-  Widget _buildCredentialsStep() {
+  Widget _buildCredentialsStep(context) {
+    final strings = LocalizedStrings.of(context);
     return FormBuilder(
       key: _formKeys[3],
       child: SingleChildScrollView(
@@ -314,20 +323,21 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4),
-            _buildTextField('ID Card', 'idCard', Icons.credit_card, false),
+            _buildTextField(context , strings?.idCard ?? 'ID Card', 'idCard', Icons.credit_card, false),
             const SizedBox(height: 10.0),
-            _buildEmailField('Email', 'email', Icons.email, false),
+            _buildEmailField(context, strings?.email ?? 'Email', 'email', Icons.email, false),
             const SizedBox(height: 10.0),
-            _buildPasswordField('Password', 'password', Icons.lock, false, _formKeys[3], obscureText: true),
+            _buildPasswordField(context, strings?.password ?? 'Password', 'password', Icons.lock, false, _formKeys[3], obscureText: true),
             const SizedBox(height: 10.0),
-            _buildPasswordField('Confirm Password', 'confirmPassword', Icons.lock, false, _formKeys[3], obscureText: true),
-            _buildTermsAndConditionsCheckbox(),
+            _buildPasswordField(context, strings?.confirmPassword ?? 'Confirm Password', 'confirmPassword', Icons.lock, false, _formKeys[3], obscureText: true),
+            _buildTermsAndConditionsCheckbox(context),
           ],
         ),
       ),
     );
   }
-  Widget _buildEmailField(String label, String name, IconData icon, bool readonly, {void Function()? onTap, bool isIconEnabled = true}) {
+  Widget _buildEmailField(context, String label, String name, IconData icon, bool readonly, {void Function()? onTap, bool isIconEnabled = true}) {
+    final strings = LocalizedStrings.of(context);
     return FormBuilderTextField(
       readOnly: readonly,
       name: name,
@@ -342,8 +352,8 @@ class _SignInState extends State<SignIn> {
       onTap: onTap,
       keyboardType: TextInputType.emailAddress,
       validator: FormBuilderValidators.compose([
-        FormBuilderValidators.required(errorText: 'This field is required'),
-        FormBuilderValidators.email(errorText: 'Enter a valid email address'),
+        FormBuilderValidators.required(errorText: strings?.thisFieldIsRequired ?? 'This field is required'),
+        FormBuilderValidators.email(errorText: strings?.enterValidEmail ?? 'Enter a valid email address'),
       ]),
       onChanged: (value) {
         if (value != null && value.isNotEmpty) {
@@ -355,22 +365,23 @@ class _SignInState extends State<SignIn> {
       },
     );
   }
-  Widget _buildTermsAndConditionsCheckbox() {
+  Widget _buildTermsAndConditionsCheckbox(context) {
+    final strings = LocalizedStrings.of(context);
     return FormBuilderCheckbox(
       name: 'acceptTerms',
       initialValue: false,
       title: RichText(
         text: TextSpan(
           children: [
-            const TextSpan(
-              text: 'I accept the ',
-              style: TextStyle(
+            TextSpan(
+              text: strings?.acceptTerms ?? 'I accept the ',
+              style: const TextStyle(
                   color: Colors.black,
                   fontSize: 16
               ),
             ),
             TextSpan(
-              text: 'terms and conditions',
+              text: strings?.termsAndConditions ?? 'terms and conditions',
               style: const TextStyle(
                 fontSize: 16,
                 color: Colors.blue,
@@ -388,11 +399,12 @@ class _SignInState extends State<SignIn> {
       ),
       validator: FormBuilderValidators.equal(
         true,
-        errorText: 'Accept the terms and conditions to continue',
+        errorText: strings?.acceptTermsToContinue?? 'Accept the terms and conditions to continue',
       ),
     );
   }
-  Widget _buildTextField(String label, String name, IconData icon, bool readonly,{bool obscureText = false, void Function()? onTap}) {
+  Widget _buildTextField(context, String label, String name, IconData icon, bool readonly,{bool obscureText = false, void Function()? onTap}) {
+    final strings = LocalizedStrings.of(context);
     return FormBuilderTextField(
       readOnly: readonly,
       name: name,
@@ -413,11 +425,12 @@ class _SignInState extends State<SignIn> {
       obscureText: obscureText,
       onTap: onTap,
       validator: FormBuilderValidators.required(
-        errorText: 'This field is required',
+        errorText: strings?.thisFieldIsRequired ?? 'This field is required',
       ),
     );
   }
-  Widget _buildPasswordField(String label, String name, IconData icon, bool readonly, GlobalKey<FormBuilderState> formKey, {bool obscureText = true, void Function()? onTap}) {
+  Widget _buildPasswordField(context , String label, String name, IconData icon, bool readonly, GlobalKey<FormBuilderState> formKey, {bool obscureText = true, void Function()? onTap}) {
+    final strings = LocalizedStrings.of(context);
     return FormBuilderTextField(
       readOnly: readonly,
       name: name,
@@ -433,14 +446,14 @@ class _SignInState extends State<SignIn> {
       onTap: onTap,
       validator: (val) {
         if (val == null || val.isEmpty) {
-          return 'This field is required';
+          return strings?.thisFieldIsRequired?? 'This field is required';
         }
         if (name == 'confirmPassword') {
           final passwordBytes = utf8.encode(formKey.currentState?.fields['password']?.value.trim());
           final hashedPassword = sha256.convert(passwordBytes);
            _password = hashedPassword.toString();
           if (val != formKey.currentState?.fields['password']?.value.trim()) {
-            return 'Passwords not matching';
+            return strings?.passwordsNotMatching ?? 'Passwords not matching';
           }
         }
         return null;
