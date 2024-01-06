@@ -94,13 +94,26 @@ class _MainMenuPageState extends State<MainMenuPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
+        elevation: 0,
         title: Text(titles[_selectedIndex]),
       ),
       backgroundColor: Colors.white,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
+      body: Column(
+        children: [
+          Container(
+            height: 1.0, // Altura de la línea
+            color: Colors.black45, // Color de la línea
+          ),
+          Expanded(
+            child: IndexedStack(
+              index: _selectedIndex,
+              children: _pages,
+            ),
+          ),
+        ],
       ),
+
+
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.black12,
         items: <BottomNavigationBarItem>[

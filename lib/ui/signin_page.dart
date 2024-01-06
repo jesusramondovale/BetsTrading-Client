@@ -47,18 +47,31 @@ class _SignInState extends State<SignIn> {
       appBar: AppBar(
         title: Text(strings?.signIn ?? 'Sign In'),
         backgroundColor: Colors.white,
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-          child: Stepper(
-            onStepTapped: _onStepTapped,
-            currentStep: _currentStep,
-            onStepContinue: _onStepContinue,
-            onStepCancel: _onStepCancel,
-            steps: _buildSteps(context),
-            controlsBuilder: _buildControls,
+        body: Container(
+            color: Colors.white, // Establece tu color de fondo aquí
+        child: Column(
+            children: [
+              Container(
+                height: 1.0, // Altura de la línea
+                color: Colors.black, // Color de la línea
+               ),
+              Expanded(
+                 child: Padding(
+                 padding: const EdgeInsets.all(16.0),
+                 child: Stepper(
+                          currentStep: _currentStep,
+                          onStepContinue: _onStepContinue,
+                          onStepCancel: _onStepCancel,
+                          steps: _buildSteps(context),
+                          controlsBuilder: _buildControls,
+                        ),
+                 ),
+              ),
+            ],
           ),
-      ),
+        )
     );
   }
 
@@ -88,9 +101,6 @@ class _SignInState extends State<SignIn> {
     } else {
       _birthday = DateTime.now();
     }
-  }
-  void _onStepTapped(int step) {
-    setState(() => _currentStep = step);
   }
   Future<void> _onStepContinue() async {
 
@@ -267,7 +277,7 @@ class _SignInState extends State<SignIn> {
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
-      validator: FormBuilderValidators.required(),
+      validator: FormBuilderValidators.required(errorText: strings?.thisFieldIsRequired ?? "This field is required"),
       items: Common().getTopCountries().map((countryMap) {
         return DropdownMenuItem(
           alignment: AlignmentDirectional.center,
@@ -461,17 +471,18 @@ class _SignInState extends State<SignIn> {
     );
   }
   Widget _buildGenderDropdown() {
+    final strings = LocalizedStrings.of(context);
     return FormBuilderDropdown(
       name: 'gender',
       decoration: InputDecoration(
-        labelText: 'Gender',
+        labelText: strings?.gender ??'Gender',
         prefixIcon: const Icon(Icons.person_outline),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
-      validator: FormBuilderValidators.required(),
+      validator: FormBuilderValidators.required(errorText: strings?.thisFieldIsRequired ?? "This field is required"),
       items: Common().getAllGenders().map((gender) => DropdownMenuItem(
         value: gender,
         child: Text(gender),
