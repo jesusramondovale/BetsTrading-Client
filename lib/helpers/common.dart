@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:candlesticks/candlesticks.dart';
 import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:image/image.dart' as img;
 import '../ui/home_page.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,7 @@ class Common {
         return AlertDialog(
           backgroundColor: Colors.black,
           title: const Text("Unimplemented action",
-              style: TextStyle(color: Colors.white)),
+              style: TextStyle(color: Color(0xFFFFFFFF))),
           content: Text(
             'The requested method $action is not implemented yet. Stay tuned',
             style: const TextStyle(fontSize: 16.0, color: Colors.white),
@@ -440,6 +441,19 @@ class Common {
       throw Exception('No image selected.');
     }
   }
+  List<FlSpot> createRandomSpots(int count) {
+    final random = Random();
+    return List.generate(count, (index) => FlSpot(
+      index.toDouble(),
+      double.parse((random.nextDouble() * 10).toStringAsFixed(2)),
+    ));
+  }
+  bool isBullSpots(List<FlSpot> spots) {
+    if (spots.length < 2) {
+      throw ArgumentError('Need at least two spots to compare.');
+    }
+    return spots.last.y > spots.first.y;
+  }
 
 
 }
@@ -453,7 +467,7 @@ class BlankImageWidget extends StatelessWidget {
     final strings = LocalizedStrings.of(context);
     return Container(
       margin: const EdgeInsets.all(50),
-      color: Colors.white,
+      color: const Color(0xFFFFFFFF),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

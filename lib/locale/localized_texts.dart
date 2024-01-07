@@ -61,6 +61,9 @@ class LocalizedStrings {
       'profilePictureUploadedSuccessfully': 'Profile picture uploaded successfully',
       'errorUploadingProfilePic': 'An error has occurred while uploading the profile pic',
       'noInfoAvailable': 'No info available!',
+      'favs': 'Favourites',
+      'currentBalance': 'Current balance',
+      'mostCommon': 'Most common',
     },
     'es': { // Español
       'home': 'Inicio',
@@ -112,6 +115,9 @@ class LocalizedStrings {
       'profilePictureUploadedSuccessfully': 'Foto de perfil subida con éxito',
       'errorUploadingProfilePic': 'Ha ocurrido un error al subir la foto de perfil',
       'noInfoAvailable': '¡No hay información disponible!',
+      'favs': 'Favoritos',
+      'currentBalance': 'Balance actual',
+      'mostCommon': 'Más comunes',
     },
     'fr': { // Francés
       'home': 'Accueil',
@@ -163,6 +169,9 @@ class LocalizedStrings {
       'profilePictureUploadedSuccessfully': 'Photo de profil téléchargée avec succès',
       'errorUploadingProfilePic': "Une erreur s'est produite lors du téléchargement de la photo de profil",
       'noInfoAvailable': 'Pas d\'info disponible!',
+      'favs': 'Favoris',
+      'currentBalance': 'Solde actuel',
+      'mostCommon': 'Plus courants',
     },
     'it': { // Italiano
       'home': 'Home',
@@ -214,6 +223,9 @@ class LocalizedStrings {
       'profilePictureUploadedSuccessfully': 'Immagine del profilo caricata con successo',
       'errorUploadingProfilePic': "Si è verificato un errore durante il caricamento dell'immagine del profilo",
       'noInfoAvailable': 'Nessuna informazione disponibile!',
+      'favs': 'Preferiti',
+      'currentBalance': 'Saldo attuale',
+      'mostCommon': 'Più comuni',
     },
     'de': { // Alemán
       'home': 'Startseite',
@@ -265,6 +277,9 @@ class LocalizedStrings {
       'profilePictureUploadedSuccessfully': 'Profilbild erfolgreich hochgeladen',
       'errorUploadingProfilePic': 'Beim Hochladen des Profilbildes ist ein Fehler aufgetreten',
       'noInfoAvailable': 'Keine Informationen verfügbar!',
+      'favs': 'Favoriten',
+      'currentBalance': 'Aktueller saldo',
+      'mostCommon': 'Am häufigsten',
     },
   };
 
@@ -320,7 +335,9 @@ class LocalizedStrings {
   String? get profilePictureUploadedSuccessfully => _localizedValues[locale.languageCode]?['profilePictureUploadedSuccessfully'];
   String? get errorUploadingProfilePic => _localizedValues[locale.languageCode]?['errorUploadingProfilePic'];
   String? get noInfoAvailable => _localizedValues[locale.languageCode]?['noInfoAvailable'];
-
+  String? get favs => _localizedValues[locale.languageCode]?['favs'];
+  String? get currentBalance => _localizedValues[locale.languageCode]?['currentBalance'];
+  String? get mostCommon => _localizedValues[locale.languageCode]?['mostCommon'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

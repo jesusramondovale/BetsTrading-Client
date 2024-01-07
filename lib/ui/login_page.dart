@@ -16,11 +16,12 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFFFFFF),
       extendBodyBehindAppBar: false,
       appBar: AppBar(
+        elevation: 0,
         scrolledUnderElevation: 0.0,
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFFFF),
         title: const Text(''),
 
       ),
@@ -129,7 +130,7 @@ class LoginForm extends StatefulWidget {
                         builder: (BuildContext context) {
                           return Dialog(
 
-                            backgroundColor: Colors.white,
+                            backgroundColor: const Color(0xFFFFFFFF),
                             child: Padding(
                               padding: const EdgeInsets.all(20.0),
                               child: Column(

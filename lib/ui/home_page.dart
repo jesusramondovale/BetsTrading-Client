@@ -1,14 +1,13 @@
 // ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
 
 import 'package:client_0_0_1/locale/localized_texts.dart';
-
+import '/ui/stock_home_page.dart';
 import '../customWidgets/marketWidgets.dart';
 import '../helpers/common.dart';
 import 'package:client_0_0_1/ui/userinfo_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:candlesticks/candlesticks.dart';
-import '../locale/localized_texts.dart';
 import 'login_page.dart';
 
 class MyApp extends StatelessWidget {
@@ -19,6 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/login',
       theme: ThemeData(
+        //TODO
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
@@ -78,7 +78,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
     ];
     titles[3] = "Info  |  $_username";
     _pages = [
-      const BlankImageWidget(),
+      const StockMarketHomePage(),
       Center(
         child: Stack(
           children: <Widget>[
@@ -93,16 +93,17 @@ class _MainMenuPageState extends State<MainMenuPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFFFF),
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: Text(titles[_selectedIndex]),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFFFFFF),
       body: Column(
         children: [
           Container(
-            height: 1.0, // Altura de la línea
-            color: Colors.black45, // Color de la línea
+            height: 1.0,
+            color: Colors.black45,
           ),
           Expanded(
             child: IndexedStack(

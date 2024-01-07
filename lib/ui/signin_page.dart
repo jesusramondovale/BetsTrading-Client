@@ -46,16 +46,16 @@ class _SignInState extends State<SignIn> {
     return Scaffold(
       appBar: AppBar(
         title: Text(strings?.signIn ?? 'Sign In'),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFFFF),
         elevation: 0,
       ),
         body: Container(
-            color: Colors.white, // Establece tu color de fondo aquí
+            color: Colors.white,
         child: Column(
             children: [
               Container(
-                height: 1.0, // Altura de la línea
-                color: Colors.black, // Color de la línea
+                height: 1.0,
+                color: Colors.black,
                ),
               Expanded(
                  child: Padding(
