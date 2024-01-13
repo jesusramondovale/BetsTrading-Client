@@ -77,13 +77,35 @@ class LoginForm extends StatefulWidget {
 
               fit: BoxFit.cover,
             ),
+            const Padding(padding: EdgeInsets.all(10.0),),
             TextFormField(
               controller: _usernameController,
               decoration: InputDecoration(
                 labelText: strings?.username ?? 'User name',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
-
+                  borderSide: BorderSide(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
+                    width: 2.0,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
               ),
@@ -94,13 +116,36 @@ class LoginForm extends StatefulWidget {
                 return null;
               },
             ),
+
             const SizedBox(height: 16.0),
             TextFormField(
               controller: _passwordController,
               decoration: InputDecoration(
-                labelText: strings?.password ??'Password',
+                labelText: strings?.password ?? 'Password',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
+                    width: 2.0,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
               ),

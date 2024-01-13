@@ -185,8 +185,6 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   isDark = value;
                   Common().exitPopDialog(strings?.attention ?? "Attention!" , strings?.needToRestart ?? "App must restart", context);
                 });
-
-
               },
             ),
           );

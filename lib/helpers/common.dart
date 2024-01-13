@@ -17,7 +17,7 @@ class Common {
     brightness: Brightness.dark,
     colorScheme: ColorScheme.dark(
       background: Colors.black,
-      onBackground: Colors.transparent.withOpacity(0.5),
+      onBackground: Colors.black54,
       surface: Colors.black,
       onSurface: Colors.white,
     ),
@@ -30,9 +30,9 @@ class Common {
     textTheme: const TextTheme(
       bodyText1: TextStyle(color: Colors.white),
       bodyText2: TextStyle(color: Colors.white),
-      // Defina otros estilos de texto según sea necesario
+
     ),
-    // Otros componentes del tema...
+
   );
 
   final ThemeData themeLight = ThemeData(

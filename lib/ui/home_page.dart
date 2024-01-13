@@ -1,14 +1,15 @@
 // ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
 
 import 'package:client_0_0_1/locale/localized_texts.dart';
-import '/ui/stock_home_page.dart';
 import '../customWidgets/marketWidgets.dart';
-import '../helpers/common.dart';
+
 import 'package:client_0_0_1/ui/userinfo_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:candlesticks/candlesticks.dart';
-import 'home_view.dart';
+
+
+import '../helpers/common.dart';
 import 'investments_home.dart';
 import 'login_page.dart';
 
