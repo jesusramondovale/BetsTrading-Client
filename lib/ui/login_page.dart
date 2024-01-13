@@ -16,41 +16,36 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
       extendBodyBehindAppBar: false,
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0.0,
-        backgroundColor: const Color(0xFFFFFFFF),
         title: const Text(''),
 
       ),
 
-      body: Container(
-        color: Colors.white,
-        child: SingleChildScrollView(
-            child: Center(
-              child: Container(
-                width: 350,
-                margin: const EdgeInsets.only(top: 80.0, bottom: 20.0),
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(1),
-                  borderRadius: BorderRadius.circular(15.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(1),
-                      spreadRadius: 3,
-                      blurRadius: 7,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const LoginForm(),
+      body: SingleChildScrollView(
+          child: Center(
+            child: Container(
+              width: 350,
+              margin: const EdgeInsets.only(top: 80.0, bottom: 20.0),
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15.0),
+                color: Theme.of(context).colorScheme.onBackground,
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).colorScheme.onBackground,
+                    spreadRadius: 3,
+                    blurRadius: 7,
+                    offset: Offset(0, 3),
+                  ),
+                ],
               ),
+              child: const LoginForm(),
             ),
           ),
-      ),
+        ),
     );
   }
 }
@@ -88,6 +83,7 @@ class LoginForm extends StatefulWidget {
                 labelText: strings?.username ?? 'User name',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
+
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
               ),
@@ -129,8 +125,6 @@ class LoginForm extends StatefulWidget {
                         barrierDismissible: false,
                         builder: (BuildContext context) {
                           return Dialog(
-
-                            backgroundColor: const Color(0xFFFFFFFF),
                             child: Padding(
                               padding: const EdgeInsets.all(20.0),
                               child: Column(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:candlesticks/candlesticks.dart';
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import '../ui/home_page.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,50 @@ import 'dart:math';
 import 'package:image_picker/image_picker.dart';
 
 class Common {
+  final ThemeData themeDark = ThemeData(
+    brightness: Brightness.dark,
+    colorScheme: ColorScheme.dark(
+      background: Colors.black,
+      onBackground: Colors.transparent.withOpacity(0.5),
+      surface: Colors.black,
+      onSurface: Colors.white,
+    ),
+    scaffoldBackgroundColor: Colors.black,
+    appBarTheme: const AppBarTheme(
+      color: Colors.black,
+      iconTheme: IconThemeData(color: Colors.white),
+      titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+    ),
+    textTheme: const TextTheme(
+      bodyText1: TextStyle(color: Colors.white),
+      bodyText2: TextStyle(color: Colors.white),
+      // Defina otros estilos de texto según sea necesario
+    ),
+    // Otros componentes del tema...
+  );
+
+  final ThemeData themeLight = ThemeData(
+    brightness: Brightness.light,
+    colorScheme: ColorScheme.light(
+      background: Colors.white,
+      onBackground: Colors.grey.withOpacity(0.5),
+      surface: Colors.white,
+      onSurface: Colors.black,
+    ),
+    scaffoldBackgroundColor: Colors.white,
+    appBarTheme: const AppBarTheme(
+      color: Colors.white,
+      iconTheme: IconThemeData(color: Colors.black),
+      titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
+    ),
+    textTheme: const TextTheme(
+      bodyText1: TextStyle(color: Colors.black),
+      bodyText2: TextStyle(color: Colors.black),
+      // Defina otros estilos de texto según sea necesario
+    ),
+    // Otros componentes del tema...
+  );
+
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   void unimplementedAction(String action, BuildContext aContext) {
@@ -63,6 +108,36 @@ class Common {
       },
     );
   }
+  void exitPopDialog(String aTitle, String aBody, BuildContext aContext) {
+    showDialog(
+      context: aContext,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black,
+          title: Text(
+              aTitle,
+              style: const TextStyle(color: Colors.white)),
+          content: Text(
+            aBody,
+            style: const TextStyle(fontSize: 16.0, color: Colors.white),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                if (Platform.isAndroid) {
+                  SystemNavigator.pop();
+                } else if (Platform.isIOS) {
+                  exit(0);
+                }
+              },
+              child: const Text("Ok"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void logInPopDialog(String aTitle, String aUser, BuildContext aContext) {
     showDialog(
       context: aContext,
@@ -467,7 +542,6 @@ class BlankImageWidget extends StatelessWidget {
     final strings = LocalizedStrings.of(context);
     return Container(
       margin: const EdgeInsets.all(50),
-      color: const Color(0xFFFFFFFF),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

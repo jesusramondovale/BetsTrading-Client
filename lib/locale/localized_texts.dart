@@ -64,6 +64,11 @@ class LocalizedStrings {
       'favs': 'Favourites',
       'currentBalance': 'Current balance',
       'mostCommon': 'Most common',
+      'wallet': 'My Wallet',
+      'recentBets': 'Recent bets',
+      'darkMode': 'Dark mode',
+      'attention': 'Attention!',
+      'needToRestart': 'The application needs to be restarted. Please enter again'
     },
     'es': { // Español
       'home': 'Inicio',
@@ -118,6 +123,11 @@ class LocalizedStrings {
       'favs': 'Favoritos',
       'currentBalance': 'Balance actual',
       'mostCommon': 'Más comunes',
+      'wallet': 'Mi cartera',
+      'recentBets': 'Apuestas recientes',
+      'darkMode': 'Modo oscuro',
+      'attention': 'Atención!',
+      'needToRestart': 'La aplicación debe reiniciarse. Entre de nuevo'
     },
     'fr': { // Francés
       'home': 'Accueil',
@@ -172,6 +182,11 @@ class LocalizedStrings {
       'favs': 'Favoris',
       'currentBalance': 'Solde actuel',
       'mostCommon': 'Plus courants',
+      'wallet': 'Mon Portefeuille',
+      'recentBets': 'Paris Récents',
+      'darkMode': 'Mode Sombre',
+      'attention': 'Attention',
+      'needToRestart' : "L'application doit être redémarrée. Entrez à nouveau"
     },
     'it': { // Italiano
       'home': 'Home',
@@ -226,6 +241,11 @@ class LocalizedStrings {
       'favs': 'Preferiti',
       'currentBalance': 'Saldo attuale',
       'mostCommon': 'Più comuni',
+      'wallet': 'Il Mio Portafoglio',
+      'recentBets': 'Scommesse Recenti',
+      'darkMode': 'Modalità Scuro',
+      'attention': 'Attenzione!',
+      'needToRestart' : "L'applicazione deve essere riavviata. Entra di nuovo"
     },
     'de': { // Alemán
       'home': 'Startseite',
@@ -280,6 +300,11 @@ class LocalizedStrings {
       'favs': 'Favoriten',
       'currentBalance': 'Aktueller saldo',
       'mostCommon': 'Am häufigsten',
+      'wallet': 'Mein Geldbeutel',
+      'recentBets': 'Letzte Wetten',
+      'darkMode': 'Dunkler Modus',
+      'attention': 'Achtung',
+      'needToRestart' : 'Die Anwendung muss neu gestartet werden. Treten Sie erneut ein'
     },
   };
 
@@ -338,6 +363,12 @@ class LocalizedStrings {
   String? get favs => _localizedValues[locale.languageCode]?['favs'];
   String? get currentBalance => _localizedValues[locale.languageCode]?['currentBalance'];
   String? get mostCommon => _localizedValues[locale.languageCode]?['mostCommon'];
+  String? get wallet => _localizedValues[locale.languageCode]?['wallet'];
+  String? get recentBets => _localizedValues[locale.languageCode]?['recentBets'];
+  String? get darkMode => _localizedValues[locale.languageCode]?['darkMode'];
+  String? get attention => _localizedValues[locale.languageCode]?['attention'];
+  String? get needToRestart => _localizedValues[locale.languageCode]?['needToRestart'];
+
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

@@ -8,21 +8,19 @@ import 'package:client_0_0_1/ui/userinfo_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:candlesticks/candlesticks.dart';
+import 'home_view.dart';
+import 'investments_home.dart';
 import 'login_page.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+
+    return const MaterialApp(
       initialRoute: '/login',
-      theme: ThemeData(
-        //TODO
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const LoginPage(),
+      home: LoginPage(),
     );
   }
 }
@@ -40,8 +38,6 @@ class _MainMenuPageState extends State<MainMenuPage> {
   late List<Widget> _pages;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String _username = '';
-
-
 
 
   void _onItemTapped(int index) {
@@ -69,6 +65,8 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
   @override
   Widget build(BuildContext context) {
+
+
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
       strings?.home ?? "Home",
@@ -78,7 +76,8 @@ class _MainMenuPageState extends State<MainMenuPage> {
     ];
     titles[3] = "Info  |  $_username";
     _pages = [
-      const StockMarketHomePage(),
+
+      InvestmentScreen(),
       Center(
         child: Stack(
           children: <Widget>[
@@ -88,17 +87,16 @@ class _MainMenuPageState extends State<MainMenuPage> {
         ),
       ),
       const BlankImageWidget(),
-      const UserInfoPage(),
+      const UserInfoPage()
+
     ];
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFFFFFFFF),
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Text(titles[_selectedIndex]),
       ),
-      backgroundColor: const Color(0xFFFFFFFF),
       body: Column(
         children: [
           Container(
@@ -116,7 +114,6 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
 
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black12,
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: const Icon(Icons.home),
@@ -136,7 +133,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
+        //selectedItemColor: Colors.amber[800],
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
       ),

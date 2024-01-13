@@ -17,7 +17,6 @@ class StockMarketHomePage extends StatelessWidget {
     );
     final strings = LocalizedStrings.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
       body: CustomScrollView(
 
         slivers: <Widget>[

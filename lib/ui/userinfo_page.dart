@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/common.dart';
 import '../services/AuthService.dart';
@@ -21,10 +22,11 @@ class UserInfoPage extends StatefulWidget {
 class _UserInfoPageState extends State<UserInfoPage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Uint8List? _profilePicBytes;
-
+  bool isDark = true;
   @override
   void initState() {
     super.initState();
+    _loadThemePreference();
     _loadProfilePic();
   }
 
@@ -52,6 +54,18 @@ class _UserInfoPageState extends State<UserInfoPage> {
     return userInfo;
   }
 
+  Future<void> _loadThemePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool darkTheme = prefs.getBool('darkTheme') ?? true;
+    setState(() {
+      isDark = darkTheme;
+    });
+  }
+
+  Future<void> _saveThemePreference(bool isDark) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('darkTheme', isDark);
+  }
   Future<void> _loadProfilePic() async {
     String? profilePicBase64 = await _storage.read(key: 'profilepic');
     if (profilePicBase64 != null && profilePicBase64.isNotEmpty) {
@@ -61,132 +75,150 @@ class _UserInfoPageState extends State<UserInfoPage> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
+
     final strings = LocalizedStrings.of(context);
-    return Container(
-      color: Colors.white,
-      child: FutureBuilder<Map<String, String>>(
-        future: _readUserInfo(context),
-        builder: (BuildContext context, AsyncSnapshot<Map<String, String>> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            List<Widget> listItems = [];
+    return FutureBuilder<Map<String, String>>(
+      future: _readUserInfo(context),
+      builder: (BuildContext context, AsyncSnapshot<Map<String, String>> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (snapshot.hasData) {
+          List<Widget> listItems = [];
 
-            listItems.addAll(snapshot.data!.entries.map((entry) {
-              String title = '';
-              switch (entry.key) {
-                case "lastsession":
-                  title = strings?.lastSession ?? 'Last Session';
-                  break;
-                case "fullname":
-                  title = strings?.fullName ?? 'Full Name';
-                  break;
-                case "username":
-                  title = strings?.username ??'User Name';
-                  break;
-                case "email":
-                  title = strings?.email ?? 'E-mail';
-                  break;
-                case "country":
-                  title = strings?.country ?? 'Country';
-                  break;
-                case "address":
-                  title = strings?.address ?? 'Address';
-                  break;
-                case "birthday":
-                  title = strings?.birthday ?? 'Birthday';
-                  break;
+          listItems.addAll(snapshot.data!.entries.map((entry) {
+            String title = '';
+            switch (entry.key) {
+              case "lastsession":
+                title = strings?.lastSession ?? 'Last Session';
+                break;
+              case "fullname":
+                title = strings?.fullName ?? 'Full Name';
+                break;
+              case "username":
+                title = strings?.username ??'User Name';
+                break;
+              case "email":
+                title = strings?.email ?? 'E-mail';
+                break;
+              case "country":
+                title = strings?.country ?? 'Country';
+                break;
+              case "address":
+                title = strings?.address ?? 'Address';
+                break;
+              case "birthday":
+                title = strings?.birthday ?? 'Birthday';
+                break;
 
-                default:
-                  title = Common().capitalizeFirstLetter(entry.key.toString());
-              }
+              default:
+                title = Common().capitalizeFirstLetter(entry.key.toString());
+            }
 
-              Widget subtitle;
-              if (entry.key == 'country') {
-                subtitle = Row(
-                  children: [
-                    Text(entry.value),
-                    const SizedBox(width: 8),
+            Widget subtitle;
+            if (entry.key == 'country') {
+              subtitle = Row(
+                children: [
+                  Text(entry.value),
+                  const SizedBox(width: 8),
 
-                    CountryFlag.fromCountryCode(
-                      Common().getCountryCode(entry.value).toString(),
-                      height: 18,
-                      width: 25,
-                      borderRadius: 5,
-                    ),
-                  ],
-                );
-              } else {
-                subtitle = Text(entry.value);
-              }
-              if (entry.key == 'fullname' && _profilePicBytes != null) {
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: MemoryImage(_profilePicBytes!),
+                  CountryFlag.fromCountryCode(
+                    Common().getCountryCode(entry.value).toString(),
+                    height: 18,
+                    width: 25,
+                    borderRadius: 5,
                   ),
-                  title: Text(title),
-                  subtitle: subtitle,
-                  trailing: IconButton(
-                    icon: const Icon(Icons.camera_alt),
-                    onPressed: () async {
-                      //Common().unimplementedAction("UploadImage()", context);
-                      String? sessionToken = await _storage.read(key: 'sessionToken');
-                      bool result = await AuthService().uploadProfilePic(sessionToken, await Common().pickImageFromGallery());
-                      if (result){
-                        _loadProfilePic();
-                        setState(() {
-
-                        });
+                ],
+              );
+            } else {
+              subtitle = Text(entry.value);
+            }
+            if (entry.key == 'fullname' && _profilePicBytes != null) {
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: MemoryImage(_profilePicBytes!),
+                ),
+                title: Text(title),
+                subtitle: subtitle,
+                trailing: IconButton(
+                  icon: const Icon(Icons.camera_alt),
+                  onPressed: () async {
+                    //Common().unimplementedAction("UploadImage()", context);
+                    String? sessionToken = await _storage.read(key: 'sessionToken');
+                    bool result = await AuthService().uploadProfilePic(sessionToken, await Common().pickImageFromGallery());
+                    if (result){
+                      _loadProfilePic();
+                      setState(() {
                         Common().popDialog(strings?.success ?? "Success!", strings?.profilePictureUploadedSuccessfully ?? "Profile picture uploaded successfully", context);
-                      }
-                      else{
+                      });
+
+                    }
+                    else{
+                      setState(() {
                         Common().popDialog("Oops!", strings?.errorUploadingProfilePic ?? "An error has occurred while uploading the profile pic", context);
-                      }
-                    },
-                  ),
-                );
-              } else {
-                return ListTile(
-                  leading: Common().getIconForUserInfo(entry.key),
-                  title: Text(title),
-                  subtitle: subtitle,
-                );
-              }
-            }).toList());
+                      });
 
-            listItems.add(
-              ListTile(
-                leading: const Icon(Icons.logout),
-                title: Text(strings?.logOut ??'Log Out'),
-                onTap: () async {
-                  String? id = await _storage.read(key: 'sessionToken');
-                  final response = await AuthService().logOut(id.toString());
-                  if (response['success'])
-                  {
-                    await _storage.deleteAll();
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                          (Route<dynamic> route) => false,
-                    );
-                  } else
-                  {
-                    Common().popDialog("Oops...", "${response['message']}" , context);
-                  }
+                    }
+                  },
+                ),
+              );
+            } else {
+              return ListTile(
+                leading: Common().getIconForUserInfo(entry.key),
+                title: Text(title),
+                subtitle: subtitle,
+              );
+            }
+          }).toList());
 
-                },
-              ),
-            );
+          listItems.add(
+            SwitchListTile(
+              title: Text(strings?.darkMode ?? "Dark mode"),
+              value: isDark,
+              onChanged: (bool value) async {
+                await _saveThemePreference(value);
+                setState(() {
+                  isDark = value;
+                  Common().exitPopDialog(strings?.attention ?? "Attention!" , strings?.needToRestart ?? "App must restart", context);
+                });
 
-            return ListView(children: listItems);
-          } else {
-            return Center(child: Text(strings?.noInfoAvailable ?? 'No info available!'));
-          }
-        },
-      ),
+
+              },
+            ),
+          );
+          listItems.add(
+
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: Text(strings?.logOut ??'Log Out'),
+              onTap: () async {
+                String? id = await _storage.read(key: 'sessionToken');
+                final response = await AuthService().logOut(id.toString());
+                if (response['success'])
+                {
+                  await _storage.deleteAll();
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                        (Route<dynamic> route) => false,
+                  );
+                } else
+                {
+                  Common().popDialog("Oops...", "${response['message']}" , context);
+                }
+
+              },
+            ),
+          );
+
+          return ListView(children: listItems);
+        } else {
+          return Center(child: Text(strings?.noInfoAvailable ?? 'No info available!'));
+        }
+      },
     );
   }
 

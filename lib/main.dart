@@ -1,21 +1,39 @@
 import '../services/AuthService.dart';
 import 'package:flutter/material.dart';
+import 'helpers/common.dart';
 import 'locale/localized_texts.dart';
 import 'ui/login_page.dart';
 import 'ui/home_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+
+
+Future<void> main() async {
+
+
+  Future<bool> loadThemePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('darkTheme') ?? true;
+  }
+
+  WidgetsFlutterBinding.ensureInitialized();
+  bool isDark = await loadThemePreference();
+  runApp(MyApp(isDarkTheme: isDark));
+
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isDarkTheme;
+  MyApp({super.key, required this.isDarkTheme});
+
 
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
+      theme: isDarkTheme ? Common().themeDark : Common().themeLight,
       title: 'Betrader',
       supportedLocales: const [
         Locale('en', ''),
@@ -30,10 +48,7 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
         LocalizedStringsDelegate(),
       ],
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+
       home: const SplashScreen(),
     );
   }
