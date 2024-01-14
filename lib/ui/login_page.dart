@@ -38,7 +38,7 @@ class LoginPage extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onBackground,
                     spreadRadius: 3,
                     blurRadius: 7,
-                    offset: Offset(0, 3),
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),

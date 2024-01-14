@@ -48,8 +48,7 @@ class _SignInState extends State<SignIn> {
         title: Text(strings?.signIn ?? 'Sign In'),
         elevation: 0,
       ),
-        body: Container(
-        child: Column(
+        body: Column(
             children: [
               Container(
                 height: 1.0,
@@ -68,8 +67,7 @@ class _SignInState extends State<SignIn> {
                  ),
               ),
             ],
-          ),
-        )
+          )
     );
   }
 

@@ -199,13 +199,18 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 if (response['success'])
                 {
                   await _storage.deleteAll();
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                        (Route<dynamic> route) => false,
-                  );
+                  setState(() {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                          (Route<dynamic> route) => false,
+                    );
+                  });
                 } else
                 {
-                  Common().popDialog("Oops...", "${response['message']}" , context);
+                  setState(() {
+                    Common().popDialog("Oops...", "${response['message']}" , context);
+                  });
+
                 }
 
               },

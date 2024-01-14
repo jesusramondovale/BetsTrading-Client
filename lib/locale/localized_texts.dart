@@ -64,8 +64,9 @@ class LocalizedStrings {
       'favs': 'Favourites',
       'currentBalance': 'Current balance',
       'mostCommon': 'Most common',
-      'wallet': 'My Wallet',
+      'totalBet': 'Total bets',
       'recentBets': 'Recent bets',
+      'liveBets': 'Live bets',
       'darkMode': 'Dark mode',
       'attention': 'Attention!',
       'needToRestart': 'The application needs to be restarted. Please enter again'
@@ -123,8 +124,9 @@ class LocalizedStrings {
       'favs': 'Favoritos',
       'currentBalance': 'Balance actual',
       'mostCommon': 'Más comunes',
-      'wallet': 'Mi cartera',
+      'totalBet': 'Movimientos totales',
       'recentBets': 'Apuestas recientes',
+      'liveBets': 'Apuestas en directo',
       'darkMode': 'Modo oscuro',
       'attention': 'Atención!',
       'needToRestart': 'La aplicación debe reiniciarse. Entre de nuevo'
@@ -182,8 +184,9 @@ class LocalizedStrings {
       'favs': 'Favoris',
       'currentBalance': 'Solde actuel',
       'mostCommon': 'Plus courants',
-      'wallet': 'Mon Portefeuille',
+      'totalBet': 'Montant Total',
       'recentBets': 'Paris Récents',
+      'liveBets': 'Paris en direct',
       'darkMode': 'Mode Sombre',
       'attention': 'Attention',
       'needToRestart' : "L'application doit être redémarrée. Entrez à nouveau"
@@ -241,8 +244,9 @@ class LocalizedStrings {
       'favs': 'Preferiti',
       'currentBalance': 'Saldo attuale',
       'mostCommon': 'Più comuni',
-      'wallet': 'Il Mio Portafoglio',
+      'totalBet': 'Totale Scommesso',
       'recentBets': 'Scommesse Recenti',
+      'liveBets': 'Scommesse live',
       'darkMode': 'Modalità Scuro',
       'attention': 'Attenzione!',
       'needToRestart' : "L'applicazione deve essere riavviata. Entra di nuovo"
@@ -300,7 +304,8 @@ class LocalizedStrings {
       'favs': 'Favoriten',
       'currentBalance': 'Aktueller saldo',
       'mostCommon': 'Am häufigsten',
-      'wallet': 'Mein Geldbeutel',
+      'totalBet': 'Gesamtwetteinsatz ',
+      'liveBets': 'Live-Wetten',
       'recentBets': 'Letzte Wetten',
       'darkMode': 'Dunkler Modus',
       'attention': 'Achtung',
@@ -363,12 +368,12 @@ class LocalizedStrings {
   String? get favs => _localizedValues[locale.languageCode]?['favs'];
   String? get currentBalance => _localizedValues[locale.languageCode]?['currentBalance'];
   String? get mostCommon => _localizedValues[locale.languageCode]?['mostCommon'];
-  String? get wallet => _localizedValues[locale.languageCode]?['wallet'];
+  String? get totalBet => _localizedValues[locale.languageCode]?['totalBet'];
   String? get recentBets => _localizedValues[locale.languageCode]?['recentBets'];
   String? get darkMode => _localizedValues[locale.languageCode]?['darkMode'];
   String? get attention => _localizedValues[locale.languageCode]?['attention'];
   String? get needToRestart => _localizedValues[locale.languageCode]?['needToRestart'];
-
+  String? get liveBets => _localizedValues[locale.languageCode]?['liveBets'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {
