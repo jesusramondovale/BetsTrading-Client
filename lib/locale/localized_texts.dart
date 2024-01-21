@@ -64,12 +64,14 @@ class LocalizedStrings {
       'favs': 'Favourites',
       'currentBalance': 'Current balance',
       'mostCommon': 'Most common',
-      'totalBet': 'Total bets',
+      'totalBet': 'My account',
       'recentBets': 'Recent bets',
       'liveBets': 'Live bets',
       'darkMode': 'Dark mode',
       'attention': 'Attention!',
-      'needToRestart': 'The application needs to be restarted. Please enter again'
+      'needToRestart': 'The application needs to be restarted. Please enter again',
+      'wallet':'My wallet',
+      'staked' : 'Staked'
     },
     'es': { // Español
       'home': 'Inicio',
@@ -124,12 +126,14 @@ class LocalizedStrings {
       'favs': 'Favoritos',
       'currentBalance': 'Balance actual',
       'mostCommon': 'Más comunes',
-      'totalBet': 'Movimientos totales',
+      'totalBet': 'Mi cuenta',
       'recentBets': 'Apuestas recientes',
       'liveBets': 'Apuestas en directo',
       'darkMode': 'Modo oscuro',
       'attention': 'Atención!',
-      'needToRestart': 'La aplicación debe reiniciarse. Entre de nuevo'
+      'needToRestart': 'La aplicación debe reiniciarse. Entre de nuevo',
+      'wallet':'Mi cartera',
+      'staked' : 'Apostado'
     },
     'fr': { // Francés
       'home': 'Accueil',
@@ -184,12 +188,14 @@ class LocalizedStrings {
       'favs': 'Favoris',
       'currentBalance': 'Solde actuel',
       'mostCommon': 'Plus courants',
-      'totalBet': 'Montant Total',
+      'totalBet': 'Mon caccount',
       'recentBets': 'Paris Récents',
       'liveBets': 'Paris en direct',
       'darkMode': 'Mode Sombre',
       'attention': 'Attention',
-      'needToRestart' : "L'application doit être redémarrée. Entrez à nouveau"
+      'needToRestart' : "L'application doit être redémarrée. Entrez à nouveau",
+      'wallet': 'Mon portefeuille',
+      'staked' : 'Misé'
     },
     'it': { // Italiano
       'home': 'Home',
@@ -244,12 +250,14 @@ class LocalizedStrings {
       'favs': 'Preferiti',
       'currentBalance': 'Saldo attuale',
       'mostCommon': 'Più comuni',
-      'totalBet': 'Totale Scommesso',
+      'totalBet': 'il mio Totale',
       'recentBets': 'Scommesse Recenti',
       'liveBets': 'Scommesse live',
       'darkMode': 'Modalità Scuro',
       'attention': 'Attenzione!',
-      'needToRestart' : "L'applicazione deve essere riavviata. Entra di nuovo"
+      'needToRestart' : "L'applicazione deve essere riavviata. Entra di nuovo",
+      'wallet': 'Portafoglio',
+      'staked' : 'Scommeso'
     },
     'de': { // Alemán
       'home': 'Startseite',
@@ -309,7 +317,9 @@ class LocalizedStrings {
       'recentBets': 'Letzte Wetten',
       'darkMode': 'Dunkler Modus',
       'attention': 'Achtung',
-      'needToRestart' : 'Die Anwendung muss neu gestartet werden. Treten Sie erneut ein'
+      'needToRestart' : 'Die Anwendung muss neu gestartet werden. Treten Sie erneut ein',
+      'wallet': 'Meine Geldbörse',
+      'staked' : 'Gewettet'
     },
   };
 
@@ -374,6 +384,8 @@ class LocalizedStrings {
   String? get attention => _localizedValues[locale.languageCode]?['attention'];
   String? get needToRestart => _localizedValues[locale.languageCode]?['needToRestart'];
   String? get liveBets => _localizedValues[locale.languageCode]?['liveBets'];
+  String? get wallet => _localizedValues[locale.languageCode]?['wallet'];
+  String? get staked => _localizedValues[locale.languageCode]?['staked'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

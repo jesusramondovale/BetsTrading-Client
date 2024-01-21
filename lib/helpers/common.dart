@@ -15,7 +15,7 @@ import 'package:image_picker/image_picker.dart';
 class Common {
   final ThemeData themeDark = ThemeData(
     brightness: Brightness.dark,
-    colorScheme: ColorScheme.dark(
+    colorScheme: const ColorScheme.dark(
       background: Colors.black,
       onBackground: Colors.black54,
       surface: Colors.black,
@@ -153,6 +153,7 @@ class Common {
                 String? id = await _storage.read(key: 'sessionToken');
                 await AuthService().getUserInfo(id!);
                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
+
               },
               child: const Text("Ok"),
             ),

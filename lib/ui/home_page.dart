@@ -8,17 +8,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:candlesticks/candlesticks.dart';
 
-
 import '../helpers/common.dart';
 import 'investments_home.dart';
 import 'login_page.dart';
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     return const MaterialApp(
       initialRoute: '/login',
       home: LoginPage(),
@@ -35,11 +33,10 @@ class MainMenuPage extends StatefulWidget {
 
 class _MainMenuPageState extends State<MainMenuPage> {
   int _selectedIndex = 0;
-  late List<Candle> candlesList ;
+  late List<Candle> candlesList;
   late List<Widget> _pages;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String _username = '';
-
 
   void _onItemTapped(int index) {
     setState(() {
@@ -61,13 +58,10 @@ class _MainMenuPageState extends State<MainMenuPage> {
     super.initState();
     _loadUserInfo();
     candlesList = Common().generateRandomCandles(150);
-
   }
 
   @override
   Widget build(BuildContext context) {
-
-
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
       strings?.home ?? "Home",
@@ -77,43 +71,37 @@ class _MainMenuPageState extends State<MainMenuPage> {
     ];
     titles[3] = "Info  |  $_username";
     _pages = [
-
-      InvestmentScreen(),
+      const InvestmentScreen(),
       Center(
         child: Stack(
           children: <Widget>[
             Candlesticks(candles: candlesList),
-            GridWidget(gridLineSpacing: 0.5, gridLineColor: Colors.grey.withOpacity(0.8)),
+            GridWidget(
+                gridLineSpacing: 0.5,
+                gridLineColor: Colors.grey.withOpacity(0.8)),
           ],
         ),
       ),
       const BlankImageWidget(),
       const UserInfoPage()
-
     ];
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Text(titles[_selectedIndex]),
-      ),
-      body: Column(
-        children: [
-          Container(
-            height: 1.0,
-            color: Colors.black45,
-          ),
-          Expanded(
-            child: IndexedStack(
-              index: _selectedIndex,
-              children: _pages,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              height: 1.0,
+              color: Colors.black45,
             ),
-          ),
-        ],
+            Expanded(
+              child: IndexedStack(
+                index: _selectedIndex,
+                children: _pages,
+              ),
+            ),
+          ],
+        ),
       ),
-
-
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -141,8 +129,3 @@ class _MainMenuPageState extends State<MainMenuPage> {
     );
   }
 }
-
-
-
-
-
