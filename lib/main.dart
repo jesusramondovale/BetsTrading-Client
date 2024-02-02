@@ -1,3 +1,5 @@
+import 'package:client_0_0_1/services/BetsService.dart';
+
 import '../services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'helpers/common.dart';
@@ -77,7 +79,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (isLoggedIn) {
       String? id = await _storage.read(key: 'sessionToken');
-      await AuthService().getUserInfo(id!);
+      await BetsService().getUserInfo(id!);
       _navigateToHome();
     } else {
       _navigateToLogin();

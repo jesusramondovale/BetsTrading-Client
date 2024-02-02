@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/common.dart';
@@ -151,7 +152,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   onPressed: () async {
                     //Common().unimplementedAction("UploadImage()", context);
                     String? sessionToken = await _storage.read(key: 'sessionToken');
-                    bool result = await AuthService().uploadProfilePic(sessionToken, await Common().pickImageFromGallery());
+                    bool result = await BetsService().uploadProfilePic(sessionToken, await Common().pickImageFromGallery());
                     if (result){
                       _loadProfilePic();
                       setState(() {

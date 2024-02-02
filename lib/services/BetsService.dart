@@ -3,10 +3,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../ui/investments_home.dart';
 
 class BetsService {
 
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   //static const PRIVATE_IP = '192.168.1.37';
   static const PUBLIC_DOMAIN = '108.pool90-175-130.dynamic.orange.es';
   static const API_URL = 'https://$PUBLIC_DOMAIN:44346/api/Info';
@@ -199,4 +202,102 @@ class BetsService {
     return Bets(totalBetAmount, totalProfit, investments.length,
         investList: investments);
   }
+
+
+  Future<Map<String,dynamic>> getUserInfo(String id) async {
+
+    try {
+      final Map<String, dynamic> data = {'id': id};
+      bool certificateCheck(X509Certificate cert, String host, int port) => true;
+      HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
+
+      final HttpClientRequest request = await client.postUrl(Uri.parse("$API_URL/UserInfo"));
+      request.headers.set('Content-Type', 'application/json');
+      request.write(jsonEncode(data));
+
+      final HttpClientResponse response = await request.close();
+
+      if (response.statusCode == 200) {
+        final String responseBody = await response.transform(utf8.decoder).join();
+        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
+        final String fullname = decodedBody['fullname'];
+        final String username = decodedBody['username'];
+        final String email = decodedBody['email'];
+        final String birthday = decodedBody['birthday'];
+        final String address = decodedBody['address'];
+        final String country = decodedBody['country'];
+        final String profilepic = decodedBody['profilepic'];
+        final String lastsession = decodedBody['lastsession'];
+
+        await _storage.write(key: 'fullname', value: fullname);
+        await _storage.write(key: 'username', value: username);
+        await _storage.write(key: 'email', value: email);
+        await _storage.write(key: 'birthday', value: birthday);
+        await _storage.write(key: 'address', value: address);
+        await _storage.write(key: 'country', value: country);
+        await _storage.write(key: 'lastsession', value: lastsession);
+        await _storage.write(key: 'profilepic', value: profilepic);
+
+        return {'success': true, 'message': decodedBody['message']};
+      } else {
+        final String responseBody = await response.transform(utf8.decoder).join();
+        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
+        return {'success': false, 'message': decodedBody['message']};
+      }
+    } on SocketException catch (e) {
+
+      if (e.osError?.errorCode == 111) { //Connection Refused
+        return {'success': false, 'message': "Server not responding. Try again later"};
+      }
+      if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
+        return {'success': false, 'message': "Can't connect. Check your internet connection"};
+      }
+      return {'success': false, 'message': "Server not responding. Try again later"};
+    }
+    catch (e){
+      return {'success': false, 'message': '$e'};
+    }
+  }
+
+  Future<bool> uploadProfilePic(String? id, String? profilepic) async {
+    try {
+      final Map<String, dynamic> data = {'id': id , 'profilePic': profilepic};
+      bool certificateCheck(X509Certificate cert, String host, int port) => true;
+      HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
+
+      final HttpClientRequest request = await client.postUrl(Uri.parse("$API_URL/UploadPic"));
+      request.headers.set('Content-Type', 'application/json');
+      request.write(jsonEncode(data));
+
+      final HttpClientResponse response = await request.close();
+
+      if (response.statusCode == 200)
+      {
+        _storage.write(key: 'profilepic', value: profilepic);
+        return true;
+
+      }
+      else {
+        return false;
+      }
+
+    }
+    on SocketException catch (e) {
+
+      if (e.osError?.errorCode == 111) { //Connection Refused
+        return false;
+      }
+      if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
+        return false;
+      }
+      return false;
+    }
+    catch (e){
+      return false;
+    }
+  }
+
+
+
 }
+

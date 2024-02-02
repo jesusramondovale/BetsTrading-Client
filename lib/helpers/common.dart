@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:candlesticks/candlesticks.dart';
+import 'package:client_0_0_1/candlesticks/candlesticks.dart';
 import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import '../ui/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../services/AuthService.dart';
 import 'dart:math';
 import 'package:image_picker/image_picker.dart';
 
@@ -52,9 +52,7 @@ class Common {
     textTheme: const TextTheme(
       bodyText1: TextStyle(color: Colors.black),
       bodyText2: TextStyle(color: Colors.black),
-      // Defina otros estilos de texto según sea necesario
     ),
-    // Otros componentes del tema...
   );
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -151,7 +149,7 @@ class Common {
             ElevatedButton(
               onPressed: () async {
                 String? id = await _storage.read(key: 'sessionToken');
-                await AuthService().getUserInfo(id!);
+                await BetsService().getUserInfo(id!);
                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
 
               },
@@ -482,13 +480,12 @@ class Common {
       DateTime date = startDate.add(Duration(days: i));
       double open = lastClose;
       double close = 1.065 + random.nextDouble() * (1.10 - 1.065);
-      // Genera porcentajes aleatorios para 'high' y 'low'
       double highPercentage = 0.005 + random.nextDouble() * 0.015; // Entre 0.5% y 2%
       double lowPercentage = 0.005 + random.nextDouble() * 0.015; // Entre 0.5% y 2%
       double high = max(open, close) * (1 + highPercentage);
-      high = min(high, 1.10); // Asegura que no sobrepase el máximo de 1.10
+      high = min(high, 1.10);
       double low = min(open, close) * (1 - lowPercentage);
-      low = max(low, 1.065); // Asegura que no sea menor que el mínimo de 1.065
+      low = max(low, 1.065);
       double volume = random.nextDouble() * 1000;
 
       lastClose = close;

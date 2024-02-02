@@ -1,14 +1,10 @@
-// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
-
 import 'package:client_0_0_1/locale/localized_texts.dart';
-import '../customWidgets/marketWidgets.dart';
-
 import 'package:client_0_0_1/ui/userinfo_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:candlesticks/candlesticks.dart';
-
+import 'package:client_0_0_1/candlesticks/candlesticks.dart';
 import '../helpers/common.dart';
+import 'candlesticks_view.dart';
 import 'investments_home.dart';
 import 'login_page.dart';
 
@@ -57,7 +53,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
   void initState() {
     super.initState();
     _loadUserInfo();
-    candlesList = Common().generateRandomCandles(150);
+
   }
 
   @override
@@ -70,18 +66,12 @@ class _MainMenuPageState extends State<MainMenuPage> {
       strings?.profile ?? 'Profile'
     ];
     titles[3] = "Info  |  $_username";
+
+
+
     _pages = [
       const InvestmentScreen(),
-      Center(
-        child: Stack(
-          children: <Widget>[
-            Candlesticks(candles: candlesList),
-            GridWidget(
-                gridLineSpacing: 0.5,
-                gridLineColor: Colors.grey.withOpacity(0.8)),
-          ],
-        ),
-      ),
+      const CandlesticksView(),
       const BlankImageWidget(),
       const UserInfoPage()
     ];
