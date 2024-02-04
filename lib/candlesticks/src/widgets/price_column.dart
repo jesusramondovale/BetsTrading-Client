@@ -51,6 +51,8 @@ class _PriceColumnState extends State<PriceColumn> {
         priceTileHeight / 2;
     return GestureDetector(
       onVerticalDragUpdate: (details) {
+        /// DISPARA SOLO AL PELLIZCAR BARRA LATERAL
+        //print("VERTICAL SCALE ->->-> ${details.delta.dy}");
         widget.onScale(details.delta.dy);
         //print("ScaleY -> ${details.delta.dy}");
       },

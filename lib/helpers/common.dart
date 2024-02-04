@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:client_0_0_1/candlesticks/candlesticks.dart';
+import 'package:client_0_0_1/helpers/rectangle_zone.dart';
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -28,8 +29,8 @@ class Common {
       titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
     ),
     textTheme: const TextTheme(
-      bodyText1: TextStyle(color: Colors.white),
-      bodyText2: TextStyle(color: Colors.white),
+      bodyLarge: TextStyle(color: Colors.white),
+
 
     ),
 
@@ -50,8 +51,8 @@ class Common {
       titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
     ),
     textTheme: const TextTheme(
-      bodyText1: TextStyle(color: Colors.black),
-      bodyText2: TextStyle(color: Colors.black),
+      bodyLarge: TextStyle(color: Colors.black),
+
     ),
   );
 
@@ -160,6 +161,69 @@ class Common {
       },
     );
   }
+
+  List<RectangleZone> generateRectangleZones() {
+    double scale = 1.0;
+    Color strokeColor = Colors.white;
+
+    List<RectangleZone> zones = [
+      RectangleZone(
+        startX: 240,
+        endX: 350,
+        startY: 50,
+        endY: 140,
+        originalStartX: 240,
+        originalEndX: 350,
+        originalStartY: 50,
+        originalEndY: 140,
+        oddsLabel: 'x2.75',
+        fillColor: Colors.green.withOpacity(0.3),
+        strokeColor: strokeColor,
+        scaleX: 1.0,
+        scaleY: scale,
+        offsetX: 0.0,
+        offsetY: 0.0,
+      ),
+      RectangleZone(
+        startX: 280,
+        endX: 350,
+        startY: 250,
+        endY: 340,
+        originalStartX: 280,
+        originalEndX: 350,
+        originalStartY: 250,
+        originalEndY: 340,
+        oddsLabel: 'x5.75',
+        fillColor: Colors.green.withOpacity(0.6),
+        strokeColor: strokeColor,
+        scaleX: 1.0,
+        scaleY: scale,
+        offsetX: 0.0,
+        offsetY: 0.0,
+      ),
+      RectangleZone(
+        startX: 280,
+        endX: 350,
+        startY: 341,
+        endY: 500,
+        originalStartX: 280,
+        originalEndX: 350,
+        originalStartY: 341,
+        originalEndY: 500,
+        oddsLabel: 'x2.75',
+        fillColor: Colors.red.withOpacity(0.5),
+        strokeColor: strokeColor,
+        scaleX: 1.0,
+        scaleY: scale,
+        offsetX: 0.0,
+        offsetY: 0.0,
+      ),
+    ];
+
+    return zones;
+  }
+
+
   List<Map<String, String>> getTopCountries() {
     return [
       {'name': 'Afghanistan', 'code': 'AF'},
@@ -479,22 +543,24 @@ class Common {
     for (int i = 0; i < count; i++) {
       DateTime date = startDate.add(Duration(days: i));
       double open = lastClose;
-      double close = 1.065 + random.nextDouble() * (1.10 - 1.065);
-      double highPercentage = 0.005 + random.nextDouble() * 0.015; // Entre 0.5% y 2%
-      double lowPercentage = 0.005 + random.nextDouble() * 0.015; // Entre 0.5% y 2%
-      double high = max(open, close) * (1 + highPercentage);
-      high = min(high, 1.10);
-      double low = min(open, close) * (1 - lowPercentage);
-      low = max(low, 1.065);
-      double volume = random.nextDouble() * 1000;
-
+      double close = open + (random.nextBool() ? 1 : -1) * (0.0001 + random.nextDouble() * 0.02);
+      double maxChange = random.nextDouble() * 0.1;
+      double high = max(open, close) + maxChange * random.nextDouble();
+      double low = min(open, close) - maxChange * random.nextDouble();
+      double volume = 500 + random.nextDouble() * 4500;
       lastClose = close;
-
       candlesList.add(Candle(date: date, open: open, close: close, high: high, low: low, volume: volume));
     }
 
     return candlesList;
+
   }
+
+  RectangleZone emptyZone(){
+    return RectangleZone(startX: 0, endX: 0, startY: 0, endY: 0, originalStartX: 0, originalEndX: 0, originalStartY: 0,
+        originalEndY: 0, fillColor: Colors.white, strokeColor: Colors.white, oddsLabel: "", scaleX: 0, scaleY: 0, offsetX: 0, offsetY: 0);
+  }
+
   Future<String> pickImageFromGallery() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);

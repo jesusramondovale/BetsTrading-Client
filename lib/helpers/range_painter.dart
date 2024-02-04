@@ -1,69 +1,49 @@
+import 'package:client_0_0_1/helpers/rectangle_zone.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class RangePainter extends CustomPainter {
-  final double startX;
-  final double endX;
-  final double startY;
-  final double endY;
-  final Color fillColor;
-  final Color strokeColor;
-  final String oddsLabel;
-  final double scaleY;
+
+  final List<RectangleZone> zones;
+  final double scaleX, scaleY, offsetX, offsetY;
 
   RangePainter({
-    required this.startX,
-    required this.endX,
-    required this.startY,
-    required this.endY,
-    required this.fillColor,
-    required this.strokeColor,
-    required this.oddsLabel,
-    required this.scaleY,
+    required this.zones,
+    required this.scaleX ,
+    required this.scaleY ,
+    required this.offsetX ,
+    required this.offsetY ,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double fixedHeight = this.endY - this.startY ;
-    final double newHeight = fixedHeight * scaleY;
-    final double centerY = this.startY + (fixedHeight / 2.0) ;
-    final double startY = centerY - (newHeight / 2.0);
-    final double endY = centerY + (newHeight / 2.0);
-    if (kDebugMode) {
-      print("Repaint with scale ==> $scaleY");
-    }
-    final paintFill = Paint()
-      ..color = fillColor
-      ..style = PaintingStyle.fill;
-    canvas.drawRect(
-      Rect.fromLTRB(startX, startY, endX, endY),
-      paintFill,
-    );
+    for (final zone in zones) {
 
-    final textSpan = TextSpan(
-      text: oddsLabel,
-      style: TextStyle(
-        color: strokeColor,
-        fontSize: 20.0,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout(
-      minWidth: 0,
-      maxWidth: size.width,
-    );
+      double startX = (zone.startX + offsetX) * scaleX;
+      double endX = (zone.endX + offsetX) * scaleX;
+      double fixedHeight = (zone.endY - zone.startY) * scaleY;
+      double centerY = (zone.startY + offsetY) * scaleY + (fixedHeight / 2.0);
+      double startY = centerY - (fixedHeight / 2.0);
+      double endY = centerY + (fixedHeight / 2.0);
+      final adjustedStartX = (zone.startX + offsetX) * scaleX;
+      final adjustedEndX = (zone.endX + offsetX) * scaleX;
+      final adjustedStartY = (zone.startY + offsetY) * scaleY;
+      final adjustedEndY = (zone.endY + offsetY) * scaleY;
+      final paintFill = Paint()..color = zone.fillColor..style = PaintingStyle.fill;
+      canvas.drawRect(Rect.fromLTRB(adjustedStartX, adjustedStartY, adjustedEndX, adjustedEndY), paintFill);
 
-    final textX = startX + (endX - startX - textPainter.width) / 2;
-    final textY = startY + (endY - startY - textPainter.height) / 2;
-    final textOffset = Offset(textX, textY);
+      final textSpan = TextSpan(
+        text: zone.oddsLabel,
+        style: TextStyle(color: zone.strokeColor, fontSize: 20.0, fontWeight: FontWeight.bold),
+      );
+      final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
+      textPainter.layout(minWidth: 0, maxWidth: size.width);
+      final textX = startX + (endX - startX - textPainter.width) / 2;
+      final textY = startY + (endY - startY - textPainter.height) / 2;
 
-    if (textOffset.dx >= startX && textOffset.dy >= startY) {
-      textPainter.paint(canvas, textOffset);
+      if (textX >= startX && textY >= startY) {
+        textPainter.paint(canvas, Offset(textX, textY));
+      }
     }
   }
 
@@ -71,4 +51,6 @@ class RangePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
   }
+
+
 }

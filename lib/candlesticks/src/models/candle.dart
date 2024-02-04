@@ -34,6 +34,10 @@ class Candle {
     required this.volume,
   });
 
+  factory Candle.empty(DateTime date) {
+    return Candle(date: date, open: 0, close: 0, high: 0, low: 0, volume: 0);
+  }
+
   Candle.fromJson(List<dynamic> json)
       : date = DateTime.fromMillisecondsSinceEpoch(json[0]),
         high = double.parse(json[2]),

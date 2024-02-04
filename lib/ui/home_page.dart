@@ -71,7 +71,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
     _pages = [
       const InvestmentScreen(),
-      const CandlesticksView(),
+      CandlesticksView(),
       const BlankImageWidget(),
       const UserInfoPage()
     ];
