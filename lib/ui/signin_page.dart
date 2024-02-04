@@ -396,7 +396,7 @@ class _SignInState extends State<SignIn> {
               recognizer: TapGestureRecognizer()
                 ..onTap = ()
                 {
-                  //TO-DO
+                  /// TO-DO TERMS&CONDITIONS VIEW
                   Common().unimplementedAction("seeTerms()", context);
                 },
             ),

@@ -286,6 +286,8 @@ class CandlesticksState extends State<Candlesticks> {
                               index != lastIndex) {
                             zone.startX += details.focalPointDelta.dx;
                             zone.endX += details.focalPointDelta.dx;
+
+
                           }
                           if (index == indexMarginRight) {
                             zone.startX = zone.originalStartX;

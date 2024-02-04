@@ -54,7 +54,7 @@ class _PriceColumnState extends State<PriceColumn> {
         /// DISPARA SOLO AL PELLIZCAR BARRA LATERAL
         //print("VERTICAL SCALE ->->-> ${details.delta.dy}");
         widget.onScale(details.delta.dy);
-        //print("ScaleY -> ${details.delta.dy}");
+
       },
       child: AbsorbPointer(
         child: Stack(

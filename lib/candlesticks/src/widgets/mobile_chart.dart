@@ -182,26 +182,24 @@ class _MobileChartState extends State<MobileChart> {
                         indicatorTime: currentCandle?.date,
                         index: widget.index,
                       ),
-
-                      Positioned.fill(
-                        child: CustomPaint(
-                          key: UniqueKey(),
-                          painter: RangePainter(
-                            zones: widget.rectangleZones,
-                            scaleX: scaleX,
-                            scaleY: scaleY,
-                            offsetX: 0,
-                            offsetY: 0,
-                          ),
-                        ),
-                      ),
-
                       Column(
                         children: [
                           Expanded(
                             flex: 3,
                             child: Stack(
                               children: [
+                                Positioned.fill(
+                                  child: CustomPaint(
+                                    key: UniqueKey(),
+                                    painter: RangePainter(
+                                      zones: widget.rectangleZones,
+                                      scaleX: scaleX,
+                                      scaleY: scaleY,
+                                      offsetX: 0,
+                                      offsetY: 0,
+                                    ),
+                                  ),
+                                ),
                                 PriceColumn(
                                   style: widget.style,
                                   low: candlesLowPrice,
@@ -213,19 +211,24 @@ class _MobileChartState extends State<MobileChart> {
 
                                   /// Escala el pellizco en columna lateral
                                   onScale: (delta) {
+
                                     if (manualScaleHigh == null) {
                                       manualScaleHigh = candlesHighPrice;
                                       manualScaleLow = candlesLowPrice;
                                     }
                                     setState(() {
                                       double deltaPrice = delta /
-                                          chartHeight *
-                                          (manualScaleHigh! - manualScaleLow!);
-                                      manualScaleHigh =
-                                          manualScaleHigh! + deltaPrice;
-                                      manualScaleLow =
-                                          manualScaleLow! - deltaPrice;
-                                      widget.onScaleUpdate(deltaPrice);
+                                              chartHeight * (manualScaleHigh! - manualScaleLow!);
+                                      manualScaleHigh = manualScaleHigh! + deltaPrice;
+                                      manualScaleLow =  manualScaleLow! - deltaPrice;
+
+                                      /// TO-DO VERTICAL SCALE
+                                      /*
+                                      for (RectangleZone zone in widget.rectangleZones) {
+                                        zone.scaleY += delta;
+                                        print("DELTA ${delta}");
+                                      }*/
+
                                     });
                                   },
                                 ),
@@ -415,10 +418,6 @@ class _MobileChartState extends State<MobileChart> {
                           /// Gestiona desplazamiento y pellizco
 
                           onScaleUpdate: (details) {
-                            //print("Horizontal scale: ${details.horizontalScale}");
-                            //print("Focal point xd: ${details.focalPoint.dx}");
-                            //print("${details.focalPointDelta.dy}");
-
                             if (details.scale == 1) {
                               widget.onHorizontalDragUpdate(details);
                               setState(() {
@@ -431,8 +430,8 @@ class _MobileChartState extends State<MobileChart> {
 
                                   for (RectangleZone zone
                                       in widget.rectangleZones) {
-                                    zone.startY += details.focalPointDelta.dy;
-                                    zone.endY += details.focalPointDelta.dy;
+                                    zone.centerY += details.focalPointDelta.dy;
+
                                   }
                                   manualScaleHigh =
                                       manualScaleHigh! + deltaPrice;
@@ -470,7 +469,6 @@ class _MobileChartState extends State<MobileChart> {
                           },
                         ),
                       ),
-
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             vertical: 4, horizontal: 12),
@@ -493,7 +491,6 @@ class _MobileChartState extends State<MobileChart> {
                               .mainWindowDataContainer.unvisibleIndicators,
                         ),
                       ),
-
                       Positioned(
                         right: 0,
                         bottom: 0,
@@ -522,7 +519,6 @@ class _MobileChartState extends State<MobileChart> {
                           ),
                         ),
                       ),
-
                       GestureDetector(onTapUp: (TapUpDetails details) {
                         final RenderBox renderBox =
                             context.findRenderObject() as RenderBox;
@@ -540,7 +536,8 @@ class _MobileChartState extends State<MobileChart> {
                           }
                         }
                         if (isInsideZone) {
-                          Common().unimplementedAction("newBet() on ${zoneClicked.oddsLabel}", context);
+                          Common().unimplementedAction(
+                              "newBet() on ${zoneClicked.oddsLabel}", context);
                         }
                       }),
                     ],

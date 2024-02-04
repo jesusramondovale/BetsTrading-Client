@@ -254,7 +254,7 @@ class LoginForm extends StatefulWidget {
               children : [
                 TextButton(
                   onPressed: () {
-                    // TO-DO
+                    /// TO-DO RESET PASSWORD
                     Common().unimplementedAction("ResetPassword()", context);
                   },
                   child: Text(

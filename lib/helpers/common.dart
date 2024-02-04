@@ -75,7 +75,7 @@ class Common {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text("I'll wait"),
+              child: const Text("OK"),
             ),
           ],
         );
@@ -171,50 +171,52 @@ class Common {
         startX: 240,
         endX: 350,
         startY: 50,
+        centerY: 95,
+        height: 90,
         endY: 140,
         originalStartX: 240,
         originalEndX: 350,
         originalStartY: 50,
         originalEndY: 140,
-        oddsLabel: 'x2.75',
-        fillColor: Colors.green.withOpacity(0.3),
+        oddsLabel: 'x20.7',
+        fillColor: Colors.green.withOpacity(0.6),
         strokeColor: strokeColor,
-        scaleX: 1.0,
-        scaleY: scale,
         offsetX: 0.0,
         offsetY: 0.0,
       ),
       RectangleZone(
         startX: 280,
         endX: 350,
-        startY: 250,
-        endY: 340,
+        startY: 141,
+        centerY: 171,
+        height: 60,
+        endY: 200,
         originalStartX: 280,
         originalEndX: 350,
         originalStartY: 250,
         originalEndY: 340,
         oddsLabel: 'x5.75',
-        fillColor: Colors.green.withOpacity(0.6),
+        fillColor: Colors.green.withOpacity(0.4),
         strokeColor: strokeColor,
-        scaleX: 1.0,
-        scaleY: scale,
+
         offsetX: 0.0,
         offsetY: 0.0,
       ),
       RectangleZone(
         startX: 280,
         endX: 350,
-        startY: 341,
+        startY: 400,
+        centerY: 450,
         endY: 500,
+        height: 100,
         originalStartX: 280,
         originalEndX: 350,
         originalStartY: 341,
         originalEndY: 500,
-        oddsLabel: 'x2.75',
-        fillColor: Colors.red.withOpacity(0.5),
+        oddsLabel: 'x3.75',
+        fillColor: Colors.red.withOpacity(0.6),
         strokeColor: strokeColor,
-        scaleX: 1.0,
-        scaleY: scale,
+
         offsetX: 0.0,
         offsetY: 0.0,
       ),
@@ -222,7 +224,6 @@ class Common {
 
     return zones;
   }
-
 
   List<Map<String, String>> getTopCountries() {
     return [
@@ -469,6 +470,7 @@ class Common {
       {'name': 'Åland Islands', 'code': 'AX'},
     ];
   }
+
   String? getCountryCode(String countryName) {
     var countries = getTopCountries();
     for (var country in countries) {
@@ -557,8 +559,10 @@ class Common {
   }
 
   RectangleZone emptyZone(){
-    return RectangleZone(startX: 0, endX: 0, startY: 0, endY: 0, originalStartX: 0, originalEndX: 0, originalStartY: 0,
-        originalEndY: 0, fillColor: Colors.white, strokeColor: Colors.white, oddsLabel: "", scaleX: 0, scaleY: 0, offsetX: 0, offsetY: 0);
+    return RectangleZone(startX: 0, endX: 0, startY: 0, endY: 0,
+              originalStartX: 0, originalEndX: 0, originalStartY: 0, originalEndY: 0,
+              fillColor: Colors.white, strokeColor: Colors.white, oddsLabel: "", offsetX: 0, offsetY: 0,
+              centerY: 0, height: 0);
   }
 
   Future<String> pickImageFromGallery() async {
