@@ -3,8 +3,7 @@
 This is the first version of the Pre-Alpha client app of the Bets Trading Project
 
 
-
-
+![image](files://../assets/logo.png)
 __________________________________________________________________________________
 © All rights reserved to Jesús Ramón DoVale - 2023
  
