@@ -161,65 +161,77 @@ class Common {
       },
     );
   }
+  double calculateMaxFontSize(String text, FontWeight fontWeight, double maxWidth) {
+    double fontSize = 18;
+    double foundFontSize = fontSize;
+    bool fits = false;
+    while (!fits && fontSize > 0) {
+
+      TextStyle textStyle = TextStyle(fontWeight: fontWeight, fontSize: fontSize);
+      TextPainter textPainter = TextPainter(
+        text: TextSpan(text: text, style: textStyle),
+        maxLines: 1,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+
+      if (textPainter.width <= maxWidth) {
+        foundFontSize = fontSize;
+        fits = true;
+      } else {
+        fontSize -= 1;
+      }
+    }
+
+    return foundFontSize;
+  }
 
   List<RectangleZone> generateRectangleZones() {
-    double scale = 1.0;
     Color strokeColor = Colors.white;
-
     List<RectangleZone> zones = [
       RectangleZone(
-        startX: 240,
-        endX: 350,
-        startY: 50,
-        centerY: 95,
-        height: 90,
-        endY: 140,
-        originalStartX: 240,
-        originalEndX: 350,
-        originalStartY: 50,
-        originalEndY: 140,
-        oddsLabel: 'x20.7',
-        fillColor: Colors.green.withOpacity(0.6),
-        strokeColor: strokeColor,
-        offsetX: 0.0,
-        offsetY: 0.0,
+          startDate: DateTime.now(),
+          endDate: DateTime.now().add(const Duration(days: 20)),
+          highPrice: 1.2,
+          lowPrice: 1.12,
+          fillColor: Colors.green.withOpacity(0.4),
+          strokeColor: strokeColor,
+          oddsLabel: 'x5.75'
       ),
-      RectangleZone(
-        startX: 280,
-        endX: 350,
-        startY: 141,
-        centerY: 171,
-        height: 60,
-        endY: 200,
-        originalStartX: 280,
-        originalEndX: 350,
-        originalStartY: 250,
-        originalEndY: 340,
-        oddsLabel: 'x5.75',
-        fillColor: Colors.green.withOpacity(0.4),
-        strokeColor: strokeColor,
 
-        offsetX: 0.0,
-        offsetY: 0.0,
-      ),
       RectangleZone(
-        startX: 280,
-        endX: 350,
-        startY: 400,
-        centerY: 450,
-        endY: 500,
-        height: 100,
-        originalStartX: 280,
-        originalEndX: 350,
-        originalStartY: 341,
-        originalEndY: 500,
-        oddsLabel: 'x3.75',
-        fillColor: Colors.red.withOpacity(0.6),
-        strokeColor: strokeColor,
-
-        offsetX: 0.0,
-        offsetY: 0.0,
+          startDate: DateTime.now().add(const Duration(days: 5)),
+          endDate: DateTime.now().add(const Duration(days: 20)),
+          highPrice: 1.25,
+          lowPrice: 1.2,
+          fillColor: Colors.green.withOpacity(0.6),
+          strokeColor: strokeColor,
+          oddsLabel: 'x15.75'
       ),
+
+
+      RectangleZone(
+          startDate: DateTime.now().add(const Duration(days: 5)),
+          endDate: DateTime.now().add(const Duration(days: 20)),
+          highPrice: 1.05,
+          lowPrice: 0.95,
+          fillColor: Colors.red.withOpacity(0.4),
+          strokeColor: strokeColor,
+          oddsLabel: 'x3.75'
+      ),
+
+
+      RectangleZone(
+          startDate: DateTime.now().add(const Duration(days: 5)),
+          endDate: DateTime.now().add(const Duration(days: 20)),
+          highPrice: 0.95,
+          lowPrice: 0.8,
+          fillColor: Colors.red.withOpacity(0.6),
+          strokeColor: strokeColor,
+          oddsLabel: 'x25.75'
+      ),
+
+
     ];
 
     return zones;
@@ -537,13 +549,13 @@ class Common {
   List<Candle> generateRandomCandles(int count) {
     Random random = Random();
     List<Candle> candlesList = [];
-    DateTime startDate = DateTime.now().subtract(Duration(days: count));
+    DateTime startDate = DateTime.now();
 
     // Inicializa el primer valor de 'open'
     double lastClose = 1.065 + random.nextDouble() * (1.10 - 1.065);
 
     for (int i = 0; i < count; i++) {
-      DateTime date = startDate.add(Duration(days: i));
+      DateTime date = startDate.subtract(Duration(days: i));
       double open = lastClose;
       double close = open + (random.nextBool() ? 1 : -1) * (0.0001 + random.nextDouble() * 0.02);
       double maxChange = random.nextDouble() * 0.1;
@@ -559,10 +571,15 @@ class Common {
   }
 
   RectangleZone emptyZone(){
-    return RectangleZone(startX: 0, endX: 0, startY: 0, endY: 0,
-              originalStartX: 0, originalEndX: 0, originalStartY: 0, originalEndY: 0,
-              fillColor: Colors.white, strokeColor: Colors.white, oddsLabel: "", offsetX: 0, offsetY: 0,
-              centerY: 0, height: 0);
+    return RectangleZone(
+        startDate: DateTime.now(),
+        endDate: DateTime.now().add(const Duration(days: 1)),
+        highPrice: 1.0,
+        lowPrice: 0.0,
+        fillColor: Colors.green.withOpacity(0.4),
+        strokeColor: Colors.white,
+        oddsLabel: ''
+    );
   }
 
   Future<String> pickImageFromGallery() async {

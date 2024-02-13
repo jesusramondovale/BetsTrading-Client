@@ -74,7 +74,7 @@ class Candlesticks extends StatefulWidget {
 class CandlesticksState extends State<Candlesticks> {
   /// index of the newest candle to be displayed
   /// changes when user scrolls along the chart
-  static const int indexMarginRight = -50;
+  static const int indexMarginRight = -20;
   int index = indexMarginRight;
   double lastX = 0;
   int lastIndex = indexMarginRight;
@@ -254,25 +254,9 @@ class CandlesticksState extends State<Candlesticks> {
                         candleWidth = max(candleWidth, 2);
                       });
                     },
-
                     onPanEnd: () {
-                      /*for(RectangleZone zone in widget.rectangleZones){
-                        if(index > lastIndex) { //DRAG HACIA LA DERECHA
-                          zone.startX += ((index.abs()-lastIndex.abs()).abs()*candleWidth) ;
-                          zone.endX += ((index.abs()-lastIndex.abs()).abs()*candleWidth) ;
-                        }
-                        if(index < lastIndex) { //DRAG HACIA LA IZQDA
-                          zone.startX -= ((lastIndex.abs()-index.abs()).abs()*candleWidth) ;
-                          zone.endX -= ((index.abs()-lastIndex.abs()).abs()*candleWidth) ;
-                        }
-                        if (kDebugMode) {
-                          //print("TARGET -->>>>--->>> ${zone.startX}");
-                        }
-                      }*/
                       lastIndex = index;
                     },
-
-                    /// Aqui se mueven los indices del candle chart en X para desplazar horizontalmente
                     onHorizontalDragUpdate: (ScaleUpdateDetails details) {
                       setState(() {
                         var x = details.focalPoint.dx;
@@ -280,20 +264,6 @@ class CandlesticksState extends State<Candlesticks> {
                         index = lastIndex + x ~/ candleWidth;
                         index = max(index, indexMarginRight);
                         index = min(index, widget.candles.length - 1);
-
-                        for (RectangleZone zone in widget.rectangleZones) {
-                          if (index != indexMarginRight &&
-                              index != lastIndex) {
-                            zone.startX += details.focalPointDelta.dx;
-                            zone.endX += details.focalPointDelta.dx;
-
-
-                          }
-                          if (index == indexMarginRight) {
-                            zone.startX = zone.originalStartX;
-                            zone.endX = zone.originalEndX;
-                          }
-                        }
                       });
                     },
                     onPanDown: (double value) {
@@ -312,8 +282,7 @@ class CandlesticksState extends State<Candlesticks> {
                     candleWidth: width,
                     candles: widget.candles,
                     index: index,
-                    rectangleZones:
-                        widget.rectangleZones, //AQUI VAN LOS RECTANGLE ZONES
+                    rectangleZones: widget.rectangleZones,
                   );
                 }
               },

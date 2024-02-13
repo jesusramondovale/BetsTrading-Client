@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return const MaterialApp(
       initialRoute: '/login',
       home: LoginPage(),
@@ -71,10 +72,11 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
     _pages = [
       const InvestmentScreen(),
-      CandlesticksView(),
+      SafeArea(child:CandlesticksView()),
       const BlankImageWidget(),
       const UserInfoPage()
     ];
+
     return Scaffold(
       body: SafeArea(
         child: Column(

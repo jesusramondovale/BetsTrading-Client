@@ -1,54 +1,109 @@
 import 'dart:math';
-
-import 'package:client_0_0_1/helpers/rectangle_zone.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:client_0_0_1/candlesticks/src/constant/view_constants.dart';
 import 'package:flutter/material.dart';
+import '../candlesticks/src/models/candle.dart';
+import 'common.dart';
+import 'rectangle_zone.dart';
 
 class RangePainter extends CustomPainter {
-
   final List<RectangleZone> zones;
-  final double scaleX, scaleY, offsetX, offsetY;
+  final List<Candle> candles;
+  final double candleWidth;
+  final double topPrice;
+  final double bottomPrice;
+  final int index;
+  final int minIndex;
+  final double priceColumnWidth;
 
   RangePainter({
     required this.zones,
-    required this.scaleX ,
-    required this.scaleY ,
-    required this.offsetX ,
-    required this.offsetY ,
+    required this.candles,
+    required this.candleWidth,
+    required this.topPrice,
+    required this.bottomPrice,
+    required this.index,
+    required this.minIndex,
+    required this.priceColumnWidth,
   });
+
+  double dateToX(DateTime date, int index, double candleWidth,
+      DateTime lastCandleDate, Size size) {
+    int daysFromLastCandle = date.difference(lastCandleDate).inDays;
+    double startXForFuture =
+        (size.width - priceColumnWidth) + (index * candleWidth);
+
+    double xPositionForDate =
+        startXForFuture + (daysFromLastCandle * candleWidth);
+
+    return xPositionForDate;
+  }
+
+  double priceToY(double price, double high, double low, Size size) {
+    assert(high > low, "ERROR. Lowest must be lower than highest");
+    double proportion = (price - low) / (high - low);
+    double yPosition = (1 - proportion) * size.height;
+    return yPosition;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
+    DateTime maxCandleDate = candles
+        .map((candle) => candle.date)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+
     for (final zone in zones) {
+      double startX =
+          dateToX(zone.startDate, index, candleWidth, maxCandleDate, size);
+      double endX =
+          dateToX(zone.endDate, index, candleWidth, maxCandleDate, size);
+      endX = max(endX, startX + candleWidth);
+      double startY = priceToY(zone.highPrice, topPrice, bottomPrice, size);
+      double endY = priceToY(zone.lowPrice, topPrice, bottomPrice, size);
+      startX = min(startX, size.width - PRICE_BAR_WIDTH);
+      endX = min(endX, size.width);
+      final paintFill = Paint()
+        ..color = zone.fillColor
+        ..style = PaintingStyle.fill;
+      canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintFill);
 
-      final adjustedStartX = max(min((zone.startX + offsetX) * zone.scaleX, 350),zone.originalStartX).toDouble();
-      final adjustedEndX = max(min((zone.endX + offsetX) * zone.scaleX, 410),350).toDouble();
-
-      final adjustedStartY = (zone.centerY - zone.height/2 * zone.scaleY);
-      final adjustedEndY = (zone.centerY + zone.height/2 * zone.scaleY);
-
-      final paintFill = Paint()..color = zone.fillColor..style = PaintingStyle.fill;
-
-      canvas.drawRect(Rect.fromLTRB(adjustedStartX, adjustedStartY, adjustedEndX, adjustedEndY), paintFill);
-
+      double fontSize = Common()
+          .calculateMaxFontSize(zone.oddsLabel, FontWeight.bold, endX - startX);
       final textSpan = TextSpan(
         text: zone.oddsLabel,
-        style: TextStyle(color: zone.strokeColor, fontSize: 18.0, fontWeight: FontWeight.bold),
+        style: TextStyle(
+            color: zone.strokeColor,
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold),
       );
 
-      final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      );
       textPainter.layout(minWidth: 0, maxWidth: size.width);
-      final textX = adjustedStartX + (adjustedEndX - adjustedStartX - textPainter.width) / 2;
-      final textY = adjustedStartY + (adjustedEndY - adjustedStartY - textPainter.height) / 2;
+      final textX = startX + (endX - startX - textPainter.width) / 2;
+      final textY = startY + (endY - startY - textPainter.height) / 2;
       textPainter.paint(canvas, Offset(textX, textY));
-
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+
+  RectangleZone? hit(double x, double y, Size size) {
+    DateTime maxCandleDate = candles
+        .map((candle) => candle.date)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+    for (final zone in zones) {
+      if (x >=
+              dateToX(
+                  zone.startDate, index, candleWidth, maxCandleDate, size) &&
+          x <= dateToX(zone.endDate, index, candleWidth, maxCandleDate, size) &&
+          y >= priceToY(zone.highPrice, topPrice, bottomPrice, size) &&
+          y <= priceToY(zone.lowPrice, topPrice, bottomPrice, size)) {
+        return zone;
+      }
+    }
+    return null;
   }
-
-
 }

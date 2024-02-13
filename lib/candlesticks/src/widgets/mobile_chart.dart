@@ -79,6 +79,7 @@ class MobileChart extends StatefulWidget {
 }
 
 class _MobileChartState extends State<MobileChart> {
+  final GlobalKey _customPaintKey = GlobalKey();
   double? longPressX;
   double? longPressY;
   bool showIndicatorNames = false;
@@ -190,14 +191,16 @@ class _MobileChartState extends State<MobileChart> {
                               children: [
                                 Positioned.fill(
                                   child: CustomPaint(
-                                    key: UniqueKey(),
+                                    key: _customPaintKey,
                                     painter: RangePainter(
-                                      zones: widget.rectangleZones,
-                                      scaleX: scaleX,
-                                      scaleY: scaleY,
-                                      offsetX: 0,
-                                      offsetY: 0,
-                                    ),
+                                        zones: widget.rectangleZones,
+                                        candles: widget.candles,
+                                        candleWidth: widget.candleWidth,
+                                        topPrice: candlesHighPrice,
+                                        bottomPrice: candlesLowPrice,
+                                        index: widget.index,
+                                        minIndex: -20,
+                                        priceColumnWidth: PRICE_BAR_WIDTH),
                                   ),
                                 ),
                                 PriceColumn(
@@ -208,27 +211,24 @@ class _MobileChartState extends State<MobileChart> {
                                   chartHeight: chartHeight,
                                   lastCandle: widget.candles[
                                       widget.index < 0 ? 0 : widget.index],
-
-                                  /// Escala el pellizco en columna lateral
                                   onScale: (delta) {
-
-                                    if (manualScaleHigh == null) {
+                                    if (manualScaleHigh == null ||
+                                        manualScaleLow == null) {
                                       manualScaleHigh = candlesHighPrice;
                                       manualScaleLow = candlesLowPrice;
                                     }
                                     setState(() {
                                       double deltaPrice = delta /
-                                              chartHeight * (manualScaleHigh! - manualScaleLow!);
-                                      manualScaleHigh = manualScaleHigh! + deltaPrice;
-                                      manualScaleLow =  manualScaleLow! - deltaPrice;
+                                          chartHeight *
+                                          (manualScaleHigh! - manualScaleLow!);
 
-                                      /// TO-DO VERTICAL SCALE
-                                      /*
-                                      for (RectangleZone zone in widget.rectangleZones) {
-                                        zone.scaleY += delta;
-                                        print("DELTA ${delta}");
-                                      }*/
+                                      double newManualScaleHigh =
+                                          manualScaleHigh! + deltaPrice;
+                                      double newManualScaleLow =
+                                          manualScaleLow! - deltaPrice;
 
+                                      manualScaleHigh = newManualScaleHigh;
+                                      manualScaleLow = newManualScaleLow;
                                     });
                                   },
                                 ),
@@ -415,29 +415,23 @@ class _MobileChartState extends State<MobileChart> {
                       Padding(
                         padding: const EdgeInsets.only(right: 50, bottom: 20),
                         child: GestureDetector(
-                          /// Gestiona desplazamiento y pellizco
-
                           onScaleUpdate: (details) {
                             if (details.scale == 1) {
                               widget.onHorizontalDragUpdate(details);
                               setState(() {
-                                /// AQUI SE MANEJA EL DRAG VERTICAL (SOBRE GRAFICO)
                                 if (manualScaleHigh != null) {
                                   double deltaPrice =
                                       details.focalPointDelta.dy /
                                           chartHeight *
                                           (manualScaleHigh! - manualScaleLow!);
-
                                   for (RectangleZone zone
                                       in widget.rectangleZones) {
-                                    zone.centerY += details.focalPointDelta.dy;
-
+                                    zone.centerPrice +=
+                                        details.focalPointDelta.dy;
                                   }
                                   manualScaleHigh =
                                       manualScaleHigh! + deltaPrice;
-                                  // print("MANUAL SCALE HIGH -->---> ${manualScaleHigh}");
                                   manualScaleLow = manualScaleLow! + deltaPrice;
-                                  // print("MANUAL SCALE LOW -->---> ${manualScaleLow}");
                                 }
                               });
                             }
@@ -521,21 +515,23 @@ class _MobileChartState extends State<MobileChart> {
                       ),
                       GestureDetector(onTapUp: (TapUpDetails details) {
                         final RenderBox renderBox =
-                            context.findRenderObject() as RenderBox;
-                        final Offset localPosition =
-                            renderBox.globalToLocal(details.globalPosition);
+                            _customPaintKey.currentContext?.findRenderObject()
+                                as RenderBox;
+                        final size = renderBox.size;
 
-                        bool isInsideZone = false;
-                        RectangleZone zoneClicked = Common().emptyZone();
-                        for (final RectangleZone zone
-                            in widget.rectangleZones) {
-                          if (zone.contains(localPosition)) {
-                            isInsideZone = true;
-                            zoneClicked = zone;
-                            break;
-                          }
-                        }
-                        if (isInsideZone) {
+                        RectangleZone? zoneClicked = RangePainter(
+                                zones: widget.rectangleZones,
+                                candles: widget.candles,
+                                candleWidth: widget.candleWidth,
+                                topPrice: candlesHighPrice,
+                                bottomPrice: candlesLowPrice,
+                                index: widget.index,
+                                minIndex: -20,
+                                priceColumnWidth: PRICE_BAR_WIDTH)
+                            .hit(details.localPosition.dx,
+                                details.localPosition.dy, size);
+
+                        if (zoneClicked != null) {
                           Common().unimplementedAction(
                               "newBet() on ${zoneClicked.oddsLabel}", context);
                         }
