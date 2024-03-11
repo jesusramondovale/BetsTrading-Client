@@ -1,4 +1,5 @@
 import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:client_0_0_1/ui/financial_assets_view.dart';
 import 'package:client_0_0_1/ui/userinfo_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -72,7 +73,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
     _pages = [
       const InvestmentScreen(),
-      SafeArea(child:CandlesticksView()),
+      const FinancialAssetsView(),
       const BlankImageWidget(),
       const UserInfoPage()
     ];

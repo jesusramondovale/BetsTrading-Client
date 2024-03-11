@@ -10,8 +10,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-
 Future<void> main() async {
 
 
@@ -76,7 +74,6 @@ class _SplashScreenState extends State<SplashScreen> {
   void _checkAuthentication() async {
     // Verify if session active
     bool isLoggedIn = await AuthService().isLoggedIn();
-
     if (isLoggedIn) {
       String? id = await _storage.read(key: 'sessionToken');
       await BetsService().getUserInfo(id!);

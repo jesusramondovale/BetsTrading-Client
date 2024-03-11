@@ -35,7 +35,6 @@ class Common {
     ),
 
   );
-
   final ThemeData themeLight = ThemeData(
     brightness: Brightness.light,
     colorScheme: ColorScheme.light(
@@ -136,7 +135,6 @@ class Common {
       },
     );
   }
-
   void logInPopDialog(String aTitle, String aUser, BuildContext aContext) {
     showDialog(
       context: aContext,
@@ -236,7 +234,6 @@ class Common {
 
     return zones;
   }
-
   List<Map<String, String>> getTopCountries() {
     return [
       {'name': 'Afghanistan', 'code': 'AF'},
@@ -482,7 +479,6 @@ class Common {
       {'name': 'Åland Islands', 'code': 'AX'},
     ];
   }
-
   String? getCountryCode(String countryName) {
     var countries = getTopCountries();
     for (var country in countries) {
@@ -569,7 +565,6 @@ class Common {
     return candlesList;
 
   }
-
   RectangleZone emptyZone(){
     return RectangleZone(
         startDate: DateTime.now(),
@@ -581,7 +576,6 @@ class Common {
         oddsLabel: ''
     );
   }
-
   Future<String> pickImageFromGallery() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -615,9 +609,7 @@ class Common {
     return spots.last.y > spots.first.y;
   }
 
-
 }
-
 
 class BlankImageWidget extends StatelessWidget {
   const BlankImageWidget({super.key});

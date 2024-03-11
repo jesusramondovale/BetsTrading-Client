@@ -71,7 +71,13 @@ class LocalizedStrings {
       'attention': 'Attention!',
       'needToRestart': 'The application needs to be restarted. Please enter again',
       'wallet':'My wallet',
-      'staked' : 'Staked'
+      'staked' : 'Staked',
+      'indexes' : 'Indexes',
+      'shares' : 'Shares',
+      'commodities' : 'Commodities'
+
+
+
     },
     'es': { // Español
       'home': 'Inicio',
@@ -133,7 +139,10 @@ class LocalizedStrings {
       'attention': 'Atención!',
       'needToRestart': 'La aplicación debe reiniciarse. Entre de nuevo',
       'wallet':'Mi cartera',
-      'staked' : 'Apostado'
+      'staked' : 'Apostado',
+      'indexes' : 'Índices',
+      'shares' : 'Acciones',
+      'commodities' : 'Materias primas'
     },
     'fr': { // Francés
       'home': 'Accueil',
@@ -195,7 +204,10 @@ class LocalizedStrings {
       'attention': 'Attention',
       'needToRestart' : "L'application doit être redémarrée. Entrez à nouveau",
       'wallet': 'Mon portefeuille',
-      'staked' : 'Misé'
+      'staked' : 'Misé',
+      'indexes' : 'Indices',
+      'shares' : ' Actions',
+      'commodities' : 'Matières premières'
     },
     'it': { // Italiano
       'home': 'Home',
@@ -257,7 +269,10 @@ class LocalizedStrings {
       'attention': 'Attenzione!',
       'needToRestart' : "L'applicazione deve essere riavviata. Entra di nuovo",
       'wallet': 'Portafoglio',
-      'staked' : 'Scommeso'
+      'staked' : 'Scommeso',
+      'indexes' : 'Indici',
+      'shares' : 'Azioni',
+      'commodities' : 'Materie prime'
     },
     'de': { // Alemán
       'home': 'Startseite',
@@ -319,7 +334,10 @@ class LocalizedStrings {
       'attention': 'Achtung',
       'needToRestart' : 'Die Anwendung muss neu gestartet werden. Treten Sie erneut ein',
       'wallet': 'Meine Geldbörse',
-      'staked' : 'Gewettet'
+      'staked' : 'Gewettet',
+      'indexes' : 'Indizes',
+      'shares' : 'Unternehmensaktien',
+      'commodities' : 'Rohstoffe'
     },
   };
 
@@ -386,6 +404,10 @@ class LocalizedStrings {
   String? get liveBets => _localizedValues[locale.languageCode]?['liveBets'];
   String? get wallet => _localizedValues[locale.languageCode]?['wallet'];
   String? get staked => _localizedValues[locale.languageCode]?['staked'];
+  String? get indexes => _localizedValues[locale.languageCode]?['indexes'];
+  String? get shares => _localizedValues[locale.languageCode]?['shares'];
+  String? get commodities => _localizedValues[locale.languageCode]?['commodities'];
+
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

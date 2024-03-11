@@ -6,7 +6,7 @@ import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 
 class CandlesticksView extends StatefulWidget {
-  CandlesticksView({super.key});
+  CandlesticksView(int id, {super.key});
   List<Candle> candles = Common().generateRandomCandles(520);
   @override
   CandlesticksViewState createState() => CandlesticksViewState();

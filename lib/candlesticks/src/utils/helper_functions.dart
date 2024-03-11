@@ -35,7 +35,7 @@ class HelperFunctions {
                 ? price.toStringAsFixed(4)
                 : price.abs() > 1
                     ? price.toStringAsFixed(5)
-                    : price.toStringAsFixed(7);
+                    : price.toStringAsFixed(6);
   }
 
   static double calculatePriceScale(double height, double high, double low) {
