@@ -12,7 +12,6 @@ class AuthService {
   static const PUBLIC_DOMAIN = '108.pool90-175-130.dynamic.orange.es';
   static const API_URL = 'https://$PUBLIC_DOMAIN:44346/api/Auth';
 
-
   Future<Map<String, dynamic>> logIn(String username, String password) async {
     try {
       final Map<String, dynamic> data = {'username': username, 'password': password};
@@ -192,5 +191,13 @@ class AuthService {
       client.close();
     }
   }
+  //TODO
+  Future<bool> googleSignIn() async {
+    return true;
+  }
 
+  //TODO
+  Future<bool> appleSignIn() async {
+    return true;
+  }
 }

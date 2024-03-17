@@ -1,282 +1,237 @@
-// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
-
 import 'dart:convert';
-import 'package:client_0_0_1/services/AuthService.dart';
-import 'package:client_0_0_1/ui/signin_page.dart';
-import 'package:client_0_0_1/locale/localized_texts.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
-import '../helpers/common.dart';
+import 'package:crypto/crypto.dart';
+import 'package:client_0_0_1/services/AuthService.dart';
+import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:client_0_0_1/helpers/common.dart';
+import 'package:client_0_0_1/ui/signin_page.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+
+    double bottomMargin = MediaQuery.of(context).size.height/10;
+
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0.0,
         title: const Text(''),
-
+        automaticallyImplyLeading: false,
       ),
-
-      body: SingleChildScrollView(
-          child: Center(
-            child: Container(
-              width: 350,
-              margin: const EdgeInsets.only(top: 80.0, bottom: 20.0),
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15.0),
-                color: Theme.of(context).colorScheme.onBackground,
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).colorScheme.onBackground,
-                    spreadRadius: 3,
-                    blurRadius: 7,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: const LoginForm(),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            width: 350,
+            padding: const EdgeInsets.all(16.0),
+            margin: EdgeInsets.only(bottom: bottomMargin),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15.0),
+              color: Theme.of(context).colorScheme.onBackground,
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).colorScheme.onBackground,
+                  spreadRadius: 3,
+                  blurRadius: 7,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
+            child: const LoginForm(),
           ),
         ),
+      ),
     );
   }
 }
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
+
   @override
-  _LoginFormState createState() => _LoginFormState();
+  LoginFormState createState() => LoginFormState();
 }
 
-  class _LoginFormState extends State<LoginForm> {
-    final _formKey = GlobalKey<FormState>();
-    final _usernameController = TextEditingController();
-    final _passwordController = TextEditingController();
+class LoginFormState extends State<LoginForm> {
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _showSignInWithGoogleApple = true;
 
-    @override
-    Widget build(BuildContext context) {
-      final strings = LocalizedStrings.of(context);
+  @override
+  Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
 
-      return Form(
-        key: _formKey,
-
-        child: Column(
-
-          children: [
-            Image.asset(
-              'assets/logo.png',
-              width: 200,
-
-              fit: BoxFit.cover,
-            ),
-            const Padding(padding: EdgeInsets.all(10.0),),
-            TextFormField(
-              controller: _usernameController,
-              decoration: InputDecoration(
-                labelText: strings?.username ?? 'User name',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                    width: 2.0,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return strings?.pleaseEnterUsername ?? 'Please enter your user name';
-                }
-                return null;
-              },
-            ),
-
-            const SizedBox(height: 16.0),
-            TextFormField(
-              controller: _passwordController,
-              decoration: InputDecoration(
-                labelText: strings?.password ?? 'Password',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                    width: 2.0,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-              ),
-              obscureText: true,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return strings?.pleaseEnterPassword ?? 'Please enter your password';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext context) {
-                          return Dialog(
-                            child: Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const CircularProgressIndicator(
-                                    strokeWidth: 5,
-                                    backgroundColor: Colors.blueGrey,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Text(
-                                    strings?.connecting ?? "Connecting ...",
-                                    style: const TextStyle(
-                                      color: Colors.blueGrey,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                      //showDialog
-
-                      final passwordBytes = utf8.encode(_passwordController.text.trim());
-                      final hashedPassword = sha256.convert(passwordBytes);
-
-                      final result = await AuthService().logIn(
-                        _usernameController.text.trim(),
-                        hashedPassword.toString(),
-                      );
-
-                      Navigator.of(context).pop();
-
-                      if (result['success']) {
-                        Common().logInPopDialog(strings?.welcome ?? "Welcome", _usernameController.text.trim(),context);
-                      } else {
-                        Common().popDialog("Oops...", "${result['message']}" , context);
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
-                  ),
-                  child: Text(
-                    strings?.logIn ?? 'Log In',
-                    style: const TextStyle(fontSize: 16.0, color: Colors.white),
-                  ),
-                ),
-                const SizedBox(width: 16.0),
-                ElevatedButton(
-                  onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const SignIn()),
-                      );
-
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black12,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
-                  ),
-                  child: Text(
-                    strings?.signIn ?? 'Register',
-                    style: const TextStyle(fontSize: 16.0, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children : [
-                TextButton(
-                  onPressed: () {
-                    /// TO-DO RESET PASSWORD
-                    Common().unimplementedAction("ResetPassword()", context);
-                  },
-                  child: Text(
-                    strings?.forgotPassword ?? 'Forgot Password?',
-                    style: const TextStyle(color: Colors.blue),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    SystemNavigator.pop();
-                  },
-                  child:  Text(
-                    strings?.exit ?? 'Exit',
-                    style: const TextStyle(color: Colors.blue),
-                  ),
-                ),
-
-              ]
-            )
-
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          Image.asset('assets/logo.png', width: 200, fit: BoxFit.cover),
+          const Padding(padding: EdgeInsets.all(10.0)),
+          if (_showSignInWithGoogleApple) ...[
+            _buildGoogleSignInButton(strings!),
+            const SizedBox(height: 8),
+            _buildAppleSignInButton(strings),
+            const SizedBox(height: 10),
+          ] else ...[
+            _buildUsernameField(strings!),
+            const SizedBox(height: 16),
+            _buildPasswordField(strings),
+            const SizedBox(height: 20),
+            _buildLoginAndRegisterButtons(context, strings),
+            const SizedBox(height: 16),
+            _buildForgotPasswordButton(strings),
           ],
+          _buildToggleButton(strings),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoogleSignInButton(LocalizedStrings strings) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        primary: Colors.white,
+        onPrimary: Colors.black,
+        minimumSize: const Size(double.infinity, 50),
+      ),
+      onPressed: () {
+        AuthService().googleSignIn();
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset('assets/google.png', height: 24.0),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: Text(strings.googleSignIn ?? 'Continue with Google', style: const TextStyle(fontSize: 16, color: Colors.black)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppleSignInButton(LocalizedStrings strings) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        primary: Colors.black,
+        onPrimary: Colors.white,
+        minimumSize: const Size(double.infinity, 50),
+      ),
+      onPressed: () {
+        AuthService().googleSignIn();
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset('assets/apple_black.png', height: 24.0),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: Text(strings.appleSignIn ?? 'Continue with Apple ID', style: const TextStyle(fontSize: 16, color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUsernameField(LocalizedStrings strings) {
+    return TextFormField(
+      controller: _usernameController,
+      decoration: InputDecoration(labelText: strings.username ?? 'User name'),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return strings.pleaseEnterUsername ?? 'Please enter your username';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPasswordField(LocalizedStrings strings) {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: true,
+      decoration: InputDecoration(labelText: strings.password ?? 'Password'),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return strings.pleaseEnterPassword ?? 'Please enter your password';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildLoginAndRegisterButtons(BuildContext context, LocalizedStrings strings) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              logInHelper(strings);
+            }
+          },
+          child: Text(strings.logIn ?? 'Log In'),
         ),
-      );
+        const Padding(padding: EdgeInsets.all(2.0)),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SignIn()));
+          },
+          child: Text(strings.signIn ?? 'Register'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggleButton(LocalizedStrings strings) {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          _showSignInWithGoogleApple = !_showSignInWithGoogleApple;
+        });
+      },
+      child: Text(_showSignInWithGoogleApple ? (strings.commonSignIn ?? "E-mail log-in") :
+            (strings.backToSocialsLogin ?? "Back to Social Logins")),
+    );
+  }
+
+  Widget _buildForgotPasswordButton(LocalizedStrings strings) {
+    return TextButton(
+      onPressed: () {
+        // Forgot password logic
+      },
+      child: Text(strings.forgotPassword ?? 'Forgot Password?'),
+    );
+  }
+
+  void logInHelper(LocalizedStrings strings) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
+    final passwordBytes = utf8.encode(_passwordController.text.trim());
+    final hashedPassword = sha256.convert(passwordBytes);
+
+    try {
+      final result = await AuthService().logIn(_usernameController.text.trim(), hashedPassword.toString());
+      Navigator.of(context).pop(); // Close the progress dialog
+
+      if (result['success']) {
+        Common().logInPopDialog(strings.welcome ?? "Welcome", _usernameController.text.trim(), context);
+      } else {
+        Common().popDialog("Oops...", result['message'], context);
+      }
+    } catch (e) {
+      Navigator.of(context).pop();
+      Common().popDialog("Error", "An unexpected error occurred.", context);
     }
+  }
 }

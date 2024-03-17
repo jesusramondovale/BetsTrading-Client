@@ -74,7 +74,11 @@ class LocalizedStrings {
       'staked' : 'Staked',
       'indexes' : 'Indexes',
       'shares' : 'Shares',
-      'commodities' : 'Commodities'
+      'commodities' : 'Commodities',
+      'googleSignIn' : 'Continue with Google',
+      'appleSignIn' : 'Continue with Apple ID',
+      'commonSignIn' : 'E-mail log-in',
+      'backToSocialsLogin' : 'Back to Social Login'
 
 
 
@@ -142,7 +146,11 @@ class LocalizedStrings {
       'staked' : 'Apostado',
       'indexes' : 'Índices',
       'shares' : 'Acciones',
-      'commodities' : 'Materias primas'
+      'commodities' : 'Materias primas',
+      'googleSignIn' : 'Continuar con Google',
+      'appleSignIn' : 'Continuar con Apple ID',
+      'commonSignIn' : 'Inicio de sesión con e-mail',
+      'backToSocialsLogin' : 'Inicio de sesión social'
     },
     'fr': { // Francés
       'home': 'Accueil',
@@ -207,7 +215,11 @@ class LocalizedStrings {
       'staked' : 'Misé',
       'indexes' : 'Indices',
       'shares' : ' Actions',
-      'commodities' : 'Matières premières'
+      'commodities' : 'Matières premières',
+      'googleSignIn' : 'Connexion avec Google',
+      'appleSignIn' : 'Connexion avec Apple ID',
+      'commonSignIn' : 'Connexion avec e-mail',
+      'backToSocialsLogin' : 'Retour à la connexion sociale'
     },
     'it': { // Italiano
       'home': 'Home',
@@ -272,7 +284,11 @@ class LocalizedStrings {
       'staked' : 'Scommeso',
       'indexes' : 'Indici',
       'shares' : 'Azioni',
-      'commodities' : 'Materie prime'
+      'commodities' : 'Materie prime',
+      'googleSignIn' : 'Accesso con Google',
+      'appleSignIn' : 'Accesso con Apple ID',
+      'commonSignIn' : 'Accesso con e-mail',
+      'backToSocialsLogin' : 'Torna al login social'
     },
     'de': { // Alemán
       'home': 'Startseite',
@@ -337,7 +353,11 @@ class LocalizedStrings {
       'staked' : 'Gewettet',
       'indexes' : 'Indizes',
       'shares' : 'Unternehmensaktien',
-      'commodities' : 'Rohstoffe'
+      'commodities' : 'Rohstoffe',
+      'googleSignIn' : 'Anmeldung mit Google',
+      'appleSignIn' : 'Anmeldung mit Apple ID',
+      'commonSignIn' : 'Allgemeine Anmeldung',
+      'backToSocialsLogin' : 'Zurück zum sozialen Login'
     },
   };
 
@@ -407,7 +427,10 @@ class LocalizedStrings {
   String? get indexes => _localizedValues[locale.languageCode]?['indexes'];
   String? get shares => _localizedValues[locale.languageCode]?['shares'];
   String? get commodities => _localizedValues[locale.languageCode]?['commodities'];
-
+  String? get googleSignIn => _localizedValues[locale.languageCode]?['googleSignIn'];
+  String? get appleSignIn => _localizedValues[locale.languageCode]?['appleSignIn'];
+  String? get commonSignIn => _localizedValues[locale.languageCode]?['commonSignIn'];
+  String? get backToSocialsLogin => _localizedValues[locale.languageCode]?['backToSocialsLogin'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {
