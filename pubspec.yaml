@@ -50,6 +50,7 @@ dependencies:
   shared_preferences: ^2.2.2
   auto_size_text: ^3.0.0
   oauth2: ^2.0.2
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:

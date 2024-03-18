@@ -94,12 +94,18 @@ class LoginFormState extends State<LoginForm> {
   Widget _buildGoogleSignInButton(LocalizedStrings strings) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        primary: Colors.white,
-        onPrimary: Colors.black,
+        foregroundColor: Colors.black, backgroundColor: Colors.white,
         minimumSize: const Size(double.infinity, 50),
       ),
-      onPressed: () {
-        AuthService().googleSignIn();
+      onPressed: () async {  // Añade async aquí
+        String? token = await AuthService().googleSignIn();
+        if (token != "error" && token != null) {
+          print("LE TOKEEEEN-> $token");
+
+        } else {
+
+          print("Error al intentar iniciar sesión con Google.");
+        }
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -117,12 +123,11 @@ class LoginFormState extends State<LoginForm> {
   Widget _buildAppleSignInButton(LocalizedStrings strings) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        primary: Colors.black,
-        onPrimary: Colors.white,
+        foregroundColor: Colors.white, backgroundColor: Colors.black,
         minimumSize: const Size(double.infinity, 50),
       ),
       onPressed: () {
-        AuthService().googleSignIn();
+        AuthService().appleSignIn();
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

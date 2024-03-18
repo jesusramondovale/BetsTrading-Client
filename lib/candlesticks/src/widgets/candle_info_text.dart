@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 
 class CandleInfoText extends StatelessWidget {
   const CandleInfoText({
-    Key? key,
+    super.key,
     required this.candle,
     required this.bullColor,
     required this.bearColor,
     required this.defaultStyle,
-  }) : super(key: key);
+  });
 
   final Candle candle;
   final Color bullColor;
@@ -31,28 +31,28 @@ class CandleInfoText extends StatelessWidget {
         text: dateFormatter(candle.date),
         style: defaultStyle,
         children: <TextSpan>[
-          TextSpan(text: " O:"),
+          const TextSpan(text: " O:"),
           TextSpan(
             text: HelperFunctions.priceToString(candle.open),
             style: TextStyle(
               color: candle.isBull ? bullColor : bearColor,
             ),
           ),
-          TextSpan(text: " H:"),
+          const TextSpan(text: " H:"),
           TextSpan(
             text: HelperFunctions.priceToString(candle.high),
             style: TextStyle(
               color: candle.isBull ? bullColor : bearColor,
             ),
           ),
-          TextSpan(text: " L:"),
+          const TextSpan(text: " L:"),
           TextSpan(
             text: HelperFunctions.priceToString(candle.low),
             style: TextStyle(
               color: candle.isBull ? bullColor : bearColor,
             ),
           ),
-          TextSpan(text: " C:"),
+          const TextSpan(text: " C:"),
           TextSpan(
             text: HelperFunctions.priceToString(candle.close),
             style: TextStyle(

@@ -6,7 +6,7 @@ class MovingAverageIndicator extends Indicator {
     required int length,
     required Color color,
   }) : super(
-          name: "MA " + length.toString(),
+          name: "MA $length",
           dependsOnNPrevCandles: length,
           calculator: (index, candles) {
             double sum = 0;

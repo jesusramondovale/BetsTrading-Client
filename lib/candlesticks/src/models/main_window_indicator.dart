@@ -24,35 +24,35 @@ class MainWindowDataContainer {
   void toggleIndicatorVisibility(String indicatorName) {
     if (unvisibleIndicators.contains(indicatorName)) {
       unvisibleIndicators.remove(indicatorName);
-      indicatorComponentData.forEach((element) {
+      for (var element in indicatorComponentData) {
         if (element.parentIndicator.name == indicatorName) {
           element.visible = true;
         }
-      });
+      }
     } else {
       unvisibleIndicators.add(indicatorName);
-      indicatorComponentData.forEach((element) {
+      for (var element in indicatorComponentData) {
         if (element.parentIndicator.name == indicatorName) {
           element.visible = false;
         }
-      });
+      }
     }
   }
 
   MainWindowDataContainer(this.indicators, List<Candle> candles) {
     endDate = candles[0].date;
     beginDate = candles.last.date;
-    indicators.forEach((indicator) {
-      indicator.indicatorComponentsStyles.forEach((indicatorComponent) {
+    for (var indicator in indicators) {
+      for (var indicatorComponent in indicator.indicatorComponentsStyles) {
         indicatorComponentData.add(IndicatorComponentData(
             indicator, indicatorComponent.name, indicatorComponent.color));
-      });
-    });
+      }
+    }
 
     highs = candles.map((e) => e.high).toList();
     lows = candles.map((e) => e.low).toList();
 
-    indicators.forEach((indicator) {
+    for (var indicator in indicators) {
       final List<IndicatorComponentData> containers = indicatorComponentData
           .where((element) => element.parentIndicator == indicator)
           .toList();
@@ -78,7 +78,7 @@ class MainWindowDataContainer {
         lows[i] = low;
         highs[i] = high;
       }
-    });
+    }
   }
 
   void tickUpdate(List<Candle> candles) {
@@ -86,12 +86,11 @@ class MainWindowDataContainer {
     for (int i = 0; candles[i].date.compareTo(endDate) > 0; i++) {
       highs.insert(i, candles[i].high);
       lows.insert(i, candles[i].low);
-      indicatorComponentData.forEach((element) {
+      for (var element in indicatorComponentData) {
         element.values.insert(i, null);
-      });
+      }
     }
-    indicators.forEach(
-      (indicator) {
+    for (var indicator in indicators) {
         final List<IndicatorComponentData> containers = indicatorComponentData
             .where((element) => element.parentIndicator == indicator)
             .toList();
@@ -117,8 +116,7 @@ class MainWindowDataContainer {
           lows[i] = low;
           highs[i] = high;
         }
-      },
-    );
+      }
     endDate = candles[0].date;
 
     // update prev candles
@@ -132,12 +130,11 @@ class MainWindowDataContainer {
     for (int i = firstCandleIndex + 1; i < candles.length; i++) {
       highs.add(candles[i].high);
       lows.add(candles[i].low);
-      indicatorComponentData.forEach((element) {
+      for (var element in indicatorComponentData) {
         element.values.add(null);
-      });
+      }
     }
-    indicators.forEach(
-      (indicator) {
+    for (var indicator in indicators) {
         final List<IndicatorComponentData> containers = indicatorComponentData
             .where((element) => element.parentIndicator == indicator)
             .toList();
@@ -166,8 +163,7 @@ class MainWindowDataContainer {
           lows[i] = low;
           highs[i] = high;
         }
-      },
-    );
+      }
     beginDate = candles.last.date;
   }
 }

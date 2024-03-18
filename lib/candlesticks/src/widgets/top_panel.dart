@@ -6,14 +6,14 @@ import 'package:flutter/material.dart';
 
 class TopPanel extends StatefulWidget {
   const TopPanel({
-    Key? key,
+    super.key,
     required this.currentCandle,
     required this.indicators,
     required this.toggleIndicatorVisibility,
     required this.unvisibleIndicators,
     required this.onRemoveIndicator,
     required this.style,
-  }) : super(key: key);
+  });
 
   final Candle? currentCandle;
   final List<Indicator> indicators;
@@ -53,6 +53,7 @@ class _TopPanelState extends State<TopPanel> {
                   children: widget.indicators
                       .map(
                         (e) => _PanelButton(
+                          borderColor: widget.style.borderColor,
                           child: Row(
                             children: [
                               Text(e.name),
@@ -89,7 +90,6 @@ class _TopPanelState extends State<TopPanel> {
                                   : Container(),
                             ],
                           ),
-                          borderColor: widget.style.borderColor,
                         ),
                       )
                       .toList(),
@@ -125,10 +125,9 @@ class _TopPanelState extends State<TopPanel> {
 
 class _PanelButton extends StatelessWidget {
   const _PanelButton({
-    Key? key,
     required this.child,
     required this.borderColor,
-  }) : super(key: key);
+  });
 
   final Widget child;
   final Color borderColor;

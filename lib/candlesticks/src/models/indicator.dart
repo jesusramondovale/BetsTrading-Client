@@ -21,9 +21,10 @@ class Indicator {
     required this.indicatorComponentsStyles,
   });
 
+  @override
   bool operator ==(other) {
     if (other is Indicator) {
-      return other.name == this.name;
+      return other.name == name;
     } else {
       return false;
     }

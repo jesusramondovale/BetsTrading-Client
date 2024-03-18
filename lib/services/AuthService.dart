@@ -1,5 +1,5 @@
 // ignore_for_file: constant_identifier_names, file_names
-
+import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
 
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   //static const PRIVATE_IP = '192.168.1.37';
   static const PUBLIC_DOMAIN = '108.pool90-175-130.dynamic.orange.es';
@@ -192,10 +193,34 @@ class AuthService {
     }
   }
   //TODO
-  Future<bool> googleSignIn() async {
-    return true;
-  }
+  Future<String?> googleSignIn() async {
+    try {
+      const List<String> scopes = <String>[
+        'email',
+        'https://www.googleapis.com/auth/contacts.readonly',
+      ];
+      GoogleSignIn googleSignIn = GoogleSignIn(
+        // Optional clientId
+        // clientId: 'your-client_id.apps.googleusercontent.com',
+        scopes: scopes,
+      );
 
+      if (googleSignIn != null) {
+
+        try {
+         await googleSignIn.signIn();
+         print("OK");
+        } catch (error) {
+          print(error);
+        }
+
+      }
+    } catch (e) {
+      print("EL ERROR -> $e");
+      return "error";
+    }
+    return "error";
+  }
   //TODO
   Future<bool> appleSignIn() async {
     return true;
