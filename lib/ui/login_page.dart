@@ -5,6 +5,10 @@ import 'package:client_0_0_1/services/AuthService.dart';
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:client_0_0_1/helpers/common.dart';
 import 'package:client_0_0_1/ui/signin_page.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../services/BetsService.dart';
+import 'home_page.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -60,6 +64,7 @@ class LoginFormState extends State<LoginForm> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _showSignInWithGoogleApple = true;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   Widget build(BuildContext context) {
@@ -97,13 +102,17 @@ class LoginFormState extends State<LoginForm> {
         foregroundColor: Colors.black, backgroundColor: Colors.white,
         minimumSize: const Size(double.infinity, 50),
       ),
-      onPressed: () async {  // Añade async aquí
-        String? token = await AuthService().googleSignIn();
-        if (token != "error" && token != null) {
-          print("LE TOKEEEEN-> $token");
+      onPressed: () async {
+        int? result = await AuthService().googleSignIn();
+        if (result != null && result == 0 ) {
+          //print("LE TOKEEEEN-> $token");
+          // Validated
+          String? id = await _storage.read(key: 'sessionToken');
+          await BetsService().getUserInfo(id!);
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
 
         } else {
-
+          Common().popDialog("Oops...", "Error", context);
           print("Error al intentar iniciar sesión con Google.");
         }
       },

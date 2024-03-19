@@ -1,4 +1,5 @@
 // ignore_for_file: constant_identifier_names, file_names
+import 'package:client_0_0_1/enums/googleRegisterRequest.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -150,20 +151,30 @@ class AuthService {
     if (sessionToken == null) {
       return false;
     }
-    return await _verifyTokenWithServer(sessionToken);
+    return await _verifyTokenWithServer(sessionToken,false, null);
   }
 
-  Future<bool> _verifyTokenWithServer(String token) async {
+  Future<bool> _verifyTokenWithServer(String token, bool googleMode, GoogleRegisterRequest? googleRegisterRequest) async {
 
     bool certificateCheck(X509Certificate cert, String host, int port) => true;
     HttpClient client = HttpClient()..badCertificateCallback = certificateCheck;
+    final HttpClientRequest request;
 
     try {
-      final HttpClientRequest request = await client.postUrl(Uri.parse('$API_URL/IsLoggedIn'));
-      request.headers.set('Content-Type', 'application/json');
-      final Map<String, dynamic> data = {'id': token};
-      request.write(jsonEncode(data));
-
+      if (googleMode) {
+        request = await client.postUrl(Uri.parse('$API_URL/IsGoogledIn'));
+        request.headers.set('Content-Type', 'application/json');
+        final Map<String, dynamic> data = {'id': token, 'displayName' :  googleRegisterRequest!.displayName ,
+          'email': googleRegisterRequest!.email , 'photoUrl' : googleRegisterRequest.photoUrl };
+        request.write(jsonEncode(data));
+      }
+      else {
+        request = await client.postUrl(Uri.parse('$API_URL/IsLoggedIn'));
+        request.headers.set('Content-Type', 'application/json');
+        final Map<String, dynamic> data = {'id': token};
+        request.write(jsonEncode(data));
+      }
+      
       final HttpClientResponse response = await request.close();
 
       if (response.statusCode == 200)
@@ -193,7 +204,7 @@ class AuthService {
     }
   }
   //TODO
-  Future<String?> googleSignIn() async {
+  Future<int?> googleSignIn() async {
     try {
       const List<String> scopes = <String>[
         'email',
@@ -208,18 +219,28 @@ class AuthService {
       if (googleSignIn != null) {
 
         try {
-         await googleSignIn.signIn();
-         print("OK");
+         final user = await googleSignIn.signIn();
+         GoogleRegisterRequest googleRegisterRequest = GoogleRegisterRequest("", id: user!.id, displayName:
+                                     user.displayName!, email: user.email, photoUrl: user.photoUrl!);
+         if (user != null) {
+           print("User OK : $user");
+           final bool userVerified = await _verifyTokenWithServer(user!.id, true, googleRegisterRequest);
+           if (userVerified){
+             await _storage.write(key: 'sessionToken', value: user?.id);
+             return 0;
+           }
+         }
         } catch (error) {
           print(error);
+          return 1;
         }
 
       }
-    } catch (e) {
-      print("EL ERROR -> $e");
-      return "error";
+    } catch (error) {
+      print(error);
+      return 1;
     }
-    return "error";
+    return 1;
   }
   //TODO
   Future<bool> appleSignIn() async {
