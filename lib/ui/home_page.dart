@@ -110,6 +110,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.account_circle),
+
             label: _username,
           ),
         ],

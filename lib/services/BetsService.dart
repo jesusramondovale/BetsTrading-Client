@@ -226,7 +226,7 @@ class BetsService {
         final String birthday = decodedBody['birthday'];
         final String address = decodedBody['address'];
         final String country = decodedBody['country'];
-        final String profilepic = decodedBody['profilepic'];
+        final String? profilepic = decodedBody['profilepic'];
         final String lastsession = decodedBody['lastsession'];
 
         await _storage.write(key: 'fullname', value: fullname);

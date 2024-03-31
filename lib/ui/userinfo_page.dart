@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:client_0_0_1/services/BetsService.dart';
@@ -70,10 +71,22 @@ class _UserInfoPageState extends State<UserInfoPage> {
     await prefs.setBool('darkTheme', isDark);
   }
   Future<void> _loadProfilePic() async {
-    String? profilePicBase64 = await _storage.read(key: 'profilepic');
-    if (profilePicBase64 != null && profilePicBase64.isNotEmpty) {
+    String? profilePicString = await _storage.read(key: 'profilepic');
+    if (profilePicString != null && profilePicString.isNotEmpty) {
+      Uint8List imageBytes;
+      if (profilePicString.startsWith('http')) {
+        final response = await http.get(Uri.parse(profilePicString));
+        if (response.statusCode == 200) {
+          imageBytes = response.bodyBytes;
+        } else {
+          print('Error al cargar la imagen de la red');
+          return;
+        }
+      } else {
+        imageBytes = base64Decode(profilePicString);
+      }
       setState(() {
-        _profilePicBytes = base64Decode(profilePicBase64);
+        _profilePicBytes = imageBytes;
       });
     }
   }
