@@ -1,12 +1,41 @@
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 
 import '../main.dart';
 
-class SettingsView extends StatelessWidget {
+class SettingsView extends StatefulWidget {
+
   final VoidCallback onPersonalInfoTap;
   const SettingsView({super.key, required this.onPersonalInfoTap});
+
+  @override
+  _SettingsViewState createState() => _SettingsViewState();
+}
+
+class _SettingsViewState extends State<SettingsView> {
+  bool isDark = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemePreference();
+  }
+
+  Future<void> _loadThemePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool darkTheme = prefs.getBool('darkTheme') ?? true;
+    setState(() {
+      isDark = darkTheme;
+    });
+  }
+
+  Future<void> _saveThemePreference(bool isDark) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('darkTheme', isDark);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +55,7 @@ class SettingsView extends StatelessWidget {
             ListTile(
               title: Text(strings?.personalInfo ?? 'Personal info'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: onPersonalInfoTap
+              onTap: widget.onPersonalInfoTap
             ),
             ListTile(
               title: Text(strings?.changePassword ?? "Change password"),
@@ -57,6 +86,17 @@ class SettingsView extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
                   Common().unimplementedAction(context),
+            ),
+            SwitchListTile(
+              title: Text(strings?.darkMode ?? "Dark mode"),
+              value: isDark,
+              onChanged: (bool value) async {
+                await _saveThemePreference(value);
+                setState(() {
+                  isDark = value;
+                  Common().exitPopDialog(strings?.attention ?? "Attention!" , strings?.needToRestart ?? "App must restart", context);
+                });
+              },
             ),
           ],
         ).toList(),

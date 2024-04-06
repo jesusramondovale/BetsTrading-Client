@@ -24,13 +24,16 @@ class UserInfoPage extends StatefulWidget {
 }
 
 class _UserInfoPageState extends State<UserInfoPage> {
+
+
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Uint8List? _profilePicBytes;
   bool isDark = true;
+
+
   @override
   void initState() {
     super.initState();
-    _loadThemePreference();
     _loadProfilePic();
   }
 
@@ -56,19 +59,6 @@ class _UserInfoPageState extends State<UserInfoPage> {
       userInfo[key] = value ?? strings?.notAvailable ?? 'Not available';
     }
     return userInfo;
-  }
-
-  Future<void> _loadThemePreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    bool darkTheme = prefs.getBool('darkTheme') ?? true;
-    setState(() {
-      isDark = darkTheme;
-    });
-  }
-
-  Future<void> _saveThemePreference(bool isDark) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('darkTheme', isDark);
   }
   Future<void> _loadProfilePic() async {
     String? profilePicString = await _storage.read(key: 'profilepic');
@@ -192,20 +182,6 @@ class _UserInfoPageState extends State<UserInfoPage> {
           }).toList());
 
           listItems.add(
-            SwitchListTile(
-              title: Text(strings?.darkMode ?? "Dark mode"),
-              value: isDark,
-              onChanged: (bool value) async {
-                await _saveThemePreference(value);
-                setState(() {
-                  isDark = value;
-                  Common().exitPopDialog(strings?.attention ?? "Attention!" , strings?.needToRestart ?? "App must restart", context);
-                });
-              },
-            ),
-          );
-          listItems.add(
-
             ListTile(
               leading: const Icon(Icons.logout),
               title: Text(strings?.logOut ??'Log Out'),
@@ -240,5 +216,4 @@ class _UserInfoPageState extends State<UserInfoPage> {
       },
     );
   }
-
 }
