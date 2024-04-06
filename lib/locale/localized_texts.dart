@@ -78,7 +78,9 @@ class LocalizedStrings {
       'googleSignIn' : 'Continue with Google',
       'appleSignIn' : 'Continue with Apple ID',
       'commonSignIn' : 'E-mail log-in',
-      'backToSocialsLogin' : 'Back to Social Login'
+      'backToSocialsLogin' : 'Back to Social Login',
+      'noLiveBets' : 'You have no live bets at the moment, go to the markets tab to create a new one.',
+      'noClosedBets' : 'There are no closed bets\n(for now ...) 😏',
 
 
 
@@ -150,7 +152,13 @@ class LocalizedStrings {
       'googleSignIn' : 'Continuar con Google',
       'appleSignIn' : 'Continuar con Apple ID',
       'commonSignIn' : 'Inicio de sesión con e-mail',
-      'backToSocialsLogin' : 'Inicio de sesión social'
+      'backToSocialsLogin' : 'Inicio de sesión social',
+      'noLiveBets' : 'No tienes apuestas en directo en este momento, vaya a la pestaña de mercados para crear una nueva',
+      'noClosedBets' : 'No existen apuestas cerradas\n(por ahora...) 😏',
+
+
+
+
     },
     'fr': { // Francés
       'home': 'Accueil',
@@ -219,7 +227,10 @@ class LocalizedStrings {
       'googleSignIn' : 'Connexion avec Google',
       'appleSignIn' : 'Connexion avec Apple ID',
       'commonSignIn' : 'Connexion avec e-mail',
-      'backToSocialsLogin' : 'Retour à la connexion sociale'
+      'backToSocialsLogin' : 'Retour à la connexion sociale',
+      'noLiveBets' : 'Vous n\'avez aucun pari en direct pour le moment, rendez-vous sur l\'onglet des marchés pour en créer un nouveau.',
+      'noClosedBets' : 'Il n\'y a pas encore de paris fermés',
+
     },
     'it': { // Italiano
       'home': 'Home',
@@ -288,7 +299,11 @@ class LocalizedStrings {
       'googleSignIn' : 'Accesso con Google',
       'appleSignIn' : 'Accesso con Apple ID',
       'commonSignIn' : 'Accesso con e-mail',
-      'backToSocialsLogin' : 'Torna al login social'
+      'backToSocialsLogin' : 'Torna al login social',
+      'noLiveBets' : 'Non hai scommesse dal vivo in questo momento, vai alla scheda dei mercati per crearne una nuova.',
+      'noClosedBets' : 'Non ci sono scommesse chiuse\n(al momento ...) 😏 ',
+
+
     },
     'de': { // Alemán
       'home': 'Startseite',
@@ -357,7 +372,11 @@ class LocalizedStrings {
       'googleSignIn' : 'Anmeldung mit Google',
       'appleSignIn' : 'Anmeldung mit Apple ID',
       'commonSignIn' : 'Allgemeine Anmeldung',
-      'backToSocialsLogin' : 'Zurück zum sozialen Login'
+      'backToSocialsLogin' : 'Zurück zum sozialen Login',
+      'noLiveBets' : 'Sie haben derzeit keine Live-Wetten, gehen Sie zur Markt-Registerkarte, um eine neue zu erstellen.',
+      'noClosedBets' : 'Keine abgeschlossenen Wetten\n(bisher ...) 😏',
+
+
     },
   };
 
@@ -431,6 +450,8 @@ class LocalizedStrings {
   String? get appleSignIn => _localizedValues[locale.languageCode]?['appleSignIn'];
   String? get commonSignIn => _localizedValues[locale.languageCode]?['commonSignIn'];
   String? get backToSocialsLogin => _localizedValues[locale.languageCode]?['backToSocialsLogin'];
+  String? get noLiveBets => _localizedValues[locale.languageCode]?['noLiveBets'];
+  String? get noClosedBets => _localizedValues[locale.languageCode]?['noClosedBets'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {
