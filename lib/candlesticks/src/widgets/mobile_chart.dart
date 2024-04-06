@@ -532,8 +532,7 @@ class _MobileChartState extends State<MobileChart> {
                                 details.localPosition.dy, size);
 
                         if (zoneClicked != null) {
-                          Common().unimplementedAction(
-                              "newBet() on ${zoneClicked.oddsLabel}", context);
+                          Common().unimplementedAction(context);
                         }
                       }),
                     ],

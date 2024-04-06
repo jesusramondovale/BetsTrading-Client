@@ -13,6 +13,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:math';
 import 'package:image_picker/image_picker.dart';
 
+
 class Common {
   final ThemeData themeDark = ThemeData(
     brightness: Brightness.dark,
@@ -57,28 +58,9 @@ class Common {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-  void unimplementedAction(String action, BuildContext aContext) {
-    showDialog(
-      context: aContext,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.black,
-          title: const Text("Unimplemented action",
-              style: TextStyle(color: Color(0xFFFFFFFF))),
-          content: Text(
-            'The requested method $action is not implemented yet. Stay tuned',
-            style: const TextStyle(fontSize: 16.0, color: Colors.white),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("OK"),
-            ),
-          ],
-        );
-      },
+  void unimplementedAction(BuildContext aContext) {
+        ScaffoldMessenger.of(aContext).showSnackBar(
+      SnackBar(content: Text('Action is not implemented yet')),
     );
   }
   void popDialog(String aTitle, String aBody, BuildContext aContext) {

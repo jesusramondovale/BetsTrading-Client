@@ -81,7 +81,13 @@ class LocalizedStrings {
       'backToSocialsLogin' : 'Back to Social Login',
       'noLiveBets' : 'You have no live bets at the moment, go to the markets tab to create a new one.',
       'noClosedBets' : 'There are no closed bets\n(for now ...) 😏',
-
+      'personalInfo': 'Personal Information',
+      'changePassword': 'Change Password',
+      'notifications': 'Notifications',
+      'contentSettings': 'Content Settings',
+      'paymentHistory': 'Payment History',
+      'aboutUs': 'About Us',
+      'versionCode': 'Version code: ',
 
 
     },
@@ -155,7 +161,13 @@ class LocalizedStrings {
       'backToSocialsLogin' : 'Inicio de sesión social',
       'noLiveBets' : 'No tienes apuestas en directo en este momento, vaya a la pestaña de mercados para crear una nueva',
       'noClosedBets' : 'No existen apuestas cerradas\n(por ahora...) 😏',
-
+      'personalInfo': 'Información personal',
+      'changePassword': 'Cambiar contraseña',
+      'notifications': 'Notificaciones',
+      'contentSettings': 'Ajustes de contenido',
+      'paymentHistory': 'Historial de pagos',
+      'aboutUs': 'Sobre nosotros',
+      'versionCode': 'Versión de código: ',
 
 
 
@@ -230,6 +242,14 @@ class LocalizedStrings {
       'backToSocialsLogin' : 'Retour à la connexion sociale',
       'noLiveBets' : 'Vous n\'avez aucun pari en direct pour le moment, rendez-vous sur l\'onglet des marchés pour en créer un nouveau.',
       'noClosedBets' : 'Il n\'y a pas encore de paris fermés',
+      'personalInfo': 'Informations personnelles',
+      'changePassword': 'Changer le mot de passe',
+      'notifications': 'Notifications',
+      'contentSettings': 'Paramètres de contenu',
+      'paymentHistory': 'Historique de paiements',
+      'aboutUs': 'À propos de nous',
+      'versionCode': 'Code de version : ',
+
 
     },
     'it': { // Italiano
@@ -302,7 +322,13 @@ class LocalizedStrings {
       'backToSocialsLogin' : 'Torna al login social',
       'noLiveBets' : 'Non hai scommesse dal vivo in questo momento, vai alla scheda dei mercati per crearne una nuova.',
       'noClosedBets' : 'Non ci sono scommesse chiuse\n(al momento ...) 😏 ',
-
+      'personalInfo': 'Informazioni personali',
+      'changePassword': 'Cambia password',
+      'notifications': 'Notifiche',
+      'contentSettings': 'Impostazioni contenuto',
+      'paymentHistory': 'Cronologia pagamenti',
+      'aboutUs': 'Chi siamo',
+      'versionCode': 'Codice versione: ',
 
     },
     'de': { // Alemán
@@ -375,7 +401,13 @@ class LocalizedStrings {
       'backToSocialsLogin' : 'Zurück zum sozialen Login',
       'noLiveBets' : 'Sie haben derzeit keine Live-Wetten, gehen Sie zur Markt-Registerkarte, um eine neue zu erstellen.',
       'noClosedBets' : 'Keine abgeschlossenen Wetten\n(bisher ...) 😏',
-
+      'personalInfo': 'Persönliche Informationen',
+      'changePassword': 'Passwort ändern',
+      'notifications': 'Benachrichtigungen',
+      'contentSettings': 'Inhaltseinstellungen',
+      'paymentHistory': 'Zahlungsverlauf',
+      'aboutUs': 'Über uns',
+      'versionCode': 'Version code: ',
 
     },
   };
@@ -452,6 +484,12 @@ class LocalizedStrings {
   String? get backToSocialsLogin => _localizedValues[locale.languageCode]?['backToSocialsLogin'];
   String? get noLiveBets => _localizedValues[locale.languageCode]?['noLiveBets'];
   String? get noClosedBets => _localizedValues[locale.languageCode]?['noClosedBets'];
+  String? get changePassword => _localizedValues[locale.languageCode]?['changePassword'];
+  String? get notifications => _localizedValues[locale.languageCode]?['notifications'];
+  String? get contentSettings => _localizedValues[locale.languageCode]?['contentSettings'];
+  String? get paymentHistory => _localizedValues[locale.languageCode]?['paymentHistory'];
+  String? get aboutUs => _localizedValues[locale.languageCode]?['aboutUs'];
+  String? get versionCode => _localizedValues[locale.languageCode]?['versionCode'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

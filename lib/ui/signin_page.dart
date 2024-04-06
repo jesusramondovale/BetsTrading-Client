@@ -397,7 +397,7 @@ class _SignInState extends State<SignIn> {
                 ..onTap = ()
                 {
                   /// TO-DO TERMS&CONDITIONS VIEW
-                  Common().unimplementedAction("seeTerms()", context);
+                  Common().unimplementedAction(context);
                 },
             ),
           ],

@@ -1,10 +1,10 @@
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:client_0_0_1/ui/financial_assets_view.dart';
+import 'package:client_0_0_1/ui/settings_view.dart';
 import 'package:client_0_0_1/ui/userinfo_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:client_0_0_1/candlesticks/candlesticks.dart';
-import '../helpers/common.dart';
 import 'investments_home.dart';
 import 'login_page.dart';
 
@@ -24,11 +24,13 @@ class MyApp extends StatelessWidget {
 class MainMenuPage extends StatefulWidget {
   const MainMenuPage({super.key});
 
+
   @override
   _MainMenuPageState createState() => _MainMenuPageState();
 }
 
 class _MainMenuPageState extends State<MainMenuPage> {
+
   int _selectedIndex = 0;
   late List<Candle> candlesList;
   late List<Widget> _pages;
@@ -73,7 +75,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
     _pages = [
       const InvestmentScreen(),
       const FinancialAssetsView(),
-      const BlankImageWidget(),
+      SettingsView(onPersonalInfoTap: () => _onItemTapped(3)),
       const UserInfoPage()
     ];
 
