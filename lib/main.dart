@@ -26,7 +26,7 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   final bool isDarkTheme;
-  MyApp({super.key, required this.isDarkTheme});
+  const MyApp({super.key, required this.isDarkTheme});
 
 
   @override

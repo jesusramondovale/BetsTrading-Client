@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:client_0_0_1/candlesticks/candlesticks.dart';
 import '../helpers/common.dart';
-import 'candlesticks_view.dart';
 import 'investments_home.dart';
 import 'login_page.dart';
 
@@ -111,6 +110,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.account_circle),
+
             label: _username,
           ),
         ],

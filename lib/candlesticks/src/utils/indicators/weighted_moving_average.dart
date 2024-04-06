@@ -6,7 +6,7 @@ class WeightedMovingAverageIndicator extends Indicator {
     required int length,
     required Color color,
   }) : super(
-          name: "WMA " + length.toString(),
+          name: "WMA $length",
           dependsOnNPrevCandles: length,
           calculator: (index, candles) {
             double sum = 0;

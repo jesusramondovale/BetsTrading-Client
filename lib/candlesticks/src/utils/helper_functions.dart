@@ -16,14 +16,14 @@ class HelperFunctions {
   static String addMetricPrefix(double price) {
     if (price < 1) price = 1;
     int log = log10(price).floor();
-    if (log > 9)
+    if (log > 9) {
       return "${price ~/ 1000000000}B";
-    else if (log > 6)
+    } else if (log > 6)
       return "${price ~/ 1000000}M";
     else if (log > 3)
       return "${price ~/ 1000}K";
     else
-      return "${price.toStringAsFixed(0)}";
+      return price.toStringAsFixed(0);
   }
 
   static String priceToString(double price) {

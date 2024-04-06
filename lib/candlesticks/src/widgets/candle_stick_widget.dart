@@ -1,6 +1,5 @@
 import '../models/candle.dart';
 import 'package:flutter/material.dart';
-import '../models/candle.dart';
 
 class CandleStickWidget extends LeafRenderObjectWidget {
   final List<Candle> candles;
@@ -11,7 +10,7 @@ class CandleStickWidget extends LeafRenderObjectWidget {
   final Color bullColor;
   final Color bearColor;
 
-  CandleStickWidget({
+  const CandleStickWidget({super.key, 
     required this.candles,
     required this.index,
     required this.candleWidth,

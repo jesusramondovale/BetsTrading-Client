@@ -55,20 +55,20 @@ class CandleSticksStyle {
     Color? toolBarColor,
   }) {
     return CandleSticksStyle(
-      borderColor: borderColor ?? Color(0xFF848E9C),
-      background: background ?? Color(0xFF191B20),
-      primaryBull: primaryBull ?? Color(0xFF26A69A),
-      secondaryBull: secondaryBull ?? Color(0xFF005940),
-      primaryBear: primaryBear ?? Color(0xFFEF5350),
-      secondaryBear: secondaryBear ?? Color(0xFF82122B),
+      borderColor: borderColor ?? const Color(0xFF848E9C),
+      background: background ?? const Color(0xFF191B20),
+      primaryBull: primaryBull ?? const Color(0xFF26A69A),
+      secondaryBull: secondaryBull ?? const Color(0xFF005940),
+      primaryBear: primaryBear ?? const Color(0xFFEF5350),
+      secondaryBear: secondaryBear ?? const Color(0xFF82122B),
       hoverIndicatorBackgroundColor:
-          hoverIndicatorBackgroundColor ?? Color(0xFF4C525E),
-      primaryTextColor: primaryTextColor ?? Color(0xFF848E9C),
-      secondaryTextColor: secondaryTextColor ?? Color(0XFFFFFFFF),
+          hoverIndicatorBackgroundColor ?? const Color(0xFF4C525E),
+      primaryTextColor: primaryTextColor ?? const Color(0xFF848E9C),
+      secondaryTextColor: secondaryTextColor ?? const Color(0XFFFFFFFF),
       mobileCandleHoverColor:
-          mobileCandleHoverColor ?? Color(0xFFF0B90A).withOpacity(0.2),
-      loadingColor: loadingColor ?? Color(0xFFF0B90A),
-      toolBarColor: toolBarColor ?? Color(0xFF191B20),
+          mobileCandleHoverColor ?? const Color(0xFFF0B90A).withOpacity(0.2),
+      loadingColor: loadingColor ?? const Color(0xFFF0B90A),
+      toolBarColor: toolBarColor ?? const Color(0xFF191B20),
     );
   }
 
@@ -87,20 +87,20 @@ class CandleSticksStyle {
     Color? toolBarColor,
   }) {
     return CandleSticksStyle(
-      borderColor: borderColor ?? Color(0xFF848E9C),
-      background: background ?? Color(0xFFFAFAFA),
-      primaryBull: primaryBull ?? Color(0xFF026A69A),
-      secondaryBull: secondaryBull ?? Color(0xFF8CCCC6),
-      primaryBear: primaryBear ?? Color(0xFFEF5350),
-      secondaryBear: secondaryBear ?? Color(0xFFF1A3A1),
+      borderColor: borderColor ?? const Color(0xFF848E9C),
+      background: background ?? const Color(0xFFFAFAFA),
+      primaryBull: primaryBull ?? const Color(0xff026a69a),
+      secondaryBull: secondaryBull ?? const Color(0xFF8CCCC6),
+      primaryBear: primaryBear ?? const Color(0xFFEF5350),
+      secondaryBear: secondaryBear ?? const Color(0xFFF1A3A1),
       hoverIndicatorBackgroundColor:
-          hoverIndicatorBackgroundColor ?? Color(0xFF131722),
-      primaryTextColor: primaryTextColor ?? Color(0XFF000000),
-      secondaryTextColor: secondaryTextColor ?? Color(0XFFFFFFFF),
+          hoverIndicatorBackgroundColor ?? const Color(0xFF131722),
+      primaryTextColor: primaryTextColor ?? const Color(0XFF000000),
+      secondaryTextColor: secondaryTextColor ?? const Color(0XFFFFFFFF),
       mobileCandleHoverColor:
-          mobileCandleHoverColor ?? Color(0xFFF0B90A).withOpacity(0.2),
-      loadingColor: loadingColor ?? Color(0xFFF0B90A),
-      toolBarColor: toolBarColor ?? Color(0xFFFAFAFA),
+          mobileCandleHoverColor ?? const Color(0xFFF0B90A).withOpacity(0.2),
+      loadingColor: loadingColor ?? const Color(0xFFF0B90A),
+      toolBarColor: toolBarColor ?? const Color(0xFFFAFAFA),
     );
   }
 }

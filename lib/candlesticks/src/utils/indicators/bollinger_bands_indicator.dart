@@ -10,7 +10,7 @@ class BollingerBandsIndicator extends Indicator {
     required Color basisColor,
     required Color lowerColor,
   }) : super(
-          name: "BB " + length.toString(),
+          name: "BB $length",
           dependsOnNPrevCandles: length,
           calculator: (index, candles) {
             double sum = 0;
