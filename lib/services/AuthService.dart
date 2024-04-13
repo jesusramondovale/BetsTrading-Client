@@ -297,7 +297,11 @@ class AuthService {
             int day = birthdayData['day'];
 
             final int response = await _isLoggedIn(user.id);
-
+            if (response == 0) {
+              // USER ACTIVE
+              await _storage.write(key: 'sessionToken', value: user.id);
+              return 0;
+            }
             if (response == 2) {
               // USER REGISTERED BUT SESSION EXPIRED, FORCE LOG IN
               await logIn(user.email, "noPassword");
