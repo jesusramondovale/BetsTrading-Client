@@ -105,7 +105,7 @@ class LoginFormState extends State<LoginForm> {
       onPressed: () async {
         int? result = await AuthService().googleSignIn();
         if (result != null && result == 0 ) {
-          //print("LE TOKEEEEN-> $token");
+
           // Validated
           String? id = await _storage.read(key: 'sessionToken');
           await BetsService().getUserInfo(id!);

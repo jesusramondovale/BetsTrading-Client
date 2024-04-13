@@ -1,5 +1,5 @@
 // ignore_for_file: constant_identifier_names, file_names
-import 'package:client_0_0_1/enums/googleRegisterRequest.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -8,9 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  //static const PRIVATE_IP = '192.168.1.37';
   static const PUBLIC_DOMAIN = '108.pool90-175-130.dynamic.orange.es';
   static const API_URL = 'https://$PUBLIC_DOMAIN:44346/api/Auth';
 
@@ -201,54 +199,64 @@ class AuthService {
     if (sessionToken == null) {
       return false;
     }
-    return await _verifyTokenWithServer(sessionToken, false, null);
+    final response = await _isLoggedIn(sessionToken);
+    return response == 0;
   }
 
-  Future<bool> _verifyTokenWithServer(String token, bool googleMode,
-      GoogleRegisterRequest? googleRegisterRequest) async {
+  Future<int> _isLoggedIn(String token) async {
     bool certificateCheck(X509Certificate cert, String host, int port) => true;
     HttpClient client = HttpClient()..badCertificateCallback = certificateCheck;
     final HttpClientRequest request;
 
     try {
-      if (googleMode) {
-        request = await client.postUrl(Uri.parse('$API_URL/IsGoogledIn'));
-        request.headers.set('Content-Type', 'application/json');
-        final Map<String, dynamic> data = {
-          'id': token,
-          'displayName': googleRegisterRequest!.displayName,
-          'email': googleRegisterRequest!.email,
-          'photoUrl': googleRegisterRequest.photoUrl,
-          'birthday': googleRegisterRequest.birthday.toUtc().toIso8601String(),
-
-        };
-        request.write(jsonEncode(data));
-      } else {
-        request = await client.postUrl(Uri.parse('$API_URL/IsLoggedIn'));
-        request.headers.set('Content-Type', 'application/json');
-        final Map<String, dynamic> data = {'id': token};
-        request.write(jsonEncode(data));
-      }
-
+      request = await client.postUrl(Uri.parse('$API_URL/IsLoggedIn'));
+      request.headers.set('Content-Type', 'application/json');
+      final Map<String, dynamic> data = {'id': token};
+      request.write(jsonEncode(data));
       final HttpClientResponse response = await request.close();
 
       if (response.statusCode == 200) {
         //VALID TOKEN
-        return true;
+        return 0;
+      }
+      if (response.statusCode == 400) {
+        //VALID TOKEN BUT EXPIRED SESSION
+        return 2;
       } //INVALID TOKEN
       else {
+        return 1;
+      }
+    } catch (e) {
+      return 1;
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<bool> _googleQuickRegister(
+      GoogleSignInAccount user, DateTime birthday) async {
+    bool certificateCheck(X509Certificate cert, String host, int port) => true;
+    HttpClient client = HttpClient()..badCertificateCallback = certificateCheck;
+    final HttpClientRequest request;
+
+    try {
+      request = await client.postUrl(Uri.parse('$API_URL/GoogleQuickRegister'));
+      request.headers.set('Content-Type', 'application/json');
+      final Map<String, dynamic> data = {
+        'id': user.id,
+        'displayName': user.displayName,
+        'email': user.email,
+        'photoUrl': user.photoUrl,
+        'birthday': birthday.toIso8601String()
+      };
+      request.write(jsonEncode(data));
+      final HttpClientResponse response = await request.close();
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
         return false;
       }
-    } on SocketException catch (e) {
-      if (e.osError?.errorCode == 111) {
-        //Connection Refused
-        return false;
-      }
-      if (e.osError?.errorCode == 7) {
-        // Can't resolve -> No internet (DNS) access
-        return false;
-      }
-      return false;
     } catch (e) {
       return false;
     } finally {
@@ -256,7 +264,6 @@ class AuthService {
     }
   }
 
-  //TODO
   Future<int?> googleSignIn() async {
     try {
       const List<String> scopes = <String>[
@@ -269,7 +276,9 @@ class AuthService {
 
       final user = await googleSignIn.signIn();
       if (user != null) {
-        print("User OK : $user");
+        if (kDebugMode) {
+          print("User OK : $user");
+        }
 
         final accessToken = (await user.authentication).accessToken;
         final response = await http.get(
@@ -287,31 +296,36 @@ class AuthService {
             int month = birthdayData['month'];
             int day = birthdayData['day'];
 
-            GoogleRegisterRequest googleRegisterRequest = GoogleRegisterRequest(
-              "",
-              id: user.id,
-              displayName: user.displayName!,
-              email: user.email,
-              photoUrl: user.photoUrl!,
-              birthday: DateTime(year, month, day),
-            );
+            final int response = await _isLoggedIn(user.id);
 
-            final bool userVerified = await _verifyTokenWithServer(
-                user.id, true, googleRegisterRequest);
-            if (userVerified) {
+            if (response == 2) {
+              // USER REGISTERED BUT SESSION EXPIRED, FORCE LOG IN
+              await logIn(user.email, "noPassword");
               await _storage.write(key: 'sessionToken', value: user.id);
               return 0;
+            } else {
+              // NO USER REGISTER, NEED TO QUICK REGISTER IT
+              bool successfullyRegistered =
+                  await _googleQuickRegister(user, DateTime(year, month, day));
+              if (successfullyRegistered) {
+                return 0;
+              } else {
+                return 1;
+              }
             }
           } else {
-            print(
-                'Failed to fetch additional user info: ${response.statusCode}');
+            if (kDebugMode) {
+              print(
+                  'Failed to fetch additional user info: ${response.statusCode}');
+            }
             return 1;
           }
-          print(data);
         }
       }
     } catch (error) {
-      print(error);
+      if (kDebugMode) {
+        print(error);
+      }
       return 1;
     }
     return 1;
