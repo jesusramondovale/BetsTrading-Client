@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:client_0_0_1/candlesticks/candlesticks.dart';
+import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'investments_home.dart';
 import 'login_page.dart';
 
@@ -62,6 +63,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
   @override
   Widget build(BuildContext context) {
+
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Theme.of(context).brightness == Brightness.dark
           ? Colors.black
@@ -70,6 +72,17 @@ class _MainMenuPageState extends State<MainMenuPage> {
           ? Brightness.dark
           : Brightness.dark,
     ));
+
+    FlutterStatusbarcolor.setStatusBarColor(
+        Theme.of(context).brightness == Brightness.dark
+            ? Colors.black
+            : Colors.white
+    );
+
+    FlutterStatusbarcolor.setStatusBarWhiteForeground(
+        Theme.of(context).brightness == Brightness.dark
+    );
+
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
       strings?.home ?? "Home",
