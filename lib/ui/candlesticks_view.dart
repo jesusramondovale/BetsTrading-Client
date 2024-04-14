@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../candlesticks/src/main.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
@@ -16,10 +15,8 @@ class CandlesticksViewState extends State<CandlesticksView> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.black,
-      statusBarBrightness: Brightness.dark,
-    ));
+
+
     return SafeArea(
       child: Center(
         child: Stack(

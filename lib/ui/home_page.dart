@@ -3,6 +3,7 @@ import 'package:client_0_0_1/ui/financial_assets_view.dart';
 import 'package:client_0_0_1/ui/settings_view.dart';
 import 'package:client_0_0_1/ui/userinfo_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:client_0_0_1/candlesticks/candlesticks.dart';
 import 'investments_home.dart';
@@ -61,6 +62,14 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.black
+          : Colors.white,
+      statusBarBrightness: Theme.of(context).brightness == Brightness.dark
+          ? Brightness.dark
+          : Brightness.dark,
+    ));
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
       strings?.home ?? "Home",
@@ -69,8 +78,6 @@ class _MainMenuPageState extends State<MainMenuPage> {
       strings?.profile ?? 'Profile'
     ];
     titles[3] = "Info  |  $_username";
-
-
 
     _pages = [
       const InvestmentScreen(),

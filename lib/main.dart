@@ -1,6 +1,5 @@
 import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:flutter/foundation.dart';
-
 import '../services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'helpers/common.dart';
@@ -12,7 +11,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-String CODE_VERSION = '24.104';
+String CODE_VERSION = '24.105';
 
 Future<void> main() async {
 
