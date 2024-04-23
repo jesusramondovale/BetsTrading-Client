@@ -247,7 +247,7 @@ class AuthService {
         'displayName': user.displayName,
         'email': user.email,
         'photoUrl': user.photoUrl,
-        'birthday': birthday.toIso8601String()
+        'birthday': birthday.toUtc().toIso8601String(),
       };
       request.write(jsonEncode(data));
       final HttpClientResponse response = await request.close();
