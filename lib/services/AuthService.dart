@@ -154,7 +154,7 @@ class AuthService {
 
       final HttpClientRequest request =
           await client.postUrl(Uri.parse('$API_URL/SignIn'));
-      request.headers.set('Content-Type', 'application/json; charset=utf-8');
+      request.headers.set('Content-Type', 'application/json charset=utf-8');
       request.write(jsonEncode(data));
 
       final HttpClientResponse response = await request.close();
@@ -241,7 +241,7 @@ class AuthService {
 
     try {
       request = await client.postUrl(Uri.parse('$API_URL/GoogleQuickRegister'));
-      request.headers.set('Content-Type', 'application/json');
+      request.headers.set('Content-Type', 'application/json charset=utf-8');
       final Map<String, dynamic> data = {
         'id': user.id,
         'displayName': user.displayName,
@@ -312,6 +312,7 @@ class AuthService {
               bool successfullyRegistered =
                   await _googleQuickRegister(user, DateTime(year, month, day));
               if (successfullyRegistered) {
+                await _storage.write(key: 'sessionToken', value: user.id);
                 return 0;
               } else {
                 return 1;
