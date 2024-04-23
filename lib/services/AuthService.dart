@@ -68,6 +68,62 @@ class AuthService {
     }
   }
 
+
+  Future<Map<String, dynamic>> googleLogIn(String username) async {
+    try {
+      final Map<String, dynamic> data = {
+        'username': username
+      };
+      bool certificateCheck(X509Certificate cert, String host, int port) =>
+          true;
+      HttpClient client = HttpClient()
+        ..badCertificateCallback = (certificateCheck);
+
+      final HttpClientRequest request =
+      await client.postUrl(Uri.parse("$API_URL/GoogleLogIn"));
+      request.headers.set('Content-Type', 'application/json');
+      request.write(jsonEncode(data));
+
+      final HttpClientResponse response = await request.close();
+
+      if (response.statusCode == 200) {
+        final String responseBody =
+        await response.transform(utf8.decoder).join();
+        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
+        final String token = decodedBody['userId'];
+        await _storage.write(key: 'sessionToken', value: token);
+
+        return {'success': true, 'message': decodedBody['message']};
+      } else {
+        final String responseBody =
+        await response.transform(utf8.decoder).join();
+        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
+        return {'success': false, 'message': decodedBody['message']};
+      }
+    } on SocketException catch (e) {
+      if (e.osError?.errorCode == 111) {
+        //Connection Refused
+        return {
+          'success': false,
+          'message': "Server not responding. Try again later"
+        };
+      }
+      if (e.osError?.errorCode == 7) {
+        // Can't resolve -> No internet (DNS) access
+        return {
+          'success': false,
+          'message': "Can't connect. Check your internet connection"
+        };
+      }
+      return {
+        'success': false,
+        'message': "Server not responding. Try again later"
+      };
+    } catch (e) {
+      return {'success': false, 'message': '$e'};
+    }
+  }
+
   Future<Map<String, dynamic>> logOut(String id) async {
     try {
       final Map<String, dynamic> data = {'id': id};
@@ -304,7 +360,7 @@ class AuthService {
             }
             if (response == 2) {
               // USER REGISTERED BUT SESSION EXPIRED, FORCE LOG IN
-              await logIn(user.email, "noPassword");
+              await googleLogIn(user.email);
               await _storage.write(key: 'sessionToken', value: user.id);
               return 0;
             } else {
