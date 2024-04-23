@@ -68,19 +68,16 @@ class AuthService {
     }
   }
 
-
   Future<Map<String, dynamic>> googleLogIn(String username) async {
     try {
-      final Map<String, dynamic> data = {
-        'username': username
-      };
+      final Map<String, dynamic> data = {'username': username};
       bool certificateCheck(X509Certificate cert, String host, int port) =>
           true;
       HttpClient client = HttpClient()
         ..badCertificateCallback = (certificateCheck);
 
       final HttpClientRequest request =
-      await client.postUrl(Uri.parse("$API_URL/GoogleLogIn"));
+          await client.postUrl(Uri.parse("$API_URL/GoogleLogIn"));
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonEncode(data));
 
@@ -88,7 +85,7 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final String responseBody =
-        await response.transform(utf8.decoder).join();
+            await response.transform(utf8.decoder).join();
         final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
         final String token = decodedBody['userId'];
         await _storage.write(key: 'sessionToken', value: token);
@@ -96,7 +93,7 @@ class AuthService {
         return {'success': true, 'message': decodedBody['message']};
       } else {
         final String responseBody =
-        await response.transform(utf8.decoder).join();
+            await response.transform(utf8.decoder).join();
         final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
         return {'success': false, 'message': decodedBody['message']};
       }
@@ -359,16 +356,14 @@ class AuthService {
               return 0;
             }
             if (response == 2) {
-              // USER REGISTERED BUT SESSION EXPIRED, FORCE LOG IN
-              await googleLogIn(user.email);
-              await _storage.write(key: 'sessionToken', value: user.id);
+              // USER REGISTERED BUT SESSION EXPIRED OR NOT ACTIVE -> FORCE GOOGLE LOG IN
+              await googleLogIn(user.id);
               return 0;
             } else {
               // NO USER REGISTER, NEED TO QUICK REGISTER IT
               bool successfullyRegistered =
                   await _googleQuickRegister(user, DateTime(year, month, day));
               if (successfullyRegistered) {
-                await _storage.write(key: 'sessionToken', value: user.id);
                 return 0;
               } else {
                 return 1;
