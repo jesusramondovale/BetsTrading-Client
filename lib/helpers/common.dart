@@ -68,7 +68,7 @@ class Common {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.black,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
           title: Text(
               aTitle,
               style: const TextStyle(color: Colors.white)),
@@ -93,7 +93,7 @@ class Common {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.black,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
           title: Text(
               aTitle,
               style: const TextStyle(color: Colors.white)),
@@ -122,7 +122,7 @@ class Common {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.black,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
           title: Text(
               "$aTitle , $aUser",
               style: const TextStyle(color: Colors.white)),
