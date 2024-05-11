@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 
 import '../main.dart';
+import 'aboutus_page.dart';
 
 class SettingsView extends StatefulWidget {
 
@@ -11,10 +12,10 @@ class SettingsView extends StatefulWidget {
   const SettingsView({super.key, required this.onPersonalInfoTap});
 
   @override
-  _SettingsViewState createState() => _SettingsViewState();
+  SettingsViewState createState() => SettingsViewState();
 }
 
-class _SettingsViewState extends State<SettingsView> {
+class SettingsViewState extends State<SettingsView> {
   bool isDark = true;
 
   @override
@@ -85,7 +86,10 @@ class _SettingsViewState extends State<SettingsView> {
               title: Text(strings?.aboutUs ?? 'About us'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
-                  Common().unimplementedAction(context),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AboutUsPage()),
+                  ),
             ),
             SwitchListTile(
               title: Text(strings?.darkMode ?? "Dark mode"),
