@@ -19,7 +19,7 @@ class FinancialAssetsViewState extends State<FinancialAssetsView> {
   List<String> groups = [];
   List<FinancialAsset> assets = [];
   late BuildContext _context;
-  int groupId = 1;
+  int groupId = 0;
 
   @override
   void initState() {

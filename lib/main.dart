@@ -11,7 +11,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-String CODE_VERSION = '24.133';
+String CODE_VERSION = '24.159.1';
 
 Future<void> main() async {
 
