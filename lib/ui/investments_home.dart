@@ -1,6 +1,8 @@
 // ignore_for_file: constant_identifier_names
 
-import 'dart:ui';
+
+import 'dart:convert';
+import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:client_0_0_1/locale/localized_texts.dart';
@@ -19,8 +21,7 @@ class InvestmentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
-    var myWallet = 1647.25;
-    var totalStaked = 128.45;
+    var myWallet = 16.847;
 
     Future<String> getUserId() async {
       return await _storage.read(key: "sessionToken") ?? "none";
@@ -32,128 +33,38 @@ class InvestmentScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              strings?.totalBet ?? 'My account',
-              style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 180,
-                      height: 60,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 20),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black,
-                            width: 1),
-                        borderRadius: BorderRadius.circular(8),
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.black
-                            : Colors.white,
-                      ),
-                      child: AutoSizeText(
-                        '${myWallet.toString()}€',
-                        style: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.black,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                      ),
-                    ),
-                    Positioned(
-                      left: 10,
-                      top: -16,
-                      child: Container(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.black
-                            : Colors.white,
-                        padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-                        child: Text(
-                          strings?.wallet ?? 'My wallet',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  strings?.totalBet ?? 'My account',
+                  style: const TextStyle(
+                      fontSize: 25, fontWeight: FontWeight.bold),
                 ),
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 180,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 20),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black,
-                            width: 1),
-                        borderRadius: BorderRadius.circular(8),
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.black
-                            : Colors.white,
-                      ),
-                      child: AutoSizeText(
-                        '${totalStaked.toString()}€',
-                        style: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.black,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Positioned(
-                      left: 10,
-                      top: -16,
-                      child: Container(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.black
-                            : Colors.white,
-                        padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-                        child: Text(
-                          strings?.staked ?? 'Staked',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                const Spacer(),
+                Image.asset(
+                  'assets/coin_icon.png',
+                  width: 28,
+                  height: 28,
+                ),
+                const SizedBox(width: 5),
+                AutoSizeText(
+                  myWallet.toString(),
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
                 ),
               ],
             ),
             const SizedBox(height: 20),
+
             Text(
-              strings?.liveBets ?? 'Live bets',
+              strings?.liveBets ?? 'Trends',
               style: const TextStyle(
                 fontSize: 22,
               ),
@@ -165,7 +76,7 @@ class InvestmentScreen extends StatelessWidget {
                 thickness: 0.5,
                 height: 0.5),
             Expanded(
-              flex: 4,
+              flex: 1,
               child: FutureBuilder<String>(
                   future: getUserId(),
                   builder: (context, snapshot) {
@@ -189,130 +100,17 @@ class InvestmentScreen extends StatelessWidget {
                                 snapshot.data!.investList.isNotEmpty) {
                               final data = snapshot.data!;
                               return ListView.builder(
+                                scrollDirection: Axis.horizontal,
                                 itemCount: data.investList.length,
                                 itemBuilder: (context, index) {
-                                  return Column(
-                                    children: <Widget>[
-                                      ListTile(
-                                        leading: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
-                                          child: Image.asset(
-                                            data.investList[index].iconPath,
-                                            width: 42,
-                                            height: 42,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        title: RichText(
-                                          text: TextSpan(
-                                            style: DefaultTextStyle.of(context)
-                                                .style,
-                                            children: <TextSpan>[
-                                              TextSpan(
-                                                text:
-                                                    '${data.investList[index].name} ',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        subtitle: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                '(${data.investList[index].betAmount.toStringAsFixed(2)}€ @ ${data.investList[index].originValue})',
-                                                style: const TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 15,
-                                                ),
-                                              ),
-                                              Text(
-                                                '${data.investList[index].targetDate.year}-'
-                                                '${data.investList[index].targetDate.month}-'
-                                                '${data.investList[index].targetDate.day} @ ${data.investList[index].targetValue} ± ${data.investList[index].targetMargin}%',
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Theme.of(context)
-                                                                .brightness ==
-                                                            Brightness.dark
-                                                        ? const Color.fromRGBO(
-                                                            4, 216, 195, 1)
-                                                        : Colors.deepPurple,
-                                                    fontStyle:
-                                                        FontStyle.italic),
-                                              ),
-                                            ]),
-                                        trailing: Container(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              6.0, 2.0, 6.0, 2.0),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.black
-                                                    : Colors.white,
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.5),
-                                                spreadRadius: 1,
-                                                blurRadius: 1,
-                                                offset: const Offset(0, 0),
-                                              ),
-                                            ],
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                          ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                data.investList[index]
-                                                        .targetWon!
-                                                    ? '✔ ${data.investList[index].currentValue}€'
-                                                    : '❌ ${data.investList[index].currentValue}€',
-                                                style: TextStyle(
-                                                  color: data.investList[index]
-                                                          .targetWon!
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              Text(
-                                                data.investList[index]
-                                                            .profitLoss! >
-                                                        0
-                                                    ? '+${data.investList[index].profitLoss}€'
-                                                    : '${data.investList[index].profitLoss}€',
-                                                style: TextStyle(
-                                                  color: data.investList[index]
-                                                              .profitLoss! >
-                                                          0
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                                  fontSize: 15,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
+                                  return BetContainer(
+                                      bet: data.investList[index]);
                                 },
                               );
                             } else {
                               return Center(
                                 child: Padding(
-                                  padding: EdgeInsets.all(20.0),
+                                  padding: const EdgeInsets.all(20.0),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -343,7 +141,7 @@ class InvestmentScreen extends StatelessWidget {
             ),
             const SizedBox(height: 15),
             Text(
-              strings?.recentBets ?? 'Recent bets',
+              strings?.recentBets ?? 'Recent Bets',
               style: const TextStyle(
                 fontSize: 22,
               ),
@@ -355,7 +153,7 @@ class InvestmentScreen extends StatelessWidget {
                 thickness: 0.5,
                 height: 0.5),
             Expanded(
-              flex: 2,
+              flex: 1,
               child: FutureBuilder<String>(
                   future: getUserId(),
                   builder: (context, snapshot) {
@@ -379,130 +177,99 @@ class InvestmentScreen extends StatelessWidget {
                                 snapshot.data!.investList.isNotEmpty) {
                               final data = snapshot.data!;
                               return ListView.builder(
+                                scrollDirection: Axis.horizontal,
                                 itemCount: data.investList.length,
                                 itemBuilder: (context, index) {
-                                  return Column(
-                                    children: <Widget>[
-                                      ListTile(
-                                        leading: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
-                                          child: Image.asset(
-                                            data.investList[index].iconPath,
-                                            width: 42,
-                                            height: 42,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        title: RichText(
-                                          text: TextSpan(
-                                            style: DefaultTextStyle.of(context)
-                                                .style,
-                                            children: <TextSpan>[
-                                              TextSpan(
-                                                text:
-                                                    '${data.investList[index].name} ',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        subtitle: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                '(${data.investList[index].betAmount.toStringAsFixed(2)}€ @ ${data.investList[index].originValue})',
-                                                style: const TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 15,
-                                                ),
-                                              ),
-                                              Text(
-                                                '${data.investList[index].targetDate.year}-'
-                                                '${data.investList[index].targetDate.month}-'
-                                                '${data.investList[index].targetDate.day} @ ${data.investList[index].targetValue} ± ${data.investList[index].targetMargin}%',
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Theme.of(context)
-                                                                .brightness ==
-                                                            Brightness.dark
-                                                        ? const Color.fromRGBO(
-                                                            4, 216, 195, 1)
-                                                        : Colors.deepPurple,
-                                                    fontStyle:
-                                                        FontStyle.italic),
-                                              ),
-                                            ]),
-                                        trailing: Container(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              6.0, 2.0, 6.0, 2.0),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.black
-                                                    : Colors.white,
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.5),
-                                                spreadRadius: 1,
-                                                blurRadius: 1,
-                                                offset: const Offset(0, 0),
-                                              ),
-                                            ],
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                          ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                data.investList[index]
-                                                        .targetWon!
-                                                    ? '✔ ${data.investList[index].currentValue}€'
-                                                    : '❌ ${data.investList[index].currentValue}€',
-                                                style: TextStyle(
-                                                  color: data.investList[index]
-                                                          .targetWon!
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              Text(
-                                                data.investList[index]
-                                                            .profitLoss! >
-                                                        0
-                                                    ? '+${data.investList[index].profitLoss}€'
-                                                    : '${data.investList[index].profitLoss}€',
-                                                style: TextStyle(
-                                                  color: data.investList[index]
-                                                              .profitLoss! >
-                                                          0
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                                  fontSize: 15,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
+                                  List<Bet> shuffledList = List.from(data.investList);
+                                  shuffledList.shuffle(Random());
+                                  return BetContainer(bet:shuffledList[index]);
                                 },
                               );
                             } else {
                               return Center(
                                 child: Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 30),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 30),
+                                  child: Text(
+                                    strings?.noClosedBets ??
+                                        'No closed bets (for now ...) 😏',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 16.0,
+                                      color: Colors.grey,
+                                      letterSpacing: 0.5,
+                                      wordSpacing: 1.0,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                          });
+                    }
+                  }),
+            ),
+            const Row(
+              children: [
+                Text(
+                  'Apuestas en DIRECTO',
+                  style: TextStyle(
+                    fontSize: 22,
+                  ),
+                ),
+                SizedBox(width: 7,),
+                Text(
+                  '🔴',
+                  style: TextStyle(
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            Divider(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+                thickness: 0.5,
+                height: 0.5),
+            Expanded(
+              flex: 1,
+              child: FutureBuilder<String>(
+                  future: getUserId(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError || !snapshot.hasData) {
+                      return const Center(child: Text("Error or no user ID"));
+                    } else {
+                      final userId = snapshot.data!;
+                      return FutureBuilder<Bets>(
+                          future: BetsService().fetchInvestmentData(userId),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (snapshot.hasData &&
+                                snapshot.data!.investList.isNotEmpty) {
+                              final data = snapshot.data!;
+                              return ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.investList.length,
+                                itemBuilder: (context, index) {
+                                 data.investList.shuffle(Random());
+                                  return BetContainer(
+
+                                      bet:data.investList[index]);
+                                },
+                              );
+                            } else {
+                              return Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 30),
                                   child: Text(
                                     strings?.noClosedBets ??
                                         'No closed bets (for now ...) 😏',
@@ -528,7 +295,60 @@ class InvestmentScreen extends StatelessWidget {
   }
 }
 
-class Dynamic {}
+class BetContainer extends StatelessWidget {
+  final Bet bet;
+
+  const BetContainer({super.key, required this.bet});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 170,
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.memory(base64Decode(bet.iconPath),
+              height: 40,
+              width: 40,
+                         ),
+            const SizedBox(height: 10),
+            Text(
+              bet.name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              bet.profitLoss != null
+                  ?
+              bet.targetWon! ? '▲${bet.profitLoss!.toStringAsFixed(2)}%'
+              : '▼${bet.profitLoss!.toStringAsFixed(2)}%'
+
+                  : 'N/A',
+              style: TextStyle(
+                color: bet.targetWon == true ? Colors.green : Colors.red,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 class Bets {
   final List<Bet> investList;
