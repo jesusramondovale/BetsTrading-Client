@@ -8,7 +8,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../ui/investments_home.dart';
 
 class BetsService {
-
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   //static const PRIVATE_IP = '192.168.1.37';
   static const PUBLIC_DOMAIN = '108.pool90-175-130.dynamic.orange.es';
@@ -17,7 +16,8 @@ class BetsService {
   Future<Bets> fetchInvestmentData(String userId) async {
     try {
       final Map<String, dynamic> data = {'id': userId};
-      bool certificateCheck(X509Certificate cert, String host, int port) => true;
+      bool certificateCheck(X509Certificate cert, String host, int port) =>
+          true;
       HttpClient client = HttpClient()
         ..badCertificateCallback = certificateCheck;
 
@@ -33,8 +33,9 @@ class BetsService {
             await response.transform(utf8.decoder).join();
         final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
 
-
-        List<Bet> bets = (decodedBody['bets'] as List).map((json) => Bet.fromJson(json)).toList();
+        List<Bet> bets = (decodedBody['bets'] as List)
+            .map((json) => Bet.fromJson(json))
+            .toList();
 
         double totalBetAmount =
             bets.fold(0, (sum, item) => sum + item.betAmount);
@@ -43,18 +44,18 @@ class BetsService {
 
         return Bets(totalBetAmount, totalProfit, bets.length, investList: bets);
       } else {
-            return Bets(0,0,0,investList: []);
+        return Bets(0, 0, 0, investList: []);
       }
     } on SocketException catch (e) {
       if (e.osError?.errorCode == 111) {
-         return Bets(0,0,0,investList: []);
+        return Bets(0, 0, 0, investList: []);
       }
       if (e.osError?.errorCode == 7) {
-         return Bets(0,0,0,investList: []);
+        return Bets(0, 0, 0, investList: []);
       }
-      return Bets(0,0,0,investList: []);
+      return Bets(0, 0, 0, investList: []);
     } catch (e) {
-      return Bets(0,0,0,investList: []);
+      return Bets(0, 0, 0, investList: []);
     }
   }
 
@@ -195,30 +196,32 @@ class BetsService {
     ];
 
     double totalBetAmount =
-    investments.fold(0, (sum, item) => sum + item.betAmount);
+        investments.fold(0, (sum, item) => sum + item.betAmount);
     double totalProfit =
-    investments.fold(0, (sum, item) => sum + item.profitLoss!);
+        investments.fold(0, (sum, item) => sum + item.profitLoss!);
 
     return Bets(totalBetAmount, totalProfit, investments.length,
         investList: investments);
   }
 
-
-  Future<Map<String,dynamic>> getUserInfo(String id) async {
-
+  Future<Map<String, dynamic>> getUserInfo(String id) async {
     try {
       final Map<String, dynamic> data = {'id': id};
-      bool certificateCheck(X509Certificate cert, String host, int port) => true;
-      HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
+      bool certificateCheck(X509Certificate cert, String host, int port) =>
+          true;
+      HttpClient client = HttpClient()
+        ..badCertificateCallback = (certificateCheck);
 
-      final HttpClientRequest request = await client.postUrl(Uri.parse("$API_URL/UserInfo"));
+      final HttpClientRequest request =
+          await client.postUrl(Uri.parse("$API_URL/UserInfo"));
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonEncode(data));
 
       final HttpClientResponse response = await request.close();
 
       if (response.statusCode == 200) {
-        final String responseBody = await response.transform(utf8.decoder).join();
+        final String responseBody =
+            await response.transform(utf8.decoder).join();
         final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
         final String fullname = decodedBody['fullname'];
         final String username = decodedBody['username'];
@@ -240,64 +243,68 @@ class BetsService {
 
         return {'success': true, 'message': decodedBody['message']};
       } else {
-        final String responseBody = await response.transform(utf8.decoder).join();
+        final String responseBody =
+            await response.transform(utf8.decoder).join();
         final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
         return {'success': false, 'message': decodedBody['message']};
       }
     } on SocketException catch (e) {
-
-      if (e.osError?.errorCode == 111) { //Connection Refused
-        return {'success': false, 'message': "Server not responding. Try again later"};
+      if (e.osError?.errorCode == 111) {
+        //Connection Refused
+        return {
+          'success': false,
+          'message': "Server not responding. Try again later"
+        };
       }
-      if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
-        return {'success': false, 'message': "Can't connect. Check your internet connection"};
+      if (e.osError?.errorCode == 7) {
+        // Can't resolve -> No internet (DNS) access
+        return {
+          'success': false,
+          'message': "Can't connect. Check your internet connection"
+        };
       }
-      return {'success': false, 'message': "Server not responding. Try again later"};
-    }
-    catch (e){
+      return {
+        'success': false,
+        'message': "Server not responding. Try again later"
+      };
+    } catch (e) {
       return {'success': false, 'message': '$e'};
     }
   }
 
   Future<bool> uploadProfilePic(String? id, String? profilepic) async {
     try {
-      final Map<String, dynamic> data = {'id': id , 'profilePic': profilepic};
-      bool certificateCheck(X509Certificate cert, String host, int port) => true;
-      HttpClient client = HttpClient()..badCertificateCallback = (certificateCheck);
+      final Map<String, dynamic> data = {'id': id, 'profilePic': profilepic};
+      bool certificateCheck(X509Certificate cert, String host, int port) =>
+          true;
+      HttpClient client = HttpClient()
+        ..badCertificateCallback = (certificateCheck);
 
-      final HttpClientRequest request = await client.postUrl(Uri.parse("$API_URL/UploadPic"));
+      final HttpClientRequest request =
+          await client.postUrl(Uri.parse("$API_URL/UploadPic"));
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonEncode(data));
 
       final HttpClientResponse response = await request.close();
 
-      if (response.statusCode == 200)
-      {
+      if (response.statusCode == 200) {
         _storage.write(key: 'profilepic', value: profilepic);
         return true;
-
-      }
-      else {
+      } else {
         return false;
       }
-
-    }
-    on SocketException catch (e) {
-
-      if (e.osError?.errorCode == 111) { //Connection Refused
+    } on SocketException catch (e) {
+      if (e.osError?.errorCode == 111) {
+        //Connection Refused
         return false;
       }
-      if (e.osError?.errorCode == 7) { // Can't resolve -> No internet (DNS) access
+      if (e.osError?.errorCode == 7) {
+        // Can't resolve -> No internet (DNS) access
         return false;
       }
       return false;
-    }
-    catch (e){
+    } catch (e) {
       return false;
     }
   }
-
-
-
 }
-

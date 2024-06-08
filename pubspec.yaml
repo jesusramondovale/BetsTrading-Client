@@ -52,6 +52,7 @@ dependencies:
   oauth2: ^2.0.2
   google_sign_in: ^6.2.1
   flutter_statusbarcolor_ns: ^0.5.0
+  google_fonts: ^4.0.5
 
 
 dev_dependencies:
