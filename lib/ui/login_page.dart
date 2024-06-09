@@ -8,7 +8,7 @@ import 'package:client_0_0_1/ui/signin_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../services/BetsService.dart';
-import 'home_page.dart';
+import 'layout_page.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});

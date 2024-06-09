@@ -532,7 +532,7 @@ class _MobileChartState extends State<MobileChart> {
                                 details.localPosition.dy, size);
 
                         if (zoneClicked != null) {
-                          Common().unimplementedAction(context);
+                          Common().unimplementedAction(context , '');
                         }
                       }),
                     ],

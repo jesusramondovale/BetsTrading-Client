@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import '../ui/investments_home.dart';
+import '../ui/home_page.dart';
 
 class BetsService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();

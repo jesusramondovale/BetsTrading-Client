@@ -62,25 +62,25 @@ class SettingsViewState extends State<SettingsView> {
               title: Text(strings?.changePassword ?? "Change password"),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
-                  Common().unimplementedAction(context),
+                  Common().unimplementedAction(context, "(Change Password"),
             ),
             ListTile(
               title: Text(strings?.notifications ?? 'Notifications'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
-                  Common().unimplementedAction(context),
+                  Common().unimplementedAction(context, '(Notifications)'),
             ),
             ListTile(
               title: Text(strings?.contentSettings ?? 'Content settings'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
-                  Common().unimplementedAction(context),
+                  Common().unimplementedAction(context , '(Content settings)'),
             ),
             ListTile(
               title:  Text(strings?.paymentHistory ?? 'Payment history'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
-                  Common().unimplementedAction(context),
+                  Common().unimplementedAction(context , '(Payment history)'),
             ),
             ListTile(
               title: Text(strings?.aboutUs ?? 'About us'),
@@ -88,7 +88,7 @@ class SettingsViewState extends State<SettingsView> {
               onTap: () =>
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AboutUsPage()),
+                    MaterialPageRoute(builder: (context) => const AboutUsPage()),
                   ),
             ),
             SwitchListTile(

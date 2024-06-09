@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'helpers/common.dart';
 import 'locale/localized_texts.dart';
 import 'ui/login_page.dart';
-import 'ui/home_page.dart';
+import 'ui/layout_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-String CODE_VERSION = '24.161.1';
+String CODE_VERSION = '24.161.2';
 
 Future<void> main() async {
 

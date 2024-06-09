@@ -7,7 +7,7 @@ import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
-import '../ui/home_page.dart';
+import '../ui/layout_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:math';
@@ -58,9 +58,9 @@ class Common {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-  void unimplementedAction(BuildContext aContext) {
+  void unimplementedAction(BuildContext aContext,  [String? text = '']) {
         ScaffoldMessenger.of(aContext).showSnackBar(
-      SnackBar(content: Text('Action is not implemented yet')),
+      SnackBar(content: Text('Action is not implemented yet ${text!}'), duration: const Duration(milliseconds: 1300),),
     );
   }
   void popDialog(String aTitle, String aBody, BuildContext aContext) {

@@ -91,6 +91,8 @@ class LocalizedStrings {
       'paymentHistory': 'Payment History',
       'aboutUs': 'About Us',
       'versionCode': 'Version code: ',
+      'close': 'Close',
+      'current': 'Current',
     },
     'es': {
       // Español
@@ -173,6 +175,8 @@ class LocalizedStrings {
       'paymentHistory': 'Historial de pagos',
       'aboutUs': 'Sobre nosotros',
       'versionCode': 'Versión de código: ',
+      'close': 'Cierre',
+      'current': 'Actual'
     },
     'fr': {
       // Francés
@@ -256,6 +260,8 @@ class LocalizedStrings {
       'paymentHistory': 'Historique de paiements',
       'aboutUs': 'À propos de nous',
       'versionCode': 'Code de version : ',
+      'close': 'Clôture',
+      'current': 'Actuel'
     },
     'it': {
       // Italiano
@@ -339,6 +345,8 @@ class LocalizedStrings {
       'paymentHistory': 'Cronologia pagamenti',
       'aboutUs': 'Chi siamo',
       'versionCode': 'Codice versione: ',
+      'close': 'Chiusura',
+      'current': 'Attuale'
     },
     'de': {
       // Alemán
@@ -423,6 +431,8 @@ class LocalizedStrings {
       'paymentHistory': 'Zahlungsverlauf',
       'aboutUs': 'Über uns',
       'versionCode': 'Version code: ',
+      'close': 'Schlusskurs',
+      'current': 'Aktuell'
     },
   };
 
@@ -549,6 +559,10 @@ class LocalizedStrings {
   String? get aboutUs => _localizedValues[locale.languageCode]?['aboutUs'];
   String? get versionCode =>
       _localizedValues[locale.languageCode]?['versionCode'];
+  String? get close =>
+      _localizedValues[locale.languageCode]?['close'];
+  String? get current =>
+      _localizedValues[locale.languageCode]?['current'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

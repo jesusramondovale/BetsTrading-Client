@@ -7,14 +7,14 @@ import '../enums/financial_assets.dart';
 import '../locale/localized_texts.dart';
 import 'candlesticks_view.dart';
 
-class FinancialAssetsView extends StatefulWidget {
-  const FinancialAssetsView({super.key});
+class MarketsView extends StatefulWidget {
+  const MarketsView({super.key});
 
   @override
-  FinancialAssetsViewState createState() => FinancialAssetsViewState();
+  MarketsViewState createState() => MarketsViewState();
 }
 
-class FinancialAssetsViewState extends State<FinancialAssetsView> {
+class MarketsViewState extends State<MarketsView> {
   String? selectedGroup;
   List<String> groups = [];
   List<FinancialAsset> assets = [];
@@ -44,11 +44,21 @@ class FinancialAssetsViewState extends State<FinancialAssetsView> {
   void _loadAssets(int id) {
     String? theGroup;
     switch (id) {
-      case 0: theGroup = 'Indexes'; break;
-      case 1: theGroup = 'ETFs'; break;
-      case 2: theGroup = 'Cryptos'; break;
-      case 3: theGroup = 'Shares'; break;
-      case 4: theGroup = 'Commodities'; break;
+      case 0:
+        theGroup = 'Indexes';
+        break;
+      case 1:
+        theGroup = 'ETFs';
+        break;
+      case 2:
+        theGroup = 'Cryptos';
+        break;
+      case 3:
+        theGroup = 'Shares';
+        break;
+      case 4:
+        theGroup = 'Commodities';
+        break;
     }
 
     if (theGroup != null) {
@@ -111,12 +121,10 @@ class FinancialAssetsViewState extends State<FinancialAssetsView> {
             fontSize: 28.0,
             fontWeight: FontWeight.normal,
           ),
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.deepPurpleAccent, size: 45),
-          underline: Container(
-            height: 1,
-            color: Colors.deepPurpleAccent
-          ),
-          dropdownColor:Theme.of(context).brightness == Brightness.dark
+          icon: const Icon(Icons.arrow_drop_down,
+              color: Colors.deepPurpleAccent, size: 45),
+          underline: Container(height: 1, color: Colors.deepPurpleAccent),
+          dropdownColor: Theme.of(context).brightness == Brightness.dark
               ? Colors.black
               : Colors.white,
           elevation: 16,
@@ -126,7 +134,6 @@ class FinancialAssetsViewState extends State<FinancialAssetsView> {
           iconDisabledColor: Colors.grey,
           itemHeight: 60,
         ),
-
         Expanded(
           child: ListView.builder(
             itemCount: assets.length,
