@@ -13,22 +13,24 @@ import 'package:intl/intl.dart';
 import '../helpers/common.dart';
 import 'candlesticks_view.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  HomeScreenState createState() => HomeScreenState();
+}
+
+class HomeScreenState extends State<HomeScreen> {
+
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  //static const PRIVATE_IP = '192.168.1.37';
-  static const PUBLIC_DOMAIN = '108.pool90-175-130.dynamic.orange.es';
-  static const API_URL = 'https://$PUBLIC_DOMAIN:44346/api/Info';
+  bool showFavorites = false;
 
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
-
     Future<String> getUserId() async {
       return await _storage.read(key: "sessionToken") ?? "none";
     }
-
     Locale locale = Localizations.localeOf(context);
     String formattedDate =
         DateFormat.yMMMMd(locale.toString()).format(DateTime.now());
@@ -39,23 +41,27 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+
+            // Upper icons
             Row(
               children: [
                 Spacer(),
                 IconButton(
-                  icon: Icon(Icons.remove_red_eye_sharp),
+                  icon: showFavorites ? Icon(Icons.star) : Icon(Icons.star_border),
                   iconSize: 30,
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
-                  onPressed: () { Common().unimplementedAction(context , '(View settings)'); },
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey : Colors.black,
+                  onPressed: () { triggerFavorites(); },
                 ),
                 IconButton(
                   icon: Icon(Icons.local_grocery_store_rounded),
                   iconSize: 30,
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey : Colors.black,
                   onPressed: () { Common().unimplementedAction(context); },
                 ),
               ],
             ),
+
+            // Trends
             Row(
               children: <Widget>[
                 Text(strings?.liveBets ?? 'Trends',
@@ -85,7 +91,7 @@ class HomeScreen extends StatelessWidget {
                 thickness: 0.5,
                 height: 0.5),
             Expanded(
-              flex: 2,
+              flex: showFavorites ? 9 : 2,
               child: FutureBuilder<String>(
                   future: getUserId(),
                   builder: (context, snapshot) {
@@ -101,7 +107,7 @@ class HomeScreen extends StatelessWidget {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
                               return const Center(
-                                child: CircularProgressIndicator(),
+                                child: CircularProgressIndicator(color: Colors.grey),
                               );
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
@@ -118,7 +124,8 @@ class HomeScreen extends StatelessWidget {
                                   int sortedIndex = sortedTrends[index].id - 1;
                                   return TrendContainer(
                                       trend: sortedTrends[index],
-                                      index: sortedIndex);
+                                      index: sortedIndex,
+                                      favorite: false,);
                                 },
                               );
                             } else {
@@ -145,7 +152,85 @@ class HomeScreen extends StatelessWidget {
                     }
                   }),
             ),
-            const SizedBox(height: 15),
+
+            // Favorites
+            if (showFavorites) ...[
+              Text('Favoritos',
+                  style: GoogleFonts.comfortaa(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w400,
+                  )),
+              Divider(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                  thickness: 0.5,
+                  height: 0.5),
+              Expanded(
+                flex:  8,
+                child: FutureBuilder<String>(
+                    future: getUserId(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator(color: Colors.grey));
+                      }
+                      else if (snapshot.hasError || !snapshot.hasData) {
+                        return const Center(child: Text("Error or no user ID"));
+                      } else {
+                        final userId = snapshot.data!;
+                        return FutureBuilder<Trends>(
+                            //TO-DO
+                            //future: BetsService().fetchFavouritesData(userId),
+                            future: BetsService().fetchTrendsData(userId),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(color: Colors.grey),
+                                );
+                              } else if (snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              } else if (snapshot.hasData &&
+                                  snapshot.data!.trends.isNotEmpty) {
+                                final data = snapshot.data!;
+                                return ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: data.length,
+                                  itemBuilder: (context, index) {
+                                    return TrendContainer(
+                                        trend: data.trends[index],
+                                        index: index,
+                                        favorite: true,);
+                                  },
+                                );
+                              } else {
+                                return Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20.0),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.star_border,
+                                          size: 90,
+                                          color: Theme.of(context).brightness ==
+                                              Brightness.dark
+                                              ? Colors.grey
+                                              : Colors.black,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+                            });
+                      }
+                    }),
+              ),
+
+            ],
+
+            // Recent bets
             Text(
               strings?.recentBets ?? 'Recent Bets',
               style: GoogleFonts.comfortaa(
@@ -158,12 +243,12 @@ class HomeScreen extends StatelessWidget {
                 thickness: 0.5,
                 height: 0.5),
             Expanded(
-              flex: 5,
+              flex: showFavorites ? 12 : 5,
               child: FutureBuilder<String>(
                   future: getUserId(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator(color: Colors.grey));
                     } else if (snapshot.hasError || !snapshot.hasData) {
                       return const Center(child: Text("Error or no user ID"));
                     } else {
@@ -174,7 +259,7 @@ class HomeScreen extends StatelessWidget {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
                               return const Center(
-                                child: CircularProgressIndicator(),
+                                child: CircularProgressIndicator(color: Colors.grey),
                               );
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
@@ -226,13 +311,21 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
+  void triggerFavorites() {
+    setState(() {
+      showFavorites = (showFavorites ? false : true);
+    });
+  }
+
 }
 
 class TrendContainer extends StatelessWidget {
   final Trend trend;
   final int index;
+  final bool favorite;
 
-  const TrendContainer({super.key, required this.trend, required this.index});
+  const TrendContainer({super.key, required this.trend, required this.index, required this.favorite});
 
   @override
   Widget build(BuildContext context) {
@@ -271,23 +364,39 @@ class TrendContainer extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                // Background number
-                Positioned(
-                  top: 20,
-                  right: (index == 0 || index >= 9) ? -20 : -5,
-                  child: Text(
-                    '${index + 1}',
-                    style: TextStyle(
-                      letterSpacing: 0,
-                      fontSize: 100,
-                      color: Colors.white.withOpacity(0.1),
-                      fontWeight: FontWeight.w800,
+
+                //Background star
+                if (favorite) ...[
+                  Positioned(
+                    top: 0,
+                    right: -30,
+                    child: Icon(
+                        Icons.star,
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.withOpacity(0.1) : Colors.grey,
+                        size: 150
                     ),
                   ),
-                ),
+                ],
+
+                // Background number
+                if (!favorite) ...[
+                  Positioned(
+                    top: 20,
+                    right: (index == 0 || index >= 9) ? -20 : -5,
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        letterSpacing: 0,
+                        fontSize: 100,
+                        color: Colors.white.withOpacity(0.1),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
                 // Main content
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(10.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,

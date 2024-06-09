@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:client_0_0_1/ui/markets_page.dart';
 import 'package:client_0_0_1/ui/settings_view.dart';
 import 'package:client_0_0_1/ui/userinfo_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -9,13 +12,13 @@ import 'package:client_0_0_1/candlesticks/candlesticks.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'home_page.dart';
 import 'login_page.dart';
+import 'package:http/http.dart' as http;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     return const MaterialApp(
       initialRoute: '/login',
       home: LoginPage(),
@@ -26,26 +29,43 @@ class MyApp extends StatelessWidget {
 class MainMenuPage extends StatefulWidget {
   const MainMenuPage({super.key});
 
-
   @override
-  _MainMenuPageState createState() => _MainMenuPageState();
+  MainMenuPageState createState() => MainMenuPageState();
 }
 
-class _MainMenuPageState extends State<MainMenuPage> {
-
+class MainMenuPageState extends State<MainMenuPage> {
+  Uint8List? _profilePicBytes;
   int _selectedIndex = 0;
   late List<Candle> candlesList;
   late List<Widget> _pages;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String _username = '';
+  bool _isLoading = true;
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  Future<void> _loadProfilePic() async {
+    String? profilePicString = await _storage.read(key: 'profilepic');
+    if (profilePicString != null && profilePicString.isNotEmpty) {
+      Uint8List imageBytes;
+      if (profilePicString.startsWith('http')) {
+        final response = await http.get(Uri.parse(profilePicString));
+        if (response.statusCode == 200) {
+          imageBytes = response.bodyBytes;
+        } else {
+          if (kDebugMode) {
+            print('Error loading profile pic!');
+          }
+          return;
+        }
+      } else {
+        imageBytes = base64Decode(profilePicString);
+      }
+      setState(() {
+        _profilePicBytes = imageBytes;
+      });
+    }
   }
 
-  void _loadUserInfo() async {
+  Future<void> _loadUserInfo() async {
     String? username = await _storage.read(key: 'username');
     if (username != null) {
       setState(() {
@@ -57,29 +77,38 @@ class _MainMenuPageState extends State<MainMenuPage> {
   @override
   void initState() {
     super.initState();
-    _loadUserInfo();
+    _initializeData();
+  }
 
+  Future<void> _initializeData() async {
+    await _loadUserInfo();
+    await _loadProfilePic();
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Theme.of(context).brightness == Brightness.dark
-          ? Colors.black
-          : Colors.white,
-      statusBarBrightness: Brightness.dark,
+      statusBarColor: isDark ? Colors.black : Colors.white,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
 
     FlutterStatusbarcolor.setStatusBarColor(
         Theme.of(context).brightness == Brightness.dark
             ? Colors.black
-            : Colors.white
-    );
+            : Colors.white);
 
-    FlutterStatusbarcolor.setStatusBarWhiteForeground(
-        Theme.of(context).brightness == Brightness.dark
-    );
+
 
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
@@ -97,48 +126,55 @@ class _MainMenuPageState extends State<MainMenuPage> {
       const UserInfoPage()
     ];
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              height: 1.0,
-              color: Colors.black45,
-            ),
-            Expanded(
-              child: IndexedStack(
-                index: _selectedIndex,
-                children: _pages,
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else {
+      return Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                height: 1.0,
+                color: Colors.black45,
               ),
+              Expanded(
+                child: IndexedStack(
+                  index: _selectedIndex,
+                  children: _pages,
+                ),
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.home),
+              label: strings?.home ?? "Home",
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.auto_graph),
+              label: strings?.liveMarkets ?? 'Live Markets',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.settings),
+              label: strings?.settings ?? 'Settings',
+            ),
+            BottomNavigationBarItem(
+              icon: (_profilePicBytes != null
+                  ? CircleAvatar(
+                backgroundImage: MemoryImage(_profilePicBytes!),
+                radius: 15,
+              )
+                  : const Icon(Icons.account_circle_outlined)),
+              label: _username,
             ),
           ],
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          type: BottomNavigationBarType.fixed,
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home),
-            label: strings?.home ?? "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.auto_graph),
-            label: strings?.liveMarkets ?? 'Live Markets',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.settings),
-            label: strings?.settings ?? 'Settings',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.account_circle),
-
-            label: _username,
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        //selectedItemColor: Colors.amber[800],
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-      ),
-    );
+      );
+    }
   }
 }
