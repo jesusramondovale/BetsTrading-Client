@@ -59,6 +59,15 @@ class BetsService {
     }
   }
 
+  /* TO-DO
+  *  Future<Favourites>
+  * */
+
+  Future<Trends> fetchFavouritesData(String userId) async {
+    return Trends([], 0);
+
+  }
+
   Future<Trends> fetchTrendsData(String userId) async {
 
     try {
