@@ -27,8 +27,10 @@ class InvestmentScreen extends StatelessWidget {
     Future<String> getUserId() async {
       return await _storage.read(key: "sessionToken") ?? "none";
     }
+
     Locale locale = Localizations.localeOf(context);
-    String formattedDate = DateFormat.yMMMMd(locale.toString()).format(DateTime.now());
+    String formattedDate =
+        DateFormat.yMMMMd(locale.toString()).format(DateTime.now());
 
     return Scaffold(
       body: Padding(
@@ -46,7 +48,7 @@ class InvestmentScreen extends StatelessWidget {
                 const Spacer(),
                 const SizedBox(width: 5),
                 AutoSizeText(
-                 formattedDate,
+                  formattedDate,
                   style: GoogleFonts.dosis(
                     fontSize: 18,
                     fontWeight: Theme.of(context).brightness == Brightness.dark
@@ -75,8 +77,8 @@ class InvestmentScreen extends StatelessWidget {
                       return const Center(child: Text("Error or no user ID"));
                     } else {
                       final userId = snapshot.data!;
-                      return FutureBuilder<Bets>(
-                          future: BetsService().fetchInvestmentData(userId),
+                      return FutureBuilder<Trends>(
+                          future: BetsService().fetchTrendsData(userId),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -86,14 +88,19 @@ class InvestmentScreen extends StatelessWidget {
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else if (snapshot.hasData &&
-                                snapshot.data!.investList.isNotEmpty) {
+                                snapshot.data!.trends.isNotEmpty) {
                               final data = snapshot.data!;
                               return ListView.builder(
                                 scrollDirection: Axis.horizontal,
-                                itemCount: data.investList.length,
+                                itemCount: data.length,
                                 itemBuilder: (context, index) {
+                                  List<Trend> sortedTrends =
+                                      List.from(data.trends)
+                                        ..sort((a, b) => a.id.compareTo(b.id));
+                                  int sortedIndex = sortedTrends[index].id - 1;
                                   return TrendContainer(
-                                      bet: data.investList[index]);
+                                      trend: sortedTrends[index],
+                                      index: sortedIndex);
                                 },
                               );
                             } else {
@@ -103,21 +110,13 @@ class InvestmentScreen extends StatelessWidget {
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(
-                                        strings?.noLiveBets ??
-                                            'You have no live bets at the moment, go to the markets tab to create a new one.',
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 30),
-                                      const Icon(
-                                        Icons.auto_graph,
-                                        size: 40,
-                                        color: Colors.white,
+                                      Icon(
+                                        Icons.wifi_off_sharp,
+                                        size: 90,
+                                        color: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Colors.white
+                                            : Colors.black,
                                       ),
                                     ],
                                   ),
@@ -131,9 +130,8 @@ class InvestmentScreen extends StatelessWidget {
             const SizedBox(height: 15),
             Text(
               strings?.recentBets ?? 'Recent Bets',
-              style:
-                  GoogleFonts.comfortaa(fontSize: 24,
-                          fontWeight: FontWeight.w400),
+              style: GoogleFonts.comfortaa(
+                  fontSize: 24, fontWeight: FontWeight.w400),
             ),
             Divider(
                 color: Theme.of(context).brightness == Brightness.dark
@@ -213,62 +211,89 @@ class InvestmentScreen extends StatelessWidget {
 }
 
 class TrendContainer extends StatelessWidget {
-  final Bet bet;
+  final Trend trend;
+  final int index;
 
-  const TrendContainer({super.key, required this.bet});
+  const TrendContainer({super.key, required this.trend, required this.index});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => {
-        Common().unimplementedAction(context),
-      },
-      child: Container(
-        width: 120,
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-
-        decoration: BoxDecoration(
-          color: Colors.white12,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              spreadRadius: 1,
-              blurRadius: 1,
-              offset: const Offset(0, 1),
-            ),
-          ],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.memory(
-                base64Decode(bet.iconPath),
-                height: 40,
-                width: 40,
+    return Material(
+      color: Colors.transparent, // Para asegurarse de que el color de fondo no interfiera
+      child: InkWell(
+        onTap: () {
+          Common().unimplementedAction(context);
+        },
+        splashColor: Colors.white24, // Color al hacer tap
+        highlightColor: Colors.white12, // Color de fondo temporal al pulsar
+        borderRadius: BorderRadius.circular(8), // Para que el efecto siga la forma del Container
+        child: Container(
+          width: 120,
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+          decoration: BoxDecoration(
+            color: Colors.white12,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                spreadRadius: 1,
+                blurRadius: 1,
+                offset: const Offset(0, 1),
               ),
-              const Spacer(),
-              Text(
-                bet.name,
-                style: GoogleFonts.barlowCondensed(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.white,
+            ],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Stack(
+            children: [
+              // Background number
+              Positioned(
+                top: 20,
+                right: (index == 0 || index >= 9) ? -20 : -5,
+                child: Text(
+                  '${index + 1}',
+                  style: TextStyle(
+                    letterSpacing: 0,
+                    fontSize: 100,
+                    color: Colors.white.withOpacity(0.1),
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
-              const SizedBox(height: 1),
-              Text(
-                '${(bet.currentValue / bet.originValue * 100).toStringAsFixed(2)}%',
-                style: GoogleFonts.montserrat(
-                  fontSize: 16,
-                  fontWeight:
-                  Theme.of(context).brightness == Brightness.dark
-                      ? FontWeight.w200
-                      : FontWeight.w500,
-                  color: bet.targetWon == true ? Colors.green : Colors.red,
+              // Main content
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.memory(
+                      base64Decode(trend.icon),
+                      height: 40,
+                      width: 40,
+                    ),
+                    const Spacer(),
+                    AutoSizeText(
+                      trend.name,
+                      maxLines: 1,
+                      style: GoogleFonts.robotoCondensed(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      (trend.dailyGain > 0.0)
+                          ? '▲ ${(trend.dailyGain).toStringAsFixed(2)}%'
+                          : '▼ ${(trend.dailyGain.abs()).toStringAsFixed(2)}%',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? FontWeight.w200
+                            : FontWeight.w500,
+                        color: trend.dailyGain > 0.0 ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -276,6 +301,8 @@ class TrendContainer extends StatelessWidget {
         ),
       ),
     );
+
+
   }
 }
 
@@ -337,8 +364,8 @@ class RecentBetContainer extends StatelessWidget {
                 style: GoogleFonts.montserrat(
                   fontSize: 12,
                   fontWeight: Theme.of(context).brightness == Brightness.dark
-                      ?  FontWeight.w100
-                      :  FontWeight.w300,
+                      ? FontWeight.w100
+                      : FontWeight.w300,
                   color: Theme.of(context).brightness == Brightness.dark
                       ? Colors.cyanAccent
                       : Colors.deepPurple,
@@ -369,14 +396,26 @@ class RecentBetContainer extends StatelessWidget {
   }
 }
 
-class Bets {
-  final List<Bet> investList;
-  final double totalBetAmount;
-  final double totalProfit;
+class Trend {
+  final int id;
+  final String name;
+  final String icon;
+  final double dailyGain;
+
+  Trend(this.id, this.icon, this.dailyGain, this.name);
+
+  Trend.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        name = json['name'],
+        icon = json['icon'],
+        dailyGain = json['daily_gain'];
+}
+
+class Trends {
+  final List<Trend> trends;
   final int length;
 
-  Bets(this.totalBetAmount, this.totalProfit, this.length,
-      {required this.investList});
+  Trends(this.trends, this.length);
 }
 
 class Bet {
@@ -422,4 +461,14 @@ class Bet {
         profitLoss = json['target_won'] == true
             ? (json['bet_amount'].toDouble()) * (json['target_odds'].toDouble())
             : json['bet_amount'].toDouble() * (-1);
+}
+
+class Bets {
+  final List<Bet> investList;
+  final double totalBetAmount;
+  final double totalProfit;
+  final int length;
+
+  Bets(this.totalBetAmount, this.totalProfit, this.length,
+      {required this.investList});
 }

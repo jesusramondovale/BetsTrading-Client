@@ -59,6 +59,49 @@ class BetsService {
     }
   }
 
+  Future<Trends> fetchTrendsData(String userId) async {
+
+    try {
+      final Map<String, dynamic> data = {'id': userId};
+      bool certificateCheck(X509Certificate cert, String host, int port) =>
+          true;
+      HttpClient client = HttpClient()
+        ..badCertificateCallback = certificateCheck;
+
+      final HttpClientRequest request =
+      await client.postUrl(Uri.parse("$API_URL/Trends"));
+      request.headers.set('Content-Type', 'application/json');
+      request.write(jsonEncode(data));
+
+      final HttpClientResponse response = await request.close();
+
+      if (response.statusCode == 200) {
+        final String responseBody =
+        await response.transform(utf8.decoder).join();
+        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
+
+        List<Trend> trends = (decodedBody['trends'] as List)
+            .map((json) => Trend.fromJson(json))
+            .toList();
+
+        return Trends(trends, trends.length);
+      } else {
+        return Trends([], 0);
+      }
+    } on SocketException catch (e) {
+      if (e.osError?.errorCode == 111) {
+        return Trends([], 0);
+      }
+      if (e.osError?.errorCode == 7) {
+        return Trends([], 0);
+      }
+      return Trends([], 0);
+    } catch (e) {
+      return Trends([], 0);
+    }
+
+  }
+
   Future<Bets> fakeFetchInvestmentData() async {
     await Future.delayed(const Duration(milliseconds: 50));
 
