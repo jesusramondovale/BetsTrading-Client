@@ -63,6 +63,11 @@ class Common {
       SnackBar(content: Text('Action is not implemented yet ${text!}'), duration: const Duration(milliseconds: 1300),),
     );
   }
+  void newFavoriteCompleted(BuildContext aContext, String localizedText) {
+    ScaffoldMessenger.of(aContext).showSnackBar(
+      SnackBar(content: Text(localizedText), duration: const Duration(milliseconds: 2500),),
+    );
+  }
   void popDialog(String aTitle, String aBody, BuildContext aContext) {
     showDialog(
       context: aContext,

@@ -4,8 +4,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../models/bets.dart';
+import '../models/favorites.dart';
+import '../models/trends.dart';
 
-import '../ui/home_page.dart';
 
 class BetsService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -63,8 +65,79 @@ class BetsService {
   *  Future<Favourites>
   * */
 
-  Future<Trends> fetchFavouritesData(String userId) async {
-    return Trends([], 0);
+  Future<Favorites> fetchFavouritesData(String userId) async {
+    try {
+      final Map<String, dynamic> data = {'id': userId};
+      bool certificateCheck(X509Certificate cert, String host, int port) =>
+          true;
+      HttpClient client = HttpClient()
+        ..badCertificateCallback = certificateCheck;
+
+      final HttpClientRequest request =
+      await client.postUrl(Uri.parse("$API_URL/Favorites"));
+      request.headers.set('Content-Type', 'application/json');
+      request.write(jsonEncode(data));
+
+      final HttpClientResponse response = await request.close();
+
+      if (response.statusCode == 200) {
+        final String responseBody =
+        await response.transform(utf8.decoder).join();
+        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
+
+        List<Favorite> favorites = (decodedBody['favorites'] as List)
+            .map((json) => Favorite.fromJson(json))
+            .toList();
+
+        return Favorites(favorites, favorites.length);
+      } else {
+        return Favorites([], 0);
+      }
+    } on SocketException catch (e) {
+      if (e.osError?.errorCode == 111) {
+        return Favorites([], 0);
+      }
+      if (e.osError?.errorCode == 7) {
+        return Favorites([], 0);
+      }
+      return Favorites([], 0);
+    } catch (e) {
+      return Favorites([], 0);
+    }
+
+  }
+
+  Future<bool> postNewFavorite(String userId, String name) async {
+    try {
+      final Map<String, dynamic> data = {'id': userId, 'item_name': name };
+      bool certificateCheck(X509Certificate cert, String host, int port) =>
+          true;
+      HttpClient client = HttpClient()
+        ..badCertificateCallback = certificateCheck;
+
+      final HttpClientRequest request =
+      await client.postUrl(Uri.parse("$API_URL/NewFavorite"));
+      request.headers.set('Content-Type', 'application/json');
+      request.write(jsonEncode(data));
+
+      final HttpClientResponse response = await request.close();
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } on SocketException catch (e) {
+      if (e.osError?.errorCode == 111) {
+        return false;
+      }
+      if (e.osError?.errorCode == 7) {
+        return false;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
 
   }
 

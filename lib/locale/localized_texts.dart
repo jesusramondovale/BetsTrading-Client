@@ -93,6 +93,8 @@ class LocalizedStrings {
       'versionCode': 'Version code: ',
       'close': 'Close',
       'current': 'Current',
+      'updatedFavs' : 'Updated favorites!',
+      'noFavsYet' : 'Youve got no favorites yet!'
     },
     'es': {
       // Español
@@ -176,7 +178,9 @@ class LocalizedStrings {
       'aboutUs': 'Sobre nosotros',
       'versionCode': 'Versión de código: ',
       'close': 'Cierre',
-      'current': 'Actual'
+      'current': 'Actual',
+      'updatedFavs' : 'Favoritos actualizados!',
+      'noFavsYet' : '¡Aún no tienes favoritos!'
     },
     'fr': {
       // Francés
@@ -261,7 +265,9 @@ class LocalizedStrings {
       'aboutUs': 'À propos de nous',
       'versionCode': 'Code de version : ',
       'close': 'Clôture',
-      'current': 'Actuel'
+      'current': 'Actuel',
+      'updatedFavs' : 'Favoris mis à jour',
+      'noFavsYet' : 'Vous n\'avez pas encore de favoris !'
     },
     'it': {
       // Italiano
@@ -346,7 +352,9 @@ class LocalizedStrings {
       'aboutUs': 'Chi siamo',
       'versionCode': 'Codice versione: ',
       'close': 'Chiusura',
-      'current': 'Attuale'
+      'current': 'Attuale',
+      'updatedFavs' : 'Preferiti aggiornati',
+      'noFavsYet' : 'Non hai ancora preferiti!'
     },
     'de': {
       // Alemán
@@ -432,7 +440,9 @@ class LocalizedStrings {
       'aboutUs': 'Über uns',
       'versionCode': 'Version code: ',
       'close': 'Schlusskurs',
-      'current': 'Aktuell'
+      'current': 'Aktuell',
+      'updatedFavs' : 'Favoriten aktualisiert',
+      'noFavsYet' : 'Sie haben noch keine Favoriten!'
     },
   };
 
@@ -563,6 +573,10 @@ class LocalizedStrings {
       _localizedValues[locale.languageCode]?['close'];
   String? get current =>
       _localizedValues[locale.languageCode]?['current'];
+  String? get updatedFavs =>
+      _localizedValues[locale.languageCode]?['updatedFavs'];
+  String? get noFavsYet =>
+      _localizedValues[locale.languageCode]?['noFavsYet'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {
