@@ -25,9 +25,9 @@ class Trend {
       : id = json['id'],
         name = json['name'],
         icon = json['icon'],
-        dailyGain = json['daily_gain'],
-        close = json['close'],
-        current = json['current'];
+        dailyGain = (json['daily_gain'] as num).toDouble(),
+        close = (json['close'] as num).toDouble(),
+        current = (json['current'] as num).toDouble();
 }
 
 class Trends {
