@@ -50,7 +50,6 @@ class TrendDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
 
-
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(52),
@@ -83,7 +82,7 @@ class TrendDialog extends StatelessWidget {
                   top: 0,
                   right: (index == 0 || index >= 9) ? -40 : -25,
                   child: Text(
-                      (index+1).toString(),
+                    (index + 1).toString(),
                     style: TextStyle(
                       letterSpacing: 0,
                       fontSize: 240,
@@ -100,11 +99,23 @@ class TrendDialog extends StatelessWidget {
                     children: [
                       Row(
                         children: <Widget>[
-                          Image.memory(
-                            base64Decode(trend.icon),
-                            height: 160,
-                            width: 160,
-                          ),
+                          if (trend.icon != "null") ...[
+                            Image.memory(
+                              base64Decode(trend.icon),
+                              height: 160,
+                              width: 160,
+                            )
+                          ] else ...[
+                            AutoSizeText(
+                              Common().createTrendViewName(trend),
+                              maxLines: 1,
+                              style: GoogleFonts.josefinSans(
+                                fontSize: 60,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                           const Spacer(),
                           Column(
                             mainAxisSize: MainAxisSize.min,
@@ -113,10 +124,16 @@ class TrendDialog extends StatelessWidget {
                                 iconSize: 50,
                                 onPressed: () async {
                                   bool ok = await BetsService().postNewFavorite(
-                                      await _storage.read(key: "sessionToken") ?? "none",
+                                      await _storage.read(
+                                              key: "sessionToken") ??
+                                          "none",
                                       trend.name);
                                   if (ok) {
-                                    Common().newFavoriteCompleted(context, LocalizedStrings.of(context)!.updatedFavs ?? "Updated favs!");
+                                    Common().newFavoriteCompleted(
+                                        context,
+                                        LocalizedStrings.of(context)!
+                                                .updatedFavs ??
+                                            "Updated favs!");
                                     Navigator.of(context).pop(true);
                                   }
                                 },
@@ -204,27 +221,31 @@ class TrendContainer extends StatefulWidget {
   final Trend trend;
   final int index;
   final VoidCallback onFavoriteUpdated;
-  const TrendContainer({super.key, required this.trend, required this.index, required this.onFavoriteUpdated});
+  const TrendContainer(
+      {super.key,
+      required this.trend,
+      required this.index,
+      required this.onFavoriteUpdated});
 
   @override
-  _TrendContainerState createState() => _TrendContainerState();
+  TrendContainerState createState() => TrendContainerState();
 }
 
-class _TrendContainerState extends State<TrendContainer> {
-
+class TrendContainerState extends State<TrendContainer> {
   void _showTrendDialog() async {
     bool? ok = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
-        return TrendDialog(trend: widget.trend, index: widget.index,);
+        return TrendDialog(
+          trend: widget.trend,
+          index: widget.index,
+        );
       },
     );
-    if (ok == true){
+    if (ok == true) {
       widget.onFavoriteUpdated();
-
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -255,13 +276,13 @@ class _TrendContainerState extends State<TrendContainer> {
               children: [
                 // Background number
                 Positioned(
-                  top: 20,
+                  top: 0,
                   right: (widget.index == 0 || widget.index >= 9) ? -20 : -5,
                   child: Text(
                     '${widget.index + 1}',
                     style: TextStyle(
                       letterSpacing: 0,
-                      fontSize: 100,
+                      fontSize: 120,
                       color: Colors.white.withOpacity(0.1),
                       fontWeight: FontWeight.w800,
                     ),
@@ -275,11 +296,23 @@ class _TrendContainerState extends State<TrendContainer> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.memory(
-                        base64Decode(widget.trend.icon),
-                        height: 40,
-                        width: 40,
-                      ),
+                      if (widget.trend.icon != "null") ...[
+                        Image.memory(
+                          base64Decode(widget.trend.icon),
+                          height: 42,
+                          width: 42,
+                        )
+                      ] else ...[
+                        AutoSizeText(
+                          Common().createTrendViewName(widget.trend),
+                          maxLines: 1,
+                          style: GoogleFonts.josefinSans(
+                            fontSize: 40,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                       const Spacer(),
                       AutoSizeText(
                         widget.trend.name,
@@ -297,11 +330,12 @@ class _TrendContainerState extends State<TrendContainer> {
                         style: GoogleFonts.montserrat(
                           fontSize: 16,
                           fontWeight:
-                          Theme.of(context).brightness == Brightness.dark
-                              ? FontWeight.w200
-                              : FontWeight.w500,
-                          color:
-                          widget.trend.dailyGain > 0.0 ? Colors.green : Colors.red,
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? FontWeight.w200
+                                  : FontWeight.w500,
+                          color: widget.trend.dailyGain > 0.0
+                              ? Colors.green
+                              : Colors.red,
                         ),
                       ),
                     ],

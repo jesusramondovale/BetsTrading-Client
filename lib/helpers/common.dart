@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:client_0_0_1/candlesticks/candlesticks.dart';
 import 'package:client_0_0_1/helpers/rectangle_zone.dart';
 import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:client_0_0_1/models/favorites.dart';
 import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import '../models/trends.dart';
 import '../ui/layout_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -594,6 +596,26 @@ class Common {
       throw ArgumentError('Need at least two spots to compare.');
     }
     return spots.last.y > spots.first.y;
+  }
+  String createTrendViewName(Trend t) {
+    String viewName = "";
+    List<String> words = t.name.split(' ');
+    for (int i = 0; i < words.length && i < 3; i++) {
+      if (words[i].isNotEmpty) {
+        viewName += words[i][0];
+      }
+    }
+    return viewName;
+  }
+  String createFavViewName(Favorite f) {
+    String viewName = "";
+    List<String> words = f.name.split(' ');
+    for (int i = 0; i < words.length && i < 3; i++) {
+      if (words[i].isNotEmpty) {
+        viewName += words[i][0];
+      }
+    }
+    return viewName;
   }
 
 }

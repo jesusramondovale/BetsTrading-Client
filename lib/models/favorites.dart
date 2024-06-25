@@ -9,7 +9,6 @@ import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../services/BetsService.dart';
 import '../ui/candlesticks_view.dart';
-import '../ui/home_page.dart';
 
 class Favorite {
   final String id;
@@ -94,11 +93,24 @@ class FavoriteDialog extends StatelessWidget {
                     children: [
                       Row(
                         children: <Widget>[
-                          Image.memory(
-                            base64Decode(favorite.icon),
-                            height: 160,
-                            width: 160,
-                          ),
+                          if (favorite.icon != "null") ... [
+                            Image.memory(
+                              base64Decode(favorite.icon),
+                              height: 100,
+                              width: 100,
+                            )
+                          ]
+                          else ... [
+                            AutoSizeText(
+                              Common().createFavViewName(favorite),
+                              maxLines: 1,
+                              style: GoogleFonts.josefinSans(
+                                fontSize: 60,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                           const Spacer(),
                           Column(
                             mainAxisSize: MainAxisSize.min,
@@ -204,10 +216,10 @@ class FavoriteContainer extends StatefulWidget {
   const FavoriteContainer({super.key, required this.favorite, required this.onFavoriteUpdated});
 
   @override
-  _FavoriteContainerState createState() => _FavoriteContainerState();
+  FavoriteContainerState createState() => FavoriteContainerState();
 }
 
-class _FavoriteContainerState extends State<FavoriteContainer> {
+class FavoriteContainerState extends State<FavoriteContainer> {
 
   void _showFavoriteDialog() async {
     bool? ok = await showDialog<bool>(
@@ -268,11 +280,24 @@ class _FavoriteContainerState extends State<FavoriteContainer> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.memory(
-                        base64Decode(widget.favorite.icon),
-                        height: 40,
-                        width: 40,
-                      ),
+                      if (widget.favorite.icon != "null") ... [
+                        Image.memory(
+                          base64Decode(widget.favorite.icon),
+                          height: 40,
+                          width: 40,
+                        )
+                      ]
+                      else ... [
+                        AutoSizeText(
+                          Common().createFavViewName(widget.favorite),
+                          maxLines: 1,
+                          style: GoogleFonts.josefinSans(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                       const Spacer(),
                       AutoSizeText(
                         widget.favorite.name,
