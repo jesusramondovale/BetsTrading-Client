@@ -21,17 +21,43 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-
-  final GlobalKey<HomeScreenState> _homeScreenKey = GlobalKey<HomeScreenState>();
+  final GlobalKey<HomeScreenState> _homeScreenKey =
+      GlobalKey<HomeScreenState>();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool showFavorites = false;
+  List<Bet> _bets = [];
+  String _userId = "none";
+
+  Future<void> _loadUserIdAndData() async {
+    final userId = await _storage.read(key: "sessionToken") ?? "none";
+    setState(() {
+      _userId = userId;
+    });
+    _loadBets(userId);
+  }
+
+  Future<void> _loadBets(String userId) async {
+    final betsData = await BetsService().fetchInvestmentData(userId);
+    setState(() {
+      _bets = betsData.investList;
+    });
+  }
+
+  void _deleteBet(int betId) {
+    setState(() {
+      _bets.removeWhere((bet) => bet.id == betId);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserIdAndData();
+  }
 
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
-    Future<String> getUserId() async {
-      return await _storage.read(key: "sessionToken") ?? "none";
-    }
 
     Locale locale = Localizations.localeOf(context);
     String formattedDate =
@@ -104,65 +130,50 @@ class HomeScreenState extends State<HomeScreen> {
                 height: 0.5),
             Expanded(
               flex: showFavorites ? 9 : 2,
-              child: FutureBuilder<String>(
-                  future: getUserId(),
+              child: FutureBuilder<Trends>(
+                  future: BetsService().fetchTrendsData(_userId!),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError || !snapshot.hasData) {
-                      return const Center(child: Text("Error or no user ID"));
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.grey),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (snapshot.hasData &&
+                        snapshot.data!.trends.isNotEmpty) {
+                      final data = snapshot.data!;
+                      return ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          List<Trend> sortedTrends = List.from(data.trends)
+                            ..sort((a, b) => a.id.compareTo(b.id));
+                          int sortedIndex = sortedTrends[index].id - 1;
+                          return TrendContainer(
+                              trend: sortedTrends[index],
+                              index: sortedIndex,
+                              onFavoriteUpdated: refreshFavorites);
+                        },
+                      );
                     } else {
-                      final userId = snapshot.data!;
-                      return FutureBuilder<Trends>(
-                          future: BetsService().fetchTrendsData(userId),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                child: CircularProgressIndicator(
-                                    color: Colors.grey),
-                              );
-                            } else if (snapshot.hasError) {
-                              return Text('Error: ${snapshot.error}');
-                            } else if (snapshot.hasData &&
-                                snapshot.data!.trends.isNotEmpty) {
-                              final data = snapshot.data!;
-                              return ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                itemBuilder: (context, index) {
-                                  List<Trend> sortedTrends =
-                                      List.from(data.trends)
-                                        ..sort((a, b) => a.id.compareTo(b.id));
-                                  int sortedIndex = sortedTrends[index].id - 1;
-                                  return TrendContainer(
-                                    trend: sortedTrends[index],
-                                    index: sortedIndex,
-                                      onFavoriteUpdated: refreshFavorites
-                                  );
-                                },
-                              );
-                            } else {
-                              return Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.wifi_off_sharp,
-                                        size: 90,
-                                        color: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.white
-                                            : Colors.black,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }
-                          });
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.wifi_off_sharp,
+                                size: 90,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     }
                   }),
             ),
@@ -182,72 +193,58 @@ class HomeScreenState extends State<HomeScreen> {
                   height: 0.5),
               Expanded(
                 flex: 8,
-                child: FutureBuilder<String>(
-                    future: getUserId(),
+                child: FutureBuilder<Favorites>(
+                    future: BetsService().fetchFavouritesData(_userId!),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(
-                            child:
-                                CircularProgressIndicator(color: Colors.grey));
-                      } else if (snapshot.hasError || !snapshot.hasData) {
-                        return const Center(child: Text("Error or no user ID"));
+                          child: CircularProgressIndicator(color: Colors.grey),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (snapshot.hasData &&
+                          snapshot.data!.favorites.isNotEmpty) {
+                        final data = snapshot.data!;
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: data.length,
+                          itemBuilder: (context, index) {
+                            return FavoriteContainer(
+                                favorite: data.favorites[index],
+                                onFavoriteUpdated: refreshFavorites);
+                          },
+                        );
                       } else {
-                        final userId = snapshot.data!;
-                        return FutureBuilder<Favorites>(
-                            future: BetsService().fetchFavouritesData(userId),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                  child: CircularProgressIndicator(
-                                      color: Colors.grey),
-                                );
-                              } else if (snapshot.hasError) {
-                                return Text('Error: ${snapshot.error}');
-                              } else if (snapshot.hasData &&
-                                  snapshot.data!.favorites.isNotEmpty) {
-                                final data = snapshot.data!;
-                                return ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: data.length,
-                                  itemBuilder: (context, index) {
-                                    return FavoriteContainer(
-                                      favorite: data.favorites[index],
-                                        onFavoriteUpdated: refreshFavorites
-                                    );
-                                  },
-                                );
-                              } else {
-                                return Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20.0),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          LocalizedStrings.of(context)!.noFavsYet ?? "No favorites yet!",
-                                          style: GoogleFonts.dosis(
-                                            fontSize: 18,
-                                            fontWeight: Theme.of(context).brightness == Brightness.dark
-                                                ? FontWeight.w200
-                                                : FontWeight.w400,
-                                          ),
-                                        ),
-                                        SizedBox(height: 10),
-                                        Icon(
-                                          Icons.star_border,
-                                          size: 50,
-                                          color: Theme.of(context).brightness ==
-                                                  Brightness.dark
-                                              ? Colors.grey
-                                              : Colors.black,
-                                        ),
-                                      ],
-                                    ),
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  LocalizedStrings.of(context)!.noFavsYet ??
+                                      "No favorites yet!",
+                                  style: GoogleFonts.dosis(
+                                    fontSize: 18,
+                                    fontWeight: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? FontWeight.w200
+                                        : FontWeight.w400,
                                   ),
-                                );
-                              }
-                            });
+                                ),
+                                SizedBox(height: 10),
+                                Icon(
+                                  Icons.star_border,
+                                  size: 50,
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.grey
+                                      : Colors.black,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
                       }
                     }),
               ),
@@ -267,67 +264,55 @@ class HomeScreenState extends State<HomeScreen> {
                 height: 0.5),
             Expanded(
               flex: showFavorites ? 12 : 5,
-              child: FutureBuilder<String>(
-                  future: getUserId(),
+              child: FutureBuilder<Bets>(
+                  future: BetsService().fetchInvestmentData(_userId!),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
-                          child: CircularProgressIndicator(color: Colors.grey));
-                    } else if (snapshot.hasError || !snapshot.hasData) {
-                      return const Center(child: Text("Error or no user ID"));
+                        child: CircularProgressIndicator(color: Colors.grey),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (snapshot.hasData &&
+                        snapshot.data!.investList.isNotEmpty) {
+                      final data = snapshot.data!;
+                      _bets = data.investList; // Actualiza la lista de apuestas
+                      return ListView.builder(
+                        scrollDirection: Axis.vertical,
+                        itemCount: _bets.length,
+                        itemBuilder: (context, index) {
+                          return RecentBetContainer(
+                              bet: _bets[index],
+                              onDelete: () => _deleteBet(_bets[index].id));
+                        },
+                      );
                     } else {
-                      final userId = snapshot.data!;
-                      return FutureBuilder<Bets>(
-                          future: BetsService().fetchInvestmentData(userId),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                child: CircularProgressIndicator(
-                                    color: Colors.grey),
-                              );
-                            } else if (snapshot.hasError) {
-                              return Text('Error: ${snapshot.error}');
-                            } else if (snapshot.hasData &&
-                                snapshot.data!.investList.isNotEmpty) {
-                              final data = snapshot.data!;
-                              return ListView.builder(
-                                scrollDirection: Axis.vertical, //LMAO
-                                itemCount: data.investList.length,
-                                itemBuilder: (context, index) {
-                                  return RecentBetContainer(
-                                      bet: data.investList[index]);
-                                },
-                              );
-                            } else {
-                              return Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        strings?.noLiveBets ??
-                                            'You have no live bets at the moment, go to the markets tab to create a new one.',
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 30),
-                                      const Icon(
-                                        Icons.auto_graph,
-                                        size: 40,
-                                        color: Colors.white,
-                                      ),
-                                    ],
-                                  ),
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                strings?.noLiveBets ??
+                                    'You have no live bets at the moment, go to the markets tab to create a new one.',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
                                 ),
-                              );
-                            }
-                          });
+                              ),
+                              const SizedBox(height: 30),
+                              const Icon(
+                                Icons.auto_graph,
+                                size: 40,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     }
                   }),
             ),
@@ -343,15 +328,9 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void refreshFavorites(){
+  void refreshFavorites() {
     setState(() {
       showFavorites = true;
     });
   }
 }
-
-
-
-
-
-

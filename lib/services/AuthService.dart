@@ -3,9 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../helpers/common.dart';
 
 class AuthService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -13,163 +14,39 @@ class AuthService {
   static const API_URL = 'https://$PUBLIC_DOMAIN:44346/api/Auth';
 
   Future<Map<String, dynamic>> logIn(String username, String password) async {
-    try {
-      final Map<String, dynamic> data = {
-        'username': username,
-        'password': password
-      };
-      bool certificateCheck(X509Certificate cert, String host, int port) =>
-          true;
-      HttpClient client = HttpClient()
-        ..badCertificateCallback = (certificateCheck);
+    final response = await Common().postRequestWrapper('Auth', 'LogIn', {'username': username, 'password': password});
 
-      final HttpClientRequest request =
-          await client.postUrl(Uri.parse("$API_URL/LogIn"));
-      request.headers.set('Content-Type', 'application/json');
-      request.write(jsonEncode(data));
+    if (response['statusCode'] == 200) {
+      final String token = response['body']['userId'];
+      await _storage.write(key: 'sessionToken', value: token);
 
-      final HttpClientResponse response = await request.close();
-
-      if (response.statusCode == 200) {
-        final String responseBody =
-            await response.transform(utf8.decoder).join();
-        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
-        final String token = decodedBody['userId'];
-        await _storage.write(key: 'sessionToken', value: token);
-
-        return {'success': true, 'message': decodedBody['message']};
-      } else {
-        final String responseBody =
-            await response.transform(utf8.decoder).join();
-        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
-        return {'success': false, 'message': decodedBody['message']};
-      }
-    } on SocketException catch (e) {
-      if (e.osError?.errorCode == 111) {
-        //Connection Refused
-        return {
-          'success': false,
-          'message': "Server not responding. Try again later"
-        };
-      }
-      if (e.osError?.errorCode == 7) {
-        // Can't resolve -> No internet (DNS) access
-        return {
-          'success': false,
-          'message': "Can't connect. Check your internet connection"
-        };
-      }
-      return {
-        'success': false,
-        'message': "Server not responding. Try again later"
-      };
-    } catch (e) {
-      return {'success': false, 'message': '$e'};
+      return {'success': true, 'message': response['body']['message']};
+    } else {
+      return {'success': false, 'message': response['body']['message']};
     }
   }
 
   Future<Map<String, dynamic>> googleLogIn(String username) async {
-    try {
-      final Map<String, dynamic> data = {'username': username};
-      bool certificateCheck(X509Certificate cert, String host, int port) =>
-          true;
-      HttpClient client = HttpClient()
-        ..badCertificateCallback = (certificateCheck);
+    final response = await Common().postRequestWrapper('Auth','GoogleLogIn', {'username': username});
 
-      final HttpClientRequest request =
-          await client.postUrl(Uri.parse("$API_URL/GoogleLogIn"));
-      request.headers.set('Content-Type', 'application/json');
-      request.write(jsonEncode(data));
+    if (response['statusCode'] == 200) {
+      final String token = response['body']['userId'];
+      await _storage.write(key: 'sessionToken', value: token);
 
-      final HttpClientResponse response = await request.close();
-
-      if (response.statusCode == 200) {
-        final String responseBody =
-            await response.transform(utf8.decoder).join();
-        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
-        final String token = decodedBody['userId'];
-        await _storage.write(key: 'sessionToken', value: token);
-
-        return {'success': true, 'message': decodedBody['message']};
-      } else {
-        final String responseBody =
-            await response.transform(utf8.decoder).join();
-        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
-        return {'success': false, 'message': decodedBody['message']};
-      }
-    } on SocketException catch (e) {
-      if (e.osError?.errorCode == 111) {
-        //Connection Refused
-        return {
-          'success': false,
-          'message': "Server not responding. Try again later"
-        };
-      }
-      if (e.osError?.errorCode == 7) {
-        // Can't resolve -> No internet (DNS) access
-        return {
-          'success': false,
-          'message': "Can't connect. Check your internet connection"
-        };
-      }
-      return {
-        'success': false,
-        'message': "Server not responding. Try again later"
-      };
-    } catch (e) {
-      return {'success': false, 'message': '$e'};
+      return {'success': true, 'message': response['body']['message']};
+    } else {
+      return {'success': false, 'message': response['body']['message']};
     }
   }
 
   Future<Map<String, dynamic>> logOut(String id) async {
-    try {
-      final Map<String, dynamic> data = {'id': id};
-      bool certificateCheck(X509Certificate cert, String host, int port) =>
-          true;
-      HttpClient client = HttpClient()
-        ..badCertificateCallback = (certificateCheck);
+    final response = await Common().postRequestWrapper('Auth', 'LogOut', {'id': id});
 
-      final HttpClientRequest request =
-          await client.postUrl(Uri.parse("$API_URL/LogOut"));
-      request.headers.set('Content-Type', 'application/json');
-      request.write(jsonEncode(data));
-
-      final HttpClientResponse response = await request.close();
-
-      if (response.statusCode == 200) {
-        final String responseBody =
-            await response.transform(utf8.decoder).join();
-        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
-        await _storage.write(key: 'sessionToken', value: "empty");
-
-        return {'success': true, 'message': decodedBody['message']};
-      } else {
-        final String responseBody =
-            await response.transform(utf8.decoder).join();
-        final Map<String, dynamic> decodedBody = jsonDecode(responseBody);
-        return {'success': false, 'message': decodedBody['message']};
-      }
-    } on SocketException catch (e) {
-      if (e.osError?.errorCode == 111) {
-        //Connection Refused
-        return {
-          'success': false,
-          'message': "Server not responding. Try again later"
-        };
-      }
-      if (e.osError?.errorCode == 7) {
-        // Can't resolve -> No internet (DNS) access
-        return {
-          'success': false,
-          'message': "Can't connect. Check your internet connection"
-        };
-      }
-      return {
-        'success': false,
-        'message': "Server not responding. Try again later"
-      };
-    } catch (e) {
-      return {'success': false, 'message': '$e'};
+    if (response['statusCode'] == 200) {
+      await _storage.write(key: 'sessionToken', value: "empty");
+      return {'success': true, 'message': response['body']['message']};
+    } else {
+      return {'success': false, 'message': response['body']['message']};
     }
   }
 
@@ -185,65 +62,28 @@ class AuthService {
       String creditCard,
       String username,
       String? profilePic) async {
-    try {
-      final Map<String, dynamic> data = {
-        'idCard': idCard,
-        'fullName': fullName,
-        'password': password,
-        'address': address,
-        'country': country,
-        'gender': gender,
-        'email': email,
-        'birthday': birthday.toUtc().toIso8601String(),
-        'creditCard': creditCard,
-        'username': username,
-        'profilePic': profilePic
-      };
+    final Map<String, dynamic> data = {
+      'idCard': idCard,
+      'fullName': fullName,
+      'password': password,
+      'address': address,
+      'country': country,
+      'gender': gender,
+      'email': email,
+      'birthday': birthday.toUtc().toIso8601String(),
+      'creditCard': creditCard,
+      'username': username,
+      'profilePic': profilePic
+    };
 
-      bool certificateCheck(X509Certificate cert, String host, int port) =>
-          true;
-      HttpClient client = HttpClient()
-        ..badCertificateCallback = (certificateCheck);
+    final response = await Common().postRequestWrapper('Auth','SignIn', data);
 
-      final HttpClientRequest request =
-          await client.postUrl(Uri.parse('$API_URL/SignIn'));
-      request.headers.set('Content-Type', 'application/json charset=utf-8');
-      request.write(jsonEncode(data));
-
-      final HttpClientResponse response = await request.close();
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> decodedBody =
-            jsonDecode(await response.transform(utf8.decoder).join());
-        final String message = decodedBody['message'];
-        final String token = decodedBody['userId'];
-        await _storage.write(key: 'sessionToken', value: token);
-        return {'success': true, 'message': message};
-      } else {
-        final Map<String, dynamic> decodedBody =
-            jsonDecode(await response.transform(utf8.decoder).join());
-        final String message = decodedBody['message'];
-        return {'success': false, 'message': message};
-      }
-    } on SocketException catch (e) {
-      if (e.osError?.errorCode == 111) {
-        //Connection Refused
-        return {
-          'success': false,
-          'message': "Server not responding. Try again later"
-        };
-      }
-      if (e.osError?.errorCode == 7) {
-        // Can't resolve -> No internet (DNS) access
-        return {
-          'success': false,
-          'message': "Can't connect. Check your internet connection"
-        };
-      }
-      return {
-        'success': false,
-        'message': "Server not responding. Try again later"
-      };
+    if (response['statusCode'] == 200) {
+      final String token = response['body']['userId'];
+      await _storage.write(key: 'sessionToken', value: token);
+      return {'success': true, 'message': response['body']['message']};
+    } else {
+      return {'success': false, 'message': response['body']['message']};
     }
   }
 
@@ -257,64 +97,28 @@ class AuthService {
   }
 
   Future<int> _isLoggedIn(String token) async {
-    bool certificateCheck(X509Certificate cert, String host, int port) => true;
-    HttpClient client = HttpClient()..badCertificateCallback = certificateCheck;
-    final HttpClientRequest request;
-
-    try {
-      request = await client.postUrl(Uri.parse('$API_URL/IsLoggedIn'));
-      request.headers.set('Content-Type', 'application/json');
-      final Map<String, dynamic> data = {'id': token};
-      request.write(jsonEncode(data));
-      final HttpClientResponse response = await request.close();
-
-      if (response.statusCode == 200) {
-        //VALID TOKEN
-        return 0;
-      }
-      if (response.statusCode == 400) {
-        //VALID TOKEN BUT EXPIRED SESSION
-        return 2;
-      } //INVALID TOKEN
-      else {
-        return 1;
-      }
-    } catch (e) {
-      return 1;
-    } finally {
-      client.close();
+    final response = await Common().postRequestWrapper('Auth','IsLoggedIn', {'id': token});
+    if (response['statusCode'] == 200) {
+      return 0; // VALID TOKEN
+    } else if (response['statusCode'] == 400) {
+      return 2; // VALID TOKEN BUT EXPIRED SESSION
+    } else {
+      return 1; // INVALID TOKEN
     }
   }
 
-  Future<bool> _googleQuickRegister(
-      GoogleSignInAccount user, DateTime birthday) async {
-    bool certificateCheck(X509Certificate cert, String host, int port) => true;
-    HttpClient client = HttpClient()..badCertificateCallback = certificateCheck;
-    final HttpClientRequest request;
+  Future<bool> _googleQuickRegister(GoogleSignInAccount user, DateTime birthday) async {
+    final Map<String, dynamic> data = {
+      'id': user.id,
+      'displayName': user.displayName,
+      'email': user.email,
+      'photoUrl': user.photoUrl,
+      'birthday': birthday.toUtc().toIso8601String(),
+    };
 
-    try {
-      request = await client.postUrl(Uri.parse('$API_URL/GoogleQuickRegister'));
-      request.headers.set('Content-Type', 'application/json charset=utf-8');
-      final Map<String, dynamic> data = {
-        'id': user.id,
-        'displayName': user.displayName,
-        'email': user.email,
-        'photoUrl': user.photoUrl,
-        'birthday': birthday.toUtc().toIso8601String(),
-      };
-      request.write(jsonEncode(data));
-      final HttpClientResponse response = await request.close();
+    final response = await Common().postRequestWrapper('Auth','GoogleQuickRegister', data);
 
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      return false;
-    } finally {
-      client.close();
-    }
+    return response['statusCode'] == 200;
   }
 
   Future<int?> googleSignIn() async {
@@ -335,8 +139,7 @@ class AuthService {
 
         final accessToken = (await user.authentication).accessToken;
         final response = await http.get(
-          Uri.parse(
-              'https://people.googleapis.com/v1/people/me?personFields=birthdays,addresses'),
+          Uri.parse('https://people.googleapis.com/v1/people/me?personFields=birthdays,addresses'),
           headers: {'Authorization': 'Bearer $accessToken'},
         );
 
@@ -361,8 +164,7 @@ class AuthService {
               return 0;
             } else {
               // NO USER REGISTER, NEED TO QUICK REGISTER IT
-              bool successfullyRegistered =
-                  await _googleQuickRegister(user, DateTime(year, month, day));
+              bool successfullyRegistered = await _googleQuickRegister(user, DateTime(year, month, day));
               if (successfullyRegistered) {
                 return 0;
               } else {
@@ -371,8 +173,7 @@ class AuthService {
             }
           } else {
             if (kDebugMode) {
-              print(
-                  'Failed to fetch additional user info: ${response.statusCode}');
+              print('Failed to fetch additional user info: ${response.statusCode}');
             }
             return 1;
           }

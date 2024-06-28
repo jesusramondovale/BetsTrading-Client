@@ -1,9 +1,9 @@
 import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
-
-import '../main.dart';
+import '../config/config.dart';
 import 'aboutus_page.dart';
 
 class SettingsView extends StatefulWidget {
@@ -108,7 +108,7 @@ class SettingsViewState extends State<SettingsView> {
       bottomSheet: Container(
         padding: const EdgeInsets.all(16.0),
         child: Text(
-            (strings?.versionCode ?? 'Version code: ') + CODE_VERSION,
+            (strings?.versionCode ?? 'Version code: ') + ((!kReleaseMode) ? 'DEBUG': Config.CODE_VERSION),
             textAlign: TextAlign.center),
       ),
     );

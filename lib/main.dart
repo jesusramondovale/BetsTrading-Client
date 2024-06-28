@@ -1,5 +1,4 @@
 import 'package:client_0_0_1/services/BetsService.dart';
-import 'package:flutter/foundation.dart';
 import '../services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'helpers/common.dart';
@@ -11,10 +10,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-String CODE_VERSION = '24.177.1';
-
 Future<void> main() async {
-
 
   Future<bool> loadThemePreference() async {
     final prefs = await SharedPreferences.getInstance();
@@ -23,9 +19,6 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   bool isDark = await loadThemePreference();
-  if (!kReleaseMode){
-    CODE_VERSION = 'DEBUG';
-  }
   runApp(MyApp(isDarkTheme: isDark));
 
 }

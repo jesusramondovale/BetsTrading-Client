@@ -1,11 +1,14 @@
 import 'dart:convert';
 
+import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../helpers/common.dart';
+import '../locale/localized_texts.dart';
 
 class Bet {
+  final int id;
   final String name;
   final String iconPath;
 
@@ -24,6 +27,7 @@ class Bet {
       this.currentValue,
       this.targetWon,
       this.profitLoss, {
+        required this.id,
         required this.name,
         required this.iconPath,
         required this.betAmount,
@@ -35,7 +39,8 @@ class Bet {
       });
 
   Bet.fromJson(Map<String, dynamic> json)
-      : name = json['name'],
+      : id = json['id'],
+        name = json['name'],
         iconPath = json['icon_path'],
         betAmount = json['bet_amount'].toDouble(),
         originValue = json['origin_value'].toDouble(),
@@ -60,14 +65,30 @@ class Bets {
       {required this.investList});
 }
 
-class RecentBetContainer extends StatelessWidget {
+class RecentBetContainer extends StatefulWidget {
   final Bet bet;
-  const RecentBetContainer({super.key, required this.bet});
+  final Function onDelete;
+  const RecentBetContainer({super.key, required this.bet, required this.onDelete});
+
+  @override
+  RecentBetContainerState createState() => RecentBetContainerState();
+}
+
+class RecentBetContainerState extends State<RecentBetContainer>{
+
+  bool _showEditButtons = false;
+
+  void _triggerBetButtons() {
+    setState(() {
+      _showEditButtons = !_showEditButtons;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    String? trailingText = (bet.profitLoss != null && bet.profitLoss != 0.0)
-        ? (bet.profitLoss)?.toStringAsFixed(2)
+    final strings = LocalizedStrings.of(context);
+    String? trailingText = (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
+        ? (widget.bet.profitLoss)?.toStringAsFixed(2)
         : '¿?';
     String currency = '€';
 
@@ -78,13 +99,15 @@ class RecentBetContainer extends StatelessWidget {
     return Column(
       children: <Widget>[
         ListTile(
-          onTap: () =>
-              Common().unimplementedAction(context, '(Recent bet info)'),
+          onLongPress: _triggerBetButtons,
+          onTap: () {
+            (_showEditButtons) ?  _triggerBetButtons() : Common().unimplementedAction(context, '(Recent bet info)');
+          },
           minVerticalPadding: 12,
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(5.0),
             child: Image.memory(
-              base64Decode(bet.iconPath),
+              base64Decode(widget.bet.iconPath),
               width: 50,
               height: 50,
               fit: BoxFit.cover,
@@ -95,7 +118,7 @@ class RecentBetContainer extends StatelessWidget {
               style: DefaultTextStyle.of(context).style,
               children: <TextSpan>[
                 TextSpan(
-                  text: '${bet.name} ',
+                  text: '${widget.bet.name} ',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -108,14 +131,14 @@ class RecentBetContainer extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '(${bet.betAmount.toStringAsFixed(2)}€ @ ${bet.originValue})',
+                '(${widget.bet.betAmount.toStringAsFixed(2)}€ @ ${widget.bet.originValue})',
                 style: const TextStyle(
                   color: Colors.grey,
                   fontSize: 15,
                 ),
               ),
               Text(
-                '${bet.targetDate.year}-${bet.targetDate.month}-${bet.targetDate.day} @ ${bet.targetValue} ± ${bet.targetMargin}%',
+                '${widget.bet.targetDate.year}-${widget.bet.targetDate.month}-${widget.bet.targetDate.day} @ ${widget.bet.targetValue} ± ${widget.bet.targetMargin}%',
                 style: GoogleFonts.montserrat(
                   fontSize: 12,
                   fontWeight: Theme.of(context).brightness == Brightness.dark
@@ -128,12 +151,37 @@ class RecentBetContainer extends StatelessWidget {
               ),
             ],
           ),
-          trailing: Text(
+          trailing: _showEditButtons
+              ? IntrinsicWidth(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.grey),
+                  onPressed: () async {
+
+                    final result = await  BetsService().deleteRecentBet((widget.bet.id).toString());
+
+                    if (result) {
+                      Common().actionDialog(context, strings?.removedSuccesfully ?? "Borrado con éxito!");
+                      widget.onDelete();
+                    } else {
+                      Common().actionDialog(context, "Error!");
+                    }
+                  },
+                  padding: const EdgeInsets.all(0),
+                  constraints: const BoxConstraints(maxHeight: 30, maxWidth: 30),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+          )
+              : Text(
             '$trailingText$currency',
             style: GoogleFonts.montserrat(
               fontSize: 16,
               fontWeight: FontWeight.w300,
-              color: bet.targetWon == true ? Colors.green : Colors.red,
+              color: widget.bet.targetWon == true ? Colors.green : Colors.red,
             ),
           ),
         ),
@@ -142,9 +190,7 @@ class RecentBetContainer extends StatelessWidget {
               ? Colors.white
               : Colors.black,
           height: 1,
-          thickness: 0.25,
-          indent: 80,
-          endIndent: 80,
+          thickness: 0.1,
         ),
       ],
     );

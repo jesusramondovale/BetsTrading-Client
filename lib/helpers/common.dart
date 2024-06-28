@@ -14,9 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:math';
 import 'package:image_picker/image_picker.dart';
-
+import '../config/config.dart';
 
 class Common {
+
   final ThemeData themeDark = ThemeData(
     brightness: Brightness.dark,
     colorScheme: const ColorScheme.dark(
@@ -63,6 +64,11 @@ class Common {
   void unimplementedAction(BuildContext aContext,  [String? text = '']) {
         ScaffoldMessenger.of(aContext).showSnackBar(
       SnackBar(content: Text('Action is not implemented yet ${text!}'), duration: const Duration(milliseconds: 1300),),
+    );
+  }
+  void actionDialog(BuildContext aContext,  [String? text = '']) {
+    ScaffoldMessenger.of(aContext).showSnackBar(
+      SnackBar(content: Text(text!), duration: const Duration(milliseconds: 1300),),
     );
   }
   void newFavoriteCompleted(BuildContext aContext, String localizedText) {
@@ -616,6 +622,33 @@ class Common {
       }
     }
     return viewName;
+  }
+
+
+  Future<Map<String, dynamic>> postRequestWrapper(String controller, String endpoint, Map<String, dynamic> data) async {
+    try {
+      bool certificateCheck(X509Certificate cert, String host, int port) => true;
+      HttpClient client = HttpClient()..badCertificateCallback = certificateCheck;
+
+      final HttpClientRequest request = await client.postUrl(Uri.parse("https://${Config.PUBLIC_DOMAIN}:${Config.SERVICE_PORT}/api/$controller/$endpoint"));
+      request.headers.set('Content-Type', 'application/json');
+      request.write(jsonEncode(data));
+
+      final HttpClientResponse response = await request.close();
+      final String responseBody = await response.transform(utf8.decoder).join();
+
+      return {
+        'statusCode': response.statusCode,
+        'body': jsonDecode(responseBody)
+      };
+    } on SocketException catch (e) {
+      if (e.osError?.errorCode == 111 || e.osError?.errorCode == 7) {
+        return {'statusCode': 503, 'body': {}};
+      }
+      return {'statusCode': 500, 'body': {}};
+    } catch (e) {
+      return {'statusCode': 500, 'body': {}};
+    }
   }
 
 }

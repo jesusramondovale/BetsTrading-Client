@@ -1,12 +1,7 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:client_0_0_1/services/BetsService.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../helpers/common.dart';
 import '../services/AuthService.dart';
 import 'package:country_flags/country_flags.dart';
@@ -186,7 +181,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
               leading: const Icon(Icons.logout),
               title: Text(strings?.logOut ??'Log Out'),
               onTap: () async {
-                String? id = await _storage.read(key: 'sessionToken');
+                String id = await _storage.read(key: 'sessionToken') ?? "None";
                 final response = await AuthService().logOut(id.toString());
                 if (response['success'])
                 {

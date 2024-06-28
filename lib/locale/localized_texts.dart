@@ -94,7 +94,8 @@ class LocalizedStrings {
       'close': 'Close',
       'current': 'Current',
       'updatedFavs' : 'Updated favorites!',
-      'noFavsYet' : 'Youve got no favorites yet!'
+      'noFavsYet' : 'Youve got no favorites yet!',
+      'removedSuccesfully' : 'Removed succesfully!'
     },
     'es': {
       // Español
@@ -180,7 +181,8 @@ class LocalizedStrings {
       'close': 'Cierre',
       'current': 'Actual',
       'updatedFavs' : 'Favoritos actualizados!',
-      'noFavsYet' : '¡Aún no tienes favoritos!'
+      'noFavsYet' : '¡Aún no tienes favoritos!',
+      'removedSuccesfully' : 'Borrado con éxito!'
     },
     'fr': {
       // Francés
@@ -267,7 +269,8 @@ class LocalizedStrings {
       'close': 'Clôture',
       'current': 'Actuel',
       'updatedFavs' : 'Favoris mis à jour',
-      'noFavsYet' : 'Vous n\'avez pas encore de favoris !'
+      'noFavsYet' : 'Vous n\'avez pas encore de favoris !',
+      'removedSuccesfully' : 'Supprimé avec succès'
     },
     'it': {
       // Italiano
@@ -354,7 +357,8 @@ class LocalizedStrings {
       'close': 'Chiusura',
       'current': 'Attuale',
       'updatedFavs' : 'Preferiti aggiornati',
-      'noFavsYet' : 'Non hai ancora preferiti!'
+      'noFavsYet' : 'Non hai ancora preferiti!',
+      'removedSuccesfully' : 'Rimosso con successo!'
     },
     'de': {
       // Alemán
@@ -442,7 +446,8 @@ class LocalizedStrings {
       'close': 'Schlusskurs',
       'current': 'Aktuell',
       'updatedFavs' : 'Favoriten aktualisiert',
-      'noFavsYet' : 'Sie haben noch keine Favoriten!'
+      'noFavsYet' : 'Sie haben noch keine Favoriten!',
+      'removedSuccesfully' : 'Erfolgreich entfernt!'
     },
   };
 
@@ -577,6 +582,8 @@ class LocalizedStrings {
       _localizedValues[locale.languageCode]?['updatedFavs'];
   String? get noFavsYet =>
       _localizedValues[locale.languageCode]?['noFavsYet'];
+  String? get removedSuccesfully =>
+      _localizedValues[locale.languageCode]?['removedSuccesfully'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {
