@@ -131,7 +131,7 @@ class HomeScreenState extends State<HomeScreen> {
             Expanded(
               flex: showFavorites ? 9 : 2,
               child: FutureBuilder<Trends>(
-                  future: BetsService().fetchTrendsData(_userId!),
+                  future: BetsService().fetchTrendsData(_userId),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
@@ -194,7 +194,7 @@ class HomeScreenState extends State<HomeScreen> {
               Expanded(
                 flex: 8,
                 child: FutureBuilder<Favorites>(
-                    future: BetsService().fetchFavouritesData(_userId!),
+                    future: BetsService().fetchFavouritesData(_userId),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(
@@ -265,7 +265,7 @@ class HomeScreenState extends State<HomeScreen> {
             Expanded(
               flex: showFavorites ? 12 : 5,
               child: FutureBuilder<Bets>(
-                  future: BetsService().fetchInvestmentData(_userId!),
+                  future: BetsService().fetchInvestmentData(_userId),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(

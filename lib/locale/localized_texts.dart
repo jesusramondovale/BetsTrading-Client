@@ -95,7 +95,16 @@ class LocalizedStrings {
       'current': 'Current',
       'updatedFavs' : 'Updated favorites!',
       'noFavsYet' : 'Youve got no favorites yet!',
-      'removedSuccesfully' : 'Removed succesfully!'
+      'removedSuccesfully' : 'Removed succesfully!',
+      'betAmount': 'Bet Amount',
+      'originValue': 'Origin Value',
+      'currentValue': 'Current Value',
+      'targetValue': 'Target Value',
+      'targetDate': 'Target Date',
+      'targetMargin': 'Target Margin',
+      'winBonus': 'Win Bonus',
+
+
     },
     'es': {
       // Español
@@ -182,7 +191,14 @@ class LocalizedStrings {
       'current': 'Actual',
       'updatedFavs' : 'Favoritos actualizados!',
       'noFavsYet' : '¡Aún no tienes favoritos!',
-      'removedSuccesfully' : 'Borrado con éxito!'
+      'removedSuccesfully' : 'Borrado con éxito!',
+      'betAmount': 'Apostado',
+      'originValue': 'Valor de Origen',
+      'currentValue': 'Valor Actual',
+      'targetValue': 'Valor Objetivo',
+      'targetDate': 'Fecha Objetivo',
+      'targetMargin': 'Margen Objetivo',
+      'winBonus': 'Bono de acierto',
     },
     'fr': {
       // Francés
@@ -270,7 +286,14 @@ class LocalizedStrings {
       'current': 'Actuel',
       'updatedFavs' : 'Favoris mis à jour',
       'noFavsYet' : 'Vous n\'avez pas encore de favoris !',
-      'removedSuccesfully' : 'Supprimé avec succès'
+      'removedSuccesfully' : 'Supprimé avec succès',
+      'betAmount': 'Montant de la Mise',
+      'originValue': 'Valeur d\'Origine',
+      'currentValue': 'Valeur Actuelle',
+      'targetValue': 'Valeur Cible',
+      'targetDate': 'Date Cible',
+      'targetMargin': 'Marge Cible',
+      'winBonus': 'Bonus de Gain',
     },
     'it': {
       // Italiano
@@ -358,7 +381,21 @@ class LocalizedStrings {
       'current': 'Attuale',
       'updatedFavs' : 'Preferiti aggiornati',
       'noFavsYet' : 'Non hai ancora preferiti!',
-      'removedSuccesfully' : 'Rimosso con successo!'
+      'removedSuccesfully' : 'Rimosso con successo!',
+      'betAmount': 'Importo della Scommessa',
+      'originValue': 'Valore di Origine',
+      'currentValue': 'Valore Attuale',
+      'targetValue': 'Valore Obiettivo',
+      'targetDate': 'Data Obiettivo',
+      'targetMargin': 'Margine Obiettivo',
+      'winBonus': 'Bonus di Vittoria',
+      'betAmount': 'Wetteinsatz',
+      'originValue': 'Ursprungswert',
+      'currentValue': 'Aktueller Wert',
+      'targetValue': 'Zielwert',
+      'targetDate': 'Zieldatum',
+      'targetMargin': 'Zielmarge',
+      'winBonus': 'Gewinnbonus',
     },
     'de': {
       // Alemán
@@ -584,6 +621,20 @@ class LocalizedStrings {
       _localizedValues[locale.languageCode]?['noFavsYet'];
   String? get removedSuccesfully =>
       _localizedValues[locale.languageCode]?['removedSuccesfully'];
+  String? get betAmount =>
+      _localizedValues[locale.languageCode]?['betAmount'];
+  String? get originValue =>
+      _localizedValues[locale.languageCode]?['originValue'];
+  String? get currentValue =>
+      _localizedValues[locale.languageCode]?['currentValue'];
+  String? get targetValue =>
+      _localizedValues[locale.languageCode]?['targetValue'];
+  String? get targetDate =>
+      _localizedValues[locale.languageCode]?['targetDate'];
+  String? get targetMargin =>
+      _localizedValues[locale.languageCode]?['targetMargin'];
+  String? get winBonus =>
+      _localizedValues[locale.languageCode]?['winBonus'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {
