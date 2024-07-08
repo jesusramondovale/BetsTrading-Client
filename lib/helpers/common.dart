@@ -631,7 +631,7 @@ class Common {
       HttpClient client = HttpClient()..badCertificateCallback = certificateCheck;
 
       final HttpClientRequest request = await client.postUrl(Uri.parse("https://${Config.PUBLIC_DOMAIN}:${Config.SERVICE_PORT}/api/$controller/$endpoint"));
-      request.headers.set('Content-Type', 'application/json');
+      request.headers.set('Content-Type', 'application/json charset=utf-8');
       request.write(jsonEncode(data));
 
       final HttpClientResponse response = await request.close();
