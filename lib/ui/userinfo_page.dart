@@ -128,7 +128,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   const SizedBox(width: 8),
 
                   CountryFlag.fromCountryCode(
-                    Common().getCountryCode(entry.value).toString(),
+                    entry.value,
                     height: 18,
                     width: 25,
                     borderRadius: 5,

@@ -15,7 +15,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:math';
 import 'package:image_picker/image_picker.dart';
 import '../config/config.dart';
-
+import 'package:http/http.dart' as http;
 class Common {
 
   final ThemeData themeDark = ThemeData(
@@ -474,15 +474,26 @@ class Common {
       {'name': 'Åland Islands', 'code': 'AX'},
     ];
   }
-  String? getCountryCode(String countryName) {
+  String getCountryCode(String countryName) {
     var countries = getTopCountries();
     for (var country in countries) {
       if (country['name'] == countryName) {
-        return country['code'];
+        return country['code'] ?? '?';
       }
     }
-    return null;
+    return '?';
   }
+  String getCountryName(String countryCode) {
+    var countries = getTopCountries();
+    for (var country in countries) {
+      if (country['code'] == countryCode) {
+        return country['name'] ?? '?';
+      }
+    }
+    return '?';
+  }
+
+
   Icon getIconForUserInfo(String key) {
     switch (key) {
       case 'fullname':
@@ -650,6 +661,29 @@ class Common {
       return {'statusCode': 500, 'body': {}};
     }
   }
+  Future<String> getUserCountry() async {
+    final apiKey = Config.IP_GEOLOCALIZER_TOKEN;
+    final url = 'https://ipinfo.io/json?token=$apiKey';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final country = data['country'];
+        print('User country: $country');
+        return country;
+      } else {
+        print('Failed to get geolocation information, status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        return 'null';
+      }
+    } catch (error) {
+      print('Error getting geolocation information: $error');
+      return 'null';
+    }
+  }
+
 
 }
 

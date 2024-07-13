@@ -107,13 +107,14 @@ class AuthService {
     }
   }
 
-  Future<bool> _googleQuickRegister(GoogleSignInAccount user, DateTime birthday) async {
+  Future<bool> _googleQuickRegister(GoogleSignInAccount user, String country,DateTime birthday) async {
     final Map<String, dynamic> data = {
       'id': user.id,
       'displayName': user.displayName,
       'email': user.email,
       'photoUrl': user.photoUrl,
       'birthday': birthday.toUtc().toIso8601String(),
+      'country': country
     };
 
     final response = await Common().postRequestWrapper('Auth','GoogleQuickRegister', data);
@@ -127,11 +128,14 @@ class AuthService {
         'email',
         'https://www.googleapis.com/auth/contacts.readonly',
         'https://www.googleapis.com/auth/user.birthday.read',
-        'https://www.googleapis.com/auth/user.addresses.read'
+        'https://www.googleapis.com/auth/user.addresses.read',
+        'https://www.googleapis.com/auth/userinfo.profile'
       ];
       GoogleSignIn googleSignIn = GoogleSignIn(scopes: scopes);
 
       final user = await googleSignIn.signIn();
+      String country = await Common().getUserCountry();
+
       if (user != null) {
         if (kDebugMode) {
           print("User OK : $user");
@@ -139,7 +143,7 @@ class AuthService {
 
         final accessToken = (await user.authentication).accessToken;
         final response = await http.get(
-          Uri.parse('https://people.googleapis.com/v1/people/me?personFields=birthdays,addresses'),
+          Uri.parse('https://people.googleapis.com/v1/people/me?personFields=birthdays,addresses,locations'),
           headers: {'Authorization': 'Bearer $accessToken'},
         );
 
@@ -164,7 +168,7 @@ class AuthService {
               return 0;
             } else {
               // NO USER REGISTER, NEED TO QUICK REGISTER IT
-              bool successfullyRegistered = await _googleQuickRegister(user, DateTime(year, month, day));
+              bool successfullyRegistered = await _googleQuickRegister(user, country, DateTime(year, month, day));
               if (successfullyRegistered) {
                 return 0;
               } else {

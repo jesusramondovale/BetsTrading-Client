@@ -107,12 +107,13 @@ class _SignInState extends State<SignIn> {
 
       if (_currentStep == 3) {
         _updateFormData(context);
+        String _countryCode = Common().getCountryCode(_country);
         final result = await AuthService().register(
           _idCard,
           _fullName,
           _password,
           _address,
-          _country,
+          _countryCode,
           _gender,
           _email,
           _birthday,
