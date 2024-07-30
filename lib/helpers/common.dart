@@ -504,8 +504,6 @@ class Common {
         return const Icon(Icons.email);
       case 'birthday':
         return const Icon(Icons.cake);
-      case 'address':
-        return const Icon(Icons.home);
       case 'country':
         return const Icon(Icons.flag);
       case 'lastsession':

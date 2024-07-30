@@ -72,7 +72,6 @@ class BetsService {
       await _storage.write(key: 'username', value: decodedBody['username']);
       await _storage.write(key: 'email', value: decodedBody['email']);
       await _storage.write(key: 'birthday', value: decodedBody['birthday']);
-      await _storage.write(key: 'address', value: decodedBody['address']);
       await _storage.write(key: 'country', value: decodedBody['country']);
       await _storage.write(key: 'lastsession', value: decodedBody['lastsession']);
       await _storage.write(key: 'profilepic', value: decodedBody['profilepic']);

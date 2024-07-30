@@ -37,7 +37,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
     Map<String, String> userInfo = {};
 
     List<String> keys = [
-      'fullname', 'username', 'email', 'birthday', 'address', 'country', 'lastsession'
+      'fullname', 'username', 'email', 'birthday', 'country', 'lastsession'
     ];
 
     for (String key in keys) {
