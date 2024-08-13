@@ -110,27 +110,28 @@ class MarketsViewState extends State<MarketsView> {
   }
 
   Widget _buildContent() {
+    Color dropDownColor = Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black;
     return Column(
       children: [
         DropdownButton<String>(
           value: selectedGroup,
           onChanged: _onGroupChanged,
           items: _buildDropdownMenuItems(),
-          style: const TextStyle(
-            color: Colors.deepPurpleAccent,
+          style: TextStyle(
+            color: dropDownColor,
             fontSize: 28.0,
             fontWeight: FontWeight.normal,
           ),
-          icon: const Icon(Icons.arrow_drop_down,
-              color: Colors.deepPurpleAccent, size: 45),
-          underline: Container(height: 1, color: Colors.deepPurpleAccent),
+          icon: Icon(Icons.arrow_drop_down,
+              color: dropDownColor, size: 45),
+          underline: Container(height: 1, color: dropDownColor),
           dropdownColor: Theme.of(context).brightness == Brightness.dark
               ? Colors.black
               : Colors.white,
           elevation: 16,
           borderRadius: BorderRadius.circular(25),
           isExpanded: true,
-          iconEnabledColor: Colors.deepPurple,
+          iconEnabledColor: dropDownColor,
           iconDisabledColor: Colors.grey,
           itemHeight: 60,
         ),

@@ -1,11 +1,12 @@
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../config/config.dart';
 import '../enums/financial_assets.dart';
 
 class AssetsService {
-  static const PUBLIC_DOMAIN = '108.pool90-175-130.dynamic.orange.es';
-  static const API_URL = 'https://$PUBLIC_DOMAIN:44346/api/FinancialAssets';
+
+  static const API_URL = 'https://${Config.PUBLIC_DOMAIN}:44346/api/FinancialAssets';
 
   Future<List<FinancialAsset>?> getFinancialAssetsByGroup(String group) async {
     var client = HttpClient()

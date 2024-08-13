@@ -6,13 +6,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../config/config.dart';
 import '../helpers/common.dart';
 
 class AuthService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  static const PUBLIC_DOMAIN = '108.pool90-175-130.dynamic.orange.es';
-  static const API_URL = 'https://$PUBLIC_DOMAIN:44346/api/Auth';
-
   Future<Map<String, dynamic>> logIn(String username, String password) async {
     final response = await Common().postRequestWrapper('Auth', 'LogIn', {'username': username, 'password': password});
 

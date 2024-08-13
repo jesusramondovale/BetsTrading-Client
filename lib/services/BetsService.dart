@@ -70,6 +70,7 @@ class BetsService {
 
       await _storage.write(key: 'fullname', value: decodedBody['fullname']);
       await _storage.write(key: 'username', value: decodedBody['username']);
+      await _storage.write(key: 'idCard', value: decodedBody['idcard']);
       await _storage.write(key: 'email', value: decodedBody['email']);
       await _storage.write(key: 'birthday', value: decodedBody['birthday']);
       await _storage.write(key: 'country', value: decodedBody['country']);

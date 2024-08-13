@@ -5,6 +5,8 @@ class LocalizedStrings {
 
   final Locale locale;
 
+
+
   static LocalizedStrings? of(BuildContext context) {
     return Localizations.of<LocalizedStrings>(context, LocalizedStrings);
   }
@@ -103,7 +105,9 @@ class LocalizedStrings {
       'targetDate': 'Target Date',
       'targetMargin': 'Target Margin',
       'winBonus': 'Win Bonus',
-
+      'verify': 'Verify Account',
+      'verified': 'Account Verified!',
+      'ranking': 'Ranking'
 
     },
     'es': {
@@ -199,6 +203,9 @@ class LocalizedStrings {
       'targetDate': 'Fecha Objetivo',
       'targetMargin': 'Margen Objetivo',
       'winBonus': 'Bono de acierto',
+      'verify': 'Verificar Cuenta',
+      'verified': 'Cuenta verificada!',
+      'ranking': 'Rankings'
     },
     'fr': {
       // Francés
@@ -294,6 +301,9 @@ class LocalizedStrings {
       'targetDate': 'Date Cible',
       'targetMargin': 'Marge Cible',
       'winBonus': 'Bonus de Gain',
+      'verify': 'Vérifier le compte',
+      'verified': 'Compte vérifié!',
+      'ranking': 'Classement'
     },
     'it': {
       // Italiano
@@ -396,6 +406,9 @@ class LocalizedStrings {
       'targetDate': 'Zieldatum',
       'targetMargin': 'Zielmarge',
       'winBonus': 'Gewinnbonus',
+      'verify': 'Verifica Conto',
+      'verified': 'Conto verificato!',
+      'ranking': 'Classifica'
     },
     'de': {
       // Alemán
@@ -484,7 +497,10 @@ class LocalizedStrings {
       'current': 'Aktuell',
       'updatedFavs' : 'Favoriten aktualisiert',
       'noFavsYet' : 'Sie haben noch keine Favoriten!',
-      'removedSuccesfully' : 'Erfolgreich entfernt!'
+      'removedSuccesfully' : 'Erfolgreich entfernt!',
+      'verify': 'Konto bestätigen',
+      'verified': 'Konto verifiziert!',
+      'ranking': 'Rangliste'
     },
   };
 
@@ -635,6 +651,12 @@ class LocalizedStrings {
       _localizedValues[locale.languageCode]?['targetMargin'];
   String? get winBonus =>
       _localizedValues[locale.languageCode]?['winBonus'];
+  String? get verify =>
+      _localizedValues[locale.languageCode]?['verify'];
+  String? get verified =>
+      _localizedValues[locale.languageCode]?['verified'];
+  String? get ranking =>
+      _localizedValues[locale.languageCode]?['ranking'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

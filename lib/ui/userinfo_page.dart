@@ -37,7 +37,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
     Map<String, String> userInfo = {};
 
     List<String> keys = [
-      'fullname', 'username', 'email', 'birthday', 'country', 'lastsession'
+      'fullname', 'username', 'idCard', 'email', 'birthday', 'country', 'lastsession'
     ];
 
     for (String key in keys) {
@@ -90,7 +90,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           List<Widget> listItems = [];
-
+          bool userVerified = snapshot.data?['idCard'] == '-' ? false : true;
           listItems.addAll(snapshot.data!.entries.map((entry) {
             String title = '';
             switch (entry.key) {
@@ -175,6 +175,30 @@ class _UserInfoPageState extends State<UserInfoPage> {
               );
             }
           }).toList());
+
+          if (userVerified){
+            listItems.add(
+              ListTile(
+                leading: const Icon(Icons.verified),
+                title: Text(strings?.verified ??'Account verified!'),
+                onTap: () async {
+                 },
+              ),
+            );
+
+          }
+          else{
+            listItems.add(
+              ListTile(
+                leading: const Icon(Icons.verified_outlined),
+                title: Text(strings?.verify ??'Verify Account'),
+                onTap: () async {
+                  //TO-DO: ID card verification process
+                },
+              ),
+            );
+          }
+
 
           listItems.add(
             ListTile(

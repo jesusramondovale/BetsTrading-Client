@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:client_0_0_1/helpers/common.dart';
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:client_0_0_1/ui/markets_page.dart';
 import 'package:client_0_0_1/ui/settings_view.dart';
@@ -112,8 +113,9 @@ class MainMenuPageState extends State<MainMenuPage> {
 
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
-      strings?.home ?? "Home",
-      strings?.liveMarkets ?? "Live Markets",
+      strings?.home ?? 'Home',
+      strings?.ranking ?? 'Ranking',
+      strings?.liveMarkets ?? 'Live Markets',
       strings?.settings ?? 'Settings',
       strings?.profile ?? 'Profile'
     ];
@@ -121,6 +123,7 @@ class MainMenuPageState extends State<MainMenuPage> {
 
     _pages = [
       const HomeScreen(),
+      const BlankImageWidget(),
       const MarketsView(),
       SettingsView(onPersonalInfoTap: () => _onItemTapped(3)),
       const UserInfoPage()
@@ -147,17 +150,25 @@ class MainMenuPageState extends State<MainMenuPage> {
           ),
         ),
         bottomNavigationBar: BottomNavigationBar(
+          selectedItemColor: Colors.deepPurple,
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: const Icon(Icons.home),
+              icon: const Icon(Icons.home_outlined),
+              activeIcon: const Icon(Icons.home),
               label: strings?.home ?? "Home",
             ),
             BottomNavigationBarItem(
-              icon: const Icon(Icons.auto_graph),
+              icon: const Icon(Icons.public),
+              label: strings?.ranking ?? "Ranking",
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.casino_outlined),
+              activeIcon: const Icon(Icons.casino),
               label: strings?.liveMarkets ?? 'Live Markets',
             ),
             BottomNavigationBarItem(
-              icon: const Icon(Icons.settings),
+              icon: const Icon(Icons.settings_outlined),
+              activeIcon: const Icon(Icons.settings),
               label: strings?.settings ?? 'Settings',
             ),
             BottomNavigationBarItem(
