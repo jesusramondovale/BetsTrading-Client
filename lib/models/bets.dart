@@ -12,6 +12,7 @@ import '../ui/candlesticks_view.dart';
 
 class Bet {
   final int id;
+  final String name;
   final String ticker;
   final String iconPath;
 
@@ -32,6 +33,7 @@ class Bet {
     this.profitLoss, {
     required this.id,
     required this.ticker,
+    required this.name,
     required this.iconPath,
     required this.betAmount,
     required this.originValue,
@@ -44,6 +46,7 @@ class Bet {
   Bet.fromJson(Map<String, dynamic> json)
       : id = json['id'],
         ticker = json['ticker'],
+        name = json['name'],
         iconPath = json['icon_path'],
         betAmount = json['bet_amount'].toDouble(),
         originValue = json['origin_value'].toDouble(),
@@ -200,7 +203,7 @@ class RecentBetDialog extends StatelessWidget {
                           ),
                         ] else ...[
                           AutoSizeText(
-                            bet.ticker,
+                            bet.name,
                             maxLines: 1,
                             style: GoogleFonts.josefinSans(
                               fontSize: 30,
@@ -214,7 +217,7 @@ class RecentBetDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     AutoSizeText(
-                      bet.ticker,
+                      bet.name,
                       maxLines: 1,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.robotoCondensed(
@@ -389,7 +392,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
               style: DefaultTextStyle.of(context).style,
               children: <TextSpan>[
                 TextSpan(
-                  text: '${widget.bet.ticker} ',
+                  text: '${widget.bet.name} ',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
