@@ -5,7 +5,6 @@ import '../locale/localized_texts.dart';
 import '../helpers/common.dart';
 
 class CameraPage extends StatefulWidget {
-
   final String countryCode;
   CameraPage({required this.countryCode});
 
@@ -49,21 +48,24 @@ class _CameraPageState extends State<CameraPage> {
       final inputImage = InputImage.fromFilePath(picture.path);
       final textRecognizer = TextRecognizer();
 
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-      String extractedId = _extractIdNumber(recognizedText.text, widget.countryCode);
+      final RecognizedText recognizedText =
+          await textRecognizer.processImage(inputImage);
+      String extractedId =
+          _extractIdNumber(recognizedText.text, widget.countryCode);
 
       Navigator.pop(context, extractedId);
     } catch (e) {
       print('Error taking picture: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(strings?.cameraError ?? 'Error taking picture. Please try again.')),
+        SnackBar(
+            content: Text(strings?.cameraError ??
+                'Error taking picture. Please try again.')),
       );
       Navigator.pop(context, null);
     }
   }
 
   String _extractIdNumber(String scannedText, String countryCode) {
-
     RegExp idExp = Common().getIDRegExpByCountry(countryCode);
     final match = idExp.firstMatch(scannedText);
     if (match != null) {
@@ -88,9 +90,46 @@ class _CameraPageState extends State<CameraPage> {
           _buildOverlay(strings),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _captureAndProcessImage,
-        child: Icon(Icons.camera),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            bottom: 20,
+            left: 20,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Icon(Icons.arrow_back_rounded),
+            ),
+          ),
+
+            Positioned(
+              bottom: 20,
+              right: 20,
+              child:
+              Container(
+                width: 150,
+                height: 50,
+                child:
+                FloatingActionButton(
+                onPressed: _captureAndProcessImage, // Otra función para este botón
+                child: Row(
+
+                  children: [
+                    SizedBox(width: 6),
+                    Icon(Icons.camera_alt),
+                    SizedBox(width: 10),
+                    Text(
+                      " ${strings?.takePhoto ?? "Take photo"}",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -99,14 +138,14 @@ class _CameraPageState extends State<CameraPage> {
     return Stack(
       children: [
         Container(
-          color: Colors.black.withOpacity(0.5), // Capa semitransparente
+          color: Colors.black.withOpacity(0.2),
         ),
         Center(
           child: Container(
             width: 300,
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.transparent, // Área recortada transparente
+              color: Colors.transparent,
               border: Border.all(color: Colors.white, width: 2),
               borderRadius: BorderRadius.circular(10),
             ),
@@ -118,12 +157,12 @@ class _CameraPageState extends State<CameraPage> {
             ),
           ),
         ),
-        // "Recortar" la parte interior del contenedor
+        
         Center(
           child: ClipPath(
             clipper: InvertedClipper(),
             child: Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withOpacity(0.75),
             ),
           ),
         ),

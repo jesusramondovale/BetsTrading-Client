@@ -20,12 +20,11 @@ class UserInfoPage extends StatefulWidget {
 }
 
 class _UserInfoPageState extends State<UserInfoPage> {
-
+  bool userVerified = false;
   late String countryCode = '';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Uint8List? _profilePicBytes;
   bool isDark = true;
-
 
   @override
   void initState() {
@@ -38,7 +37,13 @@ class _UserInfoPageState extends State<UserInfoPage> {
     Map<String, String> userInfo = {};
 
     List<String> keys = [
-      'fullname', 'username', 'idCard', 'email', 'birthday', 'country', 'lastsession'
+      'fullname',
+      'username',
+      'idCard',
+      'email',
+      'birthday',
+      'country',
+      'lastsession'
     ];
 
     for (String key in keys) {
@@ -59,6 +64,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
     }
     return userInfo;
   }
+
   Future<void> _loadProfilePic() async {
     String? profilePicString = await _storage.read(key: 'profilepic');
     if (profilePicString != null && profilePicString.isNotEmpty) {
@@ -80,22 +86,23 @@ class _UserInfoPageState extends State<UserInfoPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-
     final strings = LocalizedStrings.of(context);
     return FutureBuilder<Map<String, String>>(
       future: _readUserInfo(context),
-      builder: (BuildContext context, AsyncSnapshot<Map<String, String>> snapshot) {
+      builder:
+          (BuildContext context, AsyncSnapshot<Map<String, String>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
+          userVerified = snapshot.data?['idCard'] == '-' ? false : true;
           List<Widget> listItems = [];
-          bool userVerified = snapshot.data?['idCard'] == '-' ? false : true;
-          listItems.addAll(snapshot.data!.entries.where((entry) => entry.key != 'idCard').map((entry) {
+          listItems.addAll(snapshot.data!.entries
+              .where((entry) => entry.key != 'idCard')
+              .map((entry) {
             String title = '';
             switch (entry.key) {
               case "lastsession":
@@ -105,7 +112,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 title = strings?.fullName ?? 'Full Name';
                 break;
               case "username":
-                title = strings?.username ??'User Name';
+                title = strings?.username ?? 'User Name';
                 break;
               case "email":
                 title = strings?.email ?? 'E-mail';
@@ -130,7 +137,6 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 children: [
                   Text(entry.value),
                   const SizedBox(width: 8),
-
                   CountryFlag.fromCountryCode(
                     entry.value,
                     shape: RoundedRectangle(5),
@@ -139,7 +145,17 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   ),
                 ],
               );
-            } else {
+            }
+            else if (entry.key == 'fullname' && userVerified) {
+              subtitle = Row (
+                children: [
+                  Text(entry.value),
+                  SizedBox(width: 5, height: 1),
+                  Icon(Icons.verified, size: 20)
+                ],
+              );
+            }
+            else {
               subtitle = Text(entry.value);
             }
             if (entry.key == 'fullname' && _profilePicBytes != null) {
@@ -150,26 +166,32 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 title: Text(title),
                 subtitle: subtitle,
                 trailing: IconButton(
-                  icon: const Icon(Icons.camera_alt),
-                  onPressed: () async {
-                    //Common().unimplementedAction("UploadImage()", context);
-                    String? sessionToken = await _storage.read(key: 'sessionToken');
-                    bool result = await BetsService().uploadProfilePic(sessionToken, await Common().pickImageFromGallery());
-                    if (result){
-                      _loadProfilePic();
-                      setState(() {
-                        Common().popDialog(strings?.success ?? "Success!", strings?.profilePictureUploadedSuccessfully ?? "Profile picture uploaded successfully", context);
-                      });
-
-                    }
-                    else{
-                      setState(() {
-                        Common().popDialog("Oops!", strings?.errorUploadingProfilePic ?? "An error has occurred while uploading the profile pic", context);
-                      });
-
-                    }
-                  },
-                ),
+                      icon: const Icon(Icons.camera_alt),
+                      onPressed: () async {
+                        String? sessionToken =
+                        await _storage.read(key: 'sessionToken');
+                        bool result = await BetsService().uploadProfilePic(
+                            sessionToken, await Common().pickImageFromGallery());
+                        if (result) {
+                          _loadProfilePic();
+                          setState(() {
+                            Common().popDialog(
+                                strings?.success ?? "Success!",
+                                strings?.profilePictureUploadedSuccessfully ??
+                                    "Profile picture uploaded successfully",
+                                context);
+                          });
+                        } else {
+                          setState(() {
+                            Common().popDialog(
+                                "Oops!",
+                                strings?.errorUploadingProfilePic ??
+                                    "An error has occurred while uploading the profile pic",
+                                context);
+                          });
+                        }
+                      },
+                    ),
               );
             } else {
               return ListTile(
@@ -180,64 +202,62 @@ class _UserInfoPageState extends State<UserInfoPage> {
             }
           }).toList());
 
-          if (userVerified){
+          if (userVerified) {
             listItems.add(
               ListTile(
                 leading: const Icon(Icons.verified),
-                title: Text(strings?.verified ??'Account verified!'),
-                onTap: () async {
-                 },
+                title: Text(strings?.verified ?? 'Account verified!'),
+                onTap: () async {},
               ),
             );
-
-          }
-          else{
+          } else {
             listItems.add(
               ListTile(
                 leading: const Icon(Icons.verified_outlined),
-                title: Text(strings?.verify ??'Verify Account'),
+                title: Text(strings?.verify ?? 'Verify Account'),
                 onTap: () async {
-                  Navigator.push(
+                  await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => VerifyAccountPage(countryCode: countryCode,)),
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          VerifyAccountPage(countryCode: countryCode),
+                    ),
                   );
                 },
               ),
             );
           }
 
-
           listItems.add(
             ListTile(
               leading: const Icon(Icons.logout),
-              title: Text(strings?.logOut ??'Log Out'),
+              title: Text(strings?.logOut ?? 'Log Out'),
               onTap: () async {
                 String id = await _storage.read(key: 'sessionToken') ?? "None";
                 final response = await AuthService().logOut(id.toString());
-                if (response['success'])
-                {
+                if (response['success']) {
                   await _storage.deleteAll();
                   setState(() {
                     Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                          (Route<dynamic> route) => false,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
+                      (Route<dynamic> route) => false,
                     );
                   });
-                } else
-                {
+                } else {
                   setState(() {
-                    Common().popDialog("Oops...", "${response['message']}" , context);
+                    Common().popDialog(
+                        "Oops...", "${response['message']}", context);
                   });
-
                 }
-
               },
             ),
           );
 
           return ListView(children: listItems);
         } else {
-          return Center(child: Text(strings?.noInfoAvailable ?? 'No info available!'));
+          return Center(
+              child: Text(strings?.noInfoAvailable ?? 'No info available!'));
         }
       },
     );

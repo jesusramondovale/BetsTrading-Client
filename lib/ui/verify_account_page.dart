@@ -1,10 +1,11 @@
+import 'package:client_0_0_1/services/AuthService.dart';
 import 'package:flutter/material.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import 'camera_page.dart';
+import 'login_page.dart';
 
 class VerifyAccountPage extends StatefulWidget {
-
   final String countryCode;
 
   VerifyAccountPage({required this.countryCode});
@@ -19,7 +20,8 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
   void _navigateToCameraPage() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => CameraPage(countryCode: widget.countryCode)),
+      MaterialPageRoute(
+          builder: (context) => CameraPage(countryCode: widget.countryCode)),
     );
 
     if (result != null) {
@@ -54,9 +56,10 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
     );
   }
 
-  void _validateIDButtonPressed() {
+  Future<int?> _validateIDButtonPressed(String anID) {
     //TO-DO: Send ID to controller
-    Common().unimplementedAction(context);
+    //Common().unimplementedAction(context);
+    return AuthService().verifyAccount(anID);
   }
 
   @override
@@ -90,9 +93,15 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
               child: Row(
                 children: [
                   Spacer(),
-                  Icon(Icons.videocam, size: 120),
+                  IconButton(
+                    icon: Icon(Icons.videocam, size: 120),
+                    onPressed: _navigateToCameraPage,
+                  ),
                   Spacer(),
-                  Icon(Icons.fact_check_outlined, size: 120),
+                  IconButton(
+                    icon: Icon(Icons.fact_check_outlined, size: 120),
+                    onPressed: _navigateToCameraPage,
+                  ),
                   Spacer(),
                 ],
               ),
@@ -123,21 +132,79 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
       ),
       floatingActionButton: _idNumber.isNotEmpty
           ? Container(
-                  width: 180,
-                  height: 56,
-                  child: FloatingActionButton(
-                    onPressed: _validateIDButtonPressed,
-                    child: Row(
-                      children: [
-                        SizedBox(width: 4),
-                        Icon(Icons.check),
-                        Text(" ${strings?.verify ?? "Verify account"}" ,
-                         style: TextStyle(fontSize: 16),),
-                      ],
+              width: 180,
+              height: 56,
+              child: FloatingActionButton(
+                onPressed: () async {
+
+                  int? response = await _validateIDButtonPressed(_idNumber);
+                  // OK
+                  if (response == 0) {
+                    verifyExitPopDialog(
+                        strings?.success ?? "Success",
+                        strings?.accountVerifiedSuccess ??
+                            "Account succesfully verified",
+                        context);
+                  }
+                  // ERROR
+                  else if (response == 1) {
+                    Common().popDialog(
+                        "Ooops ...",
+                        strings?.accountVerificationError ??
+                            "Error verifying account",
+                        context);
+                  }
+                  //Navigator.pop(context);
+                },
+                child: Row(
+                  children: [
+                    SizedBox(width: 4),
+                    Icon(Icons.check),
+                    Text(
+                      " ${strings?.verify ?? "Verify account"}",
+                      style: TextStyle(fontSize: 16),
                     ),
-                    tooltip: 'ID Verified',
-                  ))
-          : null, // Si no hay ID, no se muestra el FloatingActionButton
+                  ],
+                ),
+                tooltip: 'ID Verified',
+              ))
+          : null,
+    );
+  }
+
+
+  void verifyExitPopDialog(String aTitle, String aBody, BuildContext aContext) {
+    showDialog(
+      context: aContext,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
+          title: Text(
+              aTitle,
+              style: const TextStyle(color: Colors.white)),
+          content: Text(
+            aBody,
+            style: const TextStyle(fontSize: 16.0, color: Colors.white),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (context) => const LoginPage()),
+                        (Route<dynamic> route) => false,
+                  );
+                });
+
+              },
+              child: const Text("Ok"),
+            ),
+          ],
+        );
+      },
     );
   }
 }
+
+

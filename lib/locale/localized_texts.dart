@@ -119,6 +119,10 @@ class LocalizedStrings {
       'idNotFound': 'No valid ID found.',
       'alignText': 'Align your ID here',
       'cameraError': 'Error taking picture. Please try again.',
+      'takePhoto': 'Take Photo',
+      'accountVerifiedSuccess': 'Account successfully verified.\nPlease log in again',
+      'accountVerificationError': 'Error verifying account',
+
 
     },
     'es': {
@@ -228,6 +232,9 @@ class LocalizedStrings {
       'idNotFound': 'No se encontró un ID válido.',
       'alignText': 'Alinea tu DNI aquí',
       'cameraError': 'Error al tomar la foto. Por favor, inténtalo de nuevo.',
+      'takePhoto': 'Hacer foto',
+      'accountVerifiedSuccess': 'Cuenta verificada con éxito.\nInicie sesión de nuevo',
+      'accountVerificationError': 'Error verificando la cuenta',
     },
     'fr': {
       // Francés
@@ -337,6 +344,9 @@ class LocalizedStrings {
       'idNotFound': 'Aucun ID valide trouvé.',
       'alignText': 'Alignez votre ID ici',
       'cameraError': 'Erreur lors de la prise de la photo. Veuillez réessayer.',
+      'takePhoto': 'Prendre photo',
+      'accountVerifiedSuccess': 'Compte vérifié avec succès.\nVeuillez vous reconnecter',
+      'accountVerificationError': 'Erreur de vérification du compte',
     },
     'it': {
       // Italiano
@@ -453,6 +463,9 @@ class LocalizedStrings {
       'idNotFound': 'Nessun ID valido trovato.',
       'alignText': 'Allinea il tuo ID qui',
       'cameraError': 'Errore durante la cattura della foto. Riprova.',
+      'takePhoto': 'Scatta foto',
+      'accountVerifiedSuccess': 'Account verificato con successo.\nEffettua nuovamente l\'accesso',
+      'accountVerificationError': 'Errore nella verifica dell\'account',
     },
     'de': {
       // Alemán
@@ -556,6 +569,9 @@ class LocalizedStrings {
       'idNotFound': 'Kein gültiger Ausweis gefunden.',
       'alignText': 'Richten Sie Ihren Ausweis hier aus',
       'cameraError': 'Fehler beim Fotografieren. Bitte versuche es erneut.',
+      'takePhoto': 'Foto machen',
+      'accountVerifiedSuccess': 'Konto erfolgreich verifiziert.\nBitte erneut anmelden',
+      'accountVerificationError': 'Fehler bei der Kontoüberprüfung',
     },
   };
 
@@ -728,6 +744,12 @@ class LocalizedStrings {
       _localizedValues[locale.languageCode]?['alignText'];
   String? get cameraError =>
       _localizedValues[locale.languageCode]?['cameraError'];
+  String? get takePhoto =>
+      _localizedValues[locale.languageCode]?['takePhoto'];
+  String? get accountVerifiedSuccess =>
+      _localizedValues[locale.languageCode]?['accountVerifiedSuccess'];
+  String? get accountVerificationError =>
+      _localizedValues[locale.languageCode]?['accountVerificationError'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {
