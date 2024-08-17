@@ -492,7 +492,76 @@ class Common {
     }
     return '?';
   }
+  RegExp getIDRegExpByCountry(String countryCode){
+    RegExp idExp;
+    switch (countryCode.toUpperCase()) {
+      case 'ES': // España - DNI (8 dígitos y 1 letra)
+        idExp = RegExp(r'\b\d{8}[A-Z]\b');
+        break;
+      case 'IT': // Italia - Codice Fiscale (16 caracteres: letras y números)
+        idExp = RegExp(r'\b[A-Z0-9]{16}\b');
+        break;
+      case 'FR': // Francia - INSEE (15 dígitos)
+        idExp = RegExp(r'\b\d{15}\b');
+        break;
+      case 'DE': // Alemania - Personalausweisnummer (9 caracteres: letras y números)
+        idExp = RegExp(r'\b[A-Z0-9]{9}\b');
+        break;
+      case 'US': // Estados Unidos - Social Security Number (SSN) (XXX-XX-XXXX)
+        idExp = RegExp(r'\b\d{3}-\d{2}-\d{4}\b');
+        break;
+      case 'UK': // Reino Unido - National Insurance Number (2 letras, 6 dígitos, 1 letra)
+        idExp = RegExp(r'\b[A-Z]{2}\d{6}[A-D]\b');
+        break;
+      case 'CA': // Canadá - Social Insurance Number (SIN) (XXX-XXX-XXX)
+        idExp = RegExp(r'\b\d{3}-\d{3}-\d{3}\b');
+        break;
+      case 'AU': // Australia - Tax File Number (TFN) (9 dígitos)
+        idExp = RegExp(r'\b\d{9}\b');
+        break;
+      case 'BR': // Brasil - Cadastro de Pessoas Físicas (CPF) (XXX.XXX.XXX-XX)
+        idExp = RegExp(r'\b\d{3}\.\d{3}\.\d{3}-\d{2}\b');
+        break;
+      case 'IN': // India - Aadhaar (12 dígitos)
+        idExp = RegExp(r'\b\d{4}\s\d{4}\s\d{4}\b');
+        break;
+      case 'MX': // México - Clave Única de Registro de Población (CURP) (18 caracteres alfanuméricos)
+        idExp = RegExp(r'\b[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\b');
+        break;
+      case 'JP': // Japón - Número My Number (12 dígitos)
+        idExp = RegExp(r'\b\d{12}\b');
+        break;
+      case 'CN': // China - Número de Identidad (18 dígitos)
+        idExp = RegExp(r'\b\d{17}[\dX]\b');
+        break;
+      case 'RU': // Rusia - Número de Pasaporte Interno (10 dígitos)
+        idExp = RegExp(r'\b\d{10}\b');
+        break;
+      case 'ZA': // Sudáfrica - ID (13 dígitos)
+        idExp = RegExp(r'\b\d{13}\b');
+        break;
+      case 'AR': // Argentina - DNI (8 dígitos)
+        idExp = RegExp(r'\b\d{8}\b');
+        break;
+      case 'CO': // Colombia - Cédula de Ciudadanía (XXX.XXX.XXX)
+        idExp = RegExp(r'\b\d{3}\.\d{3}\.\d{3}\b');
+        break;
+      case 'CL': // Chile - RUN (XX.XXX.XXX-X)
+        idExp = RegExp(r'\b\d{1,2}\.\d{3}\.\d{3}-[\dkK]\b');
+        break;
+      case 'PE': // Perú - DNI (8 dígitos)
+        idExp = RegExp(r'\b\d{8}\b');
+        break;
+      case 'VE': // Venezuela - Cédula de Identidad (X.XXX.XXX)
+        idExp = RegExp(r'\b\d{1}\.\d{3}\.\d{3}\b');
+        break;
+      default: // Default: ID de 8 dígitos
+        idExp = RegExp(r'\b\d{8}\b');
+        break;
+    }
+    return idExp;
 
+  }
 
   Icon getIconForUserInfo(String key) {
     switch (key) {

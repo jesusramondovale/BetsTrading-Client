@@ -107,7 +107,22 @@ class LocalizedStrings {
       'winBonus': 'Win Bonus',
       'verify': 'Verify Account',
       'verified': 'Account Verified!',
-      'ranking': 'Ranking'
+      'ranking': 'Ranking',
+      'instructionsTitle': 'To verify your account, follow these steps:',
+      'instructions': '1. Make sure you have your ID document handy.\n'
+          '2. Click the button below to open the camera.\n'
+          '3. Take a clear picture of your ID document.\n'
+          '4. Wait a few seconds while we process the image.',
+      'scanButton': 'Scan Document',
+      'idNumberTitle': 'Scanned ID Number:',
+      'verificationResultTitle': 'Verification Result',
+      'idNotFound': 'No valid ID found.',
+      'alignText': 'Align your ID here',
+      'cameraError': 'Error taking picture. Please try again.',
+      'takePhoto': 'Take Photo',
+      'accountVerifiedSuccess': 'Account successfully verified.\nPlease log in again',
+      'accountVerificationError': 'Error verifying account',
+
 
     },
     'es': {
@@ -205,7 +220,21 @@ class LocalizedStrings {
       'winBonus': 'Bono de acierto',
       'verify': 'Verificar Cuenta',
       'verified': 'Cuenta verificada!',
-      'ranking': 'Rankings'
+      'ranking': 'Rankings',
+      'instructionsTitle': 'Para verificar tu cuenta, sigue estos pasos:',
+      'instructions': '1. Asegúrate de tener tu documento de identidad a mano.\n\n'
+          '2. Haz clic en el botón de abajo para abrir la cámara.\n\n'
+          '3. Toma una foto clara (frontal) de tu documento de identidad.\n\n'
+          '4. Espera unos segundos mientras procesamos la imagen.',
+      'scanButton': 'Escanear Documento',
+      'idNumberTitle': 'Número de ID escaneado',
+      'verificationResultTitle': 'Resultado de la Verificación',
+      'idNotFound': 'No se encontró un ID válido.',
+      'alignText': 'Alinea tu DNI aquí',
+      'cameraError': 'Error al tomar la foto. Por favor, inténtalo de nuevo.',
+      'takePhoto': 'Hacer foto',
+      'accountVerifiedSuccess': 'Cuenta verificada con éxito.\nInicie sesión de nuevo',
+      'accountVerificationError': 'Error verificando la cuenta',
     },
     'fr': {
       // Francés
@@ -303,7 +332,21 @@ class LocalizedStrings {
       'winBonus': 'Bonus de Gain',
       'verify': 'Vérifier le compte',
       'verified': 'Compte vérifié!',
-      'ranking': 'Classement'
+      'ranking': 'Classement',
+      'instructionsTitle': 'Pour vérifier votre compte, suivez ces étapes :',
+      'instructions': '1. Assurez-vous d\'avoir votre document d\'identité à portée de main.\n'
+          '2. Cliquez sur le bouton ci-dessous pour ouvrir la caméra.\n'
+          '3. Prenez une photo claire de votre document d\'identité.\n'
+          '4. Attendez quelques secondes pendant que nous traitons l\'image.',
+      'scanButton': 'Scanner le Document',
+      'idNumberTitle': 'Numéro d\'ID scanné :',
+      'verificationResultTitle': 'Résultat de la Vérification',
+      'idNotFound': 'Aucun ID valide trouvé.',
+      'alignText': 'Alignez votre ID ici',
+      'cameraError': 'Erreur lors de la prise de la photo. Veuillez réessayer.',
+      'takePhoto': 'Prendre photo',
+      'accountVerifiedSuccess': 'Compte vérifié avec succès.\nVeuillez vous reconnecter',
+      'accountVerificationError': 'Erreur de vérification du compte',
     },
     'it': {
       // Italiano
@@ -408,7 +451,21 @@ class LocalizedStrings {
       'winBonus': 'Gewinnbonus',
       'verify': 'Verifica Conto',
       'verified': 'Conto verificato!',
-      'ranking': 'Classifica'
+      'ranking': 'Classifica',
+      'instructionsTitle': 'Per verificare il tuo account, segui questi passaggi:',
+      'instructions': '1. Assicurati di avere il tuo documento d\'identità a portata di mano.\n'
+          '2. Clicca sul pulsante qui sotto per aprire la fotocamera.\n'
+          '3. Scatta una foto chiara del tuo documento d\'identità.\n'
+          '4. Attendi qualche secondo mentre elaboriamo l\'immagine.',
+      'scanButton': 'Scansiona Documento',
+      'idNumberTitle': 'Numero di ID scansionato:',
+      'verificationResultTitle': 'Risultato della Verifica',
+      'idNotFound': 'Nessun ID valido trovato.',
+      'alignText': 'Allinea il tuo ID qui',
+      'cameraError': 'Errore durante la cattura della foto. Riprova.',
+      'takePhoto': 'Scatta foto',
+      'accountVerifiedSuccess': 'Account verificato con successo.\nEffettua nuovamente l\'accesso',
+      'accountVerificationError': 'Errore nella verifica dell\'account',
     },
     'de': {
       // Alemán
@@ -500,7 +557,21 @@ class LocalizedStrings {
       'removedSuccesfully' : 'Erfolgreich entfernt!',
       'verify': 'Konto bestätigen',
       'verified': 'Konto verifiziert!',
-      'ranking': 'Rangliste'
+      'ranking': 'Rangliste',
+      'instructionsTitle': 'Um Ihr Konto zu verifizieren, folgen Sie diesen Schritten:',
+      'instructions': '1. Stellen Sie sicher, dass Sie Ihr Ausweisdokument zur Hand haben.\n'
+          '2. Klicken Sie auf die Schaltfläche unten, um die Kamera zu öffnen.\n'
+          '3. Machen Sie ein klares Foto von Ihrem Ausweisdokument.\n'
+          '4. Warten Sie ein paar Sekunden, während wir das Bild verarbeiten.',
+      'scanButton': 'Dokument scannen',
+      'idNumberTitle': 'Gescanntes ID-Nummer:',
+      'verificationResultTitle': 'Verifizierungsergebnis',
+      'idNotFound': 'Kein gültiger Ausweis gefunden.',
+      'alignText': 'Richten Sie Ihren Ausweis hier aus',
+      'cameraError': 'Fehler beim Fotografieren. Bitte versuche es erneut.',
+      'takePhoto': 'Foto machen',
+      'accountVerifiedSuccess': 'Konto erfolgreich verifiziert.\nBitte erneut anmelden',
+      'accountVerificationError': 'Fehler bei der Kontoüberprüfung',
     },
   };
 
@@ -657,6 +728,28 @@ class LocalizedStrings {
       _localizedValues[locale.languageCode]?['verified'];
   String? get ranking =>
       _localizedValues[locale.languageCode]?['ranking'];
+  String? get instructionsTitle =>
+      _localizedValues[locale.languageCode]?['instructionsTitle'];
+  String? get instructions =>
+      _localizedValues[locale.languageCode]?['instructions'];
+  String? get scanButton =>
+      _localizedValues[locale.languageCode]?['scanButton'];
+  String? get idNumberTitle =>
+      _localizedValues[locale.languageCode]?['idNumberTitle'];
+  String? get verificationResultTitle =>
+      _localizedValues[locale.languageCode]?['verificationResultTitle'];
+  String? get idNotFound =>
+      _localizedValues[locale.languageCode]?['idNotFound'];
+  String? get alignText =>
+      _localizedValues[locale.languageCode]?['alignText'];
+  String? get cameraError =>
+      _localizedValues[locale.languageCode]?['cameraError'];
+  String? get takePhoto =>
+      _localizedValues[locale.languageCode]?['takePhoto'];
+  String? get accountVerifiedSuccess =>
+      _localizedValues[locale.languageCode]?['accountVerifiedSuccess'];
+  String? get accountVerificationError =>
+      _localizedValues[locale.languageCode]?['accountVerificationError'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

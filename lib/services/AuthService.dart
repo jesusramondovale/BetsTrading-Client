@@ -190,6 +190,16 @@ class AuthService {
     return 1;
   }
 
+  Future<int?> verifyAccount(String idCard) async {
+    String? id = await _storage.read(key: 'sessionToken');
+    final response = await Common().postRequestWrapper('Auth','Verify', {'id': id , 'idCard': idCard });
+    if (response['statusCode'] == 200) {
+      return 0; // OK
+    } else {
+      return 1; // ERROR
+    }
+  }
+
   //TODO
   Future<bool> appleSignIn() async {
     return true;

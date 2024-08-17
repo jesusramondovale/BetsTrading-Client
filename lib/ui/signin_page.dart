@@ -283,9 +283,9 @@ class _SignInState extends State<SignIn> {
             children: <Widget>[
               CountryFlag. fromCountryCode(
                 countryMap['code']!,
+                shape: RoundedRectangle(5),
                 height: 25,
                 width: 40,
-                borderRadius: 5,
               ),
               const SizedBox(width: 10),
               Text(
