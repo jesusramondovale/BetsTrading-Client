@@ -13,6 +13,7 @@ import '../ui/candlesticks_view.dart';
 class Bet {
   final int id;
   final String name;
+  final String ticker;
   final String iconPath;
 
   final double betAmount;
@@ -31,6 +32,7 @@ class Bet {
     this.targetWon,
     this.profitLoss, {
     required this.id,
+    required this.ticker,
     required this.name,
     required this.iconPath,
     required this.betAmount,
@@ -43,6 +45,7 @@ class Bet {
 
   Bet.fromJson(Map<String, dynamic> json)
       : id = json['id'],
+        ticker = json['ticker'],
         name = json['name'],
         iconPath = json['icon_path'],
         betAmount = json['bet_amount'].toDouble(),
