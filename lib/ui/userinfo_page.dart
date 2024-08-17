@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:client_0_0_1/ui/verify_account_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:client_0_0_1/services/BetsService.dart';
@@ -20,7 +21,7 @@ class UserInfoPage extends StatefulWidget {
 
 class _UserInfoPageState extends State<UserInfoPage> {
 
-
+  late String countryCode = '';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Uint8List? _profilePicBytes;
   bool isDark = true;
@@ -50,6 +51,9 @@ class _UserInfoPageState extends State<UserInfoPage> {
         DateTime utcDate = DateTime.parse(value);
         DateTime localDate = utcDate.toLocal();
         value = DateFormat("HH'h'mm (dd-MM-yyyy)").format(localDate);
+      }
+      if (value != null && key == 'country') {
+        countryCode = value;
       }
       userInfo[key] = value ?? strings?.notAvailable ?? 'Not available';
     }
@@ -91,7 +95,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
         } else if (snapshot.hasData) {
           List<Widget> listItems = [];
           bool userVerified = snapshot.data?['idCard'] == '-' ? false : true;
-          listItems.addAll(snapshot.data!.entries.map((entry) {
+          listItems.addAll(snapshot.data!.entries.where((entry) => entry.key != 'idCard').map((entry) {
             String title = '';
             switch (entry.key) {
               case "lastsession":
@@ -129,9 +133,9 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
                   CountryFlag.fromCountryCode(
                     entry.value,
+                    shape: RoundedRectangle(5),
                     height: 18,
                     width: 25,
-                    borderRadius: 5,
                   ),
                 ],
               );
@@ -193,7 +197,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 leading: const Icon(Icons.verified_outlined),
                 title: Text(strings?.verify ??'Verify Account'),
                 onTap: () async {
-                  //TO-DO: ID card verification process
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => VerifyAccountPage(countryCode: countryCode,)),
+                  );
                 },
               ),
             );
