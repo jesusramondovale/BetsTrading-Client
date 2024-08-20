@@ -122,6 +122,8 @@ class LocalizedStrings {
       'takePhoto': 'Take Photo',
       'accountVerifiedSuccess': 'Account successfully verified.\nPlease log in again',
       'accountVerificationError': 'Error verifying account',
+      'worldwide': 'Worldwide',
+      'yourCountry': 'Your Country',
 
 
     },
@@ -235,6 +237,8 @@ class LocalizedStrings {
       'takePhoto': 'Hacer foto',
       'accountVerifiedSuccess': 'Cuenta verificada con éxito.\nInicie sesión de nuevo',
       'accountVerificationError': 'Error verificando la cuenta',
+      'worldwide': 'Mundial',
+      'yourCountry': 'Tu País',
     },
     'fr': {
       // Francés
@@ -347,6 +351,8 @@ class LocalizedStrings {
       'takePhoto': 'Prendre photo',
       'accountVerifiedSuccess': 'Compte vérifié avec succès.\nVeuillez vous reconnecter',
       'accountVerificationError': 'Erreur de vérification du compte',
+      'worldwide': 'Mondial',
+      'yourCountry': 'Votre Pays',
     },
     'it': {
       // Italiano
@@ -466,6 +472,8 @@ class LocalizedStrings {
       'takePhoto': 'Scatta foto',
       'accountVerifiedSuccess': 'Account verificato con successo.\nEffettua nuovamente l\'accesso',
       'accountVerificationError': 'Errore nella verifica dell\'account',
+      'worldwide': 'Mondiale',
+      'yourCountry': 'Il Tuo Paese',
     },
     'de': {
       // Alemán
@@ -572,6 +580,8 @@ class LocalizedStrings {
       'takePhoto': 'Foto machen',
       'accountVerifiedSuccess': 'Konto erfolgreich verifiziert.\nBitte erneut anmelden',
       'accountVerificationError': 'Fehler bei der Kontoüberprüfung',
+      'worldwide': 'Weltweit',
+      'yourCountry': 'Dein Land',
     },
   };
 
@@ -750,6 +760,10 @@ class LocalizedStrings {
       _localizedValues[locale.languageCode]?['accountVerifiedSuccess'];
   String? get accountVerificationError =>
       _localizedValues[locale.languageCode]?['accountVerificationError'];
+  String? get worldwide =>
+      _localizedValues[locale.languageCode]?['worldwide'];
+  String? get yourCountry =>
+      _localizedValues[locale.languageCode]?['yourCountry'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

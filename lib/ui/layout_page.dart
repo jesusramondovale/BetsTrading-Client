@@ -4,6 +4,7 @@ import 'package:client_0_0_1/helpers/common.dart';
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:client_0_0_1/ui/markets_page.dart';
 import 'package:client_0_0_1/ui/settings_view.dart';
+import 'package:client_0_0_1/ui/topusers_page.dart';
 import 'package:client_0_0_1/ui/userinfo_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -122,10 +123,15 @@ class MainMenuPageState extends State<MainMenuPage> {
     titles[3] = "Info  |  $_username";
 
     _pages = [
+      // HOME
       const HomeScreen(),
-      const BlankImageWidget(),
+      // TOP USERS
+      TopUsersPage(),
+      // MARKETS
       const MarketsView(),
+      // SETTINGS
       SettingsView(onPersonalInfoTap: () => _onItemTapped(3)),
+      // PERSONAL INFO
       const UserInfoPage()
     ];
 
