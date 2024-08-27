@@ -193,13 +193,33 @@ class TrendDialog extends StatelessWidget {
                                 Icons.auto_graph_sharp,
                                 color: Colors.white),
                             onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SafeArea(
-                                    child: CandlesticksView(1),
-                                  ),
-                                ),
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (BuildContext context) {
+                                  return ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(25.0),
+                                    ),
+                                    child: Container(
+                                      color: Theme.of(context).scaffoldBackgroundColor,
+                                      height: MediaQuery.of(context).size.height * 0.6,
+                                      child: OverflowBox(
+                                        alignment: Alignment.topCenter,
+                                        maxHeight: MediaQuery.of(context).size.height,
+                                        child: Column(
+                                          children: [
+
+                                            Expanded(
+                                              child: CandlesticksView(trend.id.toString(), trend.name),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
                               );
                             },
                           ),

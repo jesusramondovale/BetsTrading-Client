@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../candlesticks/src/main.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 
 class CandlesticksView extends StatefulWidget {
-  CandlesticksView(int id, {super.key});
-  List<Candle> candles = Common().generateRandomCandles(520);
+
+  final String id;
+  final String name;
+  final List<Candle> candles = Common().generateRandomCandles(520);
+
+  CandlesticksView(this.id, this.name, {super.key});
+
+
   @override
   CandlesticksViewState createState() => CandlesticksViewState();
 }
@@ -15,8 +22,6 @@ class CandlesticksViewState extends State<CandlesticksView> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return SafeArea(
       child: Center(
         child: Stack(
@@ -24,23 +29,40 @@ class CandlesticksViewState extends State<CandlesticksView> {
             ValueListenableBuilder<double>(
               valueListenable: candleScaleNotifier,
               builder: (BuildContext context, double scale, Widget? child) {
-                return SafeArea(
-                  child: Center(
-                    child: Stack(
-                      children: <Widget>[
-                        Candlesticks(
-                          candles: widget.candles,
-                          onScaleUpdate: (double scale) {
-                            candleScaleNotifier.value = scale;
-                          },
-                          rectangleZones: Common().generateRectangleZones(),
-                        ),
-                      ],
-                    ),
+                return Center(
+                  child: Stack(
+                    children: <Widget>[
+                      Candlesticks(
+                        candles: widget.candles,
+                        displayZoomActions: false,
+                        onScaleUpdate: (double scale) {
+                          candleScaleNotifier.value = scale;
+                        },
+                        rectangleZones: Common().generateRectangleZones(),
+                      ),
+                      Positioned(
+                        top: 10.0,
+                        left: 20.0,
+                        right: 20.0,
+                        child:
+                            Text(
+                              widget.name,
+                              style: GoogleFonts.abel(
+                                fontSize: 26.0,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.grey,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                            )
+                      ),
+                    ],
                   ),
                 );
               },
-            )
+            ),
           ],
         ),
       ),

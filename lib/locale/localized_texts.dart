@@ -106,7 +106,7 @@ class LocalizedStrings {
       'targetMargin': 'Target Margin',
       'winBonus': 'Win Bonus',
       'verify': 'Verify Account',
-      'verified': 'Account Verified!',
+      'verified': 'Account Verified',
       'ranking': 'Ranking',
       'instructionsTitle': 'To verify your account, follow these steps:',
       'instructions': '1. Make sure you have your ID document handy.\n'
@@ -221,7 +221,7 @@ class LocalizedStrings {
       'targetMargin': 'Margen Objetivo',
       'winBonus': 'Bono de acierto',
       'verify': 'Verificar Cuenta',
-      'verified': 'Cuenta verificada!',
+      'verified': 'Cuenta verificada',
       'ranking': 'Rankings',
       'instructionsTitle': 'Para verificar tu cuenta, sigue estos pasos:',
       'instructions': '1. Asegúrate de tener tu documento de identidad a mano.\n\n'
@@ -335,7 +335,7 @@ class LocalizedStrings {
       'targetMargin': 'Marge Cible',
       'winBonus': 'Bonus de Gain',
       'verify': 'Vérifier le compte',
-      'verified': 'Compte vérifié!',
+      'verified': 'Compte vérifié',
       'ranking': 'Classement',
       'instructionsTitle': 'Pour vérifier votre compte, suivez ces étapes :',
       'instructions': '1. Assurez-vous d\'avoir votre document d\'identité à portée de main.\n'
@@ -456,7 +456,7 @@ class LocalizedStrings {
       'targetMargin': 'Zielmarge',
       'winBonus': 'Gewinnbonus',
       'verify': 'Verifica Conto',
-      'verified': 'Conto verificato!',
+      'verified': 'Conto verificato',
       'ranking': 'Classifica',
       'instructionsTitle': 'Per verificare il tuo account, segui questi passaggi:',
       'instructions': '1. Assicurati di avere il tuo documento d\'identità a portata di mano.\n'
@@ -564,7 +564,7 @@ class LocalizedStrings {
       'noFavsYet' : 'Sie haben noch keine Favoriten!',
       'removedSuccesfully' : 'Erfolgreich entfernt!',
       'verify': 'Konto bestätigen',
-      'verified': 'Konto verifiziert!',
+      'verified': 'Konto verifiziert',
       'ranking': 'Rangliste',
       'instructionsTitle': 'Um Ihr Konto zu verifizieren, folgen Sie diesen Schritten:',
       'instructions': '1. Stellen Sie sicher, dass Sie Ihr Ausweisdokument zur Hand haben.\n'

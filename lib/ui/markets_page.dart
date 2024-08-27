@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:client_0_0_1/services/AssetsService.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../enums/financial_assets.dart';
 import '../locale/localized_texts.dart';
@@ -24,16 +25,16 @@ class MarketsViewState extends State<MarketsView> {
   @override
   void initState() {
     super.initState();
-    _loadAssets(groupId); // Load assets initially with default groupId
+    _loadAssets(groupId);
   }
 
   Future<void> _initGroups() async {
     final strings = LocalizedStrings.of(_context);
     groups = [
-      strings?.indexes ?? 'Indexes', // Assuming these are non-nullable fields
-      'ETFs',
-      'Cryptos',
       strings?.shares ?? 'Shares',
+       'ETFs',
+      'Cryptos',
+      strings?.indexes ?? 'Indexes',
       strings?.commodities ?? 'Commodities',
     ];
     if (selectedGroup == null && groups.isNotEmpty) {
@@ -45,7 +46,7 @@ class MarketsViewState extends State<MarketsView> {
     String? theGroup;
     switch (id) {
       case 0:
-        theGroup = 'Indexes';
+        theGroup = 'Shares';
         break;
       case 1:
         theGroup = 'ETFs';
@@ -54,7 +55,7 @@ class MarketsViewState extends State<MarketsView> {
         theGroup = 'Cryptos';
         break;
       case 3:
-        theGroup = 'Shares';
+        theGroup = 'Indexes';
         break;
       case 4:
         theGroup = 'Commodities';
@@ -101,10 +102,7 @@ class MarketsViewState extends State<MarketsView> {
     return groups.map((String value) {
       return DropdownMenuItem<String>(
         value: value,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(value),
-        ),
+        child: Text(value),
       );
     }).toList();
   }
@@ -113,50 +111,109 @@ class MarketsViewState extends State<MarketsView> {
     Color dropDownColor = Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black;
     return Column(
       children: [
-        DropdownButton<String>(
-          value: selectedGroup,
-          onChanged: _onGroupChanged,
-          items: _buildDropdownMenuItems(),
-          style: TextStyle(
-            color: dropDownColor,
-            fontSize: 28.0,
-            fontWeight: FontWeight.normal,
+        Center(
+          child: Container(
+
+            child: DropdownButton<String>(
+              value: selectedGroup,
+              underline: SizedBox.shrink(),
+              onChanged: _onGroupChanged,
+              items: _buildDropdownMenuItems(),
+              style: GoogleFonts.montserrat(
+                color: dropDownColor,
+                fontSize: 30.0,
+                fontWeight: FontWeight.normal,
+              ),
+              dropdownColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black
+                  : Colors.white,
+              elevation: 16,
+              borderRadius: BorderRadius.circular(25),
+              isExpanded: false,
+              iconEnabledColor: dropDownColor,
+              iconDisabledColor: Colors.grey,
+              itemHeight: 60,
+              icon: Icon(Icons.arrow_drop_down_rounded, color: dropDownColor, size: 65),
+              alignment: AlignmentDirectional.center,
+            ),
           ),
-          icon: Icon(Icons.arrow_drop_down,
-              color: dropDownColor, size: 45),
-          underline: Container(height: 1, color: dropDownColor),
-          dropdownColor: Theme.of(context).brightness == Brightness.dark
-              ? Colors.black
-              : Colors.white,
-          elevation: 16,
-          borderRadius: BorderRadius.circular(25),
-          isExpanded: true,
-          iconEnabledColor: dropDownColor,
-          iconDisabledColor: Colors.grey,
-          itemHeight: 60,
         ),
+
         Expanded(
-          child: ListView.builder(
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 5.0,
+              mainAxisSpacing: 7.0,
+              childAspectRatio: 1.0,
+            ),
             itemCount: assets.length,
             itemBuilder: (context, index) {
               final FinancialAsset asset = assets[index];
               return GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SafeArea(
-                        child: CandlesticksView(asset.id),
-                      ),
-                    ),
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (BuildContext context) {
+                      return ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(25.0),
+                        ),
+                        child: Container(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          height: MediaQuery.of(context).size.height * 0.55,
+                          child: OverflowBox(
+                            alignment: Alignment.topCenter,
+                            maxHeight: MediaQuery.of(context).size.height,
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: CandlesticksView(asset.id.toString(), asset.name),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
-                child: ListTile(
-                  leading: asset.icon.isNotEmpty
-                      ? Image.memory(base64Decode(asset.icon))
-                      : null,
-                  title: Text(asset.name),
-                  subtitle: Text('${asset.group} - ${asset.country}'),
+                child: Container(
+                  margin: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(25.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white10
+                          : Colors.black45,
+                        blurRadius: 5.0,
+                        spreadRadius: 5.0,
+                        offset: Offset(0, 0),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (asset.icon.isNotEmpty)
+                        Image.memory(base64Decode(asset.icon), height: 55),
+                      SizedBox(height: 10),
+                      Text(
+                        asset.name,
+                        maxLines: 1,
+                        style: GoogleFonts.comfortaa(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.center,
+                      ),
+
+
+                    ],
+                  ),
                 ),
               );
             },
@@ -165,4 +222,6 @@ class MarketsViewState extends State<MarketsView> {
       ],
     );
   }
+
+
 }

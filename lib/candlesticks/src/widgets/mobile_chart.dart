@@ -119,8 +119,11 @@ class _MobileChartState extends State<MobileChart> {
             .getRange(candlesStartIndex, max(candlesEndIndex, 0) + 1)
             .toList();
 
+        double rangeMultiplier = 3.0;
+
         double candlesHighPrice = 0;
         double candlesLowPrice = 0;
+
         if (manualScaleHigh != null) {
           candlesHighPrice = manualScaleHigh!;
           candlesLowPrice = manualScaleLow!;
@@ -136,13 +139,18 @@ class _MobileChartState extends State<MobileChart> {
           candlesLowPrice = widget.mainWindowDataContainer.lows.reduce(min);
         }
 
+
+        double priceRange = candlesHighPrice - candlesLowPrice;
+        candlesHighPrice += priceRange * (rangeMultiplier - 1) / 2;
+        candlesLowPrice -= priceRange * (rangeMultiplier - 1) / 2;
+
         if (candlesHighPrice == candlesLowPrice) {
           candlesHighPrice += 10;
           candlesLowPrice -= 10;
         }
 
         // calculate priceScale
-        double chartHeight = maxHeight * 0.75 - 2 * MAIN_CHART_VERTICAL_PADDING;
+        double chartHeight = maxHeight * 0.75 - 2 * MAIN_CHART_VERTICAL_PADDING ;
 
         // calculate highest volume
         double volumeHigh = inRangeCandles.map((e) => e.volume).reduce(max);
