@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:client_0_0_1/helpers/common.dart';
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:client_0_0_1/ui/markets_page.dart';
 import 'package:client_0_0_1/ui/settings_view.dart';

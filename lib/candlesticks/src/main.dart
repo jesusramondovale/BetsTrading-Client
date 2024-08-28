@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable
+
 import 'dart:math';
 import '../../helpers/rectangle_zone.dart';
 import '../candlesticks.dart';

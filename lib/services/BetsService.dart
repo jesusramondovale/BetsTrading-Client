@@ -76,6 +76,7 @@ class BetsService {
       await _storage.write(key: 'country', value: decodedBody['country']);
       await _storage.write(key: 'lastsession', value: decodedBody['lastsession']);
       await _storage.write(key: 'profilepic', value: decodedBody['profilepic']);
+      await _storage.write(key: 'points', value: decodedBody['points'].toString());
 
       return {'success': true, 'message': decodedBody['message']};
     } else {

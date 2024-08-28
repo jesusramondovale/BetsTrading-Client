@@ -5,20 +5,20 @@ import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 
 class CandlesticksView extends StatefulWidget {
-
   final String id;
   final String name;
-  final List<Candle> candles = Common().generateRandomCandles(520);
+  final List<Candle> candles;
 
-  CandlesticksView(this.id, this.name, {super.key});
-
+  CandlesticksView(this.id, this.name, {super.key})
+      : candles = Common().generateRandomCandles(520);
 
   @override
   CandlesticksViewState createState() => CandlesticksViewState();
 }
 
 class CandlesticksViewState extends State<CandlesticksView> {
-  ValueNotifier<double> candleScaleNotifier = ValueNotifier<double>(1.0);
+  late final ValueNotifier<double> candleScaleNotifier =
+  ValueNotifier<double>(1.0);
 
   @override
   Widget build(BuildContext context) {

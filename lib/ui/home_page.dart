@@ -27,11 +27,14 @@ class HomeScreenState extends State<HomeScreen> {
   bool showFavorites = false;
   List<Bet> _bets = [];
   String _userId = "none";
+  String _userPoints = '0';
 
   Future<void> _loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
+    final userPoints = await _storage.read(key: "points") ?? "0";
     setState(() {
       _userId = userId;
+      _userPoints = userPoints;
     });
     _loadBets(userId);
   }
@@ -73,6 +76,36 @@ class HomeScreenState extends State<HomeScreen> {
             // Upper icons
             Row(
               children: [
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,colors: [Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white, Colors.grey.shade800],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.attach_money,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(_userPoints,
+                            style: GoogleFonts.montserrat(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
                 Spacer(),
                 IconButton(
                   icon: showFavorites
@@ -276,7 +309,7 @@ class HomeScreenState extends State<HomeScreen> {
                     } else if (snapshot.hasData &&
                         snapshot.data!.investList.isNotEmpty) {
                       final data = snapshot.data!;
-                      _bets = data.investList; // Actualiza la lista de apuestas
+                      _bets = data.investList;
                       return ListView.builder(
                         scrollDirection: Axis.vertical,
                         itemCount: _bets.length,

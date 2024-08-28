@@ -103,6 +103,7 @@ class MarketsViewState extends State<MarketsView> {
       return DropdownMenuItem<String>(
         value: value,
         child: Text(value),
+        alignment: Alignment.center,
       );
     }).toList();
   }
@@ -134,7 +135,8 @@ class MarketsViewState extends State<MarketsView> {
               iconDisabledColor: Colors.grey,
               itemHeight: 60,
               icon: Icon(Icons.arrow_drop_down_rounded, color: dropDownColor, size: 65),
-              alignment: AlignmentDirectional.center,
+              alignment: Alignment.center,
+
             ),
           ),
         ),

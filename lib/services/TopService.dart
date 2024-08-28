@@ -1,10 +1,5 @@
 import 'dart:async';
-import 'dart:collection';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../helpers/common.dart';
-import '../models/bets.dart';
-import '../models/favorites.dart';
-import '../models/trends.dart';
 import '../models/users.dart';
 
 class TopService {

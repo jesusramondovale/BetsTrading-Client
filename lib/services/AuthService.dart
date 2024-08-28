@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import '../config/config.dart';
 import '../helpers/common.dart';
 
 class AuthService {
