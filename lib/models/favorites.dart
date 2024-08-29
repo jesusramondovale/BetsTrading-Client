@@ -26,10 +26,10 @@ class Favorite {
       : id = json['id'],
         name = json['name'],
         icon = json['icon'],
-        dailyGain = json['daily_gain'],
-        close = json['close'],
-        current = json['current'],
-        userId = json['user_id'];
+        dailyGain =  (json['daily_gain'] as num).toDouble(),
+        close = (json['close'] as num).toDouble(),
+        current = (json['current'] as num).toDouble(),
+        userId = json['user_id'].toString();
 }
 
 class Favorites {
