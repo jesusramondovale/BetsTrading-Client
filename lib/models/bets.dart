@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../ui/candlesticks_view.dart';
+import '../ui/layout_page.dart';
 
 class Bet {
   final int id;
@@ -73,8 +74,9 @@ class Bets {
 
 class RecentBetDialog extends StatelessWidget {
   final Bet bet;
+  final MainMenuPageController controller;
 
-  RecentBetDialog({super.key, required this.bet});
+  RecentBetDialog({super.key, required this.bet, required this.controller});
 
   static get decodedBody => null;
 
@@ -323,7 +325,7 @@ class RecentBetDialog extends StatelessWidget {
                                         children: [
 
                                           Expanded(
-                                            child: CandlesticksView(bet.id.toString(), bet.name),
+                                            child: CandlesticksView(bet.id.toString(), bet.name, controller: this.controller,),
                                           ),
                                         ],
                                       ),
@@ -350,8 +352,9 @@ class RecentBetDialog extends StatelessWidget {
 class RecentBetContainer extends StatefulWidget {
   final Bet bet;
   final Function onDelete;
+  final MainMenuPageController controller;
   const RecentBetContainer(
-      {super.key, required this.bet, required this.onDelete});
+      {super.key, required this.bet, required this.onDelete, required this.controller});
 
   @override
   RecentBetContainerState createState() => RecentBetContainerState();
@@ -371,7 +374,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
       context: this.context,
       builder: (BuildContext context) {
         return RecentBetDialog(
-          bet: widget.bet,
+          bet: widget.bet, controller: widget.controller,
         );
       },
     );

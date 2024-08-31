@@ -2,6 +2,7 @@
 
 import 'dart:math';
 import '../../helpers/rectangle_zone.dart';
+import '../../ui/layout_page.dart';
 import '../candlesticks.dart';
 import 'models/main_window_indicator.dart';
 import 'widgets/mobile_chart.dart';
@@ -25,6 +26,8 @@ class Candlesticks extends StatefulWidget {
   /// The arrangement of the array should be such that
   /// the newest item is in position 0
   final List<Candle> candles;
+
+  final MainMenuPageController controller;
 
   /// This callback calls when the last candle gets visible
   final Future<void> Function()? onLoadMoreCandles;
@@ -65,7 +68,8 @@ class Candlesticks extends StatefulWidget {
     this.onRemoveIndicator,
     this.style,
     required this.onScaleUpdate,
-    required this.rectangleZones,
+    required this.rectangleZones, 
+    required this.controller,
   }) : assert(candles.isEmpty || candles.length > 1,
             "Please provide at least 2 candles");
 

@@ -1,8 +1,9 @@
 import 'dart:math';
 
-import '../../../helpers/common.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../helpers/rectangle_zone.dart';
+import '../../../models/bets.dart';
+import '../../../ui/bets_page.dart';
 import '../../candlesticks.dart';
 import '../constant/view_constants.dart';
 import '../models/main_window_indicator.dart';
@@ -21,40 +22,18 @@ import 'dash_line.dart';
 /// Updates right-hand side numbers.
 /// And pass values down to [CandleStickWidget].
 class MobileChart extends StatefulWidget {
-  /// onScaleUpdate callback
-  /// called when user scales chart using buttons or scale gesture
   final Function onScaleUpdate;
-
-  /// onHorizontalDragUpdate
-  /// callback calls when user scrolls horizontally along the chart
   final Function onHorizontalDragUpdate;
-
-  /// candleWidth controls the width of the single candles.
-  /// range: [2...10]
   final double candleWidth;
-
-  /// list of all candles to display in chart
   final List<Candle> candles;
-
-  /// index of the newest candle to be displayed
-  /// changes when user scrolls along the chart
   final int index;
-
-  /// holds main window indicators data and high and low prices.
   final MainWindowDataContainer mainWindowDataContainer;
-
-  /// How chart price range will be adjusted when moving chart
   final ChartAdjust chartAdjust;
-
   final CandleSticksStyle style;
-
   final void Function(double) onPanDown;
   final void Function() onPanEnd;
-
   final void Function(String)? onRemoveIndicator;
-
   final Function() onReachEnd;
-
   final List<RectangleZone> rectangleZones;
 
   const MobileChart({
@@ -90,6 +69,7 @@ class _MobileChartState extends State<MobileChart> {
   ScaleUpdateDetails lastDetails = ScaleUpdateDetails();
   int lastTimestamp = 0;
   bool firstVerticalDragOffset = true;
+
   @override
   void initState() {
     super.initState();
@@ -99,11 +79,9 @@ class _MobileChartState extends State<MobileChart> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // determine charts width and height
         final double maxWidth = constraints.maxWidth - PRICE_BAR_WIDTH;
         final double maxHeight = constraints.maxHeight - DATE_BAR_HEIGHT;
 
-        // visible candles start and end indexes
         final int candlesStartIndex = max(widget.index, 0);
         final int candlesEndIndex = min(
             maxWidth ~/ widget.candleWidth + widget.index,
@@ -139,7 +117,6 @@ class _MobileChartState extends State<MobileChart> {
           candlesLowPrice = widget.mainWindowDataContainer.lows.reduce(min);
         }
 
-
         double priceRange = candlesHighPrice - candlesLowPrice;
         candlesHighPrice += priceRange * (rangeMultiplier - 1) / 2;
         candlesLowPrice -= priceRange * (rangeMultiplier - 1) / 2;
@@ -149,10 +126,8 @@ class _MobileChartState extends State<MobileChart> {
           candlesLowPrice -= 10;
         }
 
-        // calculate priceScale
-        double chartHeight = maxHeight * 0.75 - 2 * MAIN_CHART_VERTICAL_PADDING ;
+        double chartHeight = maxHeight * 0.75 - 2 * MAIN_CHART_VERTICAL_PADDING;
 
-        // calculate highest volume
         double volumeHigh = inRangeCandles.map((e) => e.volume).reduce(max);
 
         if (longPressX != null && longPressY != null) {
@@ -359,67 +334,63 @@ class _MobileChartState extends State<MobileChart> {
                           ),
                         ],
                       ),
-                      longPressY != null
-                          ? Positioned(
-                              top: longPressY! - 10,
-                              child: Row(
-                                children: [
-                                  DashLine(
-                                    length: maxWidth,
-                                    color: widget.style.borderColor,
-                                    direction: Axis.horizontal,
-                                    thickness: 0.5,
-                                  ),
-                                  Container(
-                                    color: widget
-                                        .style.hoverIndicatorBackgroundColor,
-                                    width: PRICE_BAR_WIDTH,
-                                    height: 20,
-                                    child: Center(
-                                      child: Text(
-                                        longPressY! < maxHeight * 0.75
-                                            ? HelperFunctions.priceToString(high -
-                                                (longPressY! -
-                                                        MAIN_CHART_VERTICAL_PADDING) /
-                                                    (maxHeight * 0.75 -
-                                                        2 *
-                                                            MAIN_CHART_VERTICAL_PADDING) *
-                                                    (high - low))
-                                            : HelperFunctions.addMetricPrefix(
-                                                HelperFunctions.getRoof(
-                                                        volumeHigh) *
-                                                    (1 -
-                                                        (longPressY! -
-                                                                maxHeight *
-                                                                    0.75 -
-                                                                10) /
-                                                            (maxHeight * 0.25 -
-                                                                10))),
-                                        style: TextStyle(
-                                          color:
-                                              widget.style.secondaryTextColor,
-                                          fontSize: 12,
-                                        ),
-                                      ),
+                      if (longPressY != null)
+                        Positioned(
+                          top: longPressY! - 10,
+                          child: Row(
+                            children: [
+                              DashLine(
+                                length: maxWidth,
+                                color: widget.style.borderColor,
+                                direction: Axis.horizontal,
+                                thickness: 0.5,
+                              ),
+                              Container(
+                                color:
+                                    widget.style.hoverIndicatorBackgroundColor,
+                                width: PRICE_BAR_WIDTH,
+                                height: 20,
+                                child: Center(
+                                  child: Text(
+                                    longPressY! < maxHeight * 0.75
+                                        ? HelperFunctions.priceToString(high -
+                                            (longPressY! -
+                                                    MAIN_CHART_VERTICAL_PADDING) /
+                                                (maxHeight * 0.75 -
+                                                    2 *
+                                                        MAIN_CHART_VERTICAL_PADDING) *
+                                                (high - low))
+                                        : HelperFunctions.addMetricPrefix(
+                                            HelperFunctions.getRoof(
+                                                    volumeHigh) *
+                                                (1 -
+                                                    (longPressY! -
+                                                            maxHeight * 0.75 -
+                                                            10) /
+                                                        (maxHeight * 0.25 -
+                                                            10))),
+                                    style: TextStyle(
+                                      color: widget.style.secondaryTextColor,
+                                      fontSize: 12,
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
-                            )
-                          : Container(),
-                      longPressX != null
-                          ? Positioned(
-                              right: (maxWidth - longPressX!) ~/
-                                      widget.candleWidth *
-                                      widget.candleWidth +
-                                  PRICE_BAR_WIDTH,
-                              child: Container(
-                                width: widget.candleWidth,
-                                height: maxHeight,
-                                color: widget.style.mobileCandleHoverColor,
-                              ),
-                            )
-                          : Container(),
+                            ],
+                          ),
+                        ),
+                      if (longPressX != null)
+                        Positioned(
+                          right: (maxWidth - longPressX!) ~/
+                                  widget.candleWidth *
+                                  widget.candleWidth +
+                              PRICE_BAR_WIDTH,
+                          child: Container(
+                            width: widget.candleWidth,
+                            height: maxHeight,
+                            color: widget.style.mobileCandleHoverColor,
+                          ),
+                        ),
                       Padding(
                         padding: const EdgeInsets.only(right: 50, bottom: 20),
                         child: GestureDetector(
@@ -521,28 +492,48 @@ class _MobileChartState extends State<MobileChart> {
                           ),
                         ),
                       ),
-                      GestureDetector(onTapUp: (TapUpDetails details) {
-                        final RenderBox renderBox =
-                            _customPaintKey.currentContext?.findRenderObject()
-                                as RenderBox;
-                        final size = renderBox.size;
+                      GestureDetector(
+                        onTapUp: (TapUpDetails details) {
+                          final RenderBox renderBox =
+                              _customPaintKey.currentContext?.findRenderObject()
+                                  as RenderBox;
+                          final size = renderBox.size;
 
-                        RectangleZone? zoneClicked = RangePainter(
-                                zones: widget.rectangleZones,
-                                candles: widget.candles,
-                                candleWidth: widget.candleWidth,
-                                topPrice: candlesHighPrice,
-                                bottomPrice: candlesLowPrice,
-                                index: widget.index,
-                                minIndex: -20,
-                                priceColumnWidth: PRICE_BAR_WIDTH)
-                            .hit(details.localPosition.dx,
-                                details.localPosition.dy, size);
+                          RectangleZone? zoneClicked = RangePainter(
+                                  zones: widget.rectangleZones,
+                                  candles: widget.candles,
+                                  candleWidth: widget.candleWidth,
+                                  topPrice: candlesHighPrice,
+                                  bottomPrice: candlesLowPrice,
+                                  index: widget.index,
+                                  minIndex: -20,
+                                  priceColumnWidth: PRICE_BAR_WIDTH)
+                              .hit(details.localPosition.dx,
+                                  details.localPosition.dy, size);
 
-                        if (zoneClicked != null) {
-                          Common().unimplementedAction(context , '');
-                        }
-                      }),
+                          if (zoneClicked != null) {
+// Asumiendo que cada zona tiene una apuesta asociada.
+                            Bet? bet = zoneClicked.bet;
+
+                            if (bet != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BetConfirmationPage(
+                                    bet: bet,
+                                    onAccept: () {
+                                      Navigator.pop(context);
+                                    },
+                                    onCancel: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
                     ],
                   ),
                 );

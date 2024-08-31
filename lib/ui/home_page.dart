@@ -12,9 +12,11 @@ import 'package:intl/intl.dart';
 import '../helpers/common.dart';
 import '../models/bets.dart';
 import '../models/trends.dart';
+import 'layout_page.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final MainMenuPageController controller;
+  const HomeScreen({super.key, required this.controller});
 
   @override
   HomeScreenState createState() => HomeScreenState();
@@ -185,7 +187,7 @@ class HomeScreenState extends State<HomeScreen> {
                           return TrendContainer(
                               trend: sortedTrends[index],
                               index: sortedIndex,
-                              onFavoriteUpdated: refreshFavorites);
+                              onFavoriteUpdated: refreshFavorites, controller: widget.controller,);
                         },
                       );
                     } else {
@@ -244,7 +246,7 @@ class HomeScreenState extends State<HomeScreen> {
                           itemBuilder: (context, index) {
                             return FavoriteContainer(
                                 favorite: data.favorites[index],
-                                onFavoriteUpdated: refreshFavorites);
+                                onFavoriteUpdated: refreshFavorites, controller: widget.controller,);
                           },
                         );
                       } else {
@@ -316,7 +318,7 @@ class HomeScreenState extends State<HomeScreen> {
                         itemBuilder: (context, index) {
                           return RecentBetContainer(
                               bet: _bets[index],
-                              onDelete: () => _deleteBet(_bets[index].id));
+                              onDelete: () => _deleteBet(_bets[index].id), controller: widget.controller,);
                         },
                       );
                     } else {

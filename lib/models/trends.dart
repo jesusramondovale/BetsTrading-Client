@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../ui/candlesticks_view.dart';
+import '../ui/layout_page.dart';
 
 class Trend {
   final int id;
@@ -41,8 +42,8 @@ class TrendDialog extends StatelessWidget {
   final Trend trend;
   final int index;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-
-  const TrendDialog({super.key, required this.trend, required this.index});
+  final MainMenuPageController controller;
+  const TrendDialog({super.key, required this.trend, required this.index, required this.controller});
 
   static get decodedBody => null;
 
@@ -212,7 +213,7 @@ class TrendDialog extends StatelessWidget {
                                           children: [
 
                                             Expanded(
-                                              child: CandlesticksView(trend.id.toString(), trend.name),
+                                              child: CandlesticksView(trend.id.toString(), trend.name, controller: this.controller,),
                                             ),
                                           ],
                                         ),
@@ -241,11 +242,12 @@ class TrendContainer extends StatefulWidget {
   final Trend trend;
   final int index;
   final VoidCallback onFavoriteUpdated;
+  final MainMenuPageController controller;
   const TrendContainer(
       {super.key,
       required this.trend,
       required this.index,
-      required this.onFavoriteUpdated});
+      required this.onFavoriteUpdated, required this.controller});
 
   @override
   TrendContainerState createState() => TrendContainerState();
@@ -258,7 +260,7 @@ class TrendContainerState extends State<TrendContainer> {
       builder: (BuildContext context) {
         return TrendDialog(
           trend: widget.trend,
-          index: widget.index,
+          index: widget.index, controller: widget.controller,
         );
       },
     );

@@ -7,9 +7,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../enums/financial_assets.dart';
 import '../locale/localized_texts.dart';
 import 'candlesticks_view.dart';
+import 'layout_page.dart';
 
 class MarketsView extends StatefulWidget {
-  const MarketsView({super.key});
+  final MainMenuPageController controller;
+  const MarketsView({super.key, required this.controller});
 
   @override
   MarketsViewState createState() => MarketsViewState();
@@ -172,7 +174,7 @@ class MarketsViewState extends State<MarketsView> {
                             child: Column(
                               children: [
                                 Expanded(
-                                  child: CandlesticksView(asset.id.toString(), asset.name),
+                                  child: CandlesticksView(asset.id.toString(), asset.name, controller: widget.controller,),
                                 ),
                               ],
                             ),

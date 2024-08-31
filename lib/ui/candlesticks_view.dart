@@ -3,13 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import '../candlesticks/src/main.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
+import 'layout_page.dart';
 
 class CandlesticksView extends StatefulWidget {
   final String id;
   final String name;
   final List<Candle> candles;
-
-  CandlesticksView(this.id, this.name, {super.key})
+  final MainMenuPageController controller;
+  
+  CandlesticksView(this.id, this.name, {super.key, required this.controller})
       : candles = Common().generateRandomCandles(520);
 
   @override
@@ -19,6 +21,7 @@ class CandlesticksView extends StatefulWidget {
 class CandlesticksViewState extends State<CandlesticksView> {
   late final ValueNotifier<double> candleScaleNotifier =
   ValueNotifier<double>(1.0);
+  
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +41,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                         onScaleUpdate: (double scale) {
                           candleScaleNotifier.value = scale;
                         },
-                        rectangleZones: Common().generateRectangleZones(),
+                        rectangleZones: Common().generateRectangleZones(), controller: widget.controller,
                       ),
                       Positioned(
                         top: 10.0,

@@ -8,6 +8,7 @@ import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import '../models/bets.dart';
 import '../models/trends.dart';
 import '../ui/layout_page.dart';
 import 'package:flutter/material.dart';
@@ -189,7 +190,8 @@ class Common {
           lowPrice: 1.12,
           fillColor: Colors.green.withOpacity(0.4),
           strokeColor: strokeColor,
-          oddsLabel: 'x5.75'
+          oddsLabel: 'x5.75',
+          bet: Bet(0,false,0, id: 1234, ticker: 'GH874FG56GH5G68G', name: 'Google LC', iconPath: '', betAmount: 0, originValue: 0, targetValue: 0, targetMargin: 0, targetDate: DateTime(0), targetOdds: 15.75)
       ),
 
       RectangleZone(
@@ -199,7 +201,8 @@ class Common {
           lowPrice: 1.2,
           fillColor: Colors.green.withOpacity(0.6),
           strokeColor: strokeColor,
-          oddsLabel: 'x15.75'
+          oddsLabel: 'x15.75',
+          bet: Bet(0,false,0, id: 1234, ticker: 'GH874FG56GH5G68G', name: 'Google LC', iconPath: '', betAmount: 0, originValue: 0, targetValue: 0, targetMargin: 0, targetDate: DateTime(0), targetOdds: 5.75)
       ),
 
 
@@ -210,7 +213,8 @@ class Common {
           lowPrice: 0.95,
           fillColor: Colors.red.withOpacity(0.4),
           strokeColor: strokeColor,
-          oddsLabel: 'x3.75'
+          oddsLabel: 'x3.75',
+          bet: Bet(0,false,0, id: 1234, ticker: 'GH874FG56GH5G68G', name: 'Google LC', iconPath: '', betAmount: 0, originValue: 0, targetValue: 0, targetMargin: 0, targetDate: DateTime(0), targetOdds: 3.75)
       ),
 
 
@@ -221,7 +225,8 @@ class Common {
           lowPrice: 0.8,
           fillColor: Colors.red.withOpacity(0.6),
           strokeColor: strokeColor,
-          oddsLabel: 'x25.75'
+          oddsLabel: 'x25.75',
+          bet: Bet(0,false,0, id: 1234, ticker: 'GH874FG56GH5G68G', name: 'Google LC', iconPath: '', betAmount: 0, originValue: 0, targetValue: 0, targetMargin: 0, targetDate: DateTime(0), targetOdds: 25.75)
       ),
 
 
@@ -646,7 +651,8 @@ class Common {
         lowPrice: 0.0,
         fillColor: Colors.green.withOpacity(0.4),
         strokeColor: Colors.white,
-        oddsLabel: ''
+        oddsLabel: '',
+        bet: Bet(0,false,0, id: 1234, ticker: '', name: '', iconPath: '', betAmount: 0, originValue: 0, targetValue: 0, targetMargin: 0, targetDate: DateTime(0), targetOdds: 0)
     );
   }
   Future<String> pickImageFromGallery() async {

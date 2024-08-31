@@ -9,6 +9,7 @@ import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../services/BetsService.dart';
 import '../ui/candlesticks_view.dart';
+import '../ui/layout_page.dart';
 
 class Favorite {
   final String id;
@@ -41,8 +42,8 @@ class Favorites {
 
 class FavoriteDialog extends StatelessWidget {
   final Favorite favorite;
-
-  const FavoriteDialog({super.key, required this.favorite});
+  final MainMenuPageController controller;
+  const FavoriteDialog({super.key, required this.favorite, required this.controller});
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
@@ -205,7 +206,7 @@ class FavoriteDialog extends StatelessWidget {
                                           children: [
 
                                             Expanded(
-                                              child: CandlesticksView(favorite.id.toString(), favorite.name),
+                                              child: CandlesticksView(favorite.id.toString(), favorite.name, controller: this.controller,),
                                             ),
                                           ],
                                         ),
@@ -233,7 +234,8 @@ class FavoriteDialog extends StatelessWidget {
 class FavoriteContainer extends StatefulWidget {
   final Favorite favorite;
   final VoidCallback onFavoriteUpdated;
-  const FavoriteContainer({super.key, required this.favorite, required this.onFavoriteUpdated});
+  final MainMenuPageController controller;
+  const FavoriteContainer({super.key, required this.favorite, required this.onFavoriteUpdated, required this.controller});
 
   @override
   FavoriteContainerState createState() => FavoriteContainerState();
@@ -245,7 +247,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
     bool? ok = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
-        return FavoriteDialog(favorite: widget.favorite);
+        return FavoriteDialog(favorite: widget.favorite, controller: widget.controller,);
       },
     );
 

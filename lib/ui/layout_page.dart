@@ -34,14 +34,22 @@ class MainMenuPage extends StatefulWidget {
   MainMenuPageState createState() => MainMenuPageState();
 }
 
+class MainMenuPageController {
+  final ValueNotifier<int> selectedIndexNotifier = ValueNotifier<int>(0);
+
+  void updateIndex(int index) {
+    selectedIndexNotifier.value = index;
+  }
+}
+
 class MainMenuPageState extends State<MainMenuPage> {
   Uint8List? _profilePicBytes;
-  int _selectedIndex = 0;
-  late List<Candle> candlesList;
   late List<Widget> _pages;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final MainMenuPageController _controller = MainMenuPageController();
   String _username = '';
   bool _isLoading = true;
+
 
   Future<void> _loadProfilePic() async {
     String? profilePicString = await _storage.read(key: 'profilepic');
@@ -89,12 +97,6 @@ class MainMenuPageState extends State<MainMenuPage> {
     });
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -109,8 +111,6 @@ class MainMenuPageState extends State<MainMenuPage> {
             ? Colors.black
             : Colors.white);
 
-
-
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
       strings?.home ?? 'Home',
@@ -123,13 +123,13 @@ class MainMenuPageState extends State<MainMenuPage> {
 
     _pages = [
       // HOME
-      const HomeScreen(),
+      HomeScreen(controller: _controller,),
       // TOP USERS
       TopUsersPage(),
       // MARKETS
-      const MarketsView(),
+      MarketsView(controller: _controller,),
       // SETTINGS
-      SettingsView(onPersonalInfoTap: () => _onItemTapped(3)),
+      SettingsView(onPersonalInfoTap: () => _controller.updateIndex(3)),
       // PERSONAL INFO
       const UserInfoPage()
     ];
@@ -146,9 +146,14 @@ class MainMenuPageState extends State<MainMenuPage> {
                 color: Colors.black45,
               ),
               Expanded(
-                child: IndexedStack(
-                  index: _selectedIndex,
-                  children: _pages,
+                child: ValueListenableBuilder<int>(
+                  valueListenable: _controller.selectedIndexNotifier,
+                  builder: (context, selectedIndex, _) {
+                    return IndexedStack(
+                      index: selectedIndex,
+                      children: _pages,
+                    );
+                  },
                 ),
               ),
             ],
@@ -186,8 +191,10 @@ class MainMenuPageState extends State<MainMenuPage> {
               label: _username,
             ),
           ],
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
+          currentIndex: _controller.selectedIndexNotifier.value,
+          onTap: (index) {
+            _controller.updateIndex(index);
+          },
           type: BottomNavigationBarType.fixed,
         ),
       );
