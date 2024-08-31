@@ -157,6 +157,7 @@ class MarketsViewState extends State<MarketsView> {
               return GestureDetector(
                 onTap: () {
                   showModalBottomSheet(
+
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
@@ -188,14 +189,14 @@ class MarketsViewState extends State<MarketsView> {
                   margin: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(25.0),
+                    borderRadius: BorderRadius.circular(20.0),
                     boxShadow: [
                       BoxShadow(
                         color: Theme.of(context).brightness == Brightness.dark
                           ? Colors.white10
                           : Colors.black45,
                         blurRadius: 5.0,
-                        spreadRadius: 5.0,
+                        spreadRadius: 2.0,
                         offset: Offset(0, 0),
                       ),
                     ],

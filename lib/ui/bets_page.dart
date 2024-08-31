@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/cupertino.dart';
@@ -26,64 +27,106 @@ class BetConfirmationPage extends StatefulWidget {
 class _BetConfirmationPageState extends State<BetConfirmationPage> {
   double _betAmount = 0.0;
   double _potentialPrize = 0.0;
+  bool _isAcceptButtonEnabled = false;
+  final ScrollController _scrollController = ScrollController();
+  final FocusNode _betAmountFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _betAmountFocusNode.addListener(() {
+      if (_betAmountFocusNode.hasFocus) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _betAmountFocusNode.dispose();
+    super.dispose();
+  }
 
   void _calculatePotentialPrize(String value) {
     setState(() {
       _betAmount = double.tryParse(value) ?? 0.0;
       _potentialPrize = _betAmount * widget.bet.targetOdds;
+      _isAcceptButtonEnabled = _betAmount > 0.00999;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Confirm Order',
+        surfaceTintColor: Colors.black,
+        title: Text(strings?.confirmOperation ?? 'Confirm Order',
+
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(6.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildBetHeader(context),
-                  const SizedBox(height: 5),
-                  _buildBetDetails(context),
-                  const SizedBox(height: 20),
-                  _buildBetMultiplier(context),
-                  const SizedBox(height: 10),
-                  _buildPotentialPrize(context),
-                ],
+          // Imagen de fondo
+          Positioned.fill(
+            child: Image.memory(
+              base64Decode(widget.bet.iconPath),
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Desenfoque
+              child: Container(
+                color: Colors.black.withOpacity(0.7),
               ),
             ),
           ),
-          _buildActionButtons(context),
+          // Contenido de la página
+          Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(6.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _buildBetHeader(context),
+                      const SizedBox(height: 2),
+                      _buildBetDetails(context),
+                      _buildBetMultiplier(context),
+                    ],
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _buildPotentialPrize(context),
+                ],
+              ),
+              _buildActionButtons(context),
+            ],
+          ),
         ],
       ),
+      resizeToAvoidBottomInset: true,
     );
   }
 
   Widget _buildBetHeader(BuildContext context) {
     return Row(
       children: [
-        if (widget.bet.iconPath != "null") ...[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: Image.memory(
-              base64Decode("iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADMElEQVR4nOzVwQnAIBQFQYXff81RUkQCOyDj1YOPnbXWPmeTRef+/3O/OyBjzh3CD95BfqICMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMO0TAAD//2Anhf4QtqobAAAAAElFTkSuQmCC"),
-              height: 80,
-              width: 80,
-              fit: BoxFit.cover,
-            ),
-          ),
-        ],
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -91,12 +134,10 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             children: [
               Text(
                 widget.bet.name,
-                style: GoogleFonts.roboto(
+                style: GoogleFonts.openSans(
                   fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
+                  fontSize: 34,
+                  color: Colors.white
                 ),
               ),
               const SizedBox(height: 8),
@@ -104,9 +145,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
                 'Ticker: ${widget.bet.ticker}',
                 style: GoogleFonts.roboto(
                   fontSize: 16,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white70
-                      : Colors.black87,
+                  color: Colors.white70,
                 ),
               ),
             ],
@@ -170,10 +209,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
       children: [
         Icon(
           icon,
-          size: 80,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white
-              : Colors.black, // Color asegurado para contrastar con el fondo
+          size: 70,
+          color: Colors.white
         ),
         const SizedBox(height: 8),
         Text(
@@ -181,9 +218,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           style: GoogleFonts.montserrat(
             fontSize: 18,
             fontWeight: FontWeight.w500,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black,
+            color:  Colors.white
           ),
         ),
         const SizedBox(height: 4),
@@ -192,9 +227,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           style: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white70
-                : Colors.black54,
+            color: Colors.white70
           ),
           textAlign: TextAlign.center,
         ),
@@ -203,50 +236,64 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   }
 
   Widget _buildBetMultiplier(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
+    final multiplierString = strings?.multiplier ?? "Multiplier";
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          'Multiplier: x${widget.bet.targetOdds.toStringAsFixed(2)}',
+          '${multiplierString} x${widget.bet.targetOdds.toStringAsFixed(2)}',
           style: GoogleFonts.montserrat(
-            fontSize: 18,
+            fontSize: 24,
             fontWeight: FontWeight.w600,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black,
+            color:  Colors.white
           ),
         ),
-        const SizedBox(height: 10),
-        TextField(
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: 'Enter Bet Amount',
-            labelStyle: GoogleFonts.montserrat(),
-            border: const OutlineInputBorder(),
-          ),
-          onChanged: _calculatePotentialPrize,
+        const SizedBox(height: 5),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(
+              strings?.enterBetAmount ?? 'Enter Bet Amount',
+              style: GoogleFonts.montserrat(fontSize: 20.0, color: Colors.white),
+            ),
+            SizedBox(
+              width: 140,
+              child: TextField(
+                textAlign: TextAlign.end,
+                style: GoogleFonts.montserrat(fontSize: 20.0, fontWeight: FontWeight.w800, color: Colors.greenAccent),
+                cursorColor: Colors.white,
+                focusNode: _betAmountFocusNode,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  focusColor: Colors.white,
+                  suffixIcon: Icon(CupertinoIcons.money_euro, size: 30, color: Colors.white),
+                ),
+                onChanged: _calculatePotentialPrize,
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
   Widget _buildPotentialPrize(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
     return Padding(
-      padding: const EdgeInsets.only(top: 16.0),
+      padding: const EdgeInsets.only(top: 4.0, right: 50.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            'Potential Prize:',
+            strings?.potentialPrize ?? 'Potential Prize:',
             style: GoogleFonts.montserrat(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
+              color:  Colors.white
             ),
           ),
-          const SizedBox(height: 8),
           Text(
             '${_potentialPrize.toStringAsFixed(2)}€',
             style: GoogleFonts.montserrat(
@@ -262,7 +309,20 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     );
   }
 
+  void _handleAcceptPressed() {
+    if (!_isAcceptButtonEnabled) {
+      _betAmountFocusNode.requestFocus();
+      setState(() {});
+      Future.delayed(Duration(milliseconds: 500), () {
+        setState(() {});
+      });
+    } else {
+      widget.onAccept();
+    }
+  }
+
   Widget _buildActionButtons(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -271,8 +331,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           ElevatedButton.icon(
             onPressed: widget.onCancel,
             icon: Icon(CupertinoIcons.clear, color: Colors.black),
-            label: Text(
-              'Cancel',
+            label: Text(strings?.cancel ?? 'Cancel',
               style: GoogleFonts.montserrat(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -285,10 +344,9 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             ),
           ),
           ElevatedButton.icon(
-            onPressed: widget.onAccept,
+            onPressed: _isAcceptButtonEnabled ? widget.onAccept : _handleAcceptPressed,
             icon: Icon(CupertinoIcons.check_mark, color: Colors.black),
-            label: Text(
-              'Accept',
+            label: Text(strings?.accept ?? 'Accept',
               style: GoogleFonts.montserrat(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -296,7 +354,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[300],
+              backgroundColor: _isAcceptButtonEnabled ? Colors.green[300] : Colors.grey[600],
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
             ),
           ),
