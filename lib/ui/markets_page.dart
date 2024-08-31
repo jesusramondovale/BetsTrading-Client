@@ -157,7 +157,6 @@ class MarketsViewState extends State<MarketsView> {
               return GestureDetector(
                 onTap: () {
                   showModalBottomSheet(
-
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,

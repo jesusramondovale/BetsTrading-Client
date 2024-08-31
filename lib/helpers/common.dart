@@ -232,48 +232,48 @@ class Common {
     Color strokeColor = Colors.white;
     List<RectangleZone> zones = [
       RectangleZone(
-          startDate: DateTime.now(),
+          startDate: DateTime.now().add(const Duration(days: 15)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.2,
           lowPrice: 1.12,
           fillColor: Colors.green.withOpacity(0.4),
           strokeColor: strokeColor,
-          oddsLabel: 'x ${(Random().nextDouble()*25).toStringAsFixed(2)}',
+          oddsLabel: 'x${(Random().nextDouble()*25).toStringAsFixed(2)}',
           bet: generateRandomBet()
       ),
 
       RectangleZone(
-          startDate: DateTime.now().add(const Duration(days: 5)),
+          startDate: DateTime.now().add(const Duration(days: 9)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.25,
           lowPrice: 1.2,
           fillColor: Colors.green.withOpacity(0.6),
           strokeColor: strokeColor,
-          oddsLabel: 'x ${(Random().nextDouble()*25).toStringAsFixed(2)}',
+          oddsLabel: 'x${(Random().nextDouble()*25).toStringAsFixed(2)}',
           bet: generateRandomBet()
       ),
 
 
       RectangleZone(
-          startDate: DateTime.now().add(const Duration(days: 5)),
+          startDate: DateTime.now().add(const Duration(days: 7)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.05,
           lowPrice: 0.95,
           fillColor: Colors.red.withOpacity(0.4),
           strokeColor: strokeColor,
-          oddsLabel: 'x ${(Random().nextDouble()*25).toStringAsFixed(2)}',
+          oddsLabel: 'x${(Random().nextDouble()*25).toStringAsFixed(2)}',
           bet: generateRandomBet()
       ),
 
 
       RectangleZone(
-          startDate: DateTime.now().add(const Duration(days: 5)),
+          startDate: DateTime.now().add(const Duration(days: 4)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 0.95,
           lowPrice: 0.8,
           fillColor: Colors.red.withOpacity(0.6),
           strokeColor: strokeColor,
-          oddsLabel: 'x ${(Random().nextDouble()*25).toStringAsFixed(2)}',
+          oddsLabel: 'x${(Random().nextDouble()*25).toStringAsFixed(2)}',
           bet: generateRandomBet()
       ),
 

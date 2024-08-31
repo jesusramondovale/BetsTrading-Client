@@ -56,6 +56,8 @@ class Candlesticks extends StatefulWidget {
 
   List<RectangleZone> rectangleZones = [];
 
+  final String chartTitle;
+
   Candlesticks({
     super.key,
     required this.candles,
@@ -68,8 +70,9 @@ class Candlesticks extends StatefulWidget {
     this.onRemoveIndicator,
     this.style,
     required this.onScaleUpdate,
-    required this.rectangleZones, 
+    required this.rectangleZones,
     required this.controller,
+    required this.chartTitle,
   }) : assert(candles.isEmpty || candles.length > 1,
             "Please provide at least 2 candles");
 
@@ -245,51 +248,51 @@ class CandlesticksState extends State<Candlesticks> {
                   );
                 } else {
                   return MobileChart(
-                    style: style,
-                    onRemoveIndicator: widget.onRemoveIndicator,
-                    mainWindowDataContainer: mainWindowDataContainer!,
-                    chartAdjust: widget.chartAdjust,
-                    onScaleUpdate: (double scale) {
-                      scale = max(0.90, scale);
-                      scale = min(1.1, scale);
-                      widget.onScaleUpdate(scale);
-                      setState(() {
-                        /// if (blockZooming) BLOCK ZOOMING HERE
-                        candleWidth *= scale;
-                        candleWidth = min(candleWidth, 20);
-                        candleWidth = max(candleWidth, 2);
-                      });
-                    },
-                    onPanEnd: () {
-                      lastIndex = index;
-                    },
-                    onHorizontalDragUpdate: (ScaleUpdateDetails details) {
-                      setState(() {
-                        var x = details.focalPoint.dx;
-                        x = x - lastX;
-                        index = lastIndex + x ~/ candleWidth;
-                        index = max(index, indexMarginRight);
-                        index = min(index, widget.candles.length - 1);
-                      });
-                    },
-                    onPanDown: (double value) {
-                      lastX = value;
-                      lastIndex = index;
-                    },
-                    onReachEnd: () {
-                      if (isCallingLoadMore == false &&
-                          widget.onLoadMoreCandles != null) {
-                        isCallingLoadMore = true;
-                        widget.onLoadMoreCandles!().then((_) {
-                          isCallingLoadMore = false;
+                      style: style,
+                      onRemoveIndicator: widget.onRemoveIndicator,
+                      mainWindowDataContainer: mainWindowDataContainer!,
+                      chartAdjust: widget.chartAdjust,
+                      onScaleUpdate: (double scale) {
+                        scale = max(0.90, scale);
+                        scale = min(1.1, scale);
+                        widget.onScaleUpdate(scale);
+                        setState(() {
+                          /// if (blockZooming) BLOCK ZOOMING HERE
+                          candleWidth *= scale;
+                          candleWidth = min(candleWidth, 20);
+                          candleWidth = max(candleWidth, 2);
                         });
-                      }
-                    },
-                    candleWidth: width,
-                    candles: widget.candles,
-                    index: index,
-                    rectangleZones: widget.rectangleZones,
-                  );
+                      },
+                      onPanEnd: () {
+                        lastIndex = index;
+                      },
+                      onHorizontalDragUpdate: (ScaleUpdateDetails details) {
+                        setState(() {
+                          var x = details.focalPoint.dx;
+                          x = x - lastX;
+                          index = lastIndex + x ~/ candleWidth;
+                          index = max(index, indexMarginRight);
+                          index = min(index, widget.candles.length - 1);
+                        });
+                      },
+                      onPanDown: (double value) {
+                        lastX = value;
+                        lastIndex = index;
+                      },
+                      onReachEnd: () {
+                        if (isCallingLoadMore == false &&
+                            widget.onLoadMoreCandles != null) {
+                          isCallingLoadMore = true;
+                          widget.onLoadMoreCandles!().then((_) {
+                            isCallingLoadMore = false;
+                          });
+                        }
+                      },
+                      candleWidth: width,
+                      candles: widget.candles,
+                      index: index,
+                      rectangleZones: widget.rectangleZones,
+                      chartTitle: widget.chartTitle);
                 }
               },
             ),

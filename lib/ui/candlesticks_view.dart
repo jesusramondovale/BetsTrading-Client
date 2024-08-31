@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../candlesticks/src/main.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
@@ -10,7 +9,7 @@ class CandlesticksView extends StatefulWidget {
   final String name;
   final List<Candle> candles;
   final MainMenuPageController controller;
-  
+
   CandlesticksView(this.id, this.name, {super.key, required this.controller})
       : candles = Common().generateRandomCandles(520);
 
@@ -21,7 +20,8 @@ class CandlesticksView extends StatefulWidget {
 class CandlesticksViewState extends State<CandlesticksView> {
   late final ValueNotifier<double> candleScaleNotifier =
   ValueNotifier<double>(1.0);
-  
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -35,31 +35,27 @@ class CandlesticksViewState extends State<CandlesticksView> {
                 return Center(
                   child: Stack(
                     children: <Widget>[
+
                       Candlesticks(
                         candles: widget.candles,
                         displayZoomActions: false,
                         onScaleUpdate: (double scale) {
                           candleScaleNotifier.value = scale;
                         },
-                        rectangleZones: Common().generateRectangleZones(), controller: widget.controller,
+                        rectangleZones: Common().generateRectangleZones(),
+                        controller: widget.controller,
+                        chartTitle: widget.name,
+
                       ),
                       Positioned(
                         top: 10.0,
-                        left: 20.0,
-                        right: 20.0,
-                        child:
-                            Text(
-                              widget.name,
-                              style: GoogleFonts.abel(
-                                fontSize: 26.0,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.grey,
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                            )
+                        left: 10.0,
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back), // Ícono de ejemplo
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
                       ),
                     ],
                   ),

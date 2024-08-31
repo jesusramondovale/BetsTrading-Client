@@ -48,7 +48,7 @@ class _PriceColumnState extends State<PriceColumn> {
     final double newHigh = (widget.high ~/ priceScale + 1) * priceScale;
     final double top = -priceTileHeight / priceScale * (newHigh - widget.high) +
         MAIN_CHART_VERTICAL_PADDING -
-        priceTileHeight / 2;
+        priceTileHeight / 2 + 100;
     return GestureDetector(
       onVerticalDragUpdate: (details) {
         /// DISPARA SOLO AL PELLIZCAR BARRA LATERAL
@@ -69,10 +69,13 @@ class _PriceColumnState extends State<PriceColumn> {
                 controller: scrollController,
                 children: List<Widget>.generate(20, (i) {
                   return AnimatedContainer(
+
                     duration: const Duration(milliseconds: 300),
                     height: priceTileHeight,
                     width: double.infinity,
+
                     child: Center(
+
                       child: Row(
                         children: [
                           Container(
@@ -98,6 +101,7 @@ class _PriceColumnState extends State<PriceColumn> {
               ),
             ),
             AnimatedPositioned(
+
               duration: const Duration(milliseconds: 300),
               right: 0,
               top: calculatePriceIndicatorTopPadding(

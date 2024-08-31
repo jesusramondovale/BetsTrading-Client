@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:google_fonts/google_fonts.dart';
+
 import '../../../helpers/range_painter.dart';
 import '../../../helpers/rectangle_zone.dart';
 import '../../../models/bets.dart';
@@ -35,6 +37,7 @@ class MobileChart extends StatefulWidget {
   final void Function(String)? onRemoveIndicator;
   final Function() onReachEnd;
   final List<RectangleZone> rectangleZones;
+  final String chartTitle;
 
   const MobileChart({
     super.key,
@@ -51,13 +54,15 @@ class MobileChart extends StatefulWidget {
     required this.mainWindowDataContainer,
     required this.onRemoveIndicator,
     required this.rectangleZones,
+    required this.chartTitle,
+
   });
 
   @override
-  State<MobileChart> createState() => _MobileChartState();
+  State<MobileChart> createState() => MobileChartState();
 }
 
-class _MobileChartState extends State<MobileChart> {
+class MobileChartState extends State<MobileChart> {
   final GlobalKey _customPaintKey = GlobalKey();
   double? longPressX;
   double? longPressY;
@@ -69,8 +74,6 @@ class _MobileChartState extends State<MobileChart> {
   ScaleUpdateDetails lastDetails = ScaleUpdateDetails();
   int lastTimestamp = 0;
   bool firstVerticalDragOffset = true;
-
-
 
   @override
   void initState() {
@@ -87,10 +90,12 @@ class _MobileChartState extends State<MobileChart> {
     setState(() {
       manualScaleHigh = maxPrice + (maxPrice - minPrice) * 0.1;  // Margen del 10% adicional
       manualScaleLow = minPrice - (maxPrice - minPrice) * 0.1;   // Margen del 10% adicional
-
+      scaleX = 1.0;
       offsetY = 0.0;
     });
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -175,6 +180,25 @@ class _MobileChartState extends State<MobileChart> {
                   color: widget.style.background,
                   child: Stack(
                     children: [
+
+                      Positioned(
+                        top: 10.0,
+                        left: 20.0,
+                        right: 20.0,
+                        child: Text(
+                          widget.chartTitle,
+                          style: GoogleFonts.openSans(
+                            fontSize: 26.0,
+                            fontWeight: FontWeight.w300,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.grey,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                        ),
+                      ),
+
                       TimeRow(
                         style: widget.style,
                         indicatorX: longPressX,
@@ -240,7 +264,7 @@ class _MobileChartState extends State<MobileChart> {
                                           border: Border(
                                             right: BorderSide(
                                               color: widget.style.borderColor,
-                                              width: 1,
+                                              width: 5,
                                             ),
                                           ),
                                         ),
@@ -287,6 +311,7 @@ class _MobileChartState extends State<MobileChart> {
                                   ],
                                 ),
                               ],
+
                             ),
                           ),
                           Expanded(
@@ -431,7 +456,7 @@ class _MobileChartState extends State<MobileChart> {
                                 }
                               });
                             }
-                            widget.onScaleUpdate(details.scale);
+                            widget.onScaleUpdate(1 + (details.scale - 1) * 0.05);
                           },
                           onScaleStart: (details) {
                             widget.onPanDown(details.localFocalPoint.dx);
@@ -558,6 +583,17 @@ class _MobileChartState extends State<MobileChart> {
                           }
                         },
                       ),
+                      Positioned(
+                        top: 10.0,
+                        right: 10.0,
+                        child: IconButton(
+                          icon: Icon(Icons.refresh,size: 25,), // Ícono de ejemplo
+                          onPressed: () {
+                            _ensureZonesVisible();
+                          },
+                        ),
+                      ),
+
                     ],
                   ),
                 );
