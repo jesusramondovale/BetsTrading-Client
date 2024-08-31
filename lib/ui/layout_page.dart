@@ -162,8 +162,7 @@ class MainMenuPageState extends State<MainMenuPage> {
           ),
         ),
         bottomNavigationBar:
-        Expanded(
-          child: ValueListenableBuilder<int>(
+        ValueListenableBuilder<int>(
             valueListenable: _controller.selectedIndexNotifier,
             builder: (context, index, _){
               return BottomNavigationBar(
@@ -206,7 +205,7 @@ class MainMenuPageState extends State<MainMenuPage> {
               );
             }
           )
-        )
+
       );
     }
   }
