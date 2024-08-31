@@ -70,6 +70,52 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     );
   }
 
+  Widget _buildBetHeader(BuildContext context) {
+    return Row(
+      children: [
+        if (widget.bet.iconPath != "null") ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8.0),
+            child: Image.memory(
+              base64Decode("iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADMElEQVR4nOzVwQnAIBQFQYXff81RUkQCOyDj1YOPnbXWPmeTRef+/3O/OyBjzh3CD95BfqICMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMO0TAAD//2Anhf4QtqobAAAAAElFTkSuQmCC"),
+              height: 80,
+              width: 80,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ],
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.bet.name,
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Ticker: ${widget.bet.ticker}',
+                style: GoogleFonts.roboto(
+                  fontSize: 16,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white70
+                      : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildBetDetails(BuildContext context) {
     final strings = LocalizedStrings.of(context);
 
@@ -88,25 +134,25 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           context,
           icon: Icons.update,
           value: '${widget.bet.originValue.toStringAsFixed(2)}€',
-          label: strings.originValue ?? "Origin value",
+          label: strings?.originValue ?? "Origin value",
         ),
         _buildGridItem(
           context,
           icon: Icons.crop_sharp,
           value: '${widget.bet.targetValue.toStringAsFixed(2)}€',
-          label: strings.targetValue ?? "Target value",
+          label: strings?.targetValue ?? "Target value",
         ),
         _buildGridItem(
           context,
           icon: Icons.date_range,
           value: DateFormat('dd-MM-yyyy').format(widget.bet.targetDate),
-          label: strings.targetDate ?? "Target date",
+          label: strings?.targetDate ?? "Target date",
         ),
         _buildGridItem(
           context,
           icon: Icons.data_object_sharp,
           value: '${widget.bet.targetMargin.toStringAsFixed(2)}%',
-          label: strings.targetMargin ?? "Target margin",
+          label: strings?.targetMargin ?? "Target margin",
         ),
       ],
     );
