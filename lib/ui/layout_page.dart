@@ -9,7 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:client_0_0_1/candlesticks/candlesticks.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'home_page.dart';
 import 'login_page.dart';
@@ -49,7 +48,6 @@ class MainMenuPageState extends State<MainMenuPage> {
   final MainMenuPageController _controller = MainMenuPageController();
   String _username = '';
   bool _isLoading = true;
-
 
   Future<void> _loadProfilePic() async {
     String? profilePicString = await _storage.read(key: 'profilepic');
@@ -123,11 +121,15 @@ class MainMenuPageState extends State<MainMenuPage> {
 
     _pages = [
       // HOME
-      HomeScreen(controller: _controller,),
+      HomeScreen(
+        controller: _controller,
+      ),
       // TOP USERS
       TopUsersPage(),
       // MARKETS
-      MarketsView(controller: _controller,),
+      MarketsView(
+        controller: _controller,
+      ),
       // SETTINGS
       SettingsView(onPersonalInfoTap: () => _controller.updateIndex(3)),
       // PERSONAL INFO
@@ -148,9 +150,9 @@ class MainMenuPageState extends State<MainMenuPage> {
               Expanded(
                 child: ValueListenableBuilder<int>(
                   valueListenable: _controller.selectedIndexNotifier,
-                  builder: (context, selectedIndex, _) {
+                  builder: (context, index, _) {
                     return IndexedStack(
-                      index: selectedIndex,
+                      index: _controller.selectedIndexNotifier.value,
                       children: _pages,
                     );
                   },
@@ -159,44 +161,52 @@ class MainMenuPageState extends State<MainMenuPage> {
             ],
           ),
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          selectedItemColor: Colors.deepPurple,
-          items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.home_outlined),
-              activeIcon: const Icon(Icons.home),
-              label: strings?.home ?? "Home",
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.public),
-              label: strings?.ranking ?? "Ranking",
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.casino_outlined),
-              activeIcon: const Icon(Icons.casino),
-              label: strings?.liveMarkets ?? 'Live Markets',
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.settings_outlined),
-              activeIcon: const Icon(Icons.settings),
-              label: strings?.settings ?? 'Settings',
-            ),
-            BottomNavigationBarItem(
-              icon: (_profilePicBytes != null
-                  ? CircleAvatar(
-                backgroundImage: MemoryImage(_profilePicBytes!),
-                radius: 15,
-              )
-                  : const Icon(Icons.account_circle_outlined)),
-              label: _username,
-            ),
-          ],
-          currentIndex: _controller.selectedIndexNotifier.value,
-          onTap: (index) {
-            _controller.updateIndex(index);
-          },
-          type: BottomNavigationBarType.fixed,
-        ),
+        bottomNavigationBar:
+        Expanded(
+          child: ValueListenableBuilder<int>(
+            valueListenable: _controller.selectedIndexNotifier,
+            builder: (context, index, _){
+              return BottomNavigationBar(
+                selectedItemColor: Colors.deepPurple,
+                items: <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: const Icon(Icons.home_outlined),
+                    activeIcon: const Icon(Icons.home),
+                    label: strings?.home ?? "Home",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: const Icon(Icons.public),
+                    label: strings?.ranking ?? "Ranking",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: const Icon(Icons.casino_outlined),
+                    activeIcon: const Icon(Icons.casino),
+                    label: strings?.liveMarkets ?? 'Live Markets',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: const Icon(Icons.settings_outlined),
+                    activeIcon: const Icon(Icons.settings),
+                    label: strings?.settings ?? 'Settings',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: (_profilePicBytes != null
+                        ? CircleAvatar(
+                      backgroundImage: MemoryImage(_profilePicBytes!),
+                      radius: 15,
+                    )
+                        : const Icon(Icons.account_circle_outlined)),
+                    label: _username,
+                  ),
+                ],
+                currentIndex: _controller.selectedIndexNotifier.value,
+                onTap: (index) {
+                  _controller.updateIndex(index);
+                },
+                type: BottomNavigationBarType.fixed,
+              );
+            }
+          )
+        )
       );
     }
   }

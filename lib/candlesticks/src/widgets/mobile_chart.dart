@@ -70,9 +70,26 @@ class _MobileChartState extends State<MobileChart> {
   int lastTimestamp = 0;
   bool firstVerticalDragOffset = true;
 
+
+
   @override
   void initState() {
     super.initState();
+    _ensureZonesVisible();
+  }
+
+  void _ensureZonesVisible() {
+    if (widget.rectangleZones.isEmpty) return;
+
+    double minPrice = widget.rectangleZones.map((zone) => zone.highPrice).reduce(min);
+    double maxPrice = widget.rectangleZones.map((zone) => zone.lowPrice).reduce(max);
+
+    setState(() {
+      manualScaleHigh = maxPrice + (maxPrice - minPrice) * 0.1;  // Margen del 10% adicional
+      manualScaleLow = minPrice - (maxPrice - minPrice) * 0.1;   // Margen del 10% adicional
+
+      offsetY = 0.0;
+    });
   }
 
   @override
@@ -118,8 +135,8 @@ class _MobileChartState extends State<MobileChart> {
         }
 
         double priceRange = candlesHighPrice - candlesLowPrice;
-        candlesHighPrice += priceRange * (rangeMultiplier - 1) / 2;
-        candlesLowPrice -= priceRange * (rangeMultiplier - 1) / 2;
+        candlesHighPrice += priceRange * (rangeMultiplier - 1)/1.5 ;
+        candlesLowPrice -= priceRange * (rangeMultiplier - 1)/1.5;
 
         if (candlesHighPrice == candlesLowPrice) {
           candlesHighPrice += 10;
@@ -512,25 +529,32 @@ class _MobileChartState extends State<MobileChart> {
                                   details.localPosition.dy, size);
 
                           if (zoneClicked != null) {
-// Asumiendo que cada zona tiene una apuesta asociada.
+
                             Bet? bet = zoneClicked.bet;
 
-                            if (bet != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => BetConfirmationPage(
-                                    bet: bet,
-                                    onAccept: () {
-                                      Navigator.pop(context);
-                                    },
-                                    onCancel: () {
-                                      Navigator.pop(context);
-                                    },
-                                  ),
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        BetConfirmationPage(
+                                  bet: bet,
+                                  onAccept: () {
+                                    Navigator.pop(context);
+                                  },
+                                  onCancel: () {
+                                    Navigator.pop(context);
+                                  },
                                 ),
-                              );
-                            }
+                                transitionsBuilder: (context, animation,
+                                    secondaryAnimation, child) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  );
+                                },
+                              ),
+                            );
                           }
                         },
                       ),

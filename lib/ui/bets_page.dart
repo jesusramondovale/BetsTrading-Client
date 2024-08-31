@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart';  // Necesario para DateFormat
+import 'package:intl/intl.dart'; // Necesario para DateFormat
 
 import '../locale/localized_texts.dart';
 import '../models/bets.dart';
@@ -67,8 +67,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.black,
-        title: Text(strings?.confirmOperation ?? 'Confirm Order',
-
+        title: Text(
+          strings?.confirmOperation ?? 'Confirm Order',
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.w600,
           ),
@@ -85,7 +85,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           ),
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Desenfoque
+              filter:
+                  ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Desenfoque
               child: Container(
                 color: Colors.black.withOpacity(0.7),
               ),
@@ -130,15 +131,14 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         const SizedBox(width: 16),
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 widget.bet.name,
                 style: GoogleFonts.openSans(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 34,
-                  color: Colors.white
-                ),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 34,
+                    color: Colors.white),
               ),
               const SizedBox(height: 8),
               Text(
@@ -198,37 +198,27 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   }
 
   Widget _buildGridItem(
-      BuildContext context, {
-        required IconData icon,
-        required String value,
-        required String label,
-      }) {
+    BuildContext context, {
+    required IconData icon,
+    required String value,
+    required String label,
+  }) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(
-          icon,
-          size: 70,
-          color: Colors.white
-        ),
+        Icon(icon, size: 70, color: Colors.white),
         const SizedBox(height: 8),
         Text(
           value,
           style: GoogleFonts.montserrat(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color:  Colors.white
-          ),
+              fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
         ),
         const SizedBox(height: 4),
         Text(
           label,
           style: GoogleFonts.roboto(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: Colors.white70
-          ),
+              fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white70),
           textAlign: TextAlign.center,
         ),
       ],
@@ -242,12 +232,27 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          '${multiplierString} x${widget.bet.targetOdds.toStringAsFixed(2)}',
-          style: GoogleFonts.montserrat(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-            color:  Colors.white
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: multiplierString + ' ',
+                style: GoogleFonts.montserrat(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              TextSpan(
+                text:
+                    'x${widget.bet.targetOdds.toStringAsFixed(2)}', // Parte que será morada
+                style: GoogleFonts.montserrat(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.purple, // Color morado para la segunda parte
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 5),
@@ -256,19 +261,24 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           children: [
             Text(
               strings?.enterBetAmount ?? 'Enter Bet Amount',
-              style: GoogleFonts.montserrat(fontSize: 20.0, color: Colors.white),
+              style:
+                  GoogleFonts.montserrat(fontSize: 20.0, color: Colors.white),
             ),
             SizedBox(
               width: 140,
               child: TextField(
                 textAlign: TextAlign.end,
-                style: GoogleFonts.montserrat(fontSize: 20.0, fontWeight: FontWeight.w800, color: Colors.greenAccent),
+                style: GoogleFonts.montserrat(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.greenAccent),
                 cursorColor: Colors.white,
                 focusNode: _betAmountFocusNode,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   focusColor: Colors.white,
-                  suffixIcon: Icon(CupertinoIcons.money_euro, size: 30, color: Colors.white),
+                  suffixIcon: Icon(CupertinoIcons.money_euro,
+                      size: 30, color: Colors.white),
                 ),
                 onChanged: _calculatePotentialPrize,
               ),
@@ -289,10 +299,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           Text(
             strings?.potentialPrize ?? 'Potential Prize:',
             style: GoogleFonts.montserrat(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color:  Colors.white
-            ),
+                fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
           ),
           Text(
             '${_potentialPrize.toStringAsFixed(2)}€',
@@ -331,7 +338,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           ElevatedButton.icon(
             onPressed: widget.onCancel,
             icon: Icon(CupertinoIcons.clear, color: Colors.black),
-            label: Text(strings?.cancel ?? 'Cancel',
+            label: Text(
+              strings?.cancel ?? 'Cancel',
               style: GoogleFonts.montserrat(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -344,9 +352,11 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             ),
           ),
           ElevatedButton.icon(
-            onPressed: _isAcceptButtonEnabled ? widget.onAccept : _handleAcceptPressed,
+            onPressed:
+                _isAcceptButtonEnabled ? widget.onAccept : _handleAcceptPressed,
             icon: Icon(CupertinoIcons.check_mark, color: Colors.black),
-            label: Text(strings?.accept ?? 'Accept',
+            label: Text(
+              strings?.accept ?? 'Accept',
               style: GoogleFonts.montserrat(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -354,7 +364,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _isAcceptButtonEnabled ? Colors.green[300] : Colors.grey[600],
+              backgroundColor:
+                  _isAcceptButtonEnabled ? Colors.green[300] : Colors.grey[600],
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
             ),
           ),
