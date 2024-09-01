@@ -226,7 +226,7 @@ class MobileChartState extends State<MobileChart> {
                                         candleWidth: widget.candleWidth,
                                         topPrice: max(widget.rectangleZones.map((zone) => zone.highPrice)
                                                   .reduce((value, element) => value > element ? value : element) , candlesHighPrice) ,
-                                        bottomPrice: min(widget.rectangleZones.map((zone) => zone.highPrice)
+                                        bottomPrice: min(widget.rectangleZones.map((zone) => zone.lowPrice)
                                             .reduce((value, element) => value < element ? value : element) , candlesLowPrice),
                                         index: widget.index,
                                         minIndex: -20,
