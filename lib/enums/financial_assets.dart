@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 class FinancialAsset {
   final int id;
   final String name;
+  final String ticker;
   final String group;
   final String icon;
   final String country;
@@ -15,6 +16,7 @@ class FinancialAsset {
     required this.group,
     required this.icon,
     required this.country,
+    required this.ticker,
   });
 
   factory FinancialAsset.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,7 @@ class FinancialAsset {
       group: json['group'],
       icon: json['icon'],
       country: json['country'],
+      ticker: json['ticker'],
     );
   }
 

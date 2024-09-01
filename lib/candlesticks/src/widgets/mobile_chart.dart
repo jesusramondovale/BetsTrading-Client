@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../helpers/range_painter.dart';
 import '../../../helpers/rectangle_zone.dart';
-import '../../../models/bets.dart';
 import '../../../ui/bets_page.dart';
 import '../../candlesticks.dart';
 import '../constant/view_constants.dart';
@@ -38,6 +37,7 @@ class MobileChart extends StatefulWidget {
   final Function() onReachEnd;
   final List<RectangleZone> rectangleZones;
   final String chartTitle;
+  final String iconPath;
 
   const MobileChart({
     super.key,
@@ -55,11 +55,14 @@ class MobileChart extends StatefulWidget {
     required this.onRemoveIndicator,
     required this.rectangleZones,
     required this.chartTitle,
-
+    required this.iconPath,
   });
 
   @override
   State<MobileChart> createState() => MobileChartState();
+}
+
+class BetZones {
 }
 
 class MobileChartState extends State<MobileChart> {
@@ -84,18 +87,20 @@ class MobileChartState extends State<MobileChart> {
   void _ensureZonesVisible() {
     if (widget.rectangleZones.isEmpty) return;
 
-    double minPrice = widget.rectangleZones.map((zone) => zone.highPrice).reduce(min);
-    double maxPrice = widget.rectangleZones.map((zone) => zone.lowPrice).reduce(max);
+    double minPrice =
+        widget.rectangleZones.map((zone) => zone.highPrice).reduce(min);
+    double maxPrice =
+        widget.rectangleZones.map((zone) => zone.lowPrice).reduce(max);
 
     setState(() {
-      manualScaleHigh = maxPrice + (maxPrice - minPrice) * 0.1;  // Margen del 10% adicional
-      manualScaleLow = minPrice - (maxPrice - minPrice) * 0.1;   // Margen del 10% adicional
+      manualScaleHigh =
+          maxPrice + (maxPrice - minPrice) * 0.1; // Margen del 10% adicional
+      manualScaleLow =
+          minPrice - (maxPrice - minPrice) * 0.1; // Margen del 10% adicional
       scaleX = 1.0;
       offsetY = 0.0;
     });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -140,8 +145,8 @@ class MobileChartState extends State<MobileChart> {
         }
 
         double priceRange = candlesHighPrice - candlesLowPrice;
-        candlesHighPrice += priceRange * (rangeMultiplier - 1)/1.5 ;
-        candlesLowPrice -= priceRange * (rangeMultiplier - 1)/1.5;
+        candlesHighPrice += priceRange * (rangeMultiplier - 1) / 1.5;
+        candlesLowPrice -= priceRange * (rangeMultiplier - 1) / 1.5;
 
         if (candlesHighPrice == candlesLowPrice) {
           candlesHighPrice += 10;
@@ -180,7 +185,6 @@ class MobileChartState extends State<MobileChart> {
                   color: widget.style.background,
                   child: Stack(
                     children: [
-
                       Positioned(
                         top: 10.0,
                         left: 20.0,
@@ -190,15 +194,15 @@ class MobileChartState extends State<MobileChart> {
                           style: GoogleFonts.openSans(
                             fontSize: 26.0,
                             fontWeight: FontWeight.w300,
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.grey,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.grey,
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
                         ),
                       ),
-
                       TimeRow(
                         style: widget.style,
                         indicatorX: longPressX,
@@ -220,8 +224,10 @@ class MobileChartState extends State<MobileChart> {
                                         zones: widget.rectangleZones,
                                         candles: widget.candles,
                                         candleWidth: widget.candleWidth,
-                                        topPrice: candlesHighPrice,
-                                        bottomPrice: candlesLowPrice,
+                                        topPrice: max(widget.rectangleZones.map((zone) => zone.highPrice)
+                                                  .reduce((value, element) => value > element ? value : element) , candlesHighPrice) ,
+                                        bottomPrice: min(widget.rectangleZones.map((zone) => zone.highPrice)
+                                            .reduce((value, element) => value < element ? value : element) , candlesLowPrice),
                                         index: widget.index,
                                         minIndex: -20,
                                         priceColumnWidth: PRICE_BAR_WIDTH),
@@ -311,7 +317,6 @@ class MobileChartState extends State<MobileChart> {
                                   ],
                                 ),
                               ],
-
                             ),
                           ),
                           Expanded(
@@ -456,7 +461,8 @@ class MobileChartState extends State<MobileChart> {
                                 }
                               });
                             }
-                            widget.onScaleUpdate(1 + (details.scale - 1) * 0.05);
+                            widget
+                                .onScaleUpdate(1 + (details.scale - 1) * 0.05);
                           },
                           onScaleStart: (details) {
                             widget.onPanDown(details.localFocalPoint.dx);
@@ -554,16 +560,15 @@ class MobileChartState extends State<MobileChart> {
                                   details.localPosition.dy, size);
 
                           if (zoneClicked != null) {
-
-                            Bet? bet = zoneClicked.bet;
-
                             Navigator.push(
                               context,
                               PageRouteBuilder(
                                 pageBuilder:
                                     (context, animation, secondaryAnimation) =>
                                         BetConfirmationPage(
-                                  bet: bet,
+                                  zone: zoneClicked,
+                                  currentValue: widget.candles.last.close,
+                                  iconPath: widget.iconPath,
                                   onAccept: () {
                                     Navigator.pop(context);
                                   },
@@ -587,13 +592,15 @@ class MobileChartState extends State<MobileChart> {
                         top: 10.0,
                         right: 10.0,
                         child: IconButton(
-                          icon: Icon(Icons.refresh,size: 25,), // Ícono de ejemplo
+                          icon: Icon(
+                            Icons.refresh,
+                            size: 25,
+                          ), // Ícono de ejemplo
                           onPressed: () {
                             _ensureZonesVisible();
                           },
                         ),
                       ),
-
                     ],
                   ),
                 );

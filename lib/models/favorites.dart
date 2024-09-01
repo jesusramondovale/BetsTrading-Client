@@ -206,7 +206,7 @@ class FavoriteDialog extends StatelessWidget {
                                           children: [
 
                                             Expanded(
-                                              child: CandlesticksView(favorite.id.toString(), favorite.name, controller: this.controller,),
+                                              child: CandlesticksView(favorite.id.toString(), favorite.name, controller: this.controller, iconPath: favorite.icon ),
                                             ),
                                           ],
                                         ),

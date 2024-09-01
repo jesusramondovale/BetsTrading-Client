@@ -1,12 +1,27 @@
 import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../helpers/common.dart';
+import '../models/betZone.dart';
 import '../models/bets.dart';
 import '../models/favorites.dart';
 import '../models/trends.dart';
 
 class BetsService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  Future<List<BetZone>> fetchBetZones(String ticker) async {
+    final response = await Common().postRequestWrapper('Info','GetBets', {'id': ticker});
+
+    if (response['statusCode'] == 200) {
+      List<BetZone> zones = (response['body']['bets'] as List)
+          .map((json) => BetZone.fromJson(json))
+          .toList();
+
+      return zones;
+    } else {
+      return [];
+    }
+  }
 
   Future<Bets> fetchInvestmentData(String userId) async {
     final response = await Common().postRequestWrapper('Info','UserBets', {'id': userId});

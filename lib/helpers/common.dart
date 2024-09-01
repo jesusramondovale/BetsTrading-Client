@@ -8,6 +8,7 @@ import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import '../models/betZone.dart';
 import '../models/bets.dart';
 import '../models/trends.dart';
 import '../ui/layout_page.dart';
@@ -228,6 +229,36 @@ class Common {
     );
   }
 
+  List<RectangleZone> getRectangleZonesFromBetZones(List<BetZone> betZones) {
+    Color strokeColor = Colors.white;
+
+    List<RectangleZone> zones = betZones.map((betZone) {
+      //TO-DO
+      // Determinar el color de relleno basado en algún criterio
+      Color fillColor;
+      if (betZone.targetValue > 1.0) {
+        fillColor = Colors.green.withOpacity(0.4);
+      } else {
+        fillColor = Colors.red.withOpacity(0.4);
+      }
+
+      return RectangleZone(
+        startDate: betZone.startDate,
+        endDate: betZone.endDate ?? DateTime.now().add(const Duration(days: 1)),
+        highPrice: betZone.targetValue + (betZone.targetValue * betZone.betMargin/200),
+        lowPrice: betZone.targetValue - (betZone.targetValue * betZone.betMargin/200),
+        margin: betZone.betMargin,
+        fillColor: fillColor,
+        strokeColor: strokeColor,
+        odds: betZone.targetOdds,
+        ticker: betZones.first.ticker,
+
+      );
+    }).toList();
+
+    return zones;
+  }
+
   List<RectangleZone> generateRectangleZones() {
     Color strokeColor = Colors.white;
     List<RectangleZone> zones = [
@@ -238,8 +269,9 @@ class Common {
           lowPrice: 1.12,
           fillColor: Colors.green.withOpacity(0.4),
           strokeColor: strokeColor,
-          oddsLabel: 'x${(Random().nextDouble()*25).toStringAsFixed(2)}',
-          bet: generateRandomBet()
+          odds: (Random().nextDouble()*25),
+          margin: 5, ticker: ''
+
       ),
 
       RectangleZone(
@@ -249,8 +281,9 @@ class Common {
           lowPrice: 1.2,
           fillColor: Colors.green.withOpacity(0.6),
           strokeColor: strokeColor,
-          oddsLabel: 'x${(Random().nextDouble()*25).toStringAsFixed(2)}',
-          bet: generateRandomBet()
+          odds: (Random().nextDouble()*25),
+          margin: 5, ticker: ''
+
       ),
 
 
@@ -261,8 +294,9 @@ class Common {
           lowPrice: 0.95,
           fillColor: Colors.red.withOpacity(0.4),
           strokeColor: strokeColor,
-          oddsLabel: 'x${(Random().nextDouble()*25).toStringAsFixed(2)}',
-          bet: generateRandomBet()
+          odds: (Random().nextDouble()*25),
+          margin: 5, ticker: ''
+
       ),
 
 
@@ -273,8 +307,9 @@ class Common {
           lowPrice: 0.8,
           fillColor: Colors.red.withOpacity(0.6),
           strokeColor: strokeColor,
-          oddsLabel: 'x${(Random().nextDouble()*25).toStringAsFixed(2)}',
-          bet: generateRandomBet()
+          odds: (Random().nextDouble()*25),
+          margin: 5, ticker: ''
+
       ),
 
 
@@ -699,8 +734,9 @@ class Common {
         lowPrice: 0.0,
         fillColor: Colors.green.withOpacity(0.4),
         strokeColor: Colors.white,
-        oddsLabel: '',
-        bet: Bet(0,false,0, id: 1234, ticker: '', name: '', iconPath: '', betAmount: 0, originValue: 0, targetValue: 0, targetMargin: 0, targetDate: DateTime(0), targetOdds: 0)
+        odds: 0.0,
+        margin: 0, ticker: ''
+
     );
   }
   Future<String> pickImageFromGallery() async {

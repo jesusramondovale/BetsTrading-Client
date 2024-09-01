@@ -174,7 +174,11 @@ class MarketsViewState extends State<MarketsView> {
                             child: Column(
                               children: [
                                 Expanded(
-                                  child: CandlesticksView(asset.id.toString(), asset.name, controller: widget.controller,),
+                                  child: CandlesticksView(
+                                    asset.ticker,
+                                    asset.name,
+                                    controller: widget.controller,
+                                    iconPath: asset.icon,),
                                 ),
                               ],
                             ),

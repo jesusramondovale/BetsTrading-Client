@@ -39,7 +39,7 @@ class RangePainter extends CustomPainter {
   }
 
   double priceToY(double price, double high, double low, Size size) {
-    assert(high > low, "ERROR. Lowest must be lower than highest");
+    assert(high > low, "ERROR. Lowest must be lower than highest: High: ${high} Low: ${low}");
     double proportion = (price - low) / (high - low);
     double yPosition = (1 - proportion) * size.height;
     return yPosition;
@@ -52,10 +52,8 @@ class RangePainter extends CustomPainter {
         .reduce((a, b) => a.isAfter(b) ? a : b);
 
     for (final zone in zones) {
-      double startX =
-          dateToX(zone.startDate, index, candleWidth, maxCandleDate, size);
-      double endX =
-          dateToX(zone.endDate, index, candleWidth, maxCandleDate, size);
+      double startX = dateToX(zone.startDate, index, candleWidth, maxCandleDate, size);
+      double endX = dateToX(zone.endDate, index, candleWidth, maxCandleDate, size);
       endX = max(endX, startX + candleWidth);
       double startY = priceToY(zone.highPrice, topPrice, bottomPrice, size);
       double endY = priceToY(zone.lowPrice, topPrice, bottomPrice, size);
@@ -67,9 +65,9 @@ class RangePainter extends CustomPainter {
       canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintFill);
 
       double fontSize = Common()
-          .calculateMaxFontSize(zone.oddsLabel, FontWeight.bold, endX - startX);
+          .calculateMaxFontSize('x${zone.odds.toStringAsFixed(2)}', FontWeight.bold, endX - startX);
       final textSpan = TextSpan(
-        text: zone.oddsLabel,
+        text: 'x${zone.odds.toStringAsFixed(2)}',
         style: TextStyle(
             color: zone.strokeColor,
             fontSize: fontSize,

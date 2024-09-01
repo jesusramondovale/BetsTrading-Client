@@ -4,20 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart'; // Necesario para DateFormat
-
+import '../helpers/rectangle_zone.dart';
 import '../locale/localized_texts.dart';
-import '../models/bets.dart';
+
+
 
 class BetConfirmationPage extends StatefulWidget {
-  final Bet bet;
+
+  final double currentValue;
+  final String iconPath;
   final VoidCallback onAccept;
   final VoidCallback onCancel;
-
+  final RectangleZone zone;
   const BetConfirmationPage({
     Key? key,
-    required this.bet,
+
     required this.onAccept,
     required this.onCancel,
+    required this.zone,
+    required this.currentValue,
+    required this.iconPath,
+
   }) : super(key: key);
 
   @override
@@ -56,7 +63,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   void _calculatePotentialPrize(String value) {
     setState(() {
       _betAmount = double.tryParse(value) ?? 0.0;
-      _potentialPrize = _betAmount * widget.bet.targetOdds;
+      _potentialPrize = _betAmount * widget.zone.odds;
       _isAcceptButtonEnabled = _betAmount > 0.00999;
     });
   }
@@ -79,7 +86,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           // Imagen de fondo
           Positioned.fill(
             child: Image.memory(
-              base64Decode(widget.bet.iconPath),
+              base64Decode(widget.iconPath),
               fit: BoxFit.cover,
             ),
           ),
@@ -134,7 +141,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                widget.bet.name,
+                widget.zone.ticker,
                 style: GoogleFonts.openSans(
                     fontWeight: FontWeight.bold,
                     fontSize: 34,
@@ -142,7 +149,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Ticker: ${widget.bet.ticker}',
+                'Ticker: ${widget.zone.ticker}',
                 style: GoogleFonts.roboto(
                   fontSize: 16,
                   color: Colors.white70,
@@ -172,25 +179,25 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         _buildGridItem(
           context,
           icon: Icons.update,
-          value: '${widget.bet.originValue.toStringAsFixed(2)}€',
+          value: '${widget.currentValue.toStringAsFixed(2)}€',
           label: strings?.originValue ?? "Origin value",
         ),
         _buildGridItem(
           context,
           icon: Icons.crop_sharp,
-          value: '${widget.bet.targetValue.toStringAsFixed(2)}€',
+          value: '${widget.zone.centerPrice.toStringAsFixed(2)}€',
           label: strings?.targetValue ?? "Target value",
         ),
         _buildGridItem(
           context,
           icon: Icons.date_range,
-          value: DateFormat('dd-MM-yyyy').format(widget.bet.targetDate),
+          value: DateFormat('dd-MM-yyyy').format(widget.zone.endDate),
           label: strings?.targetDate ?? "Target date",
         ),
         _buildGridItem(
           context,
           icon: Icons.data_object_sharp,
-          value: '${widget.bet.targetMargin.toStringAsFixed(2)}%',
+          value: '${widget.zone.margin.toStringAsFixed(2)}%',
           label: strings?.targetMargin ?? "Target margin",
         ),
       ],
@@ -245,7 +252,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               ),
               TextSpan(
                 text:
-                    'x${widget.bet.targetOdds.toStringAsFixed(2)}', // Parte que será morada
+                    'x${widget.zone.odds.toStringAsFixed(2)}',
                 style: GoogleFonts.montserrat(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,

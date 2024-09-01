@@ -58,6 +58,8 @@ class Candlesticks extends StatefulWidget {
 
   final String chartTitle;
 
+  final String iconPath;
+
   Candlesticks({
     super.key,
     required this.candles,
@@ -73,6 +75,7 @@ class Candlesticks extends StatefulWidget {
     required this.rectangleZones,
     required this.controller,
     required this.chartTitle,
+    required this.iconPath,
   }) : assert(candles.isEmpty || candles.length > 1,
             "Please provide at least 2 candles");
 
@@ -292,7 +295,8 @@ class CandlesticksState extends State<Candlesticks> {
                       candles: widget.candles,
                       index: index,
                       rectangleZones: widget.rectangleZones,
-                      chartTitle: widget.chartTitle);
+                      chartTitle: widget.chartTitle,
+                      iconPath: widget.iconPath,);
                 }
               },
             ),
