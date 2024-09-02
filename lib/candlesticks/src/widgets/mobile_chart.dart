@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../helpers/range_painter.dart';
@@ -62,9 +63,6 @@ class MobileChart extends StatefulWidget {
   State<MobileChart> createState() => MobileChartState();
 }
 
-class BetZones {
-}
-
 class MobileChartState extends State<MobileChart> {
   final GlobalKey _customPaintKey = GlobalKey();
   double? longPressX;
@@ -87,16 +85,29 @@ class MobileChartState extends State<MobileChart> {
   void _ensureZonesVisible() {
     if (widget.rectangleZones.isEmpty) return;
 
-    double minPrice =
-        widget.rectangleZones.map((zone) => zone.highPrice).reduce(min);
-    double maxPrice =
-        widget.rectangleZones.map((zone) => zone.lowPrice).reduce(max);
+    List<Candle> last30Candles = widget.candles.length > 30
+        ? widget.candles.sublist(widget.candles.length - 30)
+        : widget.candles;
+
+    double minPrice = min(
+        widget.rectangleZones.map((zone) => zone.lowPrice)
+            .reduce((value, element) => value < element ? value : element),
+        last30Candles.map((candle) => candle.low)
+            .reduce((value, element) => value < element ? value : element)
+    );
+
+    double maxPrice = max(
+        widget.rectangleZones.map((zone) => zone.highPrice)
+            .reduce((value, element) => value > element ? value : element),
+        last30Candles.map((candle) => candle.high)
+            .reduce((value, element) => value > element ? value : element)
+    );
 
     setState(() {
       manualScaleHigh =
-          maxPrice + (maxPrice - minPrice) * 0.1; // Margen del 10% adicional
+          maxPrice + (maxPrice - minPrice) * 0.1;
       manualScaleLow =
-          minPrice - (maxPrice - minPrice) * 0.1; // Margen del 10% adicional
+          minPrice - (maxPrice - minPrice) * 0.1;
       scaleX = 1.0;
       offsetY = 0.0;
     });
@@ -104,6 +115,7 @@ class MobileChartState extends State<MobileChart> {
 
   @override
   Widget build(BuildContext context) {
+    final noBetsText = LocalizedStrings.of(context)!.noBetsAvailable ?? "No Bets available!";
     return LayoutBuilder(
       builder: (context, constraints) {
         final double maxWidth = constraints.maxWidth - PRICE_BAR_WIDTH;
@@ -128,6 +140,8 @@ class MobileChartState extends State<MobileChart> {
 
         double candlesHighPrice = 0;
         double candlesLowPrice = 0;
+        double tweenBegin;
+        double tweenEnd;
 
         if (manualScaleHigh != null) {
           candlesHighPrice = manualScaleHigh!;
@@ -164,8 +178,18 @@ class MobileChartState extends State<MobileChart> {
           longPressY = min(longPressY!, maxHeight);
         }
 
+        if (widget.rectangleZones.isNotEmpty) {
+          tweenBegin =  min(widget.rectangleZones.map((zone) => zone.lowPrice)
+              .reduce((value, element) => value < element ? value : element) , candlesLowPrice);
+          tweenEnd = max(widget.rectangleZones.map((zone) => zone.highPrice)
+              .reduce((value, element) => value > element ? value : element) , candlesHighPrice);
+        }
+        else {
+          tweenBegin = candlesLowPrice;
+          tweenEnd = candlesHighPrice;
+        }
         return TweenAnimationBuilder(
-          tween: Tween(begin: candlesHighPrice, end: candlesHighPrice),
+          tween: Tween(begin: tweenBegin , end: tweenEnd),
           duration: Duration(milliseconds: manualScaleHigh == null ? 300 : 0),
           builder: (context, double high, _) {
             return TweenAnimationBuilder(
@@ -190,7 +214,9 @@ class MobileChartState extends State<MobileChart> {
                         left: 20.0,
                         right: 20.0,
                         child: Text(
-                          widget.chartTitle,
+                          widget.chartTitle.length > 15
+                              ? widget.chartTitle.substring(0, 15) + '...'
+                              : widget.chartTitle,
                           style: GoogleFonts.openSans(
                             fontSize: 26.0,
                             fontWeight: FontWeight.w300,
@@ -224,13 +250,13 @@ class MobileChartState extends State<MobileChart> {
                                         zones: widget.rectangleZones,
                                         candles: widget.candles,
                                         candleWidth: widget.candleWidth,
-                                        topPrice: max(widget.rectangleZones.map((zone) => zone.highPrice)
-                                                  .reduce((value, element) => value > element ? value : element) , candlesHighPrice) ,
-                                        bottomPrice: min(widget.rectangleZones.map((zone) => zone.lowPrice)
-                                            .reduce((value, element) => value < element ? value : element) , candlesLowPrice),
+                                        topPrice: tweenEnd ,
+                                        bottomPrice: tweenBegin,
                                         index: widget.index,
                                         minIndex: -20,
-                                        priceColumnWidth: PRICE_BAR_WIDTH),
+                                        priceColumnWidth: PRICE_BAR_WIDTH,
+                                      noBetsText: noBetsText,
+                                    ),
                                   ),
                                 ),
                                 PriceColumn(
@@ -551,11 +577,14 @@ class MobileChartState extends State<MobileChart> {
                                   zones: widget.rectangleZones,
                                   candles: widget.candles,
                                   candleWidth: widget.candleWidth,
-                                  topPrice: candlesHighPrice,
-                                  bottomPrice: candlesLowPrice,
+                                  topPrice: max(widget.rectangleZones.map((zone) => zone.highPrice)
+                    .reduce((value, element) => value > element ? value : element) , candlesHighPrice) ,
+                                  bottomPrice: min(widget.rectangleZones.map((zone) => zone.lowPrice)
+                    .reduce((value, element) => value < element ? value : element) , candlesLowPrice),
                                   index: widget.index,
                                   minIndex: -20,
-                                  priceColumnWidth: PRICE_BAR_WIDTH)
+                                  priceColumnWidth: PRICE_BAR_WIDTH,
+                              noBetsText: noBetsText)
                               .hit(details.localPosition.dx,
                                   details.localPosition.dy, size);
 

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:client_0_0_1/candlesticks/src/constant/view_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../candlesticks/src/models/candle.dart';
 import 'common.dart';
 import 'rectangle_zone.dart';
@@ -14,8 +15,8 @@ class RangePainter extends CustomPainter {
   final int index;
   final int minIndex;
   final double priceColumnWidth;
-
-  RangePainter({
+  final noBetsText;
+  RangePainter( {
     required this.zones,
     required this.candles,
     required this.candleWidth,
@@ -24,6 +25,7 @@ class RangePainter extends CustomPainter {
     required this.index,
     required this.minIndex,
     required this.priceColumnWidth,
+    required this.noBetsText,
   });
 
   double dateToX(DateTime date, int index, double candleWidth,
@@ -47,6 +49,27 @@ class RangePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (zones.isEmpty){
+
+      final textSpan = TextSpan(
+        text: this.noBetsText,
+        style: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w300),
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout(minWidth: 0, maxWidth: size.width);
+      final double offsetX = (size.width - textPainter.width) / 2;
+      final double offsetY = size.height * 0.10;
+
+      textPainter.paint(canvas, Offset(offsetX , offsetY));
+
+    }
+
     DateTime maxCandleDate = candles
         .map((candle) => candle.date)
         .reduce((a, b) => a.isAfter(b) ? a : b);

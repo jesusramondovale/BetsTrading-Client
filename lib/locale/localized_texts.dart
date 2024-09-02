@@ -129,6 +129,7 @@ class LocalizedStrings {
       'confirmOperation': 'Confirm Operation',
       'accept': 'Accept',
       'cancel': 'Cancel',
+      'noBetsAvailable': 'No bets available',
     },
     'es': {
       // Español
@@ -250,6 +251,7 @@ class LocalizedStrings {
       'confirmOperation': 'Confirmar Operación',
       'accept': 'Aceptar',
       'cancel': 'Cancelar',
+      'noBetsAvailable': 'Sin apuestas disponibles',
     },
     'fr': {
       // Francés
@@ -371,7 +373,8 @@ class LocalizedStrings {
       'multiplier': 'Multiplicateur',
       'confirmOperation': 'Confirmer l\'opération',
       'accept': 'Accepter',
-      'cancel': 'Annuler'
+      'cancel': 'Annuler',
+      'noBetsAvailable': 'Pas de paris disponibles',
     },
     'it': {
       // Italiano
@@ -495,6 +498,7 @@ class LocalizedStrings {
       'confirmOperation': 'Confermare l\'Operazione',
       'accept': 'Accettare',
       'cancel': 'Annullare',
+      'noBetsAvailable': 'Nessuna scommessa disponibile',
     },
     'de': {
       // Alemán
@@ -612,6 +616,7 @@ class LocalizedStrings {
       'confirmOperation': 'Vorgang Bestätigen',
       'accept': 'Akzeptieren',
       'cancel': 'Abbrechen',
+      'noBetsAvailable': 'Keine Wetten verfügbar',
     },
   };
 
@@ -793,6 +798,7 @@ class LocalizedStrings {
       _localizedValues[locale.languageCode]?['confirmOperation'];
   String? get accept => _localizedValues[locale.languageCode]?['accept'];
   String? get cancel => _localizedValues[locale.languageCode]?['cancel'];
+  String? get noBetsAvailable => _localizedValues[locale.languageCode]?['noBetsAvailable'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {
