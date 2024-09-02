@@ -5,8 +5,6 @@ class LocalizedStrings {
 
   final Locale locale;
 
-
-
   static LocalizedStrings? of(BuildContext context) {
     return Localizations.of<LocalizedStrings>(context, LocalizedStrings);
   }
@@ -95,9 +93,9 @@ class LocalizedStrings {
       'versionCode': 'Version code: ',
       'close': 'Close',
       'current': 'Current',
-      'updatedFavs' : 'Updated favorites!',
-      'noFavsYet' : 'Youve got no favorites yet!',
-      'removedSuccesfully' : 'Removed succesfully!',
+      'updatedFavs': 'Updated favorites!',
+      'noFavsYet': 'Youve got no favorites yet!',
+      'removedSuccesfully': 'Removed succesfully!',
       'betAmount': 'Bet Amount',
       'originValue': 'Origin Value',
       'currentValue': 'Current Value',
@@ -120,12 +118,18 @@ class LocalizedStrings {
       'alignText': 'Align your ID here',
       'cameraError': 'Error taking picture. Please try again.',
       'takePhoto': 'Take Photo',
-      'accountVerifiedSuccess': 'Account successfully verified.\nPlease log in again',
+      'accountVerifiedSuccess':
+          'Account successfully verified.\nPlease log in again',
       'accountVerificationError': 'Error verifying account',
       'worldwide': 'Worldwide',
       'yourCountry': 'Your Country',
-
-
+      'enterBetAmount': 'Enter Bet Amount:',
+      'potentialPrize': 'Potential Prize',
+      'multiplier': 'Multiplier',
+      'confirmOperation': 'Confirm Operation',
+      'accept': 'Accept',
+      'cancel': 'Cancel',
+      'noBetsAvailable': 'No bets available',
     },
     'es': {
       // Español
@@ -210,9 +214,9 @@ class LocalizedStrings {
       'versionCode': 'Versión de código: ',
       'close': 'Cierre',
       'current': 'Actual',
-      'updatedFavs' : 'Favoritos actualizados!',
-      'noFavsYet' : '¡Aún no tienes favoritos!',
-      'removedSuccesfully' : 'Borrado con éxito!',
+      'updatedFavs': 'Favoritos actualizados!',
+      'noFavsYet': '¡Aún no tienes favoritos!',
+      'removedSuccesfully': 'Borrado con éxito!',
       'betAmount': 'Apostado',
       'originValue': 'Valor de Origen',
       'currentValue': 'Valor Actual',
@@ -224,10 +228,11 @@ class LocalizedStrings {
       'verified': 'Cuenta verificada',
       'ranking': 'Rankings',
       'instructionsTitle': 'Para verificar tu cuenta, sigue estos pasos:',
-      'instructions': '1. Asegúrate de tener tu documento de identidad a mano.\n\n'
-          '2. Haz clic en el botón de abajo para abrir la cámara.\n\n'
-          '3. Toma una foto clara (frontal) de tu documento de identidad.\n\n'
-          '4. Espera unos segundos mientras procesamos la imagen.',
+      'instructions':
+          '1. Asegúrate de tener tu documento de identidad a mano.\n\n'
+              '2. Haz clic en el botón de abajo para abrir la cámara.\n\n'
+              '3. Toma una foto clara (frontal) de tu documento de identidad.\n\n'
+              '4. Espera unos segundos mientras procesamos la imagen.',
       'scanButton': 'Escanear Documento',
       'idNumberTitle': 'Número de ID escaneado',
       'verificationResultTitle': 'Resultado de la Verificación',
@@ -235,10 +240,18 @@ class LocalizedStrings {
       'alignText': 'Alinea tu DNI aquí',
       'cameraError': 'Error al tomar la foto. Por favor, inténtalo de nuevo.',
       'takePhoto': 'Hacer foto',
-      'accountVerifiedSuccess': 'Cuenta verificada con éxito.\nInicie sesión de nuevo',
+      'accountVerifiedSuccess':
+          'Cuenta verificada con éxito.\nInicie sesión de nuevo',
       'accountVerificationError': 'Error verificando la cuenta',
       'worldwide': 'Mundial',
       'yourCountry': 'Tu País',
+      'enterBetAmount': 'Cantidad apostada',
+      'potentialPrize': 'Premio Potencial',
+      'multiplier': 'Multiplicador',
+      'confirmOperation': 'Confirmar Operación',
+      'accept': 'Aceptar',
+      'cancel': 'Cancelar',
+      'noBetsAvailable': 'Sin apuestas disponibles',
     },
     'fr': {
       // Francés
@@ -324,9 +337,9 @@ class LocalizedStrings {
       'versionCode': 'Code de version : ',
       'close': 'Clôture',
       'current': 'Actuel',
-      'updatedFavs' : 'Favoris mis à jour',
-      'noFavsYet' : 'Vous n\'avez pas encore de favoris !',
-      'removedSuccesfully' : 'Supprimé avec succès',
+      'updatedFavs': 'Favoris mis à jour',
+      'noFavsYet': 'Vous n\'avez pas encore de favoris !',
+      'removedSuccesfully': 'Supprimé avec succès',
       'betAmount': 'Montant de la Mise',
       'originValue': 'Valeur d\'Origine',
       'currentValue': 'Valeur Actuelle',
@@ -338,10 +351,11 @@ class LocalizedStrings {
       'verified': 'Compte vérifié',
       'ranking': 'Classement',
       'instructionsTitle': 'Pour vérifier votre compte, suivez ces étapes :',
-      'instructions': '1. Assurez-vous d\'avoir votre document d\'identité à portée de main.\n'
-          '2. Cliquez sur le bouton ci-dessous pour ouvrir la caméra.\n'
-          '3. Prenez une photo claire de votre document d\'identité.\n'
-          '4. Attendez quelques secondes pendant que nous traitons l\'image.',
+      'instructions':
+          '1. Assurez-vous d\'avoir votre document d\'identité à portée de main.\n'
+              '2. Cliquez sur le bouton ci-dessous pour ouvrir la caméra.\n'
+              '3. Prenez une photo claire de votre document d\'identité.\n'
+              '4. Attendez quelques secondes pendant que nous traitons l\'image.',
       'scanButton': 'Scanner le Document',
       'idNumberTitle': 'Numéro d\'ID scanné :',
       'verificationResultTitle': 'Résultat de la Vérification',
@@ -349,10 +363,18 @@ class LocalizedStrings {
       'alignText': 'Alignez votre ID ici',
       'cameraError': 'Erreur lors de la prise de la photo. Veuillez réessayer.',
       'takePhoto': 'Prendre photo',
-      'accountVerifiedSuccess': 'Compte vérifié avec succès.\nVeuillez vous reconnecter',
+      'accountVerifiedSuccess':
+          'Compte vérifié avec succès.\nVeuillez vous reconnecter',
       'accountVerificationError': 'Erreur de vérification du compte',
       'worldwide': 'Mondial',
       'yourCountry': 'Votre Pays',
+      'enterBetAmount': 'Entrez le Montant de la Mise',
+      'potentialPrize': 'Gain Potentiel',
+      'multiplier': 'Multiplicateur',
+      'confirmOperation': 'Confirmer l\'opération',
+      'accept': 'Accepter',
+      'cancel': 'Annuler',
+      'noBetsAvailable': 'Pas de paris disponibles',
     },
     'it': {
       // Italiano
@@ -438,9 +460,9 @@ class LocalizedStrings {
       'versionCode': 'Codice versione: ',
       'close': 'Chiusura',
       'current': 'Attuale',
-      'updatedFavs' : 'Preferiti aggiornati',
-      'noFavsYet' : 'Non hai ancora preferiti!',
-      'removedSuccesfully' : 'Rimosso con successo!',
+      'updatedFavs': 'Preferiti aggiornati',
+      'noFavsYet': 'Non hai ancora preferiti!',
+      'removedSuccesfully': 'Rimosso con successo!',
       'betAmount': 'Importo della Scommessa',
       'originValue': 'Valore di Origine',
       'currentValue': 'Valore Attuale',
@@ -451,11 +473,13 @@ class LocalizedStrings {
       'verify': 'Verifica Conto',
       'verified': 'Conto verificato',
       'ranking': 'Classifica',
-      'instructionsTitle': 'Per verificare il tuo account, segui questi passaggi:',
-      'instructions': '1. Assicurati di avere il tuo documento d\'identità a portata di mano.\n'
-          '2. Clicca sul pulsante qui sotto per aprire la fotocamera.\n'
-          '3. Scatta una foto chiara del tuo documento d\'identità.\n'
-          '4. Attendi qualche secondo mentre elaboriamo l\'immagine.',
+      'instructionsTitle':
+          'Per verificare il tuo account, segui questi passaggi:',
+      'instructions':
+          '1. Assicurati di avere il tuo documento d\'identità a portata di mano.\n'
+              '2. Clicca sul pulsante qui sotto per aprire la fotocamera.\n'
+              '3. Scatta una foto chiara del tuo documento d\'identità.\n'
+              '4. Attendi qualche secondo mentre elaboriamo l\'immagine.',
       'scanButton': 'Scansiona Documento',
       'idNumberTitle': 'Numero di ID scansionato:',
       'verificationResultTitle': 'Risultato della Verifica',
@@ -463,10 +487,18 @@ class LocalizedStrings {
       'alignText': 'Allinea il tuo ID qui',
       'cameraError': 'Errore durante la cattura della foto. Riprova.',
       'takePhoto': 'Scatta foto',
-      'accountVerifiedSuccess': 'Account verificato con successo.\nEffettua nuovamente l\'accesso',
+      'accountVerifiedSuccess':
+          'Account verificato con successo.\nEffettua nuovamente l\'accesso',
       'accountVerificationError': 'Errore nella verifica dell\'account',
       'worldwide': 'Mondiale',
       'yourCountry': 'Il Tuo Paese',
+      'enterBetAmount': 'Inserisci l\'Importo della Scommessa',
+      'potentialPrize': 'Premio Potenziale',
+      'multiplier': 'Moltiplicatore',
+      'confirmOperation': 'Confermare l\'Operazione',
+      'accept': 'Accettare',
+      'cancel': 'Annullare',
+      'noBetsAvailable': 'Nessuna scommessa disponibile',
     },
     'de': {
       // Alemán
@@ -553,17 +585,19 @@ class LocalizedStrings {
       'versionCode': 'Version code: ',
       'close': 'Schlusskurs',
       'current': 'Aktuell',
-      'updatedFavs' : 'Favoriten aktualisiert',
-      'noFavsYet' : 'Sie haben noch keine Favoriten!',
-      'removedSuccesfully' : 'Erfolgreich entfernt!',
+      'updatedFavs': 'Favoriten aktualisiert',
+      'noFavsYet': 'Sie haben noch keine Favoriten!',
+      'removedSuccesfully': 'Erfolgreich entfernt!',
       'verify': 'Konto bestätigen',
       'verified': 'Konto verifiziert',
       'ranking': 'Rangliste',
-      'instructionsTitle': 'Um Ihr Konto zu verifizieren, folgen Sie diesen Schritten:',
-      'instructions': '1. Stellen Sie sicher, dass Sie Ihr Ausweisdokument zur Hand haben.\n'
-          '2. Klicken Sie auf die Schaltfläche unten, um die Kamera zu öffnen.\n'
-          '3. Machen Sie ein klares Foto von Ihrem Ausweisdokument.\n'
-          '4. Warten Sie ein paar Sekunden, während wir das Bild verarbeiten.',
+      'instructionsTitle':
+          'Um Ihr Konto zu verifizieren, folgen Sie diesen Schritten:',
+      'instructions':
+          '1. Stellen Sie sicher, dass Sie Ihr Ausweisdokument zur Hand haben.\n'
+              '2. Klicken Sie auf die Schaltfläche unten, um die Kamera zu öffnen.\n'
+              '3. Machen Sie ein klares Foto von Ihrem Ausweisdokument.\n'
+              '4. Warten Sie ein paar Sekunden, während wir das Bild verarbeiten.',
       'scanButton': 'Dokument scannen',
       'idNumberTitle': 'Gescanntes ID-Nummer:',
       'verificationResultTitle': 'Verifizierungsergebnis',
@@ -571,10 +605,18 @@ class LocalizedStrings {
       'alignText': 'Richten Sie Ihren Ausweis hier aus',
       'cameraError': 'Fehler beim Fotografieren. Bitte versuche es erneut.',
       'takePhoto': 'Foto machen',
-      'accountVerifiedSuccess': 'Konto erfolgreich verifiziert.\nBitte erneut anmelden',
+      'accountVerifiedSuccess':
+          'Konto erfolgreich verifiziert.\nBitte erneut anmelden',
       'accountVerificationError': 'Fehler bei der Kontoüberprüfung',
       'worldwide': 'Weltweit',
       'yourCountry': 'Dein Land',
+      'enterBetAmount': 'Einsatzbetrag eingeben',
+      'potentialPrize': 'Potentieller Gewinn',
+      'multiplier': 'Multiplikator',
+      'confirmOperation': 'Vorgang Bestätigen',
+      'accept': 'Akzeptieren',
+      'cancel': 'Abbrechen',
+      'noBetsAvailable': 'Keine Wetten verfügbar',
     },
   };
 
@@ -701,18 +743,14 @@ class LocalizedStrings {
   String? get aboutUs => _localizedValues[locale.languageCode]?['aboutUs'];
   String? get versionCode =>
       _localizedValues[locale.languageCode]?['versionCode'];
-  String? get close =>
-      _localizedValues[locale.languageCode]?['close'];
-  String? get current =>
-      _localizedValues[locale.languageCode]?['current'];
+  String? get close => _localizedValues[locale.languageCode]?['close'];
+  String? get current => _localizedValues[locale.languageCode]?['current'];
   String? get updatedFavs =>
       _localizedValues[locale.languageCode]?['updatedFavs'];
-  String? get noFavsYet =>
-      _localizedValues[locale.languageCode]?['noFavsYet'];
+  String? get noFavsYet => _localizedValues[locale.languageCode]?['noFavsYet'];
   String? get removedSuccesfully =>
       _localizedValues[locale.languageCode]?['removedSuccesfully'];
-  String? get betAmount =>
-      _localizedValues[locale.languageCode]?['betAmount'];
+  String? get betAmount => _localizedValues[locale.languageCode]?['betAmount'];
   String? get originValue =>
       _localizedValues[locale.languageCode]?['originValue'];
   String? get currentValue =>
@@ -723,14 +761,10 @@ class LocalizedStrings {
       _localizedValues[locale.languageCode]?['targetDate'];
   String? get targetMargin =>
       _localizedValues[locale.languageCode]?['targetMargin'];
-  String? get winBonus =>
-      _localizedValues[locale.languageCode]?['winBonus'];
-  String? get verify =>
-      _localizedValues[locale.languageCode]?['verify'];
-  String? get verified =>
-      _localizedValues[locale.languageCode]?['verified'];
-  String? get ranking =>
-      _localizedValues[locale.languageCode]?['ranking'];
+  String? get winBonus => _localizedValues[locale.languageCode]?['winBonus'];
+  String? get verify => _localizedValues[locale.languageCode]?['verify'];
+  String? get verified => _localizedValues[locale.languageCode]?['verified'];
+  String? get ranking => _localizedValues[locale.languageCode]?['ranking'];
   String? get instructionsTitle =>
       _localizedValues[locale.languageCode]?['instructionsTitle'];
   String? get instructions =>
@@ -743,20 +777,28 @@ class LocalizedStrings {
       _localizedValues[locale.languageCode]?['verificationResultTitle'];
   String? get idNotFound =>
       _localizedValues[locale.languageCode]?['idNotFound'];
-  String? get alignText =>
-      _localizedValues[locale.languageCode]?['alignText'];
+  String? get alignText => _localizedValues[locale.languageCode]?['alignText'];
   String? get cameraError =>
       _localizedValues[locale.languageCode]?['cameraError'];
-  String? get takePhoto =>
-      _localizedValues[locale.languageCode]?['takePhoto'];
+  String? get takePhoto => _localizedValues[locale.languageCode]?['takePhoto'];
   String? get accountVerifiedSuccess =>
       _localizedValues[locale.languageCode]?['accountVerifiedSuccess'];
   String? get accountVerificationError =>
       _localizedValues[locale.languageCode]?['accountVerificationError'];
-  String? get worldwide =>
-      _localizedValues[locale.languageCode]?['worldwide'];
+  String? get worldwide => _localizedValues[locale.languageCode]?['worldwide'];
   String? get yourCountry =>
       _localizedValues[locale.languageCode]?['yourCountry'];
+  String? get enterBetAmount =>
+      _localizedValues[locale.languageCode]?['enterBetAmount'];
+  String? get potentialPrize =>
+      _localizedValues[locale.languageCode]?['potentialPrize'];
+  String? get multiplier =>
+      _localizedValues[locale.languageCode]?['multiplier'];
+  String? get confirmOperation =>
+      _localizedValues[locale.languageCode]?['confirmOperation'];
+  String? get accept => _localizedValues[locale.languageCode]?['accept'];
+  String? get cancel => _localizedValues[locale.languageCode]?['cancel'];
+  String? get noBetsAvailable => _localizedValues[locale.languageCode]?['noBetsAvailable'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

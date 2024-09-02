@@ -9,7 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:client_0_0_1/candlesticks/candlesticks.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'home_page.dart';
 import 'login_page.dart';
@@ -34,12 +33,19 @@ class MainMenuPage extends StatefulWidget {
   MainMenuPageState createState() => MainMenuPageState();
 }
 
+class MainMenuPageController {
+  final ValueNotifier<int> selectedIndexNotifier = ValueNotifier<int>(0);
+
+  void updateIndex(int index) {
+    selectedIndexNotifier.value = index;
+  }
+}
+
 class MainMenuPageState extends State<MainMenuPage> {
   Uint8List? _profilePicBytes;
-  int _selectedIndex = 0;
-  late List<Candle> candlesList;
   late List<Widget> _pages;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final MainMenuPageController _controller = MainMenuPageController();
   String _username = '';
   bool _isLoading = true;
 
@@ -89,12 +95,6 @@ class MainMenuPageState extends State<MainMenuPage> {
     });
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -109,8 +109,6 @@ class MainMenuPageState extends State<MainMenuPage> {
             ? Colors.black
             : Colors.white);
 
-
-
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
       strings?.home ?? 'Home',
@@ -123,13 +121,17 @@ class MainMenuPageState extends State<MainMenuPage> {
 
     _pages = [
       // HOME
-      const HomeScreen(),
+      HomeScreen(
+        controller: _controller,
+      ),
       // TOP USERS
       TopUsersPage(),
       // MARKETS
-      const MarketsView(),
+      MarketsView(
+        controller: _controller,
+      ),
       // SETTINGS
-      SettingsView(onPersonalInfoTap: () => _onItemTapped(3)),
+      SettingsView(onPersonalInfoTap: () => _controller.updateIndex(3)),
       // PERSONAL INFO
       const UserInfoPage()
     ];
@@ -146,50 +148,64 @@ class MainMenuPageState extends State<MainMenuPage> {
                 color: Colors.black45,
               ),
               Expanded(
-                child: IndexedStack(
-                  index: _selectedIndex,
-                  children: _pages,
+                child: ValueListenableBuilder<int>(
+                  valueListenable: _controller.selectedIndexNotifier,
+                  builder: (context, index, _) {
+                    return IndexedStack(
+                      index: _controller.selectedIndexNotifier.value,
+                      children: _pages,
+                    );
+                  },
                 ),
               ),
             ],
           ),
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          selectedItemColor: Colors.deepPurple,
-          items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.home_outlined),
-              activeIcon: const Icon(Icons.home),
-              label: strings?.home ?? "Home",
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.public),
-              label: strings?.ranking ?? "Ranking",
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.casino_outlined),
-              activeIcon: const Icon(Icons.casino),
-              label: strings?.liveMarkets ?? 'Live Markets',
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.settings_outlined),
-              activeIcon: const Icon(Icons.settings),
-              label: strings?.settings ?? 'Settings',
-            ),
-            BottomNavigationBarItem(
-              icon: (_profilePicBytes != null
-                  ? CircleAvatar(
-                backgroundImage: MemoryImage(_profilePicBytes!),
-                radius: 15,
-              )
-                  : const Icon(Icons.account_circle_outlined)),
-              label: _username,
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          type: BottomNavigationBarType.fixed,
-        ),
+        bottomNavigationBar:
+        ValueListenableBuilder<int>(
+            valueListenable: _controller.selectedIndexNotifier,
+            builder: (context, index, _){
+              return BottomNavigationBar(
+                selectedItemColor: Colors.deepPurple,
+                items: <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: const Icon(Icons.home_outlined),
+                    activeIcon: const Icon(Icons.home),
+                    label: strings?.home ?? "Home",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: const Icon(Icons.public),
+                    label: strings?.ranking ?? "Ranking",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: const Icon(Icons.casino_outlined),
+                    activeIcon: const Icon(Icons.casino),
+                    label: strings?.liveMarkets ?? 'Live Markets',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: const Icon(Icons.settings_outlined),
+                    activeIcon: const Icon(Icons.settings),
+                    label: strings?.settings ?? 'Settings',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: (_profilePicBytes != null
+                        ? CircleAvatar(
+                      backgroundImage: MemoryImage(_profilePicBytes!),
+                      radius: 15,
+                    )
+                        : const Icon(Icons.account_circle_outlined)),
+                    label: _username,
+                  ),
+                ],
+                currentIndex: _controller.selectedIndexNotifier.value,
+                onTap: (index) {
+                  _controller.updateIndex(index);
+                },
+                type: BottomNavigationBarType.fixed,
+              );
+            }
+          )
+
       );
     }
   }
