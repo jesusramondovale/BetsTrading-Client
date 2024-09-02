@@ -213,7 +213,7 @@ class TrendDialog extends StatelessWidget {
                                           children: [
 
                                             Expanded(
-                                              child: CandlesticksView(trend.id.toString(), trend.name, controller: this.controller, iconPath: trend.icon),
+                                              child: CandlesticksView(ticker: trend.id.toString(), name: trend.name, controller: this.controller, iconPath: trend.icon),
                                             ),
                                           ],
                                         ),

@@ -228,7 +228,21 @@ class Common {
       targetOdds: targetOdds,
     );
   }
+  int daysUntilLatestEndDate(List<RectangleZone> rectangleZones) {
+    if (rectangleZones.isEmpty) {
+      return 10;
+    }
+    DateTime latestDate = rectangleZones.first.endDate;
 
+    for (var zone in rectangleZones) {
+      if (zone.endDate.isAfter(latestDate)) {
+        latestDate = zone.endDate;
+      }
+    }
+    DateTime now = DateTime.now();
+    int daysUntil = latestDate.difference(now).inDays;
+    return daysUntil > 0 ? daysUntil : 0;
+  }
   List<RectangleZone> getRectangleZonesFromBetZones(List<BetZone> betZones) {
     Color strokeColor = Colors.white;
 
@@ -258,7 +272,6 @@ class Common {
 
     return zones;
   }
-
   List<RectangleZone> generateRectangleZones() {
     Color strokeColor = Colors.white;
     List<RectangleZone> zones = [
@@ -650,7 +663,6 @@ class Common {
     return idExp;
 
   }
-
   Icon getIconForUserInfo(String key) {
     switch (key) {
       case 'fullname':
@@ -725,6 +737,33 @@ class Common {
 
     return candlesList;
 
+  }
+  List<Candle> generateSinusoidalCandles(int count, double centerValue, double amplitude, double period) {
+    List<Candle> candlesList = [];
+    DateTime startDate = DateTime.now();
+
+    for (int i = 0; i < count; i++) {
+      DateTime date = startDate.subtract(Duration(days: i));
+
+      double sinValue = sin(2 * pi * i / period) * amplitude;
+
+      double open = centerValue + sinValue;
+      double close = centerValue + sinValue + (Random().nextBool() ? 1 : -1) * Random().nextDouble() * 5;
+      double high = max(open, close) + Random().nextDouble() * 10;
+      double low = min(open, close) - Random().nextDouble() * 10;
+      double volume = 500 + Random().nextDouble() * 4500;
+
+      candlesList.add(Candle(
+        date: date,
+        open: open,
+        close: close,
+        high: high,
+        low: low,
+        volume: volume,
+      ));
+    }
+
+    return candlesList;
   }
   RectangleZone emptyZone(){
     return RectangleZone(

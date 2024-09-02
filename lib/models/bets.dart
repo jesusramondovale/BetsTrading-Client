@@ -325,7 +325,7 @@ class RecentBetDialog extends StatelessWidget {
                                         children: [
 
                                           Expanded(
-                                            child: CandlesticksView(bet.id.toString(), bet.name, controller: this.controller, iconPath: bet.iconPath),
+                                            child: CandlesticksView(ticker: bet.ticker.toString(), name: bet.name, controller: this.controller, iconPath: bet.iconPath),
                                           ),
                                         ],
                                       ),

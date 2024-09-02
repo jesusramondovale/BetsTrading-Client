@@ -175,8 +175,8 @@ class MarketsViewState extends State<MarketsView> {
                               children: [
                                 Expanded(
                                   child: CandlesticksView(
-                                    asset.ticker,
-                                    asset.name,
+                                    ticker: asset.ticker,
+                                    name: asset.name,
                                     controller: widget.controller,
                                     iconPath: asset.icon,),
                                 ),

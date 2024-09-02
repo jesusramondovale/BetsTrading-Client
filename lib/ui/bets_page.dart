@@ -7,8 +7,6 @@ import 'package:intl/intl.dart'; // Necesario para DateFormat
 import '../helpers/rectangle_zone.dart';
 import '../locale/localized_texts.dart';
 
-
-
 class BetConfirmationPage extends StatefulWidget {
 
   final double currentValue;
@@ -16,9 +14,11 @@ class BetConfirmationPage extends StatefulWidget {
   final VoidCallback onAccept;
   final VoidCallback onCancel;
   final RectangleZone zone;
+  final String name;
   const BetConfirmationPage({
     Key? key,
 
+    required this.name,
     required this.onAccept,
     required this.onCancel,
     required this.zone,
@@ -141,7 +141,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                widget.zone.ticker,
+                widget.name,
                 style: GoogleFonts.openSans(
                     fontWeight: FontWeight.bold,
                     fontSize: 34,
@@ -151,7 +151,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               Text(
                 'Ticker: ${widget.zone.ticker}',
                 style: GoogleFonts.roboto(
-                  fontSize: 16,
+                  fontSize: 20,
                   color: Colors.white70,
                 ),
               ),

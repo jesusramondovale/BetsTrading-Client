@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:client_0_0_1/models/betZone.dart';
 import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:flutter/material.dart';
@@ -14,9 +16,9 @@ class CandlesticksView extends StatefulWidget {
   final List<Candle> candles;
   final MainMenuPageController controller;
 
-  CandlesticksView(this.ticker, this.name,
-      {super.key, required this.controller, required this.iconPath})
-      : candles = Common().generateRandomCandles(520);
+  CandlesticksView(
+      {super.key, required this.controller, required this.iconPath, required this.ticker, required this.name,})
+      : candles = (Random().nextBool() ? Common().generateRandomCandles(520) : Common().generateSinusoidalCandles(250,300,50,15)) ;
 
   @override
   CandlesticksViewState createState() => CandlesticksViewState();
@@ -76,6 +78,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                             controller: widget.controller,
                             chartTitle: widget.name,
                             iconPath: widget.iconPath,
+                            extraDays: Common().daysUntilLatestEndDate(_zones),
                           ),
                         Positioned(
                           top: 10.0,

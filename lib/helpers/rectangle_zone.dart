@@ -12,6 +12,7 @@ class RectangleZone {
   String ticker;
 
 
+
   RectangleZone({
     required this.startDate,
     required this.endDate,

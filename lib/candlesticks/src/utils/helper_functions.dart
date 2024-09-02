@@ -30,12 +30,12 @@ class HelperFunctions {
     return price.abs() > 1000
         ? price.toStringAsFixed(2)
         : price.abs() > 100
-            ? price.toStringAsFixed(3)
+            ? price.toStringAsFixed(2)
             : price.abs() > 10
-                ? price.toStringAsFixed(4)
+                ? price.toStringAsFixed(2)
                 : price.abs() > 1
-                    ? price.toStringAsFixed(5)
-                    : price.toStringAsFixed(6);
+                    ? price.toStringAsFixed(4)
+                    : price.toStringAsFixed(5);
   }
 
   static double calculatePriceScale(double height, double high, double low) {

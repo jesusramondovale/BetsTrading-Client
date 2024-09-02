@@ -60,6 +60,8 @@ class Candlesticks extends StatefulWidget {
 
   final String iconPath;
 
+  final int extraDays;
+
   Candlesticks({
     super.key,
     required this.candles,
@@ -76,6 +78,7 @@ class Candlesticks extends StatefulWidget {
     required this.controller,
     required this.chartTitle,
     required this.iconPath,
+    required this.extraDays,
   }) : assert(candles.isEmpty || candles.length > 1,
             "Please provide at least 2 candles");
 
@@ -86,7 +89,7 @@ class Candlesticks extends StatefulWidget {
 class CandlesticksState extends State<Candlesticks> {
   /// index of the newest candle to be displayed
   /// changes when user scrolls along the chart
-  static const int indexMarginRight = -20;
+  static int indexMarginRight = 0;
   int index = indexMarginRight;
   double lastX = 0;
   int lastIndex = indexMarginRight;
@@ -103,6 +106,9 @@ class CandlesticksState extends State<Candlesticks> {
   @override
   void initState() {
     super.initState();
+    indexMarginRight = -widget.extraDays;
+    index = indexMarginRight;
+    lastIndex = indexMarginRight;
     if (widget.candles.isEmpty) {
       return;
     }

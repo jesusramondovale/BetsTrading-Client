@@ -105,9 +105,9 @@ class MobileChartState extends State<MobileChart> {
 
     setState(() {
       manualScaleHigh =
-          maxPrice + (maxPrice - minPrice) * 0.1;
+          maxPrice ;
       manualScaleLow =
-          minPrice - (maxPrice - minPrice) * 0.1;
+          minPrice ;
       scaleX = 1.0;
       offsetY = 0.0;
     });
@@ -247,18 +247,19 @@ class MobileChartState extends State<MobileChart> {
                                   child: CustomPaint(
                                     key: _customPaintKey,
                                     painter: RangePainter(
-                                        zones: widget.rectangleZones,
-                                        candles: widget.candles,
-                                        candleWidth: widget.candleWidth,
-                                        topPrice: tweenEnd ,
-                                        bottomPrice: tweenBegin,
-                                        index: widget.index,
-                                        minIndex: -20,
-                                        priceColumnWidth: PRICE_BAR_WIDTH,
+                                      zones: widget.rectangleZones,
+                                      candles: widget.candles,
+                                      candleWidth: widget.candleWidth,
+                                      topPrice: tweenEnd ,
+                                      bottomPrice: tweenBegin,
+                                      index: widget.index,
+                                      minIndex: -20,
+                                      priceColumnWidth: PRICE_BAR_WIDTH,
                                       noBetsText: noBetsText,
                                     ),
                                   ),
                                 ),
+
                                 PriceColumn(
                                   style: widget.style,
                                   low: candlesLowPrice,
@@ -288,6 +289,7 @@ class MobileChartState extends State<MobileChart> {
                                     });
                                   },
                                 ),
+
                                 Row(
                                   children: [
                                     Expanded(
@@ -595,8 +597,9 @@ class MobileChartState extends State<MobileChart> {
                                 pageBuilder:
                                     (context, animation, secondaryAnimation) =>
                                         BetConfirmationPage(
+                                          name: widget.chartTitle,
                                   zone: zoneClicked,
-                                  currentValue: widget.candles.last.close,
+                                  currentValue: widget.candles.first.close,
                                   iconPath: widget.iconPath,
                                   onAccept: () {
                                     Navigator.pop(context);
