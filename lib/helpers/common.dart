@@ -715,13 +715,37 @@ class Common {
       // Add more if necessary ...............
     ];
   }
+  List<Candle> generateConstantCandles(int count) {
+    List<Candle> candlesList = [];
+    DateTime startDate = DateTime.now();
+
+    for (int i = 0; i < count; i++) {
+      DateTime date = startDate.subtract(Duration(days: i));
+      double open = 1.0;
+      double close = 1.0;
+      double high = 1.0;
+      double low = 1.0;
+      double volume = 1000.0;
+
+      candlesList.add(Candle(
+        date: date,
+        open: open,
+        close: close,
+        high: high,
+        low: low,
+        volume: volume,
+      ));
+    }
+
+    return candlesList;
+  }
   List<Candle> generateRandomCandles(int count) {
     Random random = Random();
     List<Candle> candlesList = [];
     DateTime startDate = DateTime.now();
 
     // Inicializa el primer valor de 'open'
-    double lastClose = 1.065 + random.nextDouble() * (1.10 - 1.065);
+    double lastClose = 1 + random.nextDouble() * (1.10 - 1.065);
 
     for (int i = 0; i < count; i++) {
       DateTime date = startDate.subtract(Duration(days: i));

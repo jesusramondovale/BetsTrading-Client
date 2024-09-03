@@ -159,8 +159,8 @@ class MobileChartState extends State<MobileChart> {
         }
 
         double priceRange = candlesHighPrice - candlesLowPrice;
-        candlesHighPrice += priceRange * (rangeMultiplier - 1) / 1.5;
-        candlesLowPrice -= priceRange * (rangeMultiplier - 1) / 1.5;
+        candlesHighPrice += priceRange;
+        candlesLowPrice -= priceRange;
 
         if (candlesHighPrice == candlesLowPrice) {
           candlesHighPrice += 10;
@@ -540,34 +540,7 @@ class MobileChartState extends State<MobileChart> {
                               .mainWindowDataContainer.unvisibleIndicators,
                         ),
                       ),
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        width: PRICE_BAR_WIDTH,
-                        height: 20,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            backgroundColor:
-                                widget.style.hoverIndicatorBackgroundColor,
-                          ),
-                          onPressed: manualScaleHigh == null
-                              ? null
-                              : () {
-                                  setState(() {
-                                    manualScaleHigh = null;
-                                    manualScaleLow = null;
-                                  });
-                                },
-                          child: Text(
-                            "Auto",
-                            style: TextStyle(
-                              color: widget.style.secondaryTextColor,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ),
+
                       GestureDetector(
                         onTapUp: (TapUpDetails details) {
                           final RenderBox renderBox =
