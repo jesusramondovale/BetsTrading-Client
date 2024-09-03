@@ -185,6 +185,7 @@ class MobileChartState extends State<MobileChart> {
               .reduce((value, element) => value > element ? value : element) , candlesHighPrice);
         }
         else {
+
           tweenBegin = candlesLowPrice;
           tweenEnd = candlesHighPrice;
         }
@@ -262,8 +263,8 @@ class MobileChartState extends State<MobileChart> {
 
                                 PriceColumn(
                                   style: widget.style,
-                                  low: candlesLowPrice,
-                                  high: candlesHighPrice,
+                                  low: tweenBegin,
+                                  high: tweenEnd,
                                   width: constraints.maxWidth,
                                   chartHeight: chartHeight,
                                   lastCandle: widget.candles[
