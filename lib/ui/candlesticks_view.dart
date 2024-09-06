@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:client_0_0_1/models/betZone.dart';
 import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:flutter/material.dart';
@@ -16,9 +14,13 @@ class CandlesticksView extends StatefulWidget {
   final List<Candle> candles;
   final MainMenuPageController controller;
 
-  CandlesticksView(
-      {super.key, required this.controller, required this.iconPath, required this.ticker, required this.name,})
-      : candles = (Random().nextBool() ? Common().generateRandomCandles(520) : Common().generateSinusoidalCandles(250,300,50,15)) ;
+  CandlesticksView({
+    super.key,
+    required this.controller,
+    required this.iconPath,
+    required this.ticker,
+    required this.name,
+  }) : candles = Common().generateRandomCandles(520);
 
   @override
   CandlesticksViewState createState() => CandlesticksViewState();
@@ -37,8 +39,10 @@ class CandlesticksViewState extends State<CandlesticksView> {
 
   Future<void> _loadRectangleZones() async {
     try {
-      final List<BetZone> betZones = await BetsService().fetchBetZones(widget.ticker);
-      List<RectangleZone> rectangleZones = Common().getRectangleZonesFromBetZones(betZones);
+      final List<BetZone> betZones =
+          await BetsService().fetchBetZones(widget.ticker);
+      List<RectangleZone> rectangleZones =
+          Common().getRectangleZonesFromBetZones(betZones);
 
       setState(() {
         _zones = rectangleZones;

@@ -48,7 +48,7 @@ class _PriceColumnState extends State<PriceColumn> {
     final double newHigh = (widget.high ~/ priceScale + 1) * priceScale;
     final double top = -priceTileHeight / priceScale * (newHigh - widget.high) +
         MAIN_CHART_VERTICAL_PADDING -
-        priceTileHeight / 2 + 100;
+        priceTileHeight / 2 ;
     return GestureDetector(
       onVerticalDragUpdate: (details) {
         /// DISPARA SOLO AL PELLIZCAR BARRA LATERAL
