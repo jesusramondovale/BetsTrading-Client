@@ -19,9 +19,10 @@ class Favorite {
   final double close;
   final double current;
   final String userId;
+  final String ticker;
 
   Favorite(this.id, this.icon, this.dailyGain, this.name, this.close,
-      this.current, this.userId);
+      this.current, this.userId, this.ticker);
 
   Favorite.fromJson(Map<String, dynamic> json)
       : id = json['id'],
@@ -30,7 +31,8 @@ class Favorite {
         dailyGain =  (json['daily_gain'] as num).toDouble(),
         close = (json['close'] as num).toDouble(),
         current = (json['current'] as num).toDouble(),
-        userId = json['user_id'].toString();
+        userId = json['user_id'].toString(),
+        ticker = json['ticker'];
 }
 
 class Favorites {
@@ -123,7 +125,7 @@ class FavoriteDialog extends StatelessWidget {
                                       await _storage.read(
                                               key: "sessionToken") ??
                                           "none",
-                                      favorite.name);
+                                      favorite.ticker);
                                   if (ok) {
                                     Common().newFavoriteCompleted(context,
                                         LocalizedStrings.of(context)!.updatedFavs ?? "Updated favs!");

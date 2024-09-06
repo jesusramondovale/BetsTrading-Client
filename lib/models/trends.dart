@@ -18,9 +18,10 @@ class Trend {
   final double dailyGain;
   final double close;
   final double current;
+  final String ticker;
 
   Trend(
-      this.id, this.icon, this.dailyGain, this.name, this.close, this.current);
+      this.id, this.icon, this.dailyGain, this.name, this.close, this.current, this.ticker);
 
   Trend.fromJson(Map<String, dynamic> json)
       : id = json['id'],
@@ -28,7 +29,8 @@ class Trend {
         icon = json['icon'],
         dailyGain = (json['daily_gain'] as num).toDouble(),
         close = (json['close'] as num).toDouble(),
-        current = (json['current'] as num).toDouble();
+        current = (json['current'] as num).toDouble(),
+        ticker = json['ticker'];
 }
 
 class Trends {
@@ -128,7 +130,7 @@ class TrendDialog extends StatelessWidget {
                                       await _storage.read(
                                               key: "sessionToken") ??
                                           "none",
-                                      trend.name);
+                                      trend.ticker);
                                   if (ok) {
                                     Common().newFavoriteCompleted(
                                         context,

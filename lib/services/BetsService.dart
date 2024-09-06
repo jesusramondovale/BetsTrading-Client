@@ -10,7 +10,7 @@ class BetsService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<List<BetZone>> fetchBetZones(String ticker) async {
-    final response = await Common().postRequestWrapper('Info','GetBets', {'id': ticker});
+    final response = await Common().postRequestWrapper('Info','GetBetZones', {'id': ticker});
 
     if (response['statusCode'] == 200) {
       List<BetZone> zones = (response['body']['bets'] as List)

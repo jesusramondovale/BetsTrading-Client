@@ -136,8 +136,6 @@ class MobileChartState extends State<MobileChart> {
             .getRange(candlesStartIndex, max(candlesEndIndex, 0) + 1)
             .toList();
 
-        double rangeMultiplier = 3.0;
-
         double candlesHighPrice = 0;
         double candlesLowPrice = 0;
         double tweenBegin;
