@@ -4,4 +4,8 @@ class Config {
   static const SERVICE_PORT = '44346';
   static const CODE_VERSION = '24.251.2';
   static const IP_GEOLOCALIZER_TOKEN = 'd99daa2befa6f8';
+
+  // DEV
+  static const PRICE_SIMULATION = 500.0;
+
 }

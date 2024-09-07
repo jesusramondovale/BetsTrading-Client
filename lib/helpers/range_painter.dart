@@ -91,10 +91,10 @@ class RangePainter extends CustomPainter {
           .calculateMaxFontSize('x${zone.odds.toStringAsFixed(2)}', FontWeight.bold, endX - startX);
       final textSpan = TextSpan(
         text: 'x${zone.odds.toStringAsFixed(2)}',
-        style: TextStyle(
+        style: GoogleFonts.montserrat(
             color: zone.strokeColor,
             fontSize: fontSize,
-            fontWeight: FontWeight.bold),
+            fontWeight: FontWeight.w300),
       );
 
       final textPainter = TextPainter(

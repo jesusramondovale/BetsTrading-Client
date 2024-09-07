@@ -3,6 +3,7 @@ import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:flutter/material.dart';
 import '../candlesticks/src/main.dart';
 import '../candlesticks/src/models/candle.dart';
+import '../config/config.dart';
 import '../helpers/common.dart';
 import '../helpers/rectangle_zone.dart';
 import 'layout_page.dart';
@@ -20,7 +21,7 @@ class CandlesticksView extends StatefulWidget {
     required this.iconPath,
     required this.ticker,
     required this.name,
-  }) : candles = Common().generateRandomCandles(520);
+  }) : candles = Common().generateRandomCandles(520, Config.PRICE_SIMULATION);
 
   @override
   CandlesticksViewState createState() => CandlesticksViewState();
@@ -42,7 +43,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
       final List<BetZone> betZones =
           await BetsService().fetchBetZones(widget.ticker);
       List<RectangleZone> rectangleZones =
-          Common().getRectangleZonesFromBetZones(betZones);
+          Common().getRectangleZonesFromBetZones(betZones, widget.candles.first.close);
 
       setState(() {
         _zones = rectangleZones;

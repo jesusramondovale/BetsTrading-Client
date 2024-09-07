@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:client_0_0_1/locale/localized_texts.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../../helpers/common.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../helpers/rectangle_zone.dart';
 import '../../../ui/bets_page.dart';
@@ -86,7 +84,7 @@ class MobileChartState extends State<MobileChart> {
     if (widget.rectangleZones.isEmpty) return;
 
     List<Candle> last30Candles = widget.candles.length > 30
-        ? widget.candles.sublist(widget.candles.length - 30)
+    ? widget.candles.sublist(0, 30)
         : widget.candles;
 
     double minPrice = min(
@@ -219,26 +217,12 @@ class MobileChartState extends State<MobileChart> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            SizedBox(height: 10),
                             Image.memory(
                               base64Decode(widget.iconPath),
-                              height: 75,
-                              width: 75,
+                              height: 120,
+                              width: 120,
                               gaplessPlayback: true,
-                            ),
-                            SizedBox(width: 20),
-                            // Texto
-                            Text(
-                              Common().createViewName(widget.chartTitle),
-                              style: GoogleFonts.openSans(
-                                fontSize: 26.0,
-                                fontWeight: FontWeight.w300,
-                                color: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.white
-                                    : Colors.grey,
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
                             ),
                           ],
                         ),

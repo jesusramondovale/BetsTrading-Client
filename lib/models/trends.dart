@@ -196,6 +196,7 @@ class TrendDialog extends StatelessWidget {
                                 Icons.auto_graph_sharp,
                                 color: Colors.white),
                             onPressed: () {
+                              Navigator.of(context).pop();
                               showModalBottomSheet(
                                 context: context,
                                 isScrollControlled: true,
@@ -215,7 +216,7 @@ class TrendDialog extends StatelessWidget {
                                           children: [
 
                                             Expanded(
-                                              child: CandlesticksView(ticker: trend.id.toString(), name: trend.name, controller: this.controller, iconPath: trend.icon),
+                                              child: CandlesticksView(ticker: trend.ticker, name: trend.name, controller: this.controller, iconPath: trend.icon),
                                             ),
                                           ],
                                         ),

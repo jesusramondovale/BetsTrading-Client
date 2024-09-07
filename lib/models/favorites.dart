@@ -189,6 +189,7 @@ class FavoriteDialog extends StatelessWidget {
                                 Icons.auto_graph_sharp,
                                 color: Colors.white),
                             onPressed: () {
+                              Navigator.of(context).pop();
                               showModalBottomSheet(
                                 context: context,
                                 isScrollControlled: true,
@@ -208,7 +209,7 @@ class FavoriteDialog extends StatelessWidget {
                                           children: [
 
                                             Expanded(
-                                              child: CandlesticksView(ticker: favorite.id.toString(), name: favorite.name, controller: this.controller, iconPath: favorite.icon ),
+                                              child: CandlesticksView(ticker: favorite.ticker, name: favorite.name, controller: this.controller, iconPath: favorite.icon ),
                                             ),
                                           ],
                                         ),

@@ -6,6 +6,7 @@ class RectangleZone {
   DateTime startDate, endDate;
   double highPrice, lowPrice;
   double margin;
+  double targetPrice;
   double centerPrice;
   Color fillColor, strokeColor;
   double odds;
@@ -26,6 +27,6 @@ class RectangleZone {
 
 
   })
-      : centerPrice = (highPrice + lowPrice) / 2;
+      : centerPrice = (highPrice + lowPrice) / 2, targetPrice = (highPrice + lowPrice) / 2;
 
 }

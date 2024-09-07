@@ -175,6 +175,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         mainAxisSpacing: 0.0,
         childAspectRatio: 1,
       ),
+      //TO-DO: CURRENCY $$$€€€
       children: [
         _buildGridItem(
           context,
@@ -185,7 +186,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         _buildGridItem(
           context,
           icon: Icons.crop_sharp,
-          value: '${widget.zone.centerPrice.toStringAsFixed(2)}€',
+          value: '${widget.zone.targetPrice.toStringAsFixed(2)}€',
           label: strings?.targetValue ?? "Target value",
         ),
         _buildGridItem(
@@ -197,7 +198,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         _buildGridItem(
           context,
           icon: Icons.data_object_sharp,
-          value: '${widget.zone.margin.toStringAsFixed(2)}%',
+          value: '${widget.zone.margin.toStringAsFixed(2)}% (±${(widget.zone.targetPrice*widget.zone.margin/200).toStringAsFixed(1)}€)',
           label: strings?.targetMargin ?? "Target margin",
         ),
       ],

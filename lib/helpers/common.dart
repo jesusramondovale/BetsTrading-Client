@@ -243,14 +243,14 @@ class Common {
     int daysUntil = latestDate.difference(now).inDays;
     return daysUntil > 0 ? daysUntil : 0;
   }
-  List<RectangleZone> getRectangleZonesFromBetZones(List<BetZone> betZones) {
+  List<RectangleZone> getRectangleZonesFromBetZones(List<BetZone> betZones, double current) {
     Color strokeColor = Colors.white;
 
     List<RectangleZone> zones = betZones.map((betZone) {
       //TO-DO
       // Determinar el color de relleno basado en algún criterio
       Color fillColor;
-      if (betZone.targetValue > 1.0) {
+      if (betZone.targetValue > current) {
         fillColor = Colors.green.withOpacity(0.4);
       } else {
         fillColor = Colors.red.withOpacity(0.4);
@@ -739,29 +739,40 @@ class Common {
 
     return candlesList;
   }
-  List<Candle> generateRandomCandles(int count) {
+  List<Candle> generateRandomCandles(int count, double price) {
     Random random = Random();
     List<Candle> candlesList = [];
     DateTime startDate = DateTime.now();
 
     // Inicializa el primer valor de 'open'
-    double lastClose = 1 + random.nextDouble() * (1.10 - 1.065);
+    double lastClose = price + random.nextDouble() * (1.10 - 1.065);
 
     for (int i = 0; i < count; i++) {
       DateTime date = startDate.subtract(Duration(days: i));
       double open = lastClose;
-      double close = open + (random.nextBool() ? 1 : -1) * (0.0001 + random.nextDouble() * 0.02);
-      double maxChange = random.nextDouble() * 0.1;
-      double high = max(open, close) + maxChange * random.nextDouble();
-      double low = min(open, close) - maxChange * random.nextDouble();
+
+      // Generar cierre de la vela con variación
+      double close = open + (random.nextBool() ? 1 : -1) * (0.0001 + random.nextDouble() * (price * 0.01));
+
+      // Proporcionalidad del rango alto-bajo basada en el precio pasado
+      double maxChange = price * 0.05;  // 5% de variación con respecto al precio original
+
+      double high = max(open, close) + random.nextDouble() * maxChange;
+      double low = min(open, close) - random.nextDouble() * maxChange;
+
+      // Generar volumen aleatorio
       double volume = 500 + random.nextDouble() * 4500;
+
+      // Actualizar el cierre anterior
       lastClose = close;
+
+      // Añadir vela a la lista
       candlesList.add(Candle(date: date, open: open, close: close, high: high, low: low, volume: volume));
     }
 
     return candlesList;
-
   }
+
   List<Candle> generateSinusoidalCandles(int count, double centerValue, double amplitude, double period) {
     List<Candle> candlesList = [];
     DateTime startDate = DateTime.now();

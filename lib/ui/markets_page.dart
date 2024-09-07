@@ -34,7 +34,6 @@ class MarketsViewState extends State<MarketsView> {
     final strings = LocalizedStrings.of(_context);
     groups = [
       strings?.shares ?? 'Shares',
-       'ETFs',
       'Cryptos',
       strings?.indexes ?? 'Indexes',
       strings?.commodities ?? 'Commodities',
@@ -51,15 +50,12 @@ class MarketsViewState extends State<MarketsView> {
         theGroup = 'Shares';
         break;
       case 1:
-        theGroup = 'ETFs';
-        break;
-      case 2:
         theGroup = 'Cryptos';
         break;
-      case 3:
+      case 2:
         theGroup = 'Indexes';
         break;
-      case 4:
+      case 3:
         theGroup = 'Commodities';
         break;
     }
