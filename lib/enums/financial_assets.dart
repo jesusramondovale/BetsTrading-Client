@@ -3,15 +3,13 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 class FinancialAsset {
-  final int id;
-  final String name;
+   final String name;
   final String ticker;
   final String group;
   final String icon;
   final String country;
 
   FinancialAsset({
-    required this.id,
     required this.name,
     required this.group,
     required this.icon,
@@ -21,7 +19,6 @@ class FinancialAsset {
 
   factory FinancialAsset.fromJson(Map<String, dynamic> json) {
     return FinancialAsset(
-      id: json['id'],
       name: json['name'],
       group: json['group'],
       icon: json['icon'],

@@ -53,8 +53,8 @@ class BetsService {
     }
   }
 
-  Future<bool> postNewFavorite(String userId, String name) async {
-    final response = await Common().postRequestWrapper('Info','NewFavorite', {'id': userId, 'item_name': name});
+  Future<bool> postNewFavorite(String userId, String ticker) async {
+    final response = await Common().postRequestWrapper('Info','NewFavorite', {'user_id': userId, 'ticker': ticker});
     return response['statusCode'] == 200;
   }
 

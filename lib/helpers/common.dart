@@ -855,6 +855,11 @@ class Common {
     return viewName;
   }
 
+  String createViewName(String s) {
+    List<String> words = s.split(' ');
+    return words[0];
+  }
+
 
   Future<Map<String, dynamic>> postRequestWrapper(String controller, String endpoint, Map<String, dynamic> data) async {
     try {

@@ -1,8 +1,8 @@
+import 'dart:convert';
 import 'dart:math';
-
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import '../../../helpers/common.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../helpers/rectangle_zone.dart';
 import '../../../ui/bets_page.dart';
@@ -90,24 +90,24 @@ class MobileChartState extends State<MobileChart> {
         : widget.candles;
 
     double minPrice = min(
-        widget.rectangleZones.map((zone) => zone.lowPrice)
+        widget.rectangleZones
+            .map((zone) => zone.lowPrice)
             .reduce((value, element) => value < element ? value : element),
-        last30Candles.map((candle) => candle.low)
-            .reduce((value, element) => value < element ? value : element)
-    );
+        last30Candles
+            .map((candle) => candle.low)
+            .reduce((value, element) => value < element ? value : element));
 
     double maxPrice = max(
-        widget.rectangleZones.map((zone) => zone.highPrice)
+        widget.rectangleZones
+            .map((zone) => zone.highPrice)
             .reduce((value, element) => value > element ? value : element),
-        last30Candles.map((candle) => candle.high)
-            .reduce((value, element) => value > element ? value : element)
-    );
+        last30Candles
+            .map((candle) => candle.high)
+            .reduce((value, element) => value > element ? value : element));
 
     setState(() {
-      manualScaleHigh =
-          maxPrice ;
-      manualScaleLow =
-          minPrice ;
+      manualScaleHigh = maxPrice * 1;
+      manualScaleLow = minPrice * 1;
       scaleX = 1.0;
       offsetY = 0.0;
     });
@@ -115,7 +115,8 @@ class MobileChartState extends State<MobileChart> {
 
   @override
   Widget build(BuildContext context) {
-    final noBetsText = LocalizedStrings.of(context)!.noBetsAvailable ?? "No Bets available!";
+    final noBetsText =
+        LocalizedStrings.of(context)!.noBetsAvailable ?? "No Bets available!";
     return LayoutBuilder(
       builder: (context, constraints) {
         final double maxWidth = constraints.maxWidth - PRICE_BAR_WIDTH;
@@ -177,18 +178,20 @@ class MobileChartState extends State<MobileChart> {
         }
 
         if (widget.rectangleZones.isNotEmpty) {
-          tweenBegin =  min(widget.rectangleZones.map((zone) => zone.lowPrice)
-              .reduce((value, element) => value < element ? value : element) , candlesLowPrice);
-          tweenEnd = max(widget.rectangleZones.map((zone) => zone.highPrice)
-              .reduce((value, element) => value > element ? value : element) , candlesHighPrice);
-        }
-        else {
-
+          tweenBegin = min(
+              widget.rectangleZones.map((zone) => zone.lowPrice).reduce(
+                  (value, element) => value < element ? value : element),
+              candlesLowPrice);
+          tweenEnd = max(
+              widget.rectangleZones.map((zone) => zone.highPrice).reduce(
+                  (value, element) => value > element ? value : element),
+              candlesHighPrice);
+        } else {
           tweenBegin = candlesLowPrice;
           tweenEnd = candlesHighPrice;
         }
         return TweenAnimationBuilder(
-          tween: Tween(begin: tweenBegin , end: tweenEnd),
+          tween: Tween(begin: tweenBegin, end: tweenEnd),
           duration: Duration(milliseconds: manualScaleHigh == null ? 300 : 0),
           builder: (context, double high, _) {
             return TweenAnimationBuilder(
@@ -204,6 +207,7 @@ class MobileChartState extends State<MobileChart> {
                                 widget.index,
                             0),
                         widget.candles.length - 1)];
+
                 return Container(
                   color: widget.style.background,
                   child: Stack(
@@ -212,20 +216,31 @@ class MobileChartState extends State<MobileChart> {
                         top: 10.0,
                         left: 20.0,
                         right: 20.0,
-                        child: Text(
-                          widget.chartTitle.length > 15
-                              ? widget.chartTitle.substring(0, 15) + '...'
-                              : widget.chartTitle,
-                          style: GoogleFonts.openSans(
-                            fontSize: 26.0,
-                            fontWeight: FontWeight.w300,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.memory(
+                              base64Decode(widget.iconPath),
+                              height: 75,
+                              width: 75,
+                              gaplessPlayback: true,
+                            ),
+                            SizedBox(width: 20),
+                            // Texto
+                            Text(
+                              Common().createViewName(widget.chartTitle),
+                              style: GoogleFonts.openSans(
+                                fontSize: 26.0,
+                                fontWeight: FontWeight.w300,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.white
                                     : Colors.grey,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                            ),
+                          ],
                         ),
                       ),
                       TimeRow(
@@ -249,7 +264,7 @@ class MobileChartState extends State<MobileChart> {
                                       zones: widget.rectangleZones,
                                       candles: widget.candles,
                                       candleWidth: widget.candleWidth,
-                                      topPrice: tweenEnd ,
+                                      topPrice: tweenEnd,
                                       bottomPrice: tweenBegin,
                                       index: widget.index,
                                       minIndex: -20,
@@ -258,7 +273,6 @@ class MobileChartState extends State<MobileChart> {
                                     ),
                                   ),
                                 ),
-
                                 PriceColumn(
                                   style: widget.style,
                                   low: tweenBegin,
@@ -288,7 +302,6 @@ class MobileChartState extends State<MobileChart> {
                                     });
                                   },
                                 ),
-
                                 Row(
                                   children: [
                                     Expanded(
@@ -539,7 +552,6 @@ class MobileChartState extends State<MobileChart> {
                               .mainWindowDataContainer.unvisibleIndicators,
                         ),
                       ),
-
                       GestureDetector(
                         onTapUp: (TapUpDetails details) {
                           final RenderBox renderBox =
@@ -551,14 +563,26 @@ class MobileChartState extends State<MobileChart> {
                                   zones: widget.rectangleZones,
                                   candles: widget.candles,
                                   candleWidth: widget.candleWidth,
-                                  topPrice: max(widget.rectangleZones.map((zone) => zone.highPrice)
-                    .reduce((value, element) => value > element ? value : element) , candlesHighPrice) ,
-                                  bottomPrice: min(widget.rectangleZones.map((zone) => zone.lowPrice)
-                    .reduce((value, element) => value < element ? value : element) , candlesLowPrice),
+                                  topPrice: max(
+                                      widget.rectangleZones
+                                          .map((zone) => zone.highPrice)
+                                          .reduce((value, element) =>
+                                              value > element
+                                                  ? value
+                                                  : element),
+                                      candlesHighPrice),
+                                  bottomPrice: min(
+                                      widget.rectangleZones
+                                          .map((zone) => zone.lowPrice)
+                                          .reduce((value, element) =>
+                                              value < element
+                                                  ? value
+                                                  : element),
+                                      candlesLowPrice),
                                   index: widget.index,
                                   minIndex: -20,
                                   priceColumnWidth: PRICE_BAR_WIDTH,
-                              noBetsText: noBetsText)
+                                  noBetsText: noBetsText)
                               .hit(details.localPosition.dx,
                                   details.localPosition.dy, size);
 
@@ -569,7 +593,7 @@ class MobileChartState extends State<MobileChart> {
                                 pageBuilder:
                                     (context, animation, secondaryAnimation) =>
                                         BetConfirmationPage(
-                                          name: widget.chartTitle,
+                                  name: widget.chartTitle,
                                   zone: zoneClicked,
                                   currentValue: widget.candles.first.close,
                                   iconPath: widget.iconPath,
