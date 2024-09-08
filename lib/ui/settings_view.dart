@@ -1,4 +1,4 @@
-import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:betrader/locale/localized_texts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -67,8 +67,10 @@ class SettingsViewState extends State<SettingsView> {
             ListTile(
               title: Text(strings?.notifications ?? 'Notifications'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () =>
-                  Common().unimplementedAction(context, '(Notifications)'),
+              onTap: () async {
+                await Common().showLocalNotification("Betrader" , "Test", 1, {"key":"value"});
+              }
+
             ),
             ListTile(
               title: Text(strings?.contentSettings ?? 'Content settings'),

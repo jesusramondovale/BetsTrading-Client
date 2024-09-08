@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:betrader/locale/localized_texts.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../helpers/rectangle_zone.dart';
 import '../../../ui/bets_page.dart';

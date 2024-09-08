@@ -1,15 +1,17 @@
 import 'dart:convert';
 
-import 'package:client_0_0_1/locale/localized_texts.dart';
-import 'package:client_0_0_1/ui/markets_page.dart';
-import 'package:client_0_0_1/ui/settings_view.dart';
-import 'package:client_0_0_1/ui/topusers_page.dart';
-import 'package:client_0_0_1/ui/userinfo_page.dart';
+import 'package:betrader/locale/localized_texts.dart';
+import 'package:betrader/ui/markets_page.dart';
+import 'package:betrader/ui/settings_view.dart';
+import 'package:betrader/ui/topusers_page.dart';
+import 'package:betrader/ui/userinfo_page.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
+import '../helpers/common.dart';
 import 'home_page.dart';
 import 'login_page.dart';
 import 'package:http/http.dart' as http;
@@ -81,10 +83,20 @@ class MainMenuPageState extends State<MainMenuPage> {
     }
   }
 
+
   @override
   void initState() {
     super.initState();
     _initializeData();
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      Common().showLocalNotification(
+          message.notification!.title!,
+          message.notification!.body!,
+          1 ,
+          message.data);
+    });
+
   }
 
   Future<void> _initializeData() async {

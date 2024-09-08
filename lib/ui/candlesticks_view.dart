@@ -1,5 +1,5 @@
-import 'package:client_0_0_1/models/betZone.dart';
-import 'package:client_0_0_1/services/BetsService.dart';
+import 'package:betrader/models/betZone.dart';
+import 'package:betrader/services/BetsService.dart';
 import 'package:flutter/material.dart';
 import '../candlesticks/src/main.dart';
 import '../candlesticks/src/models/candle.dart';

@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:client_0_0_1/candlesticks/candlesticks.dart';
-import 'package:client_0_0_1/helpers/rectangle_zone.dart';
-import 'package:client_0_0_1/locale/localized_texts.dart';
-import 'package:client_0_0_1/models/favorites.dart';
-import 'package:client_0_0_1/services/BetsService.dart';
+import 'package:betrader/candlesticks/candlesticks.dart';
+import 'package:betrader/helpers/rectangle_zone.dart';
+import 'package:betrader/locale/localized_texts.dart';
+import 'package:betrader/models/favorites.dart';
+import 'package:betrader/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:image/image.dart' as img;
+import '../main.dart';
 import '../models/betZone.dart';
 import '../models/bets.dart';
 import '../models/trends.dart';
@@ -63,6 +65,20 @@ class Common {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  Future<void> showLocalNotification(String title, String body, int id, Map<String,dynamic> payload) async {
+    AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(id.toString(), 'Betrader', importance: Importance.max, priority: Priority.high);
+    NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+    print("showLocalNotification! $body");
+    await flutterLocalNotificationsPlugin.show(
+      id,
+      title,
+      body,
+      platformChannelSpecifics,
+      payload: payload.toString()
+    );
+  }
   void unimplementedAction(BuildContext aContext,  [String? text = '']) {
         ScaffoldMessenger.of(aContext).showSnackBar(
       SnackBar(content: Text('Action is not implemented yet ${text!}'), duration: const Duration(milliseconds: 1300),),

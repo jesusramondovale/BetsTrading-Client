@@ -130,6 +130,7 @@ class LocalizedStrings {
       'accept': 'Accept',
       'cancel': 'Cancel',
       'noBetsAvailable': 'No bets available',
+      'updatedTrends': 'Updated trends!',
     },
     'es': {
       // Español
@@ -252,6 +253,7 @@ class LocalizedStrings {
       'accept': 'Aceptar',
       'cancel': 'Cancelar',
       'noBetsAvailable': 'Sin apuestas disponibles',
+      'updatedTrends': 'Tendencias actualizadas!',
     },
     'fr': {
       // Francés
@@ -375,6 +377,7 @@ class LocalizedStrings {
       'accept': 'Accepter',
       'cancel': 'Annuler',
       'noBetsAvailable': 'Pas de paris disponibles',
+      'updatedTrends': 'Tendances mises à jour!',
     },
     'it': {
       // Italiano
@@ -499,6 +502,7 @@ class LocalizedStrings {
       'accept': 'Accettare',
       'cancel': 'Annullare',
       'noBetsAvailable': 'Nessuna scommessa disponibile',
+      'updatedTrends': 'Tendenze aggiornate!',
     },
     'de': {
       // Alemán
@@ -617,9 +621,13 @@ class LocalizedStrings {
       'accept': 'Akzeptieren',
       'cancel': 'Abbrechen',
       'noBetsAvailable': 'Keine Wetten verfügbar',
+      'updatedTrends': 'Aktualisierte Trends!',
     },
   };
 
+  String? getTextFromValue(String key) {
+    return _localizedValues[locale.languageCode]?[key];
+  }
   String? get menu => _localizedValues[locale.languageCode]?['menu'];
   String? get profile => _localizedValues[locale.languageCode]?['profile'];
   String? get home => _localizedValues[locale.languageCode]?['home'];

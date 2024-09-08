@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import 'package:betrader/services/FirebaseService.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,7 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 import '../locale/localized_texts.dart';
 import 'package:country_flags/country_flags.dart';
-import 'package:client_0_0_1/services/AuthService.dart';
+import 'package:betrader/services/AuthService.dart';
 
 import '../helpers/common.dart';
 
@@ -110,6 +111,7 @@ class _SignInState extends State<SignIn> {
         String _countryCode = Common().getCountryCode(_country);
         final result = await AuthService().register(
           _idCard,
+          FirebaseService().firebaseToken!,
           _fullName,
           _password,
           _address,

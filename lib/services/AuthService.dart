@@ -1,4 +1,5 @@
 // ignore_for_file: constant_identifier_names, file_names
+import 'package:betrader/services/FirebaseService.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:async';
@@ -16,7 +17,7 @@ class AuthService {
     if (response['statusCode'] == 200) {
       final String token = response['body']['userId'];
       await _storage.write(key: 'sessionToken', value: token);
-
+      AuthService().refreshFCM(token, FirebaseService().firebaseToken!);
       return {'success': true, 'message': response['body']['message']};
     } else {
       return {'success': false, 'message': response['body']['message']};
@@ -29,7 +30,7 @@ class AuthService {
     if (response['statusCode'] == 200) {
       final String token = response['body']['userId'];
       await _storage.write(key: 'sessionToken', value: token);
-
+      AuthService().refreshFCM(token, FirebaseService().firebaseToken!);
       return {'success': true, 'message': response['body']['message']};
     } else {
       return {'success': false, 'message': response['body']['message']};
@@ -49,6 +50,7 @@ class AuthService {
 
   Future<Map<String, dynamic>> register(
       String idCard,
+      String fcm,
       String fullName,
       String password,
       String address,
@@ -61,6 +63,7 @@ class AuthService {
       String? profilePic) async {
     final Map<String, dynamic> data = {
       'idCard': idCard,
+      'fcm': fcm,
       'fullName': fullName,
       'password': password,
       'address': address,
@@ -96,6 +99,7 @@ class AuthService {
   Future<int> _isLoggedIn(String token) async {
     final response = await Common().postRequestWrapper('Auth','IsLoggedIn', {'id': token});
     if (response['statusCode'] == 200) {
+      AuthService().refreshFCM(token, FirebaseService().firebaseToken!);
       return 0; // VALID TOKEN
     } else if (response['statusCode'] == 400) {
       return 2; // VALID TOKEN BUT EXPIRED SESSION
@@ -107,6 +111,7 @@ class AuthService {
   Future<bool> _googleQuickRegister(GoogleSignInAccount user, String country,DateTime birthday) async {
     final Map<String, dynamic> data = {
       'id': user.id,
+      'fcm': FirebaseService().firebaseToken!,
       'displayName': user.displayName,
       'email': user.email,
       'photoUrl': user.photoUrl,
@@ -199,6 +204,16 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> refreshFCM(String userId, String token) async {
+    final response = await Common().postRequestWrapper('Auth','RefreshFCM', {'user_id':userId ,'fcm_token': token});
+
+    if (response['statusCode'] == 200) {
+      await _storage.write(key: 'fcmToken', value: token);
+      return {'success': true, 'message': response['body']['message']};
+    } else {
+      return {'success': false, 'message': response['body']['message']};
+    }
+  }
   //TODO
   Future<bool> appleSignIn() async {
     return true;

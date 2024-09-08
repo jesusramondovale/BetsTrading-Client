@@ -1,4 +1,4 @@
-name: client_0_0_1
+name: betrader
 description: "Pre-Alpha version 1 of the client app"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -55,6 +55,9 @@ dependencies:
   google_fonts: ^4.0.5
   google_mlkit_text_recognition : ^0.13.0
   camera: ^0.10.0+1
+  flutter_local_notifications: ^17.2.2
+  firebase_core: ^2.27.0
+  firebase_messaging: ^14.7.19
 
 
 

@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:client_0_0_1/candlesticks/src/constant/view_constants.dart';
+import 'package:betrader/candlesticks/src/constant/view_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../candlesticks/src/models/candle.dart';
