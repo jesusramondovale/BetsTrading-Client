@@ -1,4 +1,5 @@
 import 'package:client_0_0_1/services/BetsService.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'helpers/common.dart';
@@ -10,6 +11,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+
 Future<void> main() async {
 
   Future<bool> loadThemePreference() async {
@@ -19,6 +23,11 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   bool isDark = await loadThemePreference();
+
+  var initializationSettingsAndroid = AndroidInitializationSettings('@drawable/notification');
+  var initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   runApp(MyApp(isDarkTheme: isDark));
 
 }

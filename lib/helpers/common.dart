@@ -7,7 +7,9 @@ import 'package:client_0_0_1/models/favorites.dart';
 import 'package:client_0_0_1/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:image/image.dart' as img;
+import '../main.dart';
 import '../models/betZone.dart';
 import '../models/bets.dart';
 import '../models/trends.dart';
@@ -63,6 +65,20 @@ class Common {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  Future<void> showLocalNotification(String content, int id, String payload) async {
+    AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(id.toString(), 'xd',
+        importance: Importance.max, priority: Priority.high);
+    NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      id,
+      'Betrader',
+      content,
+      platformChannelSpecifics,
+      payload: payload
+    );
+  }
   void unimplementedAction(BuildContext aContext,  [String? text = '']) {
         ScaffoldMessenger.of(aContext).showSnackBar(
       SnackBar(content: Text('Action is not implemented yet ${text!}'), duration: const Duration(milliseconds: 1300),),

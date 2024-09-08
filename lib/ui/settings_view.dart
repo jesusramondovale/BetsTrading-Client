@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:client_0_0_1/locale/localized_texts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -67,8 +69,10 @@ class SettingsViewState extends State<SettingsView> {
             ListTile(
               title: Text(strings?.notifications ?? 'Notifications'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () =>
-                  Common().unimplementedAction(context, '(Notifications)'),
+              onTap: () async {
+                await Common().showLocalNotification("Test" , Random().nextInt(100), "payload");
+              }
+
             ),
             ListTile(
               title: Text(strings?.contentSettings ?? 'Content settings'),

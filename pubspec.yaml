@@ -55,6 +55,7 @@ dependencies:
   google_fonts: ^4.0.5
   google_mlkit_text_recognition : ^0.13.0
   camera: ^0.10.0+1
+  flutter_local_notifications: ^17.2.2
 
 
 
