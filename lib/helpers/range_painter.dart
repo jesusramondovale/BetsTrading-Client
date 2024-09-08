@@ -64,7 +64,7 @@ class RangePainter extends CustomPainter {
       );
       textPainter.layout(minWidth: 0, maxWidth: size.width);
       final double offsetX = (size.width - textPainter.width) / 2;
-      final double offsetY = size.height * 0.2;
+      final double offsetY = size.height * 0.25;
 
       textPainter.paint(canvas, Offset(offsetX , offsetY));
 
