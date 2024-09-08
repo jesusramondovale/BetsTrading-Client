@@ -1,4 +1,4 @@
-import 'package:client_0_0_1/services/BetsService.dart';
+import 'package:betrader/Services/BetsService.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../services/AuthService.dart';
 import 'package:flutter/material.dart';
@@ -9,10 +9,26 @@ import 'ui/layout_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
+Future<String> getFirebaseInstanceId() async {
+  // Get the instance of Firebase Messaging
+  final FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // Get the token
+  String? token = await messaging.getToken();
+
+  // If the token is null, try again
+  if (token == null) {
+    token = await messaging.getToken();
+  }
+
+  return token!;
+}
 
 Future<void> main() async {
 
@@ -28,6 +44,16 @@ Future<void> main() async {
   var initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
+
+  String fid = await getFirebaseInstanceId();
+  print("Firebase Instance ID: $fid");
+
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    Common().showLocalNotification(message.notification!.title!, 1, message.data.values as String);
+
+  });
+
   runApp(MyApp(isDarkTheme: isDark));
 
 }

@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:crypto/crypto.dart';
-import 'package:client_0_0_1/services/AuthService.dart';
-import 'package:client_0_0_1/locale/localized_texts.dart';
-import 'package:client_0_0_1/helpers/common.dart';
-import 'package:client_0_0_1/ui/signin_page.dart';
+import 'package:betrader/services/AuthService.dart';
+import 'package:betrader/locale/localized_texts.dart';
+import 'package:betrader/helpers/common.dart';
+import 'package:betrader/ui/signin_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../services/BetsService.dart';

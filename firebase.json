@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"betrader-v1","appId":"1:1020559524014:android:a95f74d28d6aa80c7c6d3f","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"betrader-v1","configurations":{"android":"1:1020559524014:android:a95f74d28d6aa80c7c6d3f","ios":"1:1020559524014:ios:21733086c8f4f3697c6d3f"}}}}}}

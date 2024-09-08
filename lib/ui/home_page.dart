@@ -1,9 +1,9 @@
 // ignore_for_file: constant_identifier_names, prefer_const_constructors
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:client_0_0_1/locale/localized_texts.dart';
-import 'package:client_0_0_1/models/favorites.dart';
-import 'package:client_0_0_1/services/BetsService.dart';
+import 'package:betrader/locale/localized_texts.dart';
+import 'package:betrader/models/favorites.dart';
+import 'package:betrader/services/BetsService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';

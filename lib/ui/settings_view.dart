@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:betrader/locale/localized_texts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';

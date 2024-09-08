@@ -1,4 +1,4 @@
-import 'package:client_0_0_1/services/AuthService.dart';
+import 'package:betrader/services/AuthService.dart';
 import 'package:flutter/material.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';

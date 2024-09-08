@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:client_0_0_1/ui/verify_account_page.dart';
+import 'package:betrader/ui/verify_account_page.dart';
 import 'package:http/http.dart' as http;
-import 'package:client_0_0_1/locale/localized_texts.dart';
-import 'package:client_0_0_1/services/BetsService.dart';
+import 'package:betrader/locale/localized_texts.dart';
+import 'package:betrader/services/BetsService.dart';
 import '../helpers/common.dart';
 import '../services/AuthService.dart';
 import 'package:country_flags/country_flags.dart';

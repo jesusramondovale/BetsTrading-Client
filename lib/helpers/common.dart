@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:client_0_0_1/candlesticks/candlesticks.dart';
-import 'package:client_0_0_1/helpers/rectangle_zone.dart';
-import 'package:client_0_0_1/locale/localized_texts.dart';
-import 'package:client_0_0_1/models/favorites.dart';
-import 'package:client_0_0_1/services/BetsService.dart';
+import 'package:betrader/candlesticks/candlesticks.dart';
+import 'package:betrader/helpers/rectangle_zone.dart';
+import 'package:betrader/locale/localized_texts.dart';
+import 'package:betrader/models/favorites.dart';
+import 'package:betrader/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -67,8 +67,7 @@ class Common {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   Future<void> showLocalNotification(String content, int id, String payload) async {
     AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(id.toString(), 'xd',
-        importance: Importance.max, priority: Priority.high);
+    AndroidNotificationDetails(id.toString(), '1',importance: Importance.max, priority: Priority.high);
     NotificationDetails platformChannelSpecifics =
     NotificationDetails(android: androidPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(

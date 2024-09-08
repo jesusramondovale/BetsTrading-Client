@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:client_0_0_1/locale/localized_texts.dart';
+import 'package:betrader/locale/localized_texts.dart';
 import 'package:flutter/material.dart';
-import 'package:client_0_0_1/services/TopService.dart';
-import 'package:client_0_0_1/models/users.dart';
+import 'package:betrader/services/TopService.dart';
+import 'package:betrader/models/users.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 

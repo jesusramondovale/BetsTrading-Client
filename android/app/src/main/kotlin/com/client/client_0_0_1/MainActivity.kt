@@ -1,4 +1,4 @@
-package com.client.client_0_0_1
+package com.betstrading.betrader
 
 import io.flutter.embedding.android.FlutterActivity
 

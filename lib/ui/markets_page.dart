@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:client_0_0_1/services/AssetsService.dart';
+import 'package:betrader/services/AssetsService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
