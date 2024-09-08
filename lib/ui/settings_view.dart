@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +68,7 @@ class SettingsViewState extends State<SettingsView> {
               title: Text(strings?.notifications ?? 'Notifications'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () async {
-                await Common().showLocalNotification("Test" , Random().nextInt(100), "payload");
+                await Common().showLocalNotification("Betrader" , "Test", 1, {"key":"value"});
               }
 
             ),

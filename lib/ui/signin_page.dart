@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import 'package:betrader/services/FirebaseService.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -110,6 +111,7 @@ class _SignInState extends State<SignIn> {
         String _countryCode = Common().getCountryCode(_country);
         final result = await AuthService().register(
           _idCard,
+          FirebaseService().firebaseToken!,
           _fullName,
           _password,
           _address,

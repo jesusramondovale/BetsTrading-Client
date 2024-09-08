@@ -1,4 +1,5 @@
 import 'package:betrader/Services/BetsService.dart';
+import 'package:betrader/services/FirebaseService.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../services/AuthService.dart';
 import 'package:flutter/material.dart';
@@ -43,16 +44,11 @@ Future<void> main() async {
   var initializationSettingsAndroid = AndroidInitializationSettings('@drawable/notification');
   var initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
 
+
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
 
-  String fid = await getFirebaseInstanceId();
-  print("Firebase Instance ID: $fid");
-
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    Common().showLocalNotification(message.notification!.title!, 1, message.data.values as String);
-
-  });
+  await FirebaseService().initFirebase();
 
   runApp(MyApp(isDarkTheme: isDark));
 
@@ -98,10 +94,11 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
+
   @override
   void initState() {
-    _checkAuthentication();
     super.initState();
+    _checkAuthentication();
 
   }
 

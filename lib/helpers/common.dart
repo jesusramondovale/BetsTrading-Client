@@ -65,17 +65,18 @@ class Common {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-  Future<void> showLocalNotification(String content, int id, String payload) async {
+  Future<void> showLocalNotification(String title, String body, int id, Map<String,dynamic> payload) async {
     AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(id.toString(), '1',importance: Importance.max, priority: Priority.high);
+    AndroidNotificationDetails(id.toString(), 'Betrader', importance: Importance.max, priority: Priority.high);
     NotificationDetails platformChannelSpecifics =
     NotificationDetails(android: androidPlatformChannelSpecifics);
+    print("showLocalNotification! $body");
     await flutterLocalNotificationsPlugin.show(
       id,
-      'Betrader',
-      content,
+      title,
+      body,
       platformChannelSpecifics,
-      payload: payload
+      payload: payload.toString()
     );
   }
   void unimplementedAction(BuildContext aContext,  [String? text = '']) {
