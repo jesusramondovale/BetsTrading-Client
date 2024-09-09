@@ -39,25 +39,17 @@ class CandlesticksViewState extends State<CandlesticksView> {
   }
 
   Future<void> _loadData() async {
-
-    DateTime now = DateTime.now();
-    int hour = now.hour;
-    int interval = (hour / 24 * 7).ceil();
-    int i = interval.clamp(1, 7);
-    String alphaKey = Config.ALPHA_KEYS[i]!;
-
     try {
       final List<Candle> candles;
       final List<BetZone> betZones =
           await BetsService().fetchBetZones(widget.ticker);
       (isRealNotifier.value ?
-          candles = await BetsService().fetchCandles(widget.ticker.split(".")[0], alphaKey)
+          candles = await BetsService().fetchCandles(widget.ticker.split(".")[0], Common().rotateAlphaApiByHour())
             :
           candles = Common().generateRandomCandles(100, Config.PRICE_SIMULATION));
 
       List<RectangleZone> rectangleZones =
           Common().getRectangleZonesFromBetZones(betZones, candles.isNotEmpty ? candles.first.close : 0.0);
-
 
       setState(() {
         _zones = rectangleZones;
@@ -68,7 +60,6 @@ class CandlesticksViewState extends State<CandlesticksView> {
       setState(() {
         _isLoading = false;
       });
-      // Maneja errores si es necesario
     }
   }
 

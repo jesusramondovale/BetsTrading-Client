@@ -71,7 +71,7 @@ class HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       key: _homeScreenKey,
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -79,37 +79,40 @@ class HomeScreenState extends State<HomeScreen> {
             Row(
               children: [
                 Card(
+                  elevation: 0,
+                  surfaceTintColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black : Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5),
                   ),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,colors: [Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white, Colors.grey.shade800],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                  child: ValueListenableBuilder<bool>(
+                    valueListenable: isRealNotifier,
+                    builder: (context, isReal, child) {
+                      return Row(
                         children: [
-                          Icon(
-                            Icons.attach_money,
-                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                          Switch(
+                            value: isReal,
+                            inactiveThumbColor: Colors.black,
+                            inactiveTrackColor: Colors.grey,
+                            onChanged: (bool value) {
+                              isRealNotifier.value = value;
+                            },
                           ),
-                          const SizedBox(width: 8),
-                          Text(_userPoints,
-                            style: GoogleFonts.montserrat(color: Colors.white),
-                          ),
+                          if (isReal) ...[
+                            SizedBox(width: 5),
+                            Image.asset('assets/alpha_vantage.png', width: 35),
+                          ],
                         ],
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
+                Spacer(flex: 10),
+                Image.asset(Theme.of(context).brightness == Brightness.dark
+                    ? 'assets/betrader-BETA_dark.png' : 'assets/betrader-BETA_light.png' , width: 120),
                 Spacer(),
                 IconButton(
+                  padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
                   icon: showFavorites
                       ? Icon(Icons.star)
                       : Icon(Icons.star_border),
@@ -122,15 +125,38 @@ class HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.local_grocery_store_rounded),
-                  iconSize: 30,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey
-                      : Colors.black,
+                  padding: const EdgeInsets.all(2.5),
                   onPressed: () {
-                    Common().unimplementedAction(context);
+                    ///TO-DO
                   },
-                ),
+                  icon: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white, Colors.grey.shade800], // Color normal
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.attach_money,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _userPoints,
+                            style: GoogleFonts.montserrat(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
               ],
             ),
 

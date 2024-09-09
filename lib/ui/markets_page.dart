@@ -24,6 +24,7 @@ class MarketsViewState extends State<MarketsView> {
   List<FinancialAsset> assets = [];
   late BuildContext _context;
   int groupId = 0;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -44,8 +45,12 @@ class MarketsViewState extends State<MarketsView> {
     }
   }
 
+
   void _loadAssets(int id) {
     String? theGroup;
+    setState(() {
+      _isLoading = true;
+    });
     switch (id) {
       case 0:
         theGroup = 'Shares';
@@ -65,6 +70,7 @@ class MarketsViewState extends State<MarketsView> {
       AssetsService().getFinancialAssetsByGroup(theGroup).then((newAssets) {
         setState(() {
           assets = newAssets ?? [];
+          _isLoading = false;
         });
       });
     }
@@ -108,17 +114,15 @@ class MarketsViewState extends State<MarketsView> {
   }
 
   Widget _buildContent() {
-    Color dropDownColor = Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black;
+    Color dropDownColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
     return Column(
       children: [
         Center(
-          /// TO-DO
-          /* TO-DO :
-           ***  RECOVER WHEN DEMO/REAL SWITCH IS GONE
-
           child: Container(
-
             child: DropdownButton<String>(
+              padding: EdgeInsets.fromLTRB(100, 0, 100, 0),
               value: selectedGroup,
               underline: SizedBox.shrink(),
               onChanged: _onGroupChanged,
@@ -126,187 +130,129 @@ class MarketsViewState extends State<MarketsView> {
               style: GoogleFonts.montserrat(
                 color: dropDownColor,
                 fontSize: 30.0,
-                fontWeight: FontWeight.normal,
+                fontWeight: FontWeight.w300,
               ),
               dropdownColor: Theme.of(context).brightness == Brightness.dark
                   ? Colors.black
                   : Colors.white,
-              elevation: 16,
+              elevation: 8,
               borderRadius: BorderRadius.circular(25),
-              isExpanded: false,
+              isExpanded: true,
               iconEnabledColor: dropDownColor,
               iconDisabledColor: Colors.grey,
               itemHeight: 60,
-              icon: Icon(Icons.arrow_drop_down_rounded, color: dropDownColor, size: 65),
+              icon: Icon(Icons.expand_more_rounded,
+                  color: dropDownColor, size: 45),
+              //iconSize: 65,
               alignment: Alignment.center,
-
-              ),
             ),
-          ),
-
-         *** RECOVER END (LINE 210) ***/
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 60,
-                child: Row(
-                  children: [
-                    ValueListenableBuilder<bool>(
-                      valueListenable: isRealNotifier,
-                      builder: (context, isReal, child) {
-                        return Row(
-                          children: [
-                            Switch(
-                              value: isReal,
-                              inactiveThumbColor: Colors.black,
-                              inactiveTrackColor: Colors.grey,
-                              onChanged: (bool value) {
-                                isRealNotifier.value = value;
-                              },
-                            ),
-                            if (isReal) ...[
-                              SizedBox(width: 5),
-                              Image.asset('assets/alpha_vantage.png', width: 30),
-                            ],
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
-              // DropdownButton
-              DropdownButton<String>(
-                  value: selectedGroup,
-                  underline: SizedBox(),
-                  onChanged: _onGroupChanged,
-                  items: _buildDropdownMenuItems(),
-                  isDense: false,
-                  style: GoogleFonts.montserrat(
-                    color: dropDownColor,
-                    fontSize: 30.0,
-                    fontWeight: FontWeight.normal,
-                  ),
-                  dropdownColor: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black
-                      : Colors.white,
-                  elevation: 32,
-                  borderRadius: BorderRadius.circular(25),
-                  isExpanded: false,
-                  iconEnabledColor: dropDownColor,
-                  iconDisabledColor: Colors.grey,
-                  itemHeight: 60,
-
-                  icon: Icon(Icons.arrow_drop_down_rounded, color: dropDownColor, size: 60),
-                  alignment: Alignment.center,
-                ),
-
-            ],
           ),
         ),
-
-        // *** RECOVER END ***
-
-        Expanded(
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 5.0,
-              mainAxisSpacing: 7.0,
-              childAspectRatio: 1.0,
-            ),
-            itemCount: assets.length,
-            itemBuilder: (context, index) {
-              final FinancialAsset asset = assets[index];
-              return GestureDetector(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (BuildContext context) {
-                      return ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(25.0),
-                        ),
+        _isLoading
+              ? Center(heightFactor: 18, child: CircularProgressIndicator(color: Colors.grey ,strokeWidth: 1.0))
+              : Expanded(
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 5.0,
+                      mainAxisSpacing: 7.0,
+                      childAspectRatio: 1.0,
+                    ),
+                    itemCount: assets.length,
+                    itemBuilder: (context, index) {
+                      final FinancialAsset asset = assets[index];
+                      return GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (BuildContext context) {
+                              return ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(25.0),
+                                ),
+                                child: Container(
+                                  color:
+                                      Theme.of(context).scaffoldBackgroundColor,
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.55,
+                                  child: OverflowBox(
+                                    alignment: Alignment.topCenter,
+                                    maxHeight:
+                                        MediaQuery.of(context).size.height,
+                                    child: Column(
+                                      children: [
+                                        Expanded(
+                                          child: CandlesticksView(
+                                            ticker: asset.ticker,
+                                            name: asset.name,
+                                            controller: widget.controller,
+                                            iconPath: asset.icon,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
                         child: Container(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          height: MediaQuery.of(context).size.height * 0.55,
-                          child: OverflowBox(
-                            alignment: Alignment.topCenter,
-                            maxHeight: MediaQuery.of(context).size.height,
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  child: CandlesticksView(
-                                    ticker: asset.ticker,
-                                    name: asset.name,
-                                    controller: widget.controller,
-                                    iconPath: asset.icon,),
+                          margin: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(20.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white10
+                                    : Colors.black45,
+                                blurRadius: 5.0,
+                                spreadRadius: 2.0,
+                                offset: Offset(0, 0),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (asset.icon.isNotEmpty &&
+                                  asset.icon != "null") ...[
+                                Image.memory(base64Decode(asset.icon),
+                                    height: 55),
+                              ] else ...[
+                                Text(
+                                  Common()
+                                      .createTrendViewNameFromName(asset.name),
+                                  maxLines: 1,
+                                  style: GoogleFonts.roboto(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w100),
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
-                            ),
+                              SizedBox(height: 10),
+                              Text(
+                                asset.name,
+                                maxLines: 1,
+                                style: GoogleFonts.comfortaa(
+                                    fontSize: 16, fontWeight: FontWeight.w600),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
                         ),
                       );
                     },
-                  );
-                },
-                child: Container(
-                  margin: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(20.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white10
-                          : Colors.black45,
-                        blurRadius: 5.0,
-                        spreadRadius: 2.0,
-                        offset: Offset(0, 0),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (asset.icon.isNotEmpty && asset.icon != "null" )... [
-                        Image.memory(base64Decode(asset.icon), height: 55),
-                      ]
-                      else ...[
-                        Text(
-                          Common().createTrendViewNameFromName(asset.name),
-                          maxLines: 1,
-                          style: GoogleFonts.roboto(
-                              fontSize: 36, fontWeight: FontWeight.w100),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-
-                      SizedBox(height: 10),
-                      Text(
-                        asset.name,
-                        maxLines: 1,
-                        style: GoogleFonts.comfortaa(
-                            fontSize: 16, fontWeight: FontWeight.w600),
-                        textAlign: TextAlign.center,
-                      ),
-
-
-                    ],
                   ),
                 ),
-              );
-            },
-          ),
-        ),
+
       ],
     );
   }
-
-
 }

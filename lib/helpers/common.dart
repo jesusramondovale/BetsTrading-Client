@@ -64,7 +64,6 @@ class Common {
 
     ),
   );
-
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   Future<void> showLocalNotification(String title, String body, int id, Map<String,dynamic> payload) async {
@@ -790,7 +789,6 @@ class Common {
 
     return candlesList;
   }
-
   List<Candle> generateSinusoidalCandles(int count, double centerValue, double amplitude, double period) {
     List<Candle> candlesList = [];
     DateTime startDate = DateTime.now();
@@ -893,13 +891,10 @@ class Common {
     }
     return viewName;
   }
-
   String createViewName(String s) {
     List<String> words = s.split(' ');
     return words[0];
   }
-
-
   Future<Map<String, dynamic>> postRequestWrapper(String controller, String endpoint, Map<String, dynamic> data) async {
     try {
       bool certificateCheck(X509Certificate cert, String host, int port) => true;
@@ -947,8 +942,23 @@ class Common {
       return 'null';
     }
   }
+  String rotateAlphaApiByHour() {
 
+    DateTime now = DateTime.now();
+    int hour = now.hour;
+    int interval;
 
+    if (hour >= 0 && hour < 9) {
+      interval = 1;
+    }
+    else {
+      int remainingHours = hour - 9;
+      interval = (remainingHours / (24 - 9) * 6).ceil() + 1;
+    }
+
+    int i = interval.clamp(1, 7);
+    return Config.ALPHA_KEYS[i]!;
+  }
 }
 
 class BlankImageWidget extends StatelessWidget {

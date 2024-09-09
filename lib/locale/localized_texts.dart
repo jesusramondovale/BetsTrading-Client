@@ -198,7 +198,7 @@ class LocalizedStrings {
       'staked': 'Apostado',
       'indexes': 'Índices',
       'shares': 'Acciones',
-      'commodities': 'Materias primas',
+      'commodities': 'Futuros',
       'googleSignIn': 'Continuar con Google',
       'appleSignIn': 'Continuar con Apple ID',
       'commonSignIn': 'Inicio de sesión con e-mail',

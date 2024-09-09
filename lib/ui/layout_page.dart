@@ -177,43 +177,56 @@ class MainMenuPageState extends State<MainMenuPage> {
         ValueListenableBuilder<int>(
             valueListenable: _controller.selectedIndexNotifier,
             builder: (context, index, _){
-              return BottomNavigationBar(
-                selectedItemColor: Colors.deepPurple,
-                items: <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: const Icon(Icons.home_outlined),
-                    activeIcon: const Icon(Icons.home),
-                    label: strings?.home ?? "Home",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: const Icon(Icons.public),
-                    label: strings?.ranking ?? "Ranking",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: const Icon(Icons.casino_outlined),
-                    activeIcon: const Icon(Icons.casino),
-                    label: strings?.liveMarkets ?? 'Live Markets',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: const Icon(Icons.settings_outlined),
-                    activeIcon: const Icon(Icons.settings),
-                    label: strings?.settings ?? 'Settings',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: (_profilePicBytes != null
-                        ? CircleAvatar(
-                      backgroundImage: MemoryImage(_profilePicBytes!),
-                      radius: 15,
-                    )
-                        : const Icon(Icons.account_circle_outlined)),
-                    label: _username,
-                  ),
-                ],
-                currentIndex: _controller.selectedIndexNotifier.value,
-                onTap: (index) {
-                  _controller.updateIndex(index);
-                },
-                type: BottomNavigationBarType.fixed,
+              return Container(
+                margin: EdgeInsets.all(0.0),
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 5,
+                      blurRadius: 5,
+                      offset: Offset(0, 0),
+                    ),
+                  ],
+                ),
+                child: BottomNavigationBar(
+                  selectedItemColor: Colors.deepPurple,
+                  items: <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(
+                      icon: const Icon(Icons.home_outlined),
+                      activeIcon: const Icon(Icons.home),
+                      label: strings?.home ?? "Home",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: const Icon(Icons.public),
+                      label: strings?.ranking ?? "Ranking",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: const Icon(Icons.casino_outlined),
+                      activeIcon: const Icon(Icons.casino),
+                      label: strings?.liveMarkets ?? 'Live Markets',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: const Icon(Icons.settings_outlined),
+                      activeIcon: const Icon(Icons.settings),
+                      label: strings?.settings ?? 'Settings',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: (_profilePicBytes != null
+                          ? CircleAvatar(
+                        backgroundImage: MemoryImage(_profilePicBytes!),
+                        radius: 15,
+                      )
+                          : const Icon(Icons.account_circle_outlined)),
+                      label: _username,
+                    ),
+                  ],
+                  currentIndex: _controller.selectedIndexNotifier.value,
+                  onTap: (index) {
+                    _controller.updateIndex(index);
+                  },
+                  type: BottomNavigationBarType.fixed,
+                ),
               );
             }
           )
