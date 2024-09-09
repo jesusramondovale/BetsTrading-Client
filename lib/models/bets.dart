@@ -306,6 +306,7 @@ class RecentBetDialog extends StatelessWidget {
                             color: Colors.white,
                           ),
                           onPressed: () {
+                            Navigator.of(context).pop();
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,

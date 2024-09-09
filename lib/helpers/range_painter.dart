@@ -15,7 +15,8 @@ class RangePainter extends CustomPainter {
   final int index;
   final int minIndex;
   final double priceColumnWidth;
-  final noBetsText;
+  final String noBetsText;
+  final bool noIcon;
   RangePainter( {
     required this.zones,
     required this.candles,
@@ -26,6 +27,7 @@ class RangePainter extends CustomPainter {
     required this.minIndex,
     required this.priceColumnWidth,
     required this.noBetsText,
+    required this.noIcon,
   });
 
   double dateToX(DateTime date, int index, double candleWidth,
@@ -64,7 +66,7 @@ class RangePainter extends CustomPainter {
       );
       textPainter.layout(minWidth: 0, maxWidth: size.width);
       final double offsetX = (size.width - textPainter.width) / 2;
-      final double offsetY = size.height * 0.25;
+      final double offsetY = size.height * (noIcon ? 0.12 : 0.25);
 
       textPainter.paint(canvas, Offset(offsetX , offsetY));
 

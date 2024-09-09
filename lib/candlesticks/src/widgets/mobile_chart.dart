@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:betrader/locale/localized_texts.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../helpers/rectangle_zone.dart';
 import '../../../ui/bets_page.dart';
@@ -218,12 +219,32 @@ class MobileChartState extends State<MobileChart> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SizedBox(height: 10),
-                            Image.memory(
-                              base64Decode(widget.iconPath),
-                              height: 120,
-                              width: 120,
-                              gaplessPlayback: true,
-                            ),
+                            if (widget.iconPath != "null") ...[
+                              Image.memory(
+                                base64Decode(widget.iconPath),
+                                height: 120,
+                                width: 120,
+                                gaplessPlayback: true,
+                              )
+                            ] else ...[
+                              Text(
+                                widget.chartTitle.length > 15
+                                    ? widget.chartTitle.substring(0, 15) + '...'
+                                    : widget.chartTitle,
+                                style: GoogleFonts.openSans(
+                                  fontSize: 26.0,
+                                  fontWeight: FontWeight.w300,
+                                  color:
+                                  Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+
+                              ),
+                            ],
+
                           ],
                         ),
                       ),
@@ -254,6 +275,7 @@ class MobileChartState extends State<MobileChart> {
                                       minIndex: -20,
                                       priceColumnWidth: PRICE_BAR_WIDTH,
                                       noBetsText: noBetsText,
+                                      noIcon: widget.iconPath == "null"
                                     ),
                                   ),
                                 ),
@@ -566,7 +588,9 @@ class MobileChartState extends State<MobileChart> {
                                   index: widget.index,
                                   minIndex: -20,
                                   priceColumnWidth: PRICE_BAR_WIDTH,
-                                  noBetsText: noBetsText)
+                                  noBetsText: noBetsText,
+                                  noIcon: widget.iconPath == "null")
+
                               .hit(details.localPosition.dx,
                                   details.localPosition.dy, size);
 
