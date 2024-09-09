@@ -20,8 +20,10 @@ import 'dart:math';
 import 'package:image_picker/image_picker.dart';
 import '../config/config.dart';
 import 'package:http/http.dart' as http;
-class Common {
 
+ValueNotifier<bool> isRealNotifier = ValueNotifier<bool>(false);
+
+class Common {
   final ThemeData themeDark = ThemeData(
     brightness: Brightness.dark,
     colorScheme: const ColorScheme.dark(
@@ -864,6 +866,16 @@ class Common {
   String createTrendViewName(Trend t) {
     String viewName = "";
     List<String> words = t.name.split(' ');
+    for (int i = 0; i < words.length && i < 3; i++) {
+      if (words[i].isNotEmpty) {
+        viewName += words[i][0];
+      }
+    }
+    return viewName;
+  }
+  String createTrendViewNameFromName(String name) {
+    String viewName = "";
+    List<String> words = name.split(' ');
     for (int i = 0; i < words.length && i < 3; i++) {
       if (words[i].isNotEmpty) {
         viewName += words[i][0];

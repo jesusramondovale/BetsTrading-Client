@@ -38,11 +38,14 @@ class Candle {
     return Candle(date: date, open: 0, close: 0, high: 0, low: 0, volume: 0);
   }
 
-  Candle.fromJson(List<dynamic> json)
-      : date = DateTime.fromMillisecondsSinceEpoch(json[0]),
-        high = double.parse(json[2]),
-        low = double.parse(json[3]),
-        open = double.parse(json[1]),
-        close = double.parse(json[4]),
-        volume = double.parse(json[5]);
+  factory Candle.fromJson(DateTime date, Map<String, dynamic> json) {
+    return Candle(
+      date: date,
+      open: double.parse(json['1. open']),
+      high: double.parse(json['2. high']),
+      low: double.parse(json['3. low']),
+      close: double.parse(json['4. close']),
+      volume: double.parse(json['5. volume']),
+    );
+  }
 }

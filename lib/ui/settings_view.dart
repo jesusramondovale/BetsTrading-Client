@@ -16,8 +16,8 @@ class SettingsView extends StatefulWidget {
 }
 
 class SettingsViewState extends State<SettingsView> {
-  bool isDark = true;
 
+  bool isDark = true;
   @override
   void initState() {
     super.initState();
@@ -96,6 +96,8 @@ class SettingsViewState extends State<SettingsView> {
             SwitchListTile(
               title: Text(strings?.darkMode ?? "Dark mode"),
               value: isDark,
+              inactiveThumbColor: Colors.black,
+              inactiveTrackColor: Colors.grey,
               onChanged: (bool value) async {
                 await _saveThemePreference(value);
                 setState(() {

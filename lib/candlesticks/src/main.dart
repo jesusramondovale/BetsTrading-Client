@@ -79,8 +79,7 @@ class Candlesticks extends StatefulWidget {
     required this.chartTitle,
     required this.iconPath,
     required this.extraDays,
-  }) : assert(candles.isEmpty || candles.length > 1,
-            "Please provide at least 2 candles");
+  });
 
   @override
   CandlesticksState createState() => CandlesticksState();
@@ -106,7 +105,7 @@ class CandlesticksState extends State<Candlesticks> {
   @override
   void initState() {
     super.initState();
-    indexMarginRight = -widget.extraDays;
+    indexMarginRight = -5-widget.extraDays;
     index = indexMarginRight;
     lastIndex = indexMarginRight;
     if (widget.candles.isEmpty) {

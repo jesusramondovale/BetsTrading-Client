@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../enums/financial_assets.dart';
+import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import 'candlesticks_view.dart';
 import 'layout_page.dart';
@@ -111,6 +112,10 @@ class MarketsViewState extends State<MarketsView> {
     return Column(
       children: [
         Center(
+          /// TO-DO
+          /* TO-DO :
+           ***  RECOVER WHEN DEMO/REAL SWITCH IS GONE
+
           child: Container(
 
             child: DropdownButton<String>(
@@ -135,9 +140,74 @@ class MarketsViewState extends State<MarketsView> {
               icon: Icon(Icons.arrow_drop_down_rounded, color: dropDownColor, size: 65),
               alignment: Alignment.center,
 
+              ),
             ),
           ),
+
+         *** RECOVER END (LINE 210) ***/
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 60,
+                child: Row(
+                  children: [
+                    ValueListenableBuilder<bool>(
+                      valueListenable: isRealNotifier,
+                      builder: (context, isReal, child) {
+                        return Row(
+                          children: [
+                            Switch(
+                              value: isReal,
+                              inactiveThumbColor: Colors.black,
+                              inactiveTrackColor: Colors.grey,
+                              onChanged: (bool value) {
+                                isRealNotifier.value = value;
+                              },
+                            ),
+                            if (isReal) ...[
+                              SizedBox(width: 5),
+                              Image.asset('assets/alpha_vantage.png', width: 30),
+                            ],
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              // DropdownButton
+              DropdownButton<String>(
+                  value: selectedGroup,
+                  underline: SizedBox(),
+                  onChanged: _onGroupChanged,
+                  items: _buildDropdownMenuItems(),
+                  isDense: false,
+                  style: GoogleFonts.montserrat(
+                    color: dropDownColor,
+                    fontSize: 30.0,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  dropdownColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black
+                      : Colors.white,
+                  elevation: 32,
+                  borderRadius: BorderRadius.circular(25),
+                  isExpanded: false,
+                  iconEnabledColor: dropDownColor,
+                  iconDisabledColor: Colors.grey,
+                  itemHeight: 60,
+
+                  icon: Icon(Icons.arrow_drop_down_rounded, color: dropDownColor, size: 60),
+                  alignment: Alignment.center,
+                ),
+
+            ],
+          ),
         ),
+
+        // *** RECOVER END ***
 
         Expanded(
           child: GridView.builder(
@@ -204,8 +274,19 @@ class MarketsViewState extends State<MarketsView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      if (asset.icon.isNotEmpty)
+                      if (asset.icon.isNotEmpty && asset.icon != "null" )... [
                         Image.memory(base64Decode(asset.icon), height: 55),
+                      ]
+                      else ...[
+                        Text(
+                          Common().createTrendViewNameFromName(asset.name),
+                          maxLines: 1,
+                          style: GoogleFonts.roboto(
+                              fontSize: 36, fontWeight: FontWeight.w100),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+
                       SizedBox(height: 10),
                       Text(
                         asset.name,

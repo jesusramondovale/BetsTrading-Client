@@ -12,7 +12,6 @@ class CandlesticksView extends StatefulWidget {
   final String ticker;
   final String name;
   final String iconPath;
-  final List<Candle> candles;
   final MainMenuPageController controller;
 
   CandlesticksView({
@@ -21,7 +20,7 @@ class CandlesticksView extends StatefulWidget {
     required this.iconPath,
     required this.ticker,
     required this.name,
-  }) : candles = Common().generateRandomCandles(520, Config.PRICE_SIMULATION);
+  });
 
   @override
   CandlesticksViewState createState() => CandlesticksViewState();
@@ -30,23 +29,39 @@ class CandlesticksView extends StatefulWidget {
 class CandlesticksViewState extends State<CandlesticksView> {
   final ValueNotifier<double> candleScaleNotifier = ValueNotifier<double>(1.0);
   List<RectangleZone> _zones = [];
+  List<Candle> _candles = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadRectangleZones();
+    _loadData();
   }
 
-  Future<void> _loadRectangleZones() async {
+  Future<void> _loadData() async {
+
+    DateTime now = DateTime.now();
+    int hour = now.hour;
+    int interval = (hour / 24 * 7).ceil();
+    int i = interval.clamp(1, 7);
+    String alphaKey = Config.ALPHA_KEYS[i]!;
+
     try {
+      final List<Candle> candles;
       final List<BetZone> betZones =
           await BetsService().fetchBetZones(widget.ticker);
+      (isRealNotifier.value ?
+          candles = await BetsService().fetchCandles(widget.ticker.split(".")[0], alphaKey)
+            :
+          candles = Common().generateRandomCandles(100, Config.PRICE_SIMULATION));
+
       List<RectangleZone> rectangleZones =
-          Common().getRectangleZonesFromBetZones(betZones, widget.candles.first.close);
+          Common().getRectangleZonesFromBetZones(betZones, candles.isNotEmpty ? candles.first.close : 0.0);
+
 
       setState(() {
         _zones = rectangleZones;
+        _candles = candles;
         _isLoading = false;
       });
     } catch (e) {
@@ -74,7 +89,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                           Center(child: CircularProgressIndicator())
                         else
                           Candlesticks(
-                            candles: widget.candles,
+                            candles: _candles,
                             displayZoomActions: false,
                             onScaleUpdate: (double scale) {
                               candleScaleNotifier.value = scale;
