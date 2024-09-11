@@ -122,6 +122,7 @@ class Common {
   }
   void exitPopDialog(String aTitle, String aBody, BuildContext aContext) {
     showDialog(
+      barrierColor: Colors.black.withAlpha(220),
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(

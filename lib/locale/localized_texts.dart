@@ -131,6 +131,7 @@ class LocalizedStrings {
       'cancel': 'Cancel',
       'noBetsAvailable': 'No bets available',
       'updatedTrends': 'Updated trends!',
+      'betPlacedSuccessfully': 'Bet placed successfully!',
     },
     'es': {
       // Español
@@ -254,6 +255,7 @@ class LocalizedStrings {
       'cancel': 'Cancelar',
       'noBetsAvailable': 'Sin apuestas disponibles',
       'updatedTrends': 'Tendencias actualizadas!',
+      'betPlacedSuccessfully': '¡Apuesta realizada!',
     },
     'fr': {
       // Francés
@@ -378,6 +380,7 @@ class LocalizedStrings {
       'cancel': 'Annuler',
       'noBetsAvailable': 'Pas de paris disponibles',
       'updatedTrends': 'Tendances mises à jour!',
+      'betPlacedSuccessfully': 'Pari placé avec succès!',
     },
     'it': {
       // Italiano
@@ -503,6 +506,7 @@ class LocalizedStrings {
       'cancel': 'Annullare',
       'noBetsAvailable': 'Nessuna scommessa disponibile',
       'updatedTrends': 'Tendenze aggiornate!',
+      'betPlacedSuccessfully': 'Scommessa effettuata con successo!',
     },
     'de': {
       // Alemán
@@ -622,6 +626,7 @@ class LocalizedStrings {
       'cancel': 'Abbrechen',
       'noBetsAvailable': 'Keine Wetten verfügbar',
       'updatedTrends': 'Aktualisierte Trends!',
+      'betPlacedSuccessfully': 'Wette erfolgreich platziert!',
     },
   };
 
@@ -807,6 +812,7 @@ class LocalizedStrings {
   String? get accept => _localizedValues[locale.languageCode]?['accept'];
   String? get cancel => _localizedValues[locale.languageCode]?['cancel'];
   String? get noBetsAvailable => _localizedValues[locale.languageCode]?['noBetsAvailable'];
+  String? get betPlacedSuccessfully => _localizedValues[locale.languageCode]?['betPlacedSuccessfully'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

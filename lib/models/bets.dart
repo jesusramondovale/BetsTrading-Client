@@ -82,9 +82,7 @@ class RecentBetDialog extends StatelessWidget {
 
   void showPopup(BuildContext context, String message, Offset position) {
     int xOffset;
-    (message.length < 10) ?
-      xOffset = -18 :
-      xOffset = message.length - 15;
+    (message.length < 10) ? xOffset = -18 : xOffset = message.length - 15;
 
     OverlayEntry? overlayEntry;
     overlayEntry = OverlayEntry(
@@ -96,16 +94,17 @@ class RecentBetDialog extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(1) : Colors.grey[200]!,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black.withOpacity(1)
+                  : Colors.grey[200]!,
               borderRadius: BorderRadius.circular(8.0),
             ),
-            child: Text(
-              message,
-              style: GoogleFonts.josefinSans(
-                fontSize: 12,
-                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black
-              )
-            ),
+            child: Text(message,
+                style: GoogleFonts.josefinSans(
+                    fontSize: 12,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black)),
           ),
         ),
       ),
@@ -118,7 +117,8 @@ class RecentBetDialog extends StatelessWidget {
     });
   }
 
-  Widget _buildGridItem(BuildContext context, IconData icon, String value, String infoText,
+  Widget _buildGridItem(
+      BuildContext context, IconData icon, String value, String infoText,
       {Color color = Colors.white}) {
     GlobalKey key = GlobalKey();
     return GestureDetector(
@@ -180,7 +180,6 @@ class RecentBetDialog extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -258,41 +257,35 @@ class RecentBetDialog extends StatelessWidget {
                       ),
                       children: [
                         _buildGridItem(
-                          context,
-                          Icons.casino,
-                          '${bet.betAmount.toStringAsFixed(2)}€',
-                            strings!.betAmount ?? "Bet amount"
-                        ),
+                            context,
+                            Icons.casino,
+                            '${bet.betAmount.toStringAsFixed(2)}€',
+                            strings!.betAmount ?? "Bet amount"),
                         _buildGridItem(
-                          context,
-                          Icons.update,
-                          '${bet.originValue.toStringAsFixed(2)}€',
-                            strings.originValue ?? "Origin value"
-                        ),
+                            context,
+                            Icons.update,
+                            '${bet.originValue.toStringAsFixed(2)}€',
+                            strings.originValue ?? "Origin value"),
                         _buildGridItem(
-                          context,
-                          Icons.crop_sharp,
-                          '${bet.targetValue.toStringAsFixed(2)}€',
-                            strings.targetValue ?? "Target value"
-                        ),
+                            context,
+                            Icons.crop_sharp,
+                            '${bet.targetValue.toStringAsFixed(2)}€',
+                            strings.targetValue ?? "Target value"),
                         _buildGridItem(
-                          context,
-                          Icons.date_range,
-                          DateFormat('dd-MM-yyyy').format(bet.targetDate),
-                            strings.targetDate ?? "Target date"
-                        ),
+                            context,
+                            Icons.date_range,
+                            DateFormat('dd-MM-yyyy').format(bet.targetDate),
+                            strings.targetDate ?? "Target date"),
                         _buildGridItem(
-                          context,
-                          Icons.data_object_sharp,
-                          '${bet.targetMargin.toStringAsFixed(2)}%',
-                          strings.targetMargin ?? "Target margin"
-                        ),
+                            context,
+                            Icons.data_object_sharp,
+                            '${bet.targetMargin.toStringAsFixed(2)}%',
+                            strings.targetMargin ?? "Target margin"),
                         _buildGridItem(
-                          context,
-                          Icons.attach_money,
-                          'x${bet.targetOdds.toStringAsFixed(2)}',
-                          strings.winBonus ?? "Win bonus"
-                        ),
+                            context,
+                            Icons.attach_money,
+                            'x${bet.targetOdds.toStringAsFixed(2)}',
+                            strings.winBonus ?? "Win bonus"),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -317,16 +310,22 @@ class RecentBetDialog extends StatelessWidget {
                                     top: Radius.circular(25.0),
                                   ),
                                   child: Container(
-                                    color: Theme.of(context).scaffoldBackgroundColor,
-                                    height: MediaQuery.of(context).size.height * 0.6,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.6,
                                     child: OverflowBox(
                                       alignment: Alignment.topCenter,
-                                      maxHeight: MediaQuery.of(context).size.height,
+                                      maxHeight:
+                                          MediaQuery.of(context).size.height,
                                       child: Column(
                                         children: [
-
                                           Expanded(
-                                            child: CandlesticksView(ticker: bet.ticker.toString(), name: bet.name, controller: this.controller, iconPath: bet.iconPath),
+                                            child: CandlesticksView(
+                                                ticker: bet.ticker.toString(),
+                                                name: bet.name,
+                                                controller: this.controller,
+                                                iconPath: bet.iconPath),
                                           ),
                                         ],
                                       ),
@@ -355,7 +354,10 @@ class RecentBetContainer extends StatefulWidget {
   final Function onDelete;
   final MainMenuPageController controller;
   const RecentBetContainer(
-      {super.key, required this.bet, required this.onDelete, required this.controller});
+      {super.key,
+      required this.bet,
+      required this.onDelete,
+      required this.controller});
 
   @override
   RecentBetContainerState createState() => RecentBetContainerState();
@@ -372,10 +374,12 @@ class RecentBetContainerState extends State<RecentBetContainer> {
 
   void _showBetDialog() async {
     await showDialog<bool>(
+      barrierColor: Colors.black.withAlpha(220),
       context: this.context,
       builder: (BuildContext context) {
         return RecentBetDialog(
-          bet: widget.bet, controller: widget.controller,
+          bet: widget.bet,
+          controller: widget.controller,
         );
       },
     );
@@ -397,13 +401,14 @@ class RecentBetContainerState extends State<RecentBetContainer> {
     return Column(
       children: <Widget>[
         ListTile(
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           onLongPress: _triggerBetButtons,
           onTap: () {
             (_showEditButtons) ? _triggerBetButtons() : _showBetDialog();
           },
-          minVerticalPadding: 12,
           leading: ClipRRect(
-            borderRadius: BorderRadius.circular(5.0),
+            borderRadius: BorderRadius.circular(10.0), // Bordes más suaves
             child: Image.memory(
               base64Decode(widget.bet.iconPath),
               width: 50,
@@ -411,37 +416,33 @@ class RecentBetContainerState extends State<RecentBetContainer> {
               fit: BoxFit.cover,
             ),
           ),
-          title: RichText(
-            text: TextSpan(
-              style: DefaultTextStyle.of(context).style,
-              children: <TextSpan>[
-                TextSpan(
-                  text: '${widget.bet.name} ',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
+          title: Text(
+            widget.bet.name,
+            style: GoogleFonts.robotoCondensed(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black87,
             ),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 6),
               Text(
                 '(${widget.bet.betAmount.toStringAsFixed(2)}€ @ ${widget.bet.originValue})',
-                style: const TextStyle(
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
                   color: Colors.grey,
-                  fontSize: 15,
                 ),
               ),
+              const SizedBox(height: 4),
               Text(
                 '${widget.bet.targetDate.year}-${widget.bet.targetDate.month}-${widget.bet.targetDate.day} @ ${widget.bet.targetValue} ± ${widget.bet.targetMargin}%',
                 style: GoogleFonts.montserrat(
                   fontSize: 12,
-                  fontWeight: Theme.of(context).brightness == Brightness.dark
-                      ? FontWeight.w100
-                      : FontWeight.w300,
+                  fontWeight: FontWeight.w300,
                   color: Theme.of(context).brightness == Brightness.dark
                       ? Colors.cyanAccent
                       : Colors.deepPurple,
@@ -450,33 +451,70 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             ],
           ),
           trailing: _showEditButtons
-              ? IntrinsicWidth(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.grey),
-                        onPressed: () async {
-                          final result = await BetsService()
-                              .deleteRecentBet((widget.bet.id).toString());
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.stacked_line_chart, color: Colors.grey),
+                      onPressed: ()  {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (BuildContext context) {
+                            return ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(25.0),
+                              ),
+                              child: Container(
+                                color: Theme.of(context).scaffoldBackgroundColor,
+                                height: MediaQuery.of(context).size.height * 0.6,
+                                child: OverflowBox(
+                                  alignment: Alignment.topCenter,
+                                  maxHeight: MediaQuery.of(context).size.height,
+                                  child: Column(
+                                    children: [
 
-                          if (result) {
-                            Common().actionDialog(
-                                context,
-                                strings?.removedSuccesfully ??
-                                    "Borrado con éxito!");
-                            widget.onDelete();
-                          } else {
-                            Common().actionDialog(context, "Error!");
-                          }
-                        },
-                        padding: const EdgeInsets.all(0),
-                        constraints:
-                            const BoxConstraints(maxHeight: 30, maxWidth: 30),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                  ),
+                                      Expanded(
+                                        child: CandlesticksView(ticker: widget.bet.ticker, name: widget.bet.name, controller: widget.controller, iconPath: widget.bet.iconPath ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+
+
+                      },
+                      padding: EdgeInsets.zero,
+                      constraints:
+                      const BoxConstraints(maxHeight: 30, maxWidth: 30),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.grey),
+                      onPressed: () async {
+                        final result = await BetsService()
+                            .deleteRecentBet(widget.bet.id.toString());
+
+                        if (result) {
+                          Common().actionDialog(
+                              context,
+                              strings?.removedSuccesfully ??
+                                  "Borrado con éxito!");
+                          widget.onDelete();
+                        } else {
+                          Common().actionDialog(context, "Error!");
+                        }
+                      },
+                      padding: EdgeInsets.zero,
+                      constraints:
+                          const BoxConstraints(maxHeight: 30, maxWidth: 30),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 )
               : Text(
                   '$trailingText$currency',

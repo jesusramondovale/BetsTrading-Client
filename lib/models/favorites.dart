@@ -248,6 +248,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
 
   void _showFavoriteDialog() async {
     bool? ok = await showDialog<bool>(
+      barrierColor: Colors.black.withAlpha(220),
       context: context,
       builder: (BuildContext context) {
         return FavoriteDialog(favorite: widget.favorite, controller: widget.controller,);

@@ -165,7 +165,7 @@ class HomeScreenState extends State<HomeScreen> {
               children: <Widget>[
                 Text(strings?.liveBets ?? 'Trends',
                     style: GoogleFonts.comfortaa(
-                      fontSize: 24,
+                      fontSize: 20,
                       fontWeight: FontWeight.w400,
                     )),
                 const Spacer(),
@@ -241,9 +241,9 @@ class HomeScreenState extends State<HomeScreen> {
 
             // Favorites
             if (showFavorites) ...[
-              Text('Favs',
+              Text(strings!.favs ?? 'Favs',
                   style: GoogleFonts.comfortaa(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.w400,
                   )),
               Divider(
@@ -315,7 +315,7 @@ class HomeScreenState extends State<HomeScreen> {
             Text(
               strings?.recentBets ?? 'Recent Bets',
               style: GoogleFonts.comfortaa(
-                  fontSize: 24, fontWeight: FontWeight.w400),
+                  fontSize: 20, fontWeight: FontWeight.w400),
             ),
             Divider(
                 color: Theme.of(context).brightness == Brightness.dark

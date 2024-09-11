@@ -85,7 +85,7 @@ class MobileChartState extends State<MobileChart> {
     if (widget.rectangleZones.isEmpty) return;
 
     List<Candle> last30Candles = widget.candles.length > 30
-    ? widget.candles.sublist(0, 30)
+        ? widget.candles.sublist(0, 30)
         : widget.candles;
 
     double minPrice = min(
@@ -234,17 +234,15 @@ class MobileChartState extends State<MobileChart> {
                                 style: GoogleFonts.openSans(
                                   fontSize: 26.0,
                                   fontWeight: FontWeight.w300,
-                                  color:
-                                  Theme.of(context).brightness == Brightness.dark
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
                                       ? Colors.white
                                       : Colors.grey,
                                 ),
                                 textAlign: TextAlign.center,
                                 maxLines: 1,
-
                               ),
                             ],
-
                           ],
                         ),
                       ),
@@ -266,17 +264,16 @@ class MobileChartState extends State<MobileChart> {
                                   child: CustomPaint(
                                     key: _customPaintKey,
                                     painter: RangePainter(
-                                      zones: widget.rectangleZones,
-                                      candles: widget.candles,
-                                      candleWidth: widget.candleWidth,
-                                      topPrice: tweenEnd,
-                                      bottomPrice: tweenBegin,
-                                      index: widget.index,
-                                      minIndex: -20,
-                                      priceColumnWidth: PRICE_BAR_WIDTH,
-                                      noBetsText: noBetsText,
-                                      noIcon: widget.iconPath == "null"
-                                    ),
+                                        zones: widget.rectangleZones,
+                                        candles: widget.candles,
+                                        candleWidth: widget.candleWidth,
+                                        topPrice: tweenEnd,
+                                        bottomPrice: tweenBegin,
+                                        index: widget.index,
+                                        minIndex: -20,
+                                        priceColumnWidth: PRICE_BAR_WIDTH,
+                                        noBetsText: noBetsText,
+                                        noIcon: widget.iconPath == "null"),
                                   ),
                                 ),
                                 PriceColumn(
@@ -590,7 +587,6 @@ class MobileChartState extends State<MobileChart> {
                                   priceColumnWidth: PRICE_BAR_WIDTH,
                                   noBetsText: noBetsText,
                                   noIcon: widget.iconPath == "null")
-
                               .hit(details.localPosition.dx,
                                   details.localPosition.dy, size);
 
@@ -605,9 +601,6 @@ class MobileChartState extends State<MobileChart> {
                                   zone: zoneClicked,
                                   currentValue: widget.candles.first.close,
                                   iconPath: widget.iconPath,
-                                  onAccept: () {
-                                    Navigator.pop(context);
-                                  },
                                   onCancel: () {
                                     Navigator.pop(context);
                                   },

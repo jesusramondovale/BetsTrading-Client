@@ -35,6 +35,7 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
   void _showIdResultDialog() {
     final strings = LocalizedStrings.of(context);
     showDialog(
+      barrierColor: Colors.black.withAlpha(220),
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -175,6 +176,7 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
 
   void verifyExitPopDialog(String aTitle, String aBody, BuildContext aContext) {
     showDialog(
+      barrierColor: Colors.black.withAlpha(220),
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(

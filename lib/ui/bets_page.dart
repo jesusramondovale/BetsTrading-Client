@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart'; // Necesario para DateFormat
+import '../helpers/common.dart';
 import '../helpers/rectangle_zone.dart';
 import '../locale/localized_texts.dart';
 
@@ -11,7 +12,6 @@ class BetConfirmationPage extends StatefulWidget {
 
   final double currentValue;
   final String iconPath;
-  final VoidCallback onAccept;
   final VoidCallback onCancel;
   final RectangleZone zone;
   final String name;
@@ -19,7 +19,6 @@ class BetConfirmationPage extends StatefulWidget {
     Key? key,
 
     required this.name,
-    required this.onAccept,
     required this.onCancel,
     required this.zone,
     required this.currentValue,
@@ -141,6 +140,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
+                maxLines: 1,
                 widget.name,
                 style: GoogleFonts.openSans(
                     fontWeight: FontWeight.bold,
@@ -324,6 +324,18 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     );
   }
 
+  void _onAccept() {
+
+    Navigator.pop(context);
+    Common().showLocalNotification(
+        "Betrader",
+        ( LocalizedStrings.of(context)!
+            .betPlacedSuccessfully != null  ?   "${LocalizedStrings.of(context)!
+            .betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}€)"  : "Bet placed ssuccessfully! (${_betAmount}€)" ),
+        1,
+        {"Test": "Test"});
+  }
+
   void _handleAcceptPressed() {
     if (!_isAcceptButtonEnabled) {
       _betAmountFocusNode.requestFocus();
@@ -332,7 +344,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         setState(() {});
       });
     } else {
-      widget.onAccept();
+      _onAccept();
     }
   }
 
@@ -361,7 +373,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           ),
           ElevatedButton.icon(
             onPressed:
-                _isAcceptButtonEnabled ? widget.onAccept : _handleAcceptPressed,
+                _isAcceptButtonEnabled ? _onAccept : _handleAcceptPressed,
             icon: Icon(CupertinoIcons.check_mark, color: Colors.black),
             label: Text(
               strings?.accept ?? 'Accept',

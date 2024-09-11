@@ -54,6 +54,7 @@ class TrendDialog extends StatelessWidget {
     final strings = LocalizedStrings.of(context);
 
     return Dialog(
+      elevation: 0.0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(52),
       ),
@@ -259,6 +260,7 @@ class TrendContainer extends StatefulWidget {
 class TrendContainerState extends State<TrendContainer> {
   void _showTrendDialog() async {
     bool? ok = await showDialog<bool>(
+      barrierColor: Colors.black.withAlpha(220),
       context: context,
       builder: (BuildContext context) {
         return TrendDialog(

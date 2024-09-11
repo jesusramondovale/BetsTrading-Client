@@ -224,6 +224,7 @@ class LoginFormState extends State<LoginForm> {
 
   void logInHelper(LocalizedStrings strings) async {
     showDialog(
+      barrierColor: Colors.black.withAlpha(220),
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
