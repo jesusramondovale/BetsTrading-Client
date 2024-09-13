@@ -47,6 +47,7 @@ class TrendDialog extends StatelessWidget {
   final MainMenuPageController controller;
   const TrendDialog({super.key, required this.trend, required this.index, required this.controller});
 
+
   static get decodedBody => null;
 
   @override
@@ -196,8 +197,7 @@ class TrendDialog extends StatelessWidget {
                                 size: 42,
                                 Icons.auto_graph_sharp,
                                 color: Colors.white),
-                            onPressed: () {
-                              Navigator.of(context).pop();
+                            onPressed: () {Navigator.of(context).pop();
                               showModalBottomSheet(
                                 context: context,
                                 isScrollControlled: true,
@@ -247,6 +247,7 @@ class TrendContainer extends StatefulWidget {
   final int index;
   final VoidCallback onFavoriteUpdated;
   final MainMenuPageController controller;
+
   const TrendContainer(
       {super.key,
       required this.trend,
@@ -266,6 +267,7 @@ class TrendContainerState extends State<TrendContainer> {
         return TrendDialog(
           trend: widget.trend,
           index: widget.index, controller: widget.controller,
+
         );
       },
     );

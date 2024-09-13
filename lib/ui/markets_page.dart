@@ -12,6 +12,7 @@ import 'layout_page.dart';
 
 class MarketsView extends StatefulWidget {
   final MainMenuPageController controller;
+
   const MarketsView({super.key, required this.controller});
 
   @override

@@ -5,6 +5,7 @@ class LocalizedStrings {
 
   final Locale locale;
 
+
   static LocalizedStrings? of(BuildContext context) {
     return Localizations.of<LocalizedStrings>(context, LocalizedStrings);
   }
@@ -132,6 +133,8 @@ class LocalizedStrings {
       'noBetsAvailable': 'No bets available',
       'updatedTrends': 'Updated trends!',
       'betPlacedSuccessfully': 'Bet placed successfully!',
+      'errorMakingBet': 'Error making bet!',
+      'betsDeleted': 'Bets deleted',
     },
     'es': {
       // Español
@@ -256,6 +259,8 @@ class LocalizedStrings {
       'noBetsAvailable': 'Sin apuestas disponibles',
       'updatedTrends': 'Tendencias actualizadas!',
       'betPlacedSuccessfully': '¡Apuesta realizada!',
+      'errorMakingBet': 'Error creando apuesta!',
+      'betsDeleted': 'Apuestas borradas',
     },
     'fr': {
       // Francés
@@ -381,6 +386,8 @@ class LocalizedStrings {
       'noBetsAvailable': 'Pas de paris disponibles',
       'updatedTrends': 'Tendances mises à jour!',
       'betPlacedSuccessfully': 'Pari placé avec succès!',
+      'errorMakingBet': 'Erreur lors de la création du pari!',
+      'betsDeleted': 'Paris supprimés',
     },
     'it': {
       // Italiano
@@ -507,6 +514,8 @@ class LocalizedStrings {
       'noBetsAvailable': 'Nessuna scommessa disponibile',
       'updatedTrends': 'Tendenze aggiornate!',
       'betPlacedSuccessfully': 'Scommessa effettuata con successo!',
+      'errorMakingBet': 'Errore nella creazione della scommessa!',
+      'betsDeleted': 'Scommesse cancellate',
     },
     'de': {
       // Alemán
@@ -627,6 +636,8 @@ class LocalizedStrings {
       'noBetsAvailable': 'Keine Wetten verfügbar',
       'updatedTrends': 'Aktualisierte Trends!',
       'betPlacedSuccessfully': 'Wette erfolgreich platziert!',
+      'errorMakingBet': 'Fehler beim Erstellen der Wette!',
+      'betsDeleted': 'Wetten gelöscht',
     },
   };
 
@@ -813,6 +824,8 @@ class LocalizedStrings {
   String? get cancel => _localizedValues[locale.languageCode]?['cancel'];
   String? get noBetsAvailable => _localizedValues[locale.languageCode]?['noBetsAvailable'];
   String? get betPlacedSuccessfully => _localizedValues[locale.languageCode]?['betPlacedSuccessfully'];
+  String? get errorMakingBet => _localizedValues[locale.languageCode]?['errorMakingBet'];
+  String? get betsDeleted => _localizedValues[locale.languageCode]?['betsDeleted'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

@@ -238,6 +238,7 @@ class FavoriteContainer extends StatefulWidget {
   final Favorite favorite;
   final VoidCallback onFavoriteUpdated;
   final MainMenuPageController controller;
+
   const FavoriteContainer({super.key, required this.favorite, required this.onFavoriteUpdated, required this.controller});
 
   @override
@@ -251,7 +252,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
       barrierColor: Colors.black.withAlpha(220),
       context: context,
       builder: (BuildContext context) {
-        return FavoriteDialog(favorite: widget.favorite, controller: widget.controller,);
+        return FavoriteDialog(favorite: widget.favorite, controller: widget.controller);
       },
     );
 

@@ -62,6 +62,7 @@ class Candlesticks extends StatefulWidget {
 
   final int extraDays;
 
+
   Candlesticks({
     super.key,
     required this.candles,
@@ -79,6 +80,7 @@ class Candlesticks extends StatefulWidget {
     required this.chartTitle,
     required this.iconPath,
     required this.extraDays,
+
   });
 
   @override

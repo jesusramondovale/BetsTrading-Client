@@ -14,6 +14,8 @@ class CandlesticksView extends StatefulWidget {
   final String iconPath;
   final MainMenuPageController controller;
 
+
+
   CandlesticksView({
     super.key,
     required this.controller,
@@ -80,6 +82,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                           Center(child: CircularProgressIndicator())
                         else
                           Candlesticks(
+
                             candles: _candles,
                             displayZoomActions: false,
                             onScaleUpdate: (double scale) {
@@ -90,6 +93,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                             chartTitle: widget.name,
                             iconPath: widget.iconPath,
                             extraDays: Common().daysUntilLatestEndDate(_zones),
+
                           ),
                         Positioned(
                           top: 10.0,

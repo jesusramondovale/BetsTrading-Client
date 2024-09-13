@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 
 class RectangleZone {
+  int id;
   DateTime startDate, endDate;
   double highPrice, lowPrice;
   double margin;
@@ -15,6 +16,7 @@ class RectangleZone {
 
 
   RectangleZone({
+    required this.id,
     required this.startDate,
     required this.endDate,
     required this.highPrice,

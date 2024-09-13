@@ -23,8 +23,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  final GlobalKey<HomeScreenState> _homeScreenKey =
-      GlobalKey<HomeScreenState>();
+
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool showFavorites = false;
   List<Bet> _bets = [];
@@ -69,7 +68,6 @@ class HomeScreenState extends State<HomeScreen> {
         DateFormat.yMMMMd(locale.toString()).format(DateTime.now());
 
     return Scaffold(
-      key: _homeScreenKey,
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
         child: Column(
@@ -312,11 +310,37 @@ class HomeScreenState extends State<HomeScreen> {
             ],
 
             // Recent bets
-            Text(
-              strings?.recentBets ?? 'Recent Bets',
-              style: GoogleFonts.comfortaa(
-                  fontSize: 20, fontWeight: FontWeight.w400),
+            Row(
+              children: [
+                Text(
+                  strings?.recentBets ?? 'Recent Bets',
+                  style: GoogleFonts.comfortaa(
+                      fontSize: 20, fontWeight: FontWeight.w400),
+                ),
+                Spacer(),
+
+                IconButton(icon: Icon(Icons.auto_delete),
+                    onPressed:  () async {
+                        bool result = await BetsService().deleteHistoricBets(_userId);
+                        if (result) {
+                          Common().showLocalNotification("Betrader", LocalizedStrings.of(context)!.betsDeleted ?? "Bets deleted", 1,
+                              {"DELETED" : "all"});
+                          setState(() {
+
+                          });
+                        }
+                        
+                }                     
+
+                ),
+                IconButton(icon: Icon(Icons.autorenew_rounded),
+                  onPressed: () => {setState(() {
+
+                  })}
+                )
+              ],
             ),
+
             Divider(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? Colors.white
@@ -366,8 +390,8 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(height: 30),
                               const Icon(
-                                Icons.auto_graph,
-                                size: 40,
+                                Icons.casino_outlined,
+                                size: 60,
                                 color: Colors.white,
                               ),
                             ],
@@ -392,6 +416,12 @@ class HomeScreenState extends State<HomeScreen> {
   void refreshFavorites() {
     setState(() {
       showFavorites = true;
+    });
+  }
+
+  void refreshState() {
+    setState(() {
+
     });
   }
 }

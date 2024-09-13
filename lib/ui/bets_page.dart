@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'package:betrader/Services/BetsService.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart'; // Necesario para DateFormat
 import '../helpers/common.dart';
 import '../helpers/rectangle_zone.dart';
 import '../locale/localized_texts.dart';
+import 'layout_page.dart';
 
 class BetConfirmationPage extends StatefulWidget {
 
@@ -15,6 +18,7 @@ class BetConfirmationPage extends StatefulWidget {
   final VoidCallback onCancel;
   final RectangleZone zone;
   final String name;
+
   const BetConfirmationPage({
     Key? key,
 
@@ -26,11 +30,13 @@ class BetConfirmationPage extends StatefulWidget {
 
   }) : super(key: key);
 
+
   @override
   _BetConfirmationPageState createState() => _BetConfirmationPageState();
 }
 
 class _BetConfirmationPageState extends State<BetConfirmationPage> {
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   double _betAmount = 0.0;
   double _potentialPrize = 0.0;
   bool _isAcceptButtonEnabled = false;
@@ -324,19 +330,38 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     );
   }
 
-  void _onAccept() {
+  Future<void> _onAccept(int betZone) async {
+
+    String? userId = await _storage.read(key: 'sessionToken');
+    bool result = await BetsService().postNewBet(userId!, widget.zone.ticker, _betAmount, widget.currentValue, betZone);
+
+    if (result){
+
+      Common().showLocalNotification(
+          "Betrader",
+          ( LocalizedStrings.of(context)!
+              .betPlacedSuccessfully != null  ?   "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}€)"
+              : "Bet placed ssuccessfully! (${_betAmount}€)" ),
+          1,
+          {"TICKER": widget.zone.ticker, "BET_AMOMUNT": _betAmount});
+
+
+    }
+    else{
+      Common().showLocalNotification(
+          "Error",
+          ( LocalizedStrings.of(context)!.errorMakingBet ?? "Error creating bet!" ),
+          1,
+          {"ERROR_CODE": "00000001"});
+    }
 
     Navigator.pop(context);
-    Common().showLocalNotification(
-        "Betrader",
-        ( LocalizedStrings.of(context)!
-            .betPlacedSuccessfully != null  ?   "${LocalizedStrings.of(context)!
-            .betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}€)"  : "Bet placed ssuccessfully! (${_betAmount}€)" ),
-        1,
-        {"Test": "Test"});
+    Navigator.pop(context);
+    homeScreenKey.currentState?.refreshState();
+
   }
 
-  void _handleAcceptPressed() {
+  void _handleAcceptPressed(int betZone) {
     if (!_isAcceptButtonEnabled) {
       _betAmountFocusNode.requestFocus();
       setState(() {});
@@ -344,7 +369,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         setState(() {});
       });
     } else {
-      _onAccept();
+      _onAccept(betZone);
     }
   }
 
@@ -373,7 +398,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           ),
           ElevatedButton.icon(
             onPressed:
-                _isAcceptButtonEnabled ? _onAccept : _handleAcceptPressed,
+                _isAcceptButtonEnabled ? () => _onAccept(widget.zone.id) : () => _handleAcceptPressed(widget.zone.id),
             icon: Icon(CupertinoIcons.check_mark, color: Colors.black),
             label: Text(
               strings?.accept ?? 'Accept',

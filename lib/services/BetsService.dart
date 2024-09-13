@@ -27,7 +27,6 @@ class BetsService {
     }
   }
 
-
   Future<Bets> fetchInvestmentData(String userId) async {
     final response = await Common().postRequestWrapper(
         'Bet', 'UserBets', {'id': userId});
@@ -82,6 +81,12 @@ class BetsService {
   Future<bool> deleteRecentBet(String betId) async {
     final response = await Common().postRequestWrapper(
         'Bet', 'DeleteRecentBet', {'id': betId});
+    return response['statusCode'] == 200;
+  }
+
+  Future<bool> deleteHistoricBets(String userId) async {
+    final response = await Common().postRequestWrapper(
+        'Bet', 'DeleteHistoricBet', {'id': userId });
     return response['statusCode'] == 200;
   }
 

@@ -16,6 +16,8 @@ import 'home_page.dart';
 import 'login_page.dart';
 import 'package:http/http.dart' as http;
 
+final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -134,6 +136,7 @@ class MainMenuPageState extends State<MainMenuPage> {
     _pages = [
       // HOME
       HomeScreen(
+        key: homeScreenKey,
         controller: _controller,
       ),
       // TOP USERS

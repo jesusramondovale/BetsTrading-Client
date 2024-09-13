@@ -24,6 +24,7 @@ import 'package:http/http.dart' as http;
 ValueNotifier<bool> isRealNotifier = ValueNotifier<bool>(false);
 
 class Common {
+
   final ThemeData themeDark = ThemeData(
     brightness: Brightness.dark,
     colorScheme: const ColorScheme.dark(
@@ -275,6 +276,7 @@ class Common {
       }
 
       return RectangleZone(
+        id: betZone.id,
         startDate: betZone.startDate,
         endDate: betZone.endDate ?? DateTime.now().add(const Duration(days: 1)),
         highPrice: betZone.targetValue + (betZone.targetValue * betZone.betMargin/200),
@@ -294,6 +296,7 @@ class Common {
     Color strokeColor = Colors.white;
     List<RectangleZone> zones = [
       RectangleZone(
+          id: 99999999,
           startDate: DateTime.now().add(const Duration(days: 15)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.2,
@@ -306,6 +309,7 @@ class Common {
       ),
 
       RectangleZone(
+          id : 9999999995,
           startDate: DateTime.now().add(const Duration(days: 9)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.25,
@@ -319,6 +323,7 @@ class Common {
 
 
       RectangleZone(
+          id: 9899999999,
           startDate: DateTime.now().add(const Duration(days: 7)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.05,
@@ -332,6 +337,7 @@ class Common {
 
 
       RectangleZone(
+          id: 9898889999999,
           startDate: DateTime.now().add(const Duration(days: 4)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 0.95,
@@ -672,7 +678,7 @@ class Common {
         idExp = RegExp(r'\b\d{8}\b');
         break;
       case 'VE': // Venezuela - Cédula de Identidad (X.XXX.XXX)
-        idExp = RegExp(r'\b\d{1}\.\d{3}\.\d{3}\b');
+        idExp = RegExp(r'\b\d1\.\d{3}\.\d{3}\b');
         break;
       default: // Default: ID de 8 dígitos
         idExp = RegExp(r'\b\d{8}\b');
@@ -819,6 +825,7 @@ class Common {
   }
   RectangleZone emptyZone(){
     return RectangleZone(
+        id: 989888999999,
         startDate: DateTime.now(),
         endDate: DateTime.now().add(const Duration(days: 1)),
         highPrice: 1.0,

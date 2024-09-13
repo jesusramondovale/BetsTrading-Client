@@ -28,6 +28,7 @@ class Bet {
   final bool? targetWon;
   final double? profitLoss;
 
+
   Bet(
     this.currentValue,
     this.targetWon,
@@ -42,6 +43,7 @@ class Bet {
     required this.targetMargin,
     required this.targetDate,
     required this.targetOdds,
+
   });
 
   Bet.fromJson(Map<String, dynamic> json)
@@ -57,9 +59,10 @@ class Bet {
         targetDate = DateTime.parse(json['target_date']),
         targetOdds = json['target_odds'].toDouble(),
         targetWon = json['target_won'],
-        profitLoss = json['target_won'] == true
-            ? (json['bet_amount'].toDouble()) * (json['target_odds'].toDouble())
-            : json['bet_amount'].toDouble() * (-1);
+        profitLoss = DateTime.parse(json['target_date']).isAfter(DateTime.now()) ?  json['bet_amount'].toDouble() :
+                 json['target_won'] == true
+                    ? (json['bet_amount'].toDouble()) * (json['target_odds'].toDouble())
+                    : json['bet_amount'].toDouble() * (-1);
 }
 
 class Bets {
@@ -75,8 +78,7 @@ class Bets {
 class RecentBetDialog extends StatelessWidget {
   final Bet bet;
   final MainMenuPageController controller;
-
-  RecentBetDialog({super.key, required this.bet, required this.controller});
+  RecentBetDialog({super.key, required this.bet, required this.controller,});
 
   static get decodedBody => null;
 
@@ -417,6 +419,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             ),
           ),
           title: Text(
+            maxLines: 1,
             widget.bet.name,
             style: GoogleFonts.robotoCondensed(
               fontSize: 18,
@@ -431,6 +434,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             children: [
               const SizedBox(height: 6),
               Text(
+                maxLines: 1,
                 '(${widget.bet.betAmount.toStringAsFixed(2)}€ @ ${widget.bet.originValue})',
                 style: GoogleFonts.montserrat(
                   fontSize: 14,
@@ -439,6 +443,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
               ),
               const SizedBox(height: 4),
               Text(
+                 maxLines: 1,
                 '${widget.bet.targetDate.year}-${widget.bet.targetDate.month}-${widget.bet.targetDate.day} @ ${widget.bet.targetValue} ± ${widget.bet.targetMargin}%',
                 style: GoogleFonts.montserrat(
                   fontSize: 12,
@@ -476,7 +481,8 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                     children: [
 
                                       Expanded(
-                                        child: CandlesticksView(ticker: widget.bet.ticker, name: widget.bet.name, controller: widget.controller, iconPath: widget.bet.iconPath ),
+                                        child: CandlesticksView(ticker: widget.bet.ticker, name: widget.bet.name,
+                                            controller: widget.controller, iconPath: widget.bet.iconPath),
                                       ),
                                     ],
                                   ),
@@ -517,13 +523,15 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                   ],
                 )
               : Text(
+                   maxLines: 1,
                   '$trailingText$currency',
                   style: GoogleFonts.montserrat(
                     fontSize: 16,
                     fontWeight: FontWeight.w300,
-                    color: widget.bet.targetWon == true
-                        ? Colors.green
-                        : Colors.red,
+                    color: (widget.bet.targetDate.isAfter(DateTime.now())) ? Colors.grey :
+                      widget.bet.targetWon == true
+                         ? Colors.green
+                         : Colors.red,
                   ),
                 ),
         ),
