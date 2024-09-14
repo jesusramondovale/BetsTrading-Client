@@ -59,6 +59,24 @@ class HomeScreenState extends State<HomeScreen> {
     _loadUserIdAndData();
   }
 
+  void triggerFavorites() {
+    setState(() {
+      showFavorites = (showFavorites ? false : true);
+    });
+  }
+
+  void refreshFavorites() {
+    setState(() {
+      showFavorites = true;
+    });
+  }
+
+  void refreshState() {
+    setState(() {
+
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
@@ -141,10 +159,14 @@ class HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.attach_money,
-                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
-                          ),
+                        Container(margin: EdgeInsets.fromLTRB(0, 0, 0, 2),
+                        child: Text(
+                            '\u0e3f',
+                            textAlign: TextAlign.start,
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w100,
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
+                            )
+                        ),
                           const SizedBox(width: 6),
                           Text(
                             _userPoints,
@@ -318,7 +340,6 @@ class HomeScreenState extends State<HomeScreen> {
                       fontSize: 20, fontWeight: FontWeight.w400),
                 ),
                 Spacer(),
-
                 IconButton(icon: Icon(Icons.auto_delete),
                     onPressed:  () async {
                         bool result = await BetsService().deleteHistoricBets(_userId);
@@ -329,9 +350,7 @@ class HomeScreenState extends State<HomeScreen> {
 
                           });
                         }
-                        
-                }                     
-
+                }
                 ),
                 IconButton(icon: Icon(Icons.autorenew_rounded),
                   onPressed: () => {setState(() {
@@ -340,7 +359,6 @@ class HomeScreenState extends State<HomeScreen> {
                 )
               ],
             ),
-
             Divider(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? Colors.white
@@ -366,9 +384,13 @@ class HomeScreenState extends State<HomeScreen> {
                         scrollDirection: Axis.vertical,
                         itemCount: _bets.length,
                         itemBuilder: (context, index) {
+                          // Construye en orden inverso
+                          final reversedIndex = _bets.length - 1 - index;
                           return RecentBetContainer(
-                              bet: _bets[index],
-                              onDelete: () => _deleteBet(_bets[index].id), controller: widget.controller,);
+                            bet: _bets[reversedIndex],
+                            onDelete: () => _deleteBet(_bets[reversedIndex].id),
+                            controller: widget.controller,
+                          );
                         },
                       );
                     } else {
@@ -382,16 +404,16 @@ class HomeScreenState extends State<HomeScreen> {
                                 strings?.noLiveBets ??
                                     'You have no live bets at the moment, go to the markets tab to create a new one.',
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                                style: GoogleFonts.roboto(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w200,
                                   color: Colors.grey,
                                 ),
                               ),
                               const SizedBox(height: 30),
                               const Icon(
                                 Icons.casino_outlined,
-                                size: 60,
+                                size: 80,
                                 color: Colors.white,
                               ),
                             ],
@@ -407,21 +429,4 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void triggerFavorites() {
-    setState(() {
-      showFavorites = (showFavorites ? false : true);
-    });
-  }
-
-  void refreshFavorites() {
-    setState(() {
-      showFavorites = true;
-    });
-  }
-
-  void refreshState() {
-    setState(() {
-
-    });
-  }
 }

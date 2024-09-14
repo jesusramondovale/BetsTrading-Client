@@ -129,6 +129,7 @@ class FavoriteDialog extends StatelessWidget {
                                   if (ok) {
                                     Common().newFavoriteCompleted(context,
                                         LocalizedStrings.of(context)!.updatedFavs ?? "Updated favs!");
+                                    homeScreenKey.currentState?.refreshFavorites();
                                     Navigator.of(context).pop(true);
                                   }
                                 },
@@ -247,19 +248,29 @@ class FavoriteContainer extends StatefulWidget {
 
 class FavoriteContainerState extends State<FavoriteContainer> {
 
-  void _showFavoriteDialog() async {
-    bool? ok = await showDialog<bool>(
-      barrierColor: Colors.black.withAlpha(220),
+  void popFavoritesDialog(BuildContext context, Favorite fav, MainMenuPageController controller) {
+    showGeneralDialog(
       context: context,
-      builder: (BuildContext context) {
-        return FavoriteDialog(favorite: widget.favorite, controller: widget.controller);
+      pageBuilder: (BuildContext buildContext, Animation<double> animation, Animation<double> secondaryAnimation) {
+        return FavoriteDialog(favorite: fav, controller: controller);
+      },
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.8, end: 1.0).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutBack,
+            )),
+            child: child,
+          ),
+        );
       },
     );
-
-    if (ok == true){
-      widget.onFavoriteUpdated(); // Llamar al callback
-    }
-
   }
 
   @override
@@ -269,7 +280,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: _showFavoriteDialog,
+          onTap: () => popFavoritesDialog(context, widget.favorite, widget.controller),
           splashColor: Colors.white24,
           highlightColor: Colors.white12,
           borderRadius: BorderRadius.circular(8),

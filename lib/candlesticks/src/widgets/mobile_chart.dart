@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../helpers/range_painter.dart';
-import '../../../helpers/rectangle_zone.dart';
+import '../../../models/rectangle_zone.dart';
 import '../../../ui/bets_page.dart';
 import '../../candlesticks.dart';
 import '../constant/view_constants.dart';

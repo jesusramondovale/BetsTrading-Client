@@ -1,7 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'dart:math';
-import '../../helpers/rectangle_zone.dart';
+import '../../models/rectangle_zone.dart';
 import '../../ui/layout_page.dart';
 import '../candlesticks.dart';
 import 'models/main_window_indicator.dart';

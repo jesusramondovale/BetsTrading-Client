@@ -45,10 +45,8 @@ class TrendDialog extends StatelessWidget {
   final int index;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final MainMenuPageController controller;
+
   const TrendDialog({super.key, required this.trend, required this.index, required this.controller});
-
-
-  static get decodedBody => null;
 
   @override
   Widget build(BuildContext context) {
@@ -129,16 +127,13 @@ class TrendDialog extends StatelessWidget {
                                 iconSize: 50,
                                 onPressed: () async {
                                   bool ok = await BetsService().postNewFavorite(
-                                      await _storage.read(
-                                              key: "sessionToken") ??
-                                          "none",
+                                      await _storage.read(key: "sessionToken") ?? "none",
                                       trend.ticker);
                                   if (ok) {
                                     Common().newFavoriteCompleted(
                                         context,
-                                        LocalizedStrings.of(context)!
-                                                .updatedFavs ??
-                                            "Updated favs!");
+                                        LocalizedStrings.of(context)!.updatedFavs ?? "Updated favs!");
+                                    homeScreenKey.currentState?.refreshFavorites();
                                     Navigator.of(context).pop(true);
                                   }
                                 },
@@ -166,8 +161,7 @@ class TrendDialog extends StatelessWidget {
                         style: GoogleFonts.montserrat(
                           fontSize: 25,
                           fontWeight: FontWeight.w400,
-                          color:
-                              trend.dailyGain > 0.0 ? Colors.green : Colors.red,
+                          color: trend.dailyGain > 0.0 ? Colors.green : Colors.red,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -186,9 +180,7 @@ class TrendDialog extends StatelessWidget {
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
-                              color: trend.dailyGain >= 0.0
-                                  ? Colors.green
-                                  : Colors.red,
+                              color: trend.dailyGain >= 0.0 ? Colors.green : Colors.red,
                             ),
                           ),
                           const Spacer(),
@@ -197,7 +189,8 @@ class TrendDialog extends StatelessWidget {
                                 size: 42,
                                 Icons.auto_graph_sharp,
                                 color: Colors.white),
-                            onPressed: () {Navigator.of(context).pop();
+                            onPressed: () {
+                              Navigator.of(context).pop();
                               showModalBottomSheet(
                                 context: context,
                                 isScrollControlled: true,
@@ -215,9 +208,12 @@ class TrendDialog extends StatelessWidget {
                                         maxHeight: MediaQuery.of(context).size.height,
                                         child: Column(
                                           children: [
-
                                             Expanded(
-                                              child: CandlesticksView(ticker: trend.ticker, name: trend.name, controller: this.controller, iconPath: trend.icon),
+                                              child: CandlesticksView(
+                                                  ticker: trend.ticker,
+                                                  name: trend.name,
+                                                  controller: controller,
+                                                  iconPath: trend.icon),
                                             ),
                                           ],
                                         ),
@@ -229,7 +225,7 @@ class TrendDialog extends StatelessWidget {
                             },
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -259,22 +255,32 @@ class TrendContainer extends StatefulWidget {
 }
 
 class TrendContainerState extends State<TrendContainer> {
-  void _showTrendDialog() async {
-    bool? ok = await showDialog<bool>(
-      barrierColor: Colors.black.withAlpha(220),
-      context: context,
-      builder: (BuildContext context) {
-        return TrendDialog(
-          trend: widget.trend,
-          index: widget.index, controller: widget.controller,
 
+  void popTrendDialog(BuildContext context, Trend trend, int index, MainMenuPageController controller) {
+    showGeneralDialog(
+      context: context,
+      pageBuilder: (BuildContext buildContext, Animation<double> animation, Animation<double> secondaryAnimation) {
+        return TrendDialog(trend: trend, index: index, controller: controller);
+      },
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.8, end: 1.0).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutBack,
+            )),
+            child: child,
+          ),
         );
       },
     );
-    if (ok == true) {
-      widget.onFavoriteUpdated();
-    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -283,7 +289,7 @@ class TrendContainerState extends State<TrendContainer> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: _showTrendDialog,
+          onTap: () => popTrendDialog(context,widget.trend,widget.index,widget.controller),
           splashColor: Colors.white24,
           highlightColor: Colors.white12,
           borderRadius: BorderRadius.circular(8),

@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:betrader/candlesticks/candlesticks.dart';
-import 'package:betrader/helpers/rectangle_zone.dart';
+import 'package:betrader/helpers/slider.dart';
+import 'package:betrader/models/rectangle_zone.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
 import '../main.dart';
 import '../models/betZone.dart';
@@ -117,6 +119,43 @@ class Common {
               child: const Text("Ok"),
             ),
           ],
+        );
+      },
+    );
+  }
+  Future<bool?> popConfirmOperationDialog(BuildContext aContext, double betAmount, String betIcon) async {
+    return await showDialog<bool>(
+      context: aContext,
+      builder: (BuildContext context) {
+        // ignore: deprecated_member_use
+        return WillPopScope(
+          onWillPop: () async {
+            Navigator.of(context).pop(false);
+            return false;
+          },
+          child: AlertDialog(
+            backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
+            title: Text(
+              LocalizedStrings.of(context)!.confirmOperation ?? "Confirm operation",
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              style: GoogleFonts.roboto(fontSize: 24, color: Colors.white, fontWeight: FontWeight.w400),
+            ),
+            content: Text(
+              LocalizedStrings.of(context)!.confirmBet ?? "Slide to confirm the operation",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.openSans(fontSize: 14.0, color: Colors.white),
+            ),
+            actions: [
+              SlideToConfirm(
+                icon: betIcon,
+                betAmount: betAmount,
+                onSlideComplete: () {
+                  Navigator.of(context).pop(true);
+                },
+              )
+            ],
+          ),
         );
       },
     );
@@ -992,6 +1031,9 @@ class BlankImageWidget extends StatelessWidget {
     );
   }
 }
+
+
+
 
 
 

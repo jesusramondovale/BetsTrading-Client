@@ -146,7 +146,12 @@ class _TopUsersPageState extends State<TopUsersPage> with SingleTickerProviderSt
                         ),
                       ),
                       SizedBox(width: 4),
-                      Icon(Icons.monetization_on, color: Colors.yellowAccent),
+                      Container(margin: EdgeInsets.fromLTRB(0, 5, 0, 10),
+                      child: Text(
+                        '\u0e3f',
+                        style: TextStyle(fontSize: 25, fontWeight: FontWeight.w100, color: Colors.yellowAccent),
+                      )
+                      )
                     ],
                   ),
                 ),

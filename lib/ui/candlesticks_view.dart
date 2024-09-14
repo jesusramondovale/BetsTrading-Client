@@ -5,7 +5,7 @@ import '../candlesticks/src/main.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
-import '../helpers/rectangle_zone.dart';
+import '../models/rectangle_zone.dart';
 import 'layout_page.dart';
 
 class CandlesticksView extends StatefulWidget {

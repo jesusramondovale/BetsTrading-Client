@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../candlesticks/src/models/candle.dart';
 import 'common.dart';
-import 'rectangle_zone.dart';
+import '../models/rectangle_zone.dart';
 
 class RangePainter extends CustomPainter {
   final List<RectangleZone> zones;
