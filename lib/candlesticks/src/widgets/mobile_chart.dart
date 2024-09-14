@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../helpers/range_painter.dart';
-import '../../../helpers/rectangle_zone.dart';
+import '../../../models/rectangle_zone.dart';
 import '../../../ui/bets_page.dart';
 import '../../candlesticks.dart';
 import '../constant/view_constants.dart';
@@ -23,6 +23,7 @@ import 'dash_line.dart';
 /// Updates right-hand side numbers.
 /// And pass values down to [CandleStickWidget].
 class MobileChart extends StatefulWidget {
+
   final Function onScaleUpdate;
   final Function onHorizontalDragUpdate;
   final double candleWidth;
@@ -41,6 +42,7 @@ class MobileChart extends StatefulWidget {
 
   const MobileChart({
     super.key,
+
     required this.style,
     required this.onScaleUpdate,
     required this.onHorizontalDragUpdate,
@@ -56,7 +58,7 @@ class MobileChart extends StatefulWidget {
     required this.rectangleZones,
     required this.chartTitle,
     required this.iconPath,
-  });
+      });
 
   @override
   State<MobileChart> createState() => MobileChartState();
@@ -111,6 +113,7 @@ class MobileChartState extends State<MobileChart> {
       offsetY = 0.0;
     });
   }
+
 
   @override
   Widget build(BuildContext context) {

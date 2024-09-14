@@ -28,6 +28,7 @@ class Bet {
   final bool? targetWon;
   final double? profitLoss;
 
+
   Bet(
     this.currentValue,
     this.targetWon,
@@ -42,6 +43,7 @@ class Bet {
     required this.targetMargin,
     required this.targetDate,
     required this.targetOdds,
+
   });
 
   Bet.fromJson(Map<String, dynamic> json)
@@ -57,9 +59,10 @@ class Bet {
         targetDate = DateTime.parse(json['target_date']),
         targetOdds = json['target_odds'].toDouble(),
         targetWon = json['target_won'],
-        profitLoss = json['target_won'] == true
-            ? (json['bet_amount'].toDouble()) * (json['target_odds'].toDouble())
-            : json['bet_amount'].toDouble() * (-1);
+        profitLoss = DateTime.parse(json['target_date']).isAfter(DateTime.now()) ?  json['bet_amount'].toDouble() :
+                 json['target_won'] == true
+                    ? (json['bet_amount'].toDouble()) * (json['target_odds'].toDouble())
+                    : json['bet_amount'].toDouble() * (-1);
 }
 
 class Bets {
@@ -75,8 +78,7 @@ class Bets {
 class RecentBetDialog extends StatelessWidget {
   final Bet bet;
   final MainMenuPageController controller;
-
-  RecentBetDialog({super.key, required this.bet, required this.controller});
+  RecentBetDialog({super.key, required this.bet, required this.controller,});
 
   static get decodedBody => null;
 
@@ -232,7 +234,7 @@ class RecentBetDialog extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          '${bet.profitLoss!.toStringAsFixed(2)}€',
+                          '${bet.profitLoss!.toStringAsFixed(2)}฿',
                           style: GoogleFonts.montserrat(
                             fontSize: 25,
                             fontWeight: FontWeight.w400,
@@ -259,7 +261,7 @@ class RecentBetDialog extends StatelessWidget {
                         _buildGridItem(
                             context,
                             Icons.casino,
-                            '${bet.betAmount.toStringAsFixed(2)}€',
+                            '${bet.betAmount.toStringAsFixed(2)}฿',
                             strings!.betAmount ?? "Bet amount"),
                         _buildGridItem(
                             context,
@@ -372,14 +374,29 @@ class RecentBetContainerState extends State<RecentBetContainer> {
     });
   }
 
-  void _showBetDialog() async {
-    await showDialog<bool>(
-      barrierColor: Colors.black.withAlpha(220),
-      context: this.context,
-      builder: (BuildContext context) {
-        return RecentBetDialog(
-          bet: widget.bet,
-          controller: widget.controller,
+
+
+  void popBetDialog(BuildContext context, Bet bet, MainMenuPageController controller) {
+    showGeneralDialog(
+      context: context,
+      pageBuilder: (BuildContext buildContext, Animation<double> animation, Animation<double> secondaryAnimation) {
+        return RecentBetDialog(bet: bet, controller: controller);
+      },
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.8, end: 1.0).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutBack,
+            )),
+            child: child,
+          ),
         );
       },
     );
@@ -392,7 +409,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
         (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
             ? (widget.bet.profitLoss)?.toStringAsFixed(2)
             : '¿?';
-    String currency = '€';
+    String currency = '฿';
 
     /* TO-DO
     String currency = (bet.currency != null) ?
@@ -405,10 +422,10 @@ class RecentBetContainerState extends State<RecentBetContainer> {
               const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           onLongPress: _triggerBetButtons,
           onTap: () {
-            (_showEditButtons) ? _triggerBetButtons() : _showBetDialog();
+            (_showEditButtons) ? _triggerBetButtons() : popBetDialog(context, widget.bet, widget.controller);
           },
           leading: ClipRRect(
-            borderRadius: BorderRadius.circular(10.0), // Bordes más suaves
+            borderRadius: BorderRadius.circular(10.0),
             child: Image.memory(
               base64Decode(widget.bet.iconPath),
               width: 50,
@@ -417,21 +434,24 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             ),
           ),
           title: Text(
+            maxLines: 1,
             widget.bet.name,
-            style: GoogleFonts.robotoCondensed(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+            style: GoogleFonts.mPlusRounded1c(
+              fontSize: 20,
+              fontWeight: FontWeight.w300,
               color: Theme.of(context).brightness == Brightness.dark
                   ? Colors.white
                   : Colors.black87,
             ),
           ),
-          subtitle: Column(
+          subtitle: _showEditButtons ?
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 6),
               Text(
-                '(${widget.bet.betAmount.toStringAsFixed(2)}€ @ ${widget.bet.originValue})',
+                maxLines: 1,
+                '(${widget.bet.betAmount.toStringAsFixed(2)}฿ @ ${widget.bet.originValue})',
                 style: GoogleFonts.montserrat(
                   fontSize: 14,
                   color: Colors.grey,
@@ -439,6 +459,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
               ),
               const SizedBox(height: 4),
               Text(
+                 maxLines: 1,
                 '${widget.bet.targetDate.year}-${widget.bet.targetDate.month}-${widget.bet.targetDate.day} @ ${widget.bet.targetValue} ± ${widget.bet.targetMargin}%',
                 style: GoogleFonts.montserrat(
                   fontSize: 12,
@@ -449,7 +470,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                 ),
               ),
             ],
-          ),
+          ) : null,
           trailing: _showEditButtons
               ? Row(
                   mainAxisSize: MainAxisSize.min,
@@ -476,7 +497,8 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                     children: [
 
                                       Expanded(
-                                        child: CandlesticksView(ticker: widget.bet.ticker, name: widget.bet.name, controller: widget.controller, iconPath: widget.bet.iconPath ),
+                                        child: CandlesticksView(ticker: widget.bet.ticker, name: widget.bet.name,
+                                            controller: widget.controller, iconPath: widget.bet.iconPath),
                                       ),
                                     ],
                                   ),
@@ -517,23 +539,19 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                   ],
                 )
               : Text(
+                   maxLines: 1,
                   '$trailingText$currency',
                   style: GoogleFonts.montserrat(
                     fontSize: 16,
                     fontWeight: FontWeight.w300,
-                    color: widget.bet.targetWon == true
-                        ? Colors.green
-                        : Colors.red,
+                    color: (widget.bet.targetDate.isAfter(DateTime.now())) ? Colors.grey :
+                      widget.bet.targetWon == true
+                         ? Colors.green
+                         : Colors.red,
                   ),
                 ),
         ),
-        Divider(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white
-              : Colors.black,
-          height: 1,
-          thickness: 0.1,
-        ),
+
       ],
     );
   }

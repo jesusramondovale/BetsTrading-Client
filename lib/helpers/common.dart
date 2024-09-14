@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:betrader/candlesticks/candlesticks.dart';
-import 'package:betrader/helpers/rectangle_zone.dart';
+import 'package:betrader/helpers/slider.dart';
+import 'package:betrader/models/rectangle_zone.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
 import '../main.dart';
 import '../models/betZone.dart';
@@ -24,6 +26,7 @@ import 'package:http/http.dart' as http;
 ValueNotifier<bool> isRealNotifier = ValueNotifier<bool>(false);
 
 class Common {
+
   final ThemeData themeDark = ThemeData(
     brightness: Brightness.dark,
     colorScheme: const ColorScheme.dark(
@@ -116,6 +119,43 @@ class Common {
               child: const Text("Ok"),
             ),
           ],
+        );
+      },
+    );
+  }
+  Future<bool?> popConfirmOperationDialog(BuildContext aContext, double betAmount, String betIcon) async {
+    return await showDialog<bool>(
+      context: aContext,
+      builder: (BuildContext context) {
+        // ignore: deprecated_member_use
+        return WillPopScope(
+          onWillPop: () async {
+            Navigator.of(context).pop(false);
+            return false;
+          },
+          child: AlertDialog(
+            backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
+            title: Text(
+              LocalizedStrings.of(context)!.confirmOperation ?? "Confirm operation",
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              style: GoogleFonts.roboto(fontSize: 24, color: Colors.white, fontWeight: FontWeight.w400),
+            ),
+            content: Text(
+              LocalizedStrings.of(context)!.confirmBet ?? "Slide to confirm the operation",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.openSans(fontSize: 14.0, color: Colors.white),
+            ),
+            actions: [
+              SlideToConfirm(
+                icon: betIcon,
+                betAmount: betAmount,
+                onSlideComplete: () {
+                  Navigator.of(context).pop(true);
+                },
+              )
+            ],
+          ),
         );
       },
     );
@@ -275,6 +315,7 @@ class Common {
       }
 
       return RectangleZone(
+        id: betZone.id,
         startDate: betZone.startDate,
         endDate: betZone.endDate ?? DateTime.now().add(const Duration(days: 1)),
         highPrice: betZone.targetValue + (betZone.targetValue * betZone.betMargin/200),
@@ -294,6 +335,7 @@ class Common {
     Color strokeColor = Colors.white;
     List<RectangleZone> zones = [
       RectangleZone(
+          id: 99999999,
           startDate: DateTime.now().add(const Duration(days: 15)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.2,
@@ -306,6 +348,7 @@ class Common {
       ),
 
       RectangleZone(
+          id : 9999999995,
           startDate: DateTime.now().add(const Duration(days: 9)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.25,
@@ -319,6 +362,7 @@ class Common {
 
 
       RectangleZone(
+          id: 9899999999,
           startDate: DateTime.now().add(const Duration(days: 7)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.05,
@@ -332,6 +376,7 @@ class Common {
 
 
       RectangleZone(
+          id: 9898889999999,
           startDate: DateTime.now().add(const Duration(days: 4)),
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 0.95,
@@ -672,7 +717,7 @@ class Common {
         idExp = RegExp(r'\b\d{8}\b');
         break;
       case 'VE': // Venezuela - Cédula de Identidad (X.XXX.XXX)
-        idExp = RegExp(r'\b\d{1}\.\d{3}\.\d{3}\b');
+        idExp = RegExp(r'\b\d1\.\d{3}\.\d{3}\b');
         break;
       default: // Default: ID de 8 dígitos
         idExp = RegExp(r'\b\d{8}\b');
@@ -819,6 +864,7 @@ class Common {
   }
   RectangleZone emptyZone(){
     return RectangleZone(
+        id: 989888999999,
         startDate: DateTime.now(),
         endDate: DateTime.now().add(const Duration(days: 1)),
         highPrice: 1.0,
@@ -985,6 +1031,9 @@ class BlankImageWidget extends StatelessWidget {
     );
   }
 }
+
+
+
 
 
 

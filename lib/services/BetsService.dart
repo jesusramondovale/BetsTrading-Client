@@ -14,7 +14,7 @@ class BetsService {
 
   Future<List<BetZone>> fetchBetZones(String ticker) async {
     final response = await Common().postRequestWrapper(
-        'Info', 'GetBetZones', {'id': ticker});
+        'Bet', 'GetBetZones', {'id': ticker});
 
     if (response['statusCode'] == 200) {
       List<BetZone> zones = (response['body']['bets'] as List)
@@ -29,7 +29,7 @@ class BetsService {
 
   Future<Bets> fetchInvestmentData(String userId) async {
     final response = await Common().postRequestWrapper(
-        'Info', 'UserBets', {'id': userId});
+        'Bet', 'UserBets', {'id': userId});
 
     if (response['statusCode'] == 200) {
       List<Bet> bets = (response['body']['bets'] as List)
@@ -59,6 +59,19 @@ class BetsService {
     }
   }
 
+  Future<bool> postNewBet(String userId, String ticker, double betAmount,
+                             double originValue,  int betZone) async {
+    final response = await Common().postRequestWrapper(
+        'Bet', 'NewBet', {
+              'user_id': userId,
+              'ticker': ticker,
+              'bet_amount': betAmount,
+              'origin_value': originValue,
+              'bet_zone' : betZone});
+
+    return response['statusCode'] == 200;
+  }
+
   Future<bool> postNewFavorite(String userId, String ticker) async {
     final response = await Common().postRequestWrapper(
         'Info', 'NewFavorite', {'user_id': userId, 'ticker': ticker});
@@ -67,7 +80,13 @@ class BetsService {
 
   Future<bool> deleteRecentBet(String betId) async {
     final response = await Common().postRequestWrapper(
-        'Info', 'DeleteRecentBet', {'id': betId});
+        'Bet', 'DeleteRecentBet', {'id': betId});
+    return response['statusCode'] == 200;
+  }
+
+  Future<bool> deleteHistoricBets(String userId) async {
+    final response = await Common().postRequestWrapper(
+        'Bet', 'DeleteHistoricBet', {'id': userId });
     return response['statusCode'] == 200;
   }
 

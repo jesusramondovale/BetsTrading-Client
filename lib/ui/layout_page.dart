@@ -16,6 +16,8 @@ import 'home_page.dart';
 import 'login_page.dart';
 import 'package:http/http.dart' as http;
 
+final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -83,7 +85,6 @@ class MainMenuPageState extends State<MainMenuPage> {
     }
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -134,6 +135,7 @@ class MainMenuPageState extends State<MainMenuPage> {
     _pages = [
       // HOME
       HomeScreen(
+        key: homeScreenKey,
         controller: _controller,
       ),
       // TOP USERS
@@ -151,73 +153,78 @@ class MainMenuPageState extends State<MainMenuPage> {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     } else {
-      return Scaffold(
-        body: SafeArea(
-          child: Column(
-            children: [
-              Container(
-                height: 1.0,
-                color: Colors.black45,
-              ),
-              Expanded(
-                child: ValueListenableBuilder<int>(
-                  valueListenable: _controller.selectedIndexNotifier,
-                  builder: (context, index, _) {
-                    return IndexedStack(
-                      index: _controller.selectedIndexNotifier.value,
-                      children: _pages,
-                    );
-                  },
+      return
+
+        Scaffold(
+          body: SafeArea(
+            child: Column(
+              children: [
+                Container(
+                  height: 1.0,
+                  color: Colors.black45,
                 ),
-              ),
-            ],
+                Expanded(
+                  child: ValueListenableBuilder<int>(
+                    valueListenable: _controller.selectedIndexNotifier,
+                    builder: (context, index, _) {
+                      return IndexedStack(
+                        index: _controller.selectedIndexNotifier.value,
+                        children: _pages,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        bottomNavigationBar:
-        ValueListenableBuilder<int>(
+          bottomNavigationBar: ValueListenableBuilder<int>(
             valueListenable: _controller.selectedIndexNotifier,
-            builder: (context, index, _){
+            builder: (context, index, _) {
               return Container(
-                margin: EdgeInsets.all(0.0),
+                height: 66, // Ajusta la altura aquí
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 5,
-                      blurRadius: 5,
+                      color: Colors.black12.withOpacity(0.5),
+                      spreadRadius: 10,
+                      blurRadius: 10,
                       offset: Offset(0, 0),
                     ),
                   ],
                 ),
                 child: BottomNavigationBar(
                   selectedItemColor: Colors.deepPurple,
+                  unselectedItemColor: Colors.grey,
+                  showUnselectedLabels: false,
+                  showSelectedLabels: true,
+                  iconSize: 32,
                   items: <BottomNavigationBarItem>[
                     BottomNavigationBarItem(
-                      icon: const Icon(Icons.home_outlined),
-                      activeIcon: const Icon(Icons.home),
+                      icon: Icon(Icons.home_outlined),
+                      activeIcon: Icon(Icons.home),
                       label: strings?.home ?? "Home",
                     ),
                     BottomNavigationBarItem(
-                      icon: const Icon(Icons.public),
+                      icon: Icon(Icons.public),
                       label: strings?.ranking ?? "Ranking",
                     ),
                     BottomNavigationBarItem(
-                      icon: const Icon(Icons.casino_outlined),
-                      activeIcon: const Icon(Icons.casino),
+                      icon: Icon(Icons.casino_outlined),
+                      activeIcon: Icon(Icons.casino),
                       label: strings?.liveMarkets ?? 'Live Markets',
                     ),
                     BottomNavigationBarItem(
-                      icon: const Icon(Icons.settings_outlined),
-                      activeIcon: const Icon(Icons.settings),
+                      icon: Icon(Icons.settings_outlined),
+                      activeIcon: Icon(Icons.settings),
                       label: strings?.settings ?? 'Settings',
                     ),
                     BottomNavigationBarItem(
                       icon: (_profilePicBytes != null
                           ? CircleAvatar(
                         backgroundImage: MemoryImage(_profilePicBytes!),
-                        radius: 15,
+                        radius: 16, // Reducción del tamaño del avatar
                       )
-                          : const Icon(Icons.account_circle_outlined)),
+                          : Icon(Icons.account_circle_outlined)),
                       label: _username,
                     ),
                   ],
@@ -228,10 +235,11 @@ class MainMenuPageState extends State<MainMenuPage> {
                   type: BottomNavigationBarType.fixed,
                 ),
               );
-            }
-          )
+            },
+          ),
+        );
 
-      );
+
     }
   }
 }

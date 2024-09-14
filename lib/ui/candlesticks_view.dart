@@ -5,7 +5,7 @@ import '../candlesticks/src/main.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
-import '../helpers/rectangle_zone.dart';
+import '../models/rectangle_zone.dart';
 import 'layout_page.dart';
 
 class CandlesticksView extends StatefulWidget {
@@ -13,6 +13,8 @@ class CandlesticksView extends StatefulWidget {
   final String name;
   final String iconPath;
   final MainMenuPageController controller;
+
+
 
   CandlesticksView({
     super.key,
@@ -80,6 +82,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                           Center(child: CircularProgressIndicator())
                         else
                           Candlesticks(
+
                             candles: _candles,
                             displayZoomActions: false,
                             onScaleUpdate: (double scale) {
@@ -90,6 +93,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                             chartTitle: widget.name,
                             iconPath: widget.iconPath,
                             extraDays: Common().daysUntilLatestEndDate(_zones),
+
                           ),
                         Positioned(
                           top: 10.0,

@@ -5,6 +5,7 @@ class LocalizedStrings {
 
   final Locale locale;
 
+
   static LocalizedStrings? of(BuildContext context) {
     return Localizations.of<LocalizedStrings>(context, LocalizedStrings);
   }
@@ -132,6 +133,10 @@ class LocalizedStrings {
       'noBetsAvailable': 'No bets available',
       'updatedTrends': 'Updated trends!',
       'betPlacedSuccessfully': 'Bet placed successfully!',
+      'errorMakingBet': 'Error making bet!',
+      'betsDeleted': 'Bets deleted',
+      'confirmBet': 'Slide to confirm the operation',
+
     },
     'es': {
       // Español
@@ -205,7 +210,7 @@ class LocalizedStrings {
       'commonSignIn': 'Inicio de sesión con e-mail',
       'backToSocialsLogin': 'Inicio de sesión social',
       'noLiveBets':
-          'No tienes apuestas en directo en este momento, vaya a la pestaña de mercados para crear una nueva',
+          'No tiene apuestas en directo en este momento, vaya a la pestaña de mercados para crear una nueva',
       'noClosedBets': 'No existen apuestas cerradas\n(por ahora...) 😏',
       'personalInfo': 'Información personal',
       'changePassword': 'Cambiar contraseña',
@@ -256,6 +261,9 @@ class LocalizedStrings {
       'noBetsAvailable': 'Sin apuestas disponibles',
       'updatedTrends': 'Tendencias actualizadas!',
       'betPlacedSuccessfully': '¡Apuesta realizada!',
+      'errorMakingBet': 'Error creando apuesta!',
+      'betsDeleted': 'Apuestas borradas',
+      'confirmBet': 'Deslice para confirmar la operación',
     },
     'fr': {
       // Francés
@@ -381,6 +389,9 @@ class LocalizedStrings {
       'noBetsAvailable': 'Pas de paris disponibles',
       'updatedTrends': 'Tendances mises à jour!',
       'betPlacedSuccessfully': 'Pari placé avec succès!',
+      'errorMakingBet': 'Erreur lors de la création du pari!',
+      'betsDeleted': 'Paris supprimés',
+      'confirmBet': 'Faites glisser pour confirmer l\'opération',
     },
     'it': {
       // Italiano
@@ -507,6 +518,9 @@ class LocalizedStrings {
       'noBetsAvailable': 'Nessuna scommessa disponibile',
       'updatedTrends': 'Tendenze aggiornate!',
       'betPlacedSuccessfully': 'Scommessa effettuata con successo!',
+      'errorMakingBet': 'Errore nella creazione della scommessa!',
+      'betsDeleted': 'Scommesse cancellate',
+      'confirmBet': 'Scorri per confermare l\'operazione',
     },
     'de': {
       // Alemán
@@ -627,6 +641,9 @@ class LocalizedStrings {
       'noBetsAvailable': 'Keine Wetten verfügbar',
       'updatedTrends': 'Aktualisierte Trends!',
       'betPlacedSuccessfully': 'Wette erfolgreich platziert!',
+      'errorMakingBet': 'Fehler beim Erstellen der Wette!',
+      'betsDeleted': 'Wetten gelöscht',
+      'confirmBet': 'Zum Bestätigen der Operation wischen',
     },
   };
 
@@ -813,6 +830,9 @@ class LocalizedStrings {
   String? get cancel => _localizedValues[locale.languageCode]?['cancel'];
   String? get noBetsAvailable => _localizedValues[locale.languageCode]?['noBetsAvailable'];
   String? get betPlacedSuccessfully => _localizedValues[locale.languageCode]?['betPlacedSuccessfully'];
+  String? get errorMakingBet => _localizedValues[locale.languageCode]?['errorMakingBet'];
+  String? get betsDeleted => _localizedValues[locale.languageCode]?['betsDeleted'];
+  String? get confirmBet => _localizedValues[locale.languageCode]?['confirmBet'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {
