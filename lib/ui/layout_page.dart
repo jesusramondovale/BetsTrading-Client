@@ -209,8 +209,14 @@ class MainMenuPageState extends State<MainMenuPage> {
                       label: strings?.ranking ?? "Ranking",
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.casino_outlined),
-                      activeIcon: Icon(Icons.casino),
+                      icon: Container(
+                        width: 34,  // El ancho de tu icono
+                        child: Image.asset('assets/logo_simple.png'),
+                      ),
+                      activeIcon: Container(
+                        width: 27,  // El ancho de tu icono
+                        child: Image.asset('assets/logo_simple.png'),
+                      ),
                       label: strings?.liveMarkets ?? 'Live Markets',
                     ),
                     BottomNavigationBarItem(

@@ -13,6 +13,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'day': 'day/s',
       'home': 'Home',
       'comingSoon': 'Coming soon...',
       'liveMarkets': 'Live Markets',
@@ -140,6 +141,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'day': 'día/s',
       'home': 'Inicio',
       'comingSoon': 'Próximamente...',
       'liveMarkets': 'Mercados',
@@ -267,6 +269,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'day': 'jour/s',
       'home': 'Accueil',
       'comingSoon': 'Bientôt disponible...',
       'liveMarkets': 'Marchés en Direct',
@@ -395,6 +398,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'day': 'gio.',
       'home': 'Home',
       'comingSoon': 'Prossimamente...',
       'liveMarkets': 'Mercati dal Vivo',
@@ -524,6 +528,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'day': 'Tag/e',
       'home': 'Startseite',
       'comingSoon': 'Demnächst...',
       'liveMarkets': 'Live-Märkte',
@@ -833,6 +838,7 @@ class LocalizedStrings {
   String? get errorMakingBet => _localizedValues[locale.languageCode]?['errorMakingBet'];
   String? get betsDeleted => _localizedValues[locale.languageCode]?['betsDeleted'];
   String? get confirmBet => _localizedValues[locale.languageCode]?['confirmBet'];
+  String? get day => _localizedValues[locale.languageCode]?['day'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

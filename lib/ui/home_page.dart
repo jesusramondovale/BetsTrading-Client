@@ -94,45 +94,12 @@ class HomeScreenState extends State<HomeScreen> {
             // Upper icons
             Row(
               children: [
-                Card(
-                  elevation: 0,
-                  surfaceTintColor: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black : Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: ValueListenableBuilder<bool>(
-                    valueListenable: isRealNotifier,
-                    builder: (context, isReal, child) {
-                      return Row(
-                        children: [
-                          Switch(
-                            value: isReal,
-                            inactiveThumbColor: Colors.black,
-                            inactiveTrackColor: Colors.grey,
-                            onChanged: (bool value) {
-                              isRealNotifier.value = value;
-                            },
-                          ),
-                          if (isReal) ...[
-                            SizedBox(width: 5),
-                            Image.asset('assets/alpha_vantage.png', width: 35),
-                          ],
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                Spacer(flex: 10),
-                Image.asset(Theme.of(context).brightness == Brightness.dark
-                    ? 'assets/betrader-BETA_dark.png' : 'assets/betrader-BETA_light.png' , width: 120),
-                Spacer(),
                 IconButton(
                   padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
                   icon: showFavorites
-                      ? Icon(Icons.star)
-                      : Icon(Icons.star_border),
-                  iconSize: 30,
+                      ? Icon(Icons.star_rounded)
+                      : Icon(Icons.star_border_rounded),
+                  iconSize: 40,
                   color: Theme.of(context).brightness == Brightness.dark
                       ? Colors.grey
                       : Colors.black,
@@ -140,6 +107,10 @@ class HomeScreenState extends State<HomeScreen> {
                     triggerFavorites();
                   },
                 ),
+                Spacer(flex: 5),
+                Image.asset('assets/logo_simple.png', width: 60),
+                Spacer(flex: 4),
+
                 IconButton(
                   padding: const EdgeInsets.all(2.5),
                   onPressed: () {
@@ -387,6 +358,7 @@ class HomeScreenState extends State<HomeScreen> {
                           // Construye en orden inverso
                           final reversedIndex = _bets.length - 1 - index;
                           return RecentBetContainer(
+                            dailyGain: _bets[reversedIndex].dailyGain,
                             bet: _bets[reversedIndex],
                             onDelete: () => _deleteBet(_bets[reversedIndex].id),
                             controller: widget.controller,
@@ -411,10 +383,9 @@ class HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 30),
-                              const Icon(
-                                Icons.casino_outlined,
-                                size: 80,
-                                color: Colors.white,
+                              Container(
+                                width: 48,  // El ancho de tu icono
+                                child: Image.asset('assets/logo_simple.png'),
                               ),
                             ],
                           ),

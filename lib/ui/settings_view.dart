@@ -79,6 +79,12 @@ class SettingsViewState extends State<SettingsView> {
                   Common().unimplementedAction(context , '(Content settings)'),
             ),
             ListTile(
+              title: Text(strings?.contentSettings ?? 'Content settings'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Common().unimplementedAction(context , '(Content settings)'),
+            ),
+            ListTile(
               title:  Text(strings?.paymentHistory ?? 'Payment history'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
@@ -93,6 +99,33 @@ class SettingsViewState extends State<SettingsView> {
                     MaterialPageRoute(builder: (context) => const AboutUsPage()),
                   ),
             ),
+            ListTile(
+              title: Text(
+                "Demo / Real",
+                style: TextStyle(fontSize: 16),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isRealNotifier.value)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Image.asset('assets/alpha_vantage.png', width: 55),
+                    ),
+                  Switch(
+                    value: isRealNotifier.value,
+                    inactiveThumbColor: Colors.black,
+                    inactiveTrackColor: Colors.grey,
+                    onChanged: (bool value) {
+                      isRealNotifier.value = value;
+                      setState(() {
+
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
             SwitchListTile(
               title: Text(strings?.darkMode ?? "Dark mode"),
               value: isDark,
@@ -105,7 +138,8 @@ class SettingsViewState extends State<SettingsView> {
                   Common().exitPopDialog(strings?.attention ?? "Attention!" , strings?.needToRestart ?? "App must restart", context);
                 });
               },
-            ),
+            )
+
           ],
         ).toList(),
       ),
