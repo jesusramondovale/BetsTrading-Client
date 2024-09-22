@@ -30,7 +30,7 @@ class HomeScreenState extends State<HomeScreen> {
   String _userId = "none";
   String _userPoints = '0';
 
-  Future<void> _loadUserIdAndData() async {
+  Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
     setState(() {
@@ -56,7 +56,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserIdAndData();
+    loadUserIdAndData();
   }
 
   void triggerFavorites() {
@@ -68,12 +68,6 @@ class HomeScreenState extends State<HomeScreen> {
   void refreshFavorites() {
     setState(() {
       showFavorites = true;
-    });
-  }
-
-  void refreshState() {
-    setState(() {
-
     });
   }
 
@@ -324,7 +318,11 @@ class HomeScreenState extends State<HomeScreen> {
                 }
                 ),
                 IconButton(icon: Icon(Icons.autorenew_rounded),
-                  onPressed: () => {setState(() {
+                  onPressed: () async => {
+                  await BetsService().getUserInfo(_userId),
+                  loadUserIdAndData(),
+                  setState(() {
+
 
                   })}
                 )

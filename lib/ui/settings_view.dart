@@ -73,18 +73,6 @@ class SettingsViewState extends State<SettingsView> {
 
             ),
             ListTile(
-              title: Text(strings?.contentSettings ?? 'Content settings'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () =>
-                  Common().unimplementedAction(context , '(Content settings)'),
-            ),
-            ListTile(
-              title: Text(strings?.contentSettings ?? 'Content settings'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () =>
-                  Common().unimplementedAction(context , '(Content settings)'),
-            ),
-            ListTile(
               title:  Text(strings?.paymentHistory ?? 'Payment history'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>

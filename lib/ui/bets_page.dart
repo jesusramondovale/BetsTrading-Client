@@ -37,6 +37,7 @@ class BetConfirmationPage extends StatefulWidget {
 
 class _BetConfirmationPageState extends State<BetConfirmationPage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  String? _points = '0.0';
   double _betAmount = 0.0;
   double _potentialPrize = 0.0;
   bool _isAcceptButtonEnabled = false;
@@ -44,9 +45,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   final FocusNode _betAmountFocusNode = FocusNode();
 
   @override
-  void initState() {
+  void initState()  {
     super.initState();
-
     _betAmountFocusNode.addListener(() {
       if (_betAmountFocusNode.hasFocus) {
         _scrollController.animateTo(
@@ -56,6 +56,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         );
       }
     });
+    _loadPoints();
   }
 
   @override
@@ -65,17 +66,22 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     super.dispose();
   }
 
-  void _calculatePotentialPrize(String value) {
+  Future<void> _loadPoints() async {
+    _points = await _storage.read(key: 'points');
+  }
+
+  void _calculatePotentialPrize(String value)  {
     setState(() {
       _betAmount = double.tryParse(value) ?? 0.0;
       _potentialPrize = _betAmount * widget.zone.odds;
-      _isAcceptButtonEnabled = _betAmount > 0.00999;
+      _isAcceptButtonEnabled = _betAmount > 0.00999 && _betAmount <= double.parse(_points!);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
+
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.black,
@@ -285,7 +291,9 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
                 style: GoogleFonts.montserrat(
                     fontSize: 20.0,
                     fontWeight: FontWeight.w800,
-                    color: Colors.greenAccent),
+                    color: _isAcceptButtonEnabled ? Colors.greenAccent : Colors.red,
+                    decoration: _isAcceptButtonEnabled ? null: TextDecoration.lineThrough,),
+
                 cursorColor: Colors.white,
                 focusNode: _betAmountFocusNode,
                 keyboardType: TextInputType.number,
@@ -323,7 +331,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.greenAccent
+                  ? _isAcceptButtonEnabled ? Colors.greenAccent : Colors.red
                   : Colors.green,
             ),
           ),
@@ -350,9 +358,11 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             1,
             {"TICKER": widget.zone.ticker, "BET_AMOMUNT": _betAmount});
 
+        await BetsService().getUserInfo(userId);
+
         Navigator.pop(context);
         Navigator.pop(context);
-        homeScreenKey.currentState?.refreshState();
+        homeScreenKey.currentState?.loadUserIdAndData();
 
 
       }
