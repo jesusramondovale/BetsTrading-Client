@@ -56,7 +56,7 @@ class User {
       lastSession: DateTime.parse(json['last_session']),
       creditCard: json['credit_card'],
       username: json['username'],
-      points: json['points'] ?? 0,
+      points: json['points'] ?? 0.0,
       tokenExpiration: json['token_expiration'] != null ? DateTime.parse(json['token_expiration']) : null,
       isActive: json['is_active'] ?? true,
       failedAttempts: json['failed_attempts'] ?? 0,

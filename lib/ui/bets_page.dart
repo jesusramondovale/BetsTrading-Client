@@ -355,7 +355,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             ( LocalizedStrings.of(context)!
                 .betPlacedSuccessfully != null  ?   "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}฿)"
                 : "Bet placed ssuccessfully! (${_betAmount}฿)" ),
-            1,
+
             {"TICKER": widget.zone.ticker, "BET_AMOMUNT": _betAmount});
 
         await BetsService().getUserInfo(userId);
@@ -370,7 +370,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         Common().showLocalNotification(
             "Error",
             ( LocalizedStrings.of(context)!.errorMakingBet ?? "Error creating bet!" ),
-            1,
+
             {"ERROR_CODE": "00000001"});
 
         Navigator.pop(context);

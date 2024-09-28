@@ -309,7 +309,7 @@ class HomeScreenState extends State<HomeScreen> {
                     onPressed:  () async {
                         bool result = await BetsService().deleteHistoricBets(_userId);
                         if (result) {
-                          Common().showLocalNotification("Betrader", LocalizedStrings.of(context)!.betsDeleted ?? "Bets deleted", 1,
+                          Common().showLocalNotification("Betrader", LocalizedStrings.of(context)!.betsDeleted ?? "Bets deleted",
                               {"DELETED" : "all"});
                           setState(() {
 

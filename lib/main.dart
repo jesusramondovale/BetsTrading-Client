@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:betrader/Services/BetsService.dart';
 import 'package:betrader/services/FirebaseService.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'helpers/common.dart';
@@ -47,7 +50,6 @@ Future<void> main() async {
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
-
   await FirebaseService().initFirebase();
 
   runApp(MyApp(isDarkTheme: isDark));

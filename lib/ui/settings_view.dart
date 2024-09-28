@@ -68,7 +68,7 @@ class SettingsViewState extends State<SettingsView> {
               title: Text(strings?.notifications ?? 'Notifications'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () async {
-                await Common().showLocalNotification("Betrader" , "Test", 1, {"key":"value"});
+                await Common().showLocalNotification("Betrader" , "Test",  {"key":"value"});
               }
 
             ),

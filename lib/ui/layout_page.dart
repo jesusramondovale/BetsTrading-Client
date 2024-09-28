@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/markets_page.dart';
@@ -94,7 +95,6 @@ class MainMenuPageState extends State<MainMenuPage> {
       Common().showLocalNotification(
           message.notification!.title!,
           message.notification!.body!,
-          1 ,
           message.data);
     });
 
