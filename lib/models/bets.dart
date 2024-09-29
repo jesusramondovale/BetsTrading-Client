@@ -591,14 +591,14 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                     mainAxisAlignment: MainAxisAlignment.center, // Centra los elementos
                     children: [
                       Text(
-                        "$daysUntilTarget ${strings!.day ?? "day/s" }",
+                        (daysUntilTarget > 0 ? "$daysUntilTarget ${strings!.day ?? "day/s" }" : strings!.finished ?? "Finished" ),
                         style: GoogleFonts.rajdhani(
                           fontSize: 11,
                           color: Colors.white
                         ),
                       ),
                       const SizedBox(width: 5),
-                      Icon(Icons.watch_later_outlined, size: 16), // El icono
+                      Icon((daysUntilTarget > 0 ? Icons.watch_later : Icons.timer_off_outlined) , size: 16), // El icono
 
 
                     ],
