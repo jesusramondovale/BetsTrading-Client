@@ -14,6 +14,7 @@ import 'package:country_flags/country_flags.dart';
 import 'package:betrader/services/AuthService.dart';
 
 import '../helpers/common.dart';
+import 'camera_page.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -27,6 +28,7 @@ class _SignInState extends State<SignIn> {
   final GlobalKey<FormState> _creditCardFormKey = GlobalKey<FormState>();
 
   String _idCard = '';
+  bool _idCardSet = false;
   String _fullName = '';
   String _password = '';
   String _address = '';
@@ -198,9 +200,11 @@ class _SignInState extends State<SignIn> {
     if (_currentStep == 2) {
       return _creditCardFormKey.currentState?.validate() ?? false;
     }
+    if (_currentStep == 3 && !_idCardSet) return false;
     if (currentForm?.saveAndValidate() ?? false) {
       return true;
     }
+
     return false;
   }
   Future<void> _selectDate(BuildContext context) async {
@@ -331,7 +335,7 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4),
-            _buildTextField(context , strings?.idCard ?? 'ID Card', 'idCard', Icons.credit_card, false),
+            _buildTextField(context , strings?.idCard ?? 'ID Card', 'idCard', Icons.credit_card, true),
             const SizedBox(height: 10.0),
             _buildEmailField(context, strings?.email ?? 'Email', 'email', Icons.email, false),
             const SizedBox(height: 10.0),
@@ -383,8 +387,10 @@ class _SignInState extends State<SignIn> {
           children: [
             TextSpan(
               text: strings?.acceptTerms ?? 'I accept the ',
-              style: const TextStyle(
-                  color: Colors.black,
+              style: TextStyle(
+                  color:  Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
                   fontSize: 16
               ),
             ),
@@ -415,16 +421,26 @@ class _SignInState extends State<SignIn> {
     final strings = LocalizedStrings.of(context);
     return FormBuilderTextField(
       readOnly: readonly,
+      initialValue: (name == 'idCard' ? strings!.takeIdPhoto ?? "Take a photo of your document" : null ),
       name: name,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
-        suffixIcon: name == 'fullName' ? IconButton(
+        suffixIcon:
+        name == 'fullName' ?
+        IconButton(
           icon: const Icon(Icons.camera_alt),
           onPressed: () async {
             _profilePic = await Common().pickImageFromGallery();
           },
-        ) : null,
+        ) :
+        (name == 'idCard' ?
+        IconButton(
+          icon: const Icon(Icons.camera_alt),
+          onPressed: () async {
+             _navigateToCameraPage();
+          },
+        ): null ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
@@ -436,6 +452,24 @@ class _SignInState extends State<SignIn> {
         errorText: strings?.thisFieldIsRequired ?? 'This field is required',
       ),
     );
+  }
+
+  void _navigateToCameraPage() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => CameraPage(countryCode: Common().getCountryCode(_country))),
+    );
+
+    if (result != null) {
+      setState(() {
+        _idCard = result;
+        _idCardSet = true;
+        _formKeys[3].currentState?.fields['idCard']?.didChange(result);
+
+      });
+
+    }
   }
   Widget _buildPasswordField(context , String label, String name, IconData icon, bool readonly, GlobalKey<FormBuilderState> formKey, {bool obscureText = true, void Function()? onTap}) {
     final strings = LocalizedStrings.of(context);

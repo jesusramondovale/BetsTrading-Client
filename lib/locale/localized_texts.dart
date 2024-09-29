@@ -13,6 +13,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'takeIdPhoto': 'Take a photo',
       'finished': 'Finished',
       'day': 'day/s',
       'home': 'Home',
@@ -142,6 +143,8 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+
+      'takeIdPhoto': 'Tome una foto',
       'finished': 'Finalizado',
       'day': 'día/s',
       'home': 'Inicio',
@@ -271,6 +274,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'takeIdPhoto': 'Prenez une photo',
       'finished': 'Terminé',
       'day': 'jour/s',
       'home': 'Accueil',
@@ -401,6 +405,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'takeIdPhoto': 'Scatta una foto',
       'finished': 'Finito',
       'day': 'gio.',
       'home': 'Home',
@@ -532,6 +537,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'takeIdPhoto': 'Machen Sie ein Foto',
       'finished': 'Beendet',
       'day': 'Tag/e',
       'home': 'Startseite',
@@ -845,6 +851,7 @@ class LocalizedStrings {
   String? get confirmBet => _localizedValues[locale.languageCode]?['confirmBet'];
   String? get day => _localizedValues[locale.languageCode]?['day'];
   String? get finished => _localizedValues[locale.languageCode]?['finished'];
+  String? get takeIdPhoto => _localizedValues[locale.languageCode]?['takeIdPhoto'];
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {
