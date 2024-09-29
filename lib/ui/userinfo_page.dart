@@ -158,11 +158,11 @@ class _UserInfoPageState extends State<UserInfoPage> {
             else {
               subtitle = Text(entry.value);
             }
-            if (entry.key == 'fullname' && _profilePicBytes != null) {
+            if (entry.key == 'fullname') {
               return ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: MemoryImage(_profilePicBytes!),
-                ),
+                leading: (_profilePicBytes != null ? CircleAvatar(
+                  backgroundImage: MemoryImage(_profilePicBytes!)) :
+                   Common().getIconForUserInfo(entry.key)),
                 title: Text(title),
                 subtitle: subtitle,
                 trailing: IconButton(
@@ -198,6 +198,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 leading: Common().getIconForUserInfo(entry.key),
                 title: Text(title),
                 subtitle: subtitle,
+
               );
             }
           }).toList());

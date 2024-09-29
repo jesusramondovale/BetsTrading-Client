@@ -12,7 +12,22 @@ import 'package:http/http.dart' as http;
 class BetsService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  Future<List<BetZone>> fetchBetZones(String ticker) async {
+  Future<List<BetZone>> fetchBetZones(String ticker, int? betId) async {
+    if (null != betId){
+      final response = await Common().postRequestWrapper(
+          'Bet', 'GetBetZone', {'id': betId});
+
+      if (response['statusCode'] == 200) {
+        List<BetZone> zones = (response['body']['bets'] as List)
+            .map((json) => BetZone.fromJson(json))
+            .toList();
+
+        return zones;
+      } else {
+        return [];
+      }
+
+    }
     final response = await Common().postRequestWrapper(
         'Bet', 'GetBetZones', {'id': ticker});
 

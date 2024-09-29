@@ -62,6 +62,8 @@ class Candlesticks extends StatefulWidget {
 
   final int extraDays;
 
+  final bool inactiveZone;
+
 
   Candlesticks({
     super.key,
@@ -76,6 +78,7 @@ class Candlesticks extends StatefulWidget {
     this.style,
     required this.onScaleUpdate,
     required this.rectangleZones,
+    required this.inactiveZone,
     required this.controller,
     required this.chartTitle,
     required this.iconPath,
@@ -302,6 +305,7 @@ class CandlesticksState extends State<Candlesticks> {
                       candles: widget.candles,
                       index: index,
                       rectangleZones: widget.rectangleZones,
+                      inactiveZone: widget.inactiveZone,
                       chartTitle: widget.chartTitle,
                       iconPath: widget.iconPath,);
                 }

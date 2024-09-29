@@ -39,6 +39,7 @@ class MobileChart extends StatefulWidget {
   final List<RectangleZone> rectangleZones;
   final String chartTitle;
   final String iconPath;
+  final bool inactiveZone;
 
   const MobileChart({
     super.key,
@@ -58,6 +59,7 @@ class MobileChart extends StatefulWidget {
     required this.rectangleZones,
     required this.chartTitle,
     required this.iconPath,
+    required this.inactiveZone,
       });
 
   @override
@@ -593,7 +595,7 @@ class MobileChartState extends State<MobileChart> {
                               .hit(details.localPosition.dx,
                                   details.localPosition.dy, size);
 
-                          if (zoneClicked != null) {
+                          if (zoneClicked != null && !widget.inactiveZone) {
                             Navigator.push(
                               context,
                               PageRouteBuilder(

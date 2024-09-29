@@ -70,7 +70,7 @@ class AuthService {
       'country': country,
       'gender': gender,
       'email': email,
-      'birthday': birthday.toUtc().toIso8601String(),
+      'birthday': birthday.toIso8601String(),
       'creditCard': creditCard,
       'username': username,
       'profilePic': profilePic

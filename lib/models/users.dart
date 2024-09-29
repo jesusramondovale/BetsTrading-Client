@@ -17,7 +17,7 @@ class User {
   DateTime? lastLoginAttempt;
   DateTime? lastPasswordChange;
   String? profilePic;
-  int points;
+  double points;
 
   User({
     required this.id,
@@ -32,7 +32,7 @@ class User {
     required this.lastSession,
     required this.creditCard,
     required this.username,
-    this.points = 0,
+    this.points = 0.0,
     this.tokenExpiration,
     this.isActive = true,
     this.failedAttempts = 0,
@@ -56,7 +56,7 @@ class User {
       lastSession: DateTime.parse(json['last_session']),
       creditCard: json['credit_card'],
       username: json['username'],
-      points: json['points'] ?? 0.0,
+      points: (json['points'] as num).toDouble(),
       tokenExpiration: json['token_expiration'] != null ? DateTime.parse(json['token_expiration']) : null,
       isActive: json['is_active'] ?? true,
       failedAttempts: json['failed_attempts'] ?? 0,

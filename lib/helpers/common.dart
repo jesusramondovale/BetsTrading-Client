@@ -285,6 +285,7 @@ class Common {
       targetMargin: targetMargin,
       targetDate: targetDate,
       targetOdds: targetOdds,
+      bet_zone: 999
     );
   }
   int daysUntilLatestEndDate(List<RectangleZone> rectangleZones) {

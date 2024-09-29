@@ -73,7 +73,6 @@ class _SignInState extends State<SignIn> {
   }
 
   void _updateFormData(context) {
-    final strings = LocalizedStrings.of(context);
     final basicInfoForm = _formKeys[0].currentState!;
     final addressInfoForm = _formKeys[1].currentState!;
     final credentialsInfoForm = _formKeys[3].currentState!;
@@ -85,7 +84,7 @@ class _SignInState extends State<SignIn> {
     _gender = basicInfoForm.fields['gender']?.value ?? '';
     _username = basicInfoForm.fields['username']?.value ?? '';
 
-    String? birthdayString = strings?.birthday ?? basicInfoForm.fields['birthday']?.value;
+    String? birthdayString = basicInfoForm.fields["birthday"]?.value;
     if (birthdayString != null && birthdayString.isNotEmpty) {
       List<String> parts = birthdayString.split('-');
       if (parts.length == 3) {

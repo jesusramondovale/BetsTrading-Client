@@ -24,7 +24,7 @@ class Bet {
   final double targetMargin;
   final DateTime targetDate;
   final double targetOdds;
-
+  final int bet_zone;
   final bool? targetWon;
   final double? profitLoss;
 
@@ -43,6 +43,7 @@ class Bet {
     required this.targetMargin,
     required this.targetDate,
     required this.targetOdds,
+    required this.bet_zone,
   });
 
   Bet.fromJson(Map<String, dynamic> json)
@@ -64,7 +65,8 @@ class Bet {
             : json['target_won'] == true
                 ? (json['bet_amount'].toDouble()) *
                     (json['target_odds'].toDouble())
-                : json['bet_amount'].toDouble() * (-1);
+                : json['bet_amount'].toDouble() * (-1),
+         bet_zone = json['bet_zone'];
 }
 
 class Bets {
@@ -303,7 +305,7 @@ class RecentBetDialog extends StatelessWidget {
                         IconButton(
                           icon: const Icon(
                             size: 42,
-                            Icons.auto_graph_sharp,
+                            Icons.remove_red_eye_outlined,
                             color: Colors.white,
                           ),
                           onPressed: () {
@@ -331,6 +333,7 @@ class RecentBetDialog extends StatelessWidget {
                                           Expanded(
                                             child: CandlesticksView(
                                                 ticker: bet.ticker.toString(),
+                                                betZoneId: bet.bet_zone,
                                                 name: bet.name,
                                                 controller: this.controller,
                                                 iconPath: bet.iconPath),
@@ -501,7 +504,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.stacked_line_chart,
+                        icon: const Icon(Icons.remove_red_eye_outlined,
                             color: Colors.grey),
                         onPressed: () {
                           showModalBottomSheet(
@@ -527,6 +530,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                         Expanded(
                                           child: CandlesticksView(
                                               ticker: widget.bet.ticker,
+                                              betZoneId : widget.bet.bet_zone,
                                               name: widget.bet.name,
                                               controller: widget.controller,
                                               iconPath: widget.bet.iconPath),

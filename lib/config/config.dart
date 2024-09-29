@@ -2,7 +2,7 @@ class Config {
 
   static const PUBLIC_DOMAIN = '90.175.130.133';
   static const SERVICE_PORT = '44346';
-  static const CODE_VERSION = '24.272.1';
+  static const CODE_VERSION = '24.273.1';
   static const IP_GEOLOCALIZER_TOKEN = 'd99daa2befa6f8';
   static const Map<int, String> ALPHA_KEYS = {
     1: 'O5NQS4V0GAZ4A643',

@@ -13,7 +13,7 @@ class CandlesticksView extends StatefulWidget {
   final String name;
   final String iconPath;
   final MainMenuPageController controller;
-
+  final int? betZoneId;
 
 
   CandlesticksView({
@@ -21,6 +21,7 @@ class CandlesticksView extends StatefulWidget {
     required this.controller,
     required this.iconPath,
     required this.ticker,
+    this.betZoneId,
     required this.name,
   });
 
@@ -33,18 +34,20 @@ class CandlesticksViewState extends State<CandlesticksView> {
   List<RectangleZone> _zones = [];
   List<Candle> _candles = [];
   bool _isLoading = true;
+  late bool _inactive_zone;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _inactive_zone = widget.betZoneId != null;
   }
 
   Future<void> _loadData() async {
     try {
       final List<Candle> candles;
       final List<BetZone> betZones =
-          await BetsService().fetchBetZones(widget.ticker);
+          await BetsService().fetchBetZones(widget.ticker, widget.betZoneId);
       (isRealNotifier.value ?
           candles = await BetsService().fetchCandles(widget.ticker.split(".")[0], Common().rotateAlphaApiByHour())
             :
@@ -89,6 +92,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                               candleScaleNotifier.value = scale;
                             },
                             rectangleZones: _zones,
+                            inactiveZone : _inactive_zone,
                             controller: widget.controller,
                             chartTitle: widget.name,
                             iconPath: widget.iconPath,
