@@ -8,7 +8,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:flutter_credit_card/flutter_credit_card.dart';
 import '../locale/localized_texts.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:betrader/services/AuthService.dart';
@@ -24,8 +23,8 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
-  final _formKeys = List.generate(4, (_) => GlobalKey<FormBuilderState>());
-  final GlobalKey<FormState> _creditCardFormKey = GlobalKey<FormState>();
+  final _formKeys = List.generate(3, (_) => GlobalKey<FormBuilderState>());
+
 
   String _idCard = '';
   bool _idCardSet = false;
@@ -39,8 +38,6 @@ class _SignInState extends State<SignIn> {
   String _username = '';
   String _profilePic = '';
 
-
-  final bool _autoValidateCreditCardForm = false;
   int _currentStep = 0;
 
   @override
@@ -77,7 +74,7 @@ class _SignInState extends State<SignIn> {
   void _updateFormData(context) {
     final basicInfoForm = _formKeys[0].currentState!;
     final addressInfoForm = _formKeys[1].currentState!;
-    final credentialsInfoForm = _formKeys[3].currentState!;
+    final credentialsInfoForm = _formKeys[2].currentState!;
 
     _idCard = credentialsInfoForm.fields['idCard']?.value ?? '';
     _fullName = basicInfoForm.fields['fullName']?.value ?? '';
@@ -103,12 +100,9 @@ class _SignInState extends State<SignIn> {
   Future<void> _onStepContinue() async {
 
     if (_validateAndSaveCurrentStep()) {
+      _updateFormData(context);
       if (_currentStep == 2) {
-        _updateFormData(context);
-      }
 
-      if (_currentStep == 3) {
-        _updateFormData(context);
         String _countryCode = Common().getCountryCode(_country);
         final result = await AuthService().register(
           _idCard,
@@ -132,7 +126,7 @@ class _SignInState extends State<SignIn> {
         }
       }
 
-      if (_currentStep < 3){
+      if (_currentStep < 2){
         setState(() {
           _currentStep++;
         });
@@ -162,14 +156,9 @@ class _SignInState extends State<SignIn> {
         isActive: _currentStep == 1,
       ),
       Step(
-        title: Text(strings?.creditCard ??'Credit card'),
-        content: _buildCreditCardInfoStep(context),
-        isActive: _currentStep == 2,
-      ),
-      Step(
         title: Text(strings?.credentials ?? 'Credentials'),
         content: _buildCredentialsStep(context),
-        isActive: _currentStep == 3,
+        isActive: _currentStep == 2,
       ),
     ];
   }
@@ -197,10 +186,8 @@ class _SignInState extends State<SignIn> {
   }
   bool _validateAndSaveCurrentStep() {
     final currentForm = _formKeys[_currentStep].currentState;
-    if (_currentStep == 2) {
-      return _creditCardFormKey.currentState?.validate() ?? false;
-    }
-    if (_currentStep == 3 && !_idCardSet) return false;
+
+    if (_currentStep == 2 && !_idCardSet) return false;
     if (currentForm?.saveAndValidate() ?? false) {
       return true;
     }
@@ -302,34 +289,11 @@ class _SignInState extends State<SignIn> {
       }).toList(),
     );
   }
-  Widget _buildCreditCardInfoStep(context) {
-    final strings = LocalizedStrings.of(context);
-    return CreditCardForm(
-      cardNumber: _cardNumberController.text,
-      expiryDate: _expiryDateController.text,
-      cardHolderName: _cardHolderNameController.text,
-      cvvCode: _cvvCodeController.text,
-      onCreditCardModelChange: _onCreditCardModelChange,
-      formKey: _creditCardFormKey,
-      obscureCvv: false,
-      obscureNumber: false,
-      autovalidateMode: _autoValidateCreditCardForm ? AutovalidateMode.always : AutovalidateMode.disabled,
-      cardNumberValidator: (value) => value != null && value.isNotEmpty && value.length == 19 ? null : strings?.pleaseEnterCardNumber ?? 'Please enter card number',
-      expiryDateValidator: (value) => value != null && value.isNotEmpty && value.length == 5 ? null : strings?.enterDate ?? 'Enter a date',
-      cvvValidator: (value) => value != null && value.isNotEmpty && (value.length == 3 || value.length == 4) ? null : strings?.pleaseEnterCVV ?? 'Please enter CVV',
-      cardHolderValidator: (value) => value != null && value.isNotEmpty ? null : strings?.pleaseEnterCardHolderName ?? 'Please enter card holder name',
-    );
-  }
-  void _onCreditCardModelChange(CreditCardModel creditCardModel) {
-    _cardNumberController.text = creditCardModel.cardNumber;
-    _expiryDateController.text = creditCardModel.expiryDate;
-    _cardHolderNameController.text = creditCardModel.cardHolderName;
-    _cvvCodeController.text = creditCardModel.cvvCode;
-  }
+
   Widget _buildCredentialsStep(context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilder(
-      key: _formKeys[3],
+      key: _formKeys[2],
       child: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
         child: Column(
@@ -339,9 +303,9 @@ class _SignInState extends State<SignIn> {
             const SizedBox(height: 10.0),
             _buildEmailField(context, strings?.email ?? 'Email', 'email', Icons.email, false),
             const SizedBox(height: 10.0),
-            _buildPasswordField(context, strings?.password ?? 'Password', 'password', Icons.lock, false, _formKeys[3], obscureText: true),
+            _buildPasswordField(context, strings?.password ?? 'Password', 'password', Icons.lock, false, _formKeys[2], obscureText: true),
             const SizedBox(height: 10.0),
-            _buildPasswordField(context, strings?.confirmPassword ?? 'Confirm Password', 'confirmPassword', Icons.lock, false, _formKeys[3], obscureText: true),
+            _buildPasswordField(context, strings?.confirmPassword ?? 'Confirm Password', 'confirmPassword', Icons.lock, false, _formKeys[2], obscureText: true),
             _buildTermsAndConditionsCheckbox(context),
           ],
         ),
@@ -368,10 +332,11 @@ class _SignInState extends State<SignIn> {
         FormBuilderValidators.email(errorText: strings?.enterValidEmail ?? 'Enter a valid email address'),
       ]),
       onChanged: (value) {
-        if (value != null && value.isNotEmpty) {
+        final trimmedValue = value?.trim();
+        if (trimmedValue != null && trimmedValue.isNotEmpty) {
           final currentForm = _formKeys[_currentStep].currentState;
           if (currentForm?.fields[name]?.validate() ?? false) {
-            _email = value;
+            _email = trimmedValue;
           }
         }
       },
@@ -465,7 +430,7 @@ class _SignInState extends State<SignIn> {
       setState(() {
         _idCard = result;
         _idCardSet = true;
-        _formKeys[3].currentState?.fields['idCard']?.didChange(result);
+        _formKeys[2].currentState?.fields['idCard']?.didChange(result);
 
       });
 
