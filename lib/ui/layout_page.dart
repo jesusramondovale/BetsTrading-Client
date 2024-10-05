@@ -209,11 +209,11 @@ class MainMenuPageState extends State<MainMenuPage> {
                     ),
                     BottomNavigationBarItem(
                       icon: Container(
-                        width: 34,  // El ancho de tu icono
+                        width: 34,
                         child: Image.asset('assets/logo_simple.png'),
                       ),
                       activeIcon: Container(
-                        width: 27,  // El ancho de tu icono
+                        width: 27,
                         child: Image.asset('assets/logo_simple.png'),
                       ),
                       label: strings?.liveMarkets ?? 'Live Markets',

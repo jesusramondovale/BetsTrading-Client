@@ -383,7 +383,7 @@ class HomeScreenState extends State<HomeScreen> {
                               const SizedBox(height: 30),
                               Container(
                                 width: 48,  // El ancho de tu icono
-                                child: Image.asset('assets/logo_simple.png'),
+                                child: Image.asset('assets/logo.png'),
                               ),
                             ],
                           ),

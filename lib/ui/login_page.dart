@@ -79,7 +79,7 @@ class LoginFormState extends State<LoginForm> {
           if (_showSignInWithGoogleApple) ...[
             _buildGoogleSignInButton(strings!),
             const SizedBox(height: 8),
-            _buildAppleSignInButton(strings),
+            _buildManualLogInButton(strings),
             const SizedBox(height: 10),
           ] else ...[
             _buildUsernameField(strings!),
@@ -89,8 +89,10 @@ class LoginFormState extends State<LoginForm> {
             _buildLoginAndRegisterButtons(context, strings),
             const SizedBox(height: 16),
             _buildForgotPasswordButton(strings),
+            const SizedBox(height: 16),
+            _buildToggleButton(strings),
           ],
-          _buildToggleButton(strings),
+
         ],
       ),
     );
@@ -129,22 +131,24 @@ class LoginFormState extends State<LoginForm> {
     );
   }
 
-  Widget _buildAppleSignInButton(LocalizedStrings strings) {
+  Widget _buildManualLogInButton(LocalizedStrings strings) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white, backgroundColor: Colors.black,
+        foregroundColor: Colors.white, backgroundColor: Colors.blue,
         minimumSize: const Size(double.infinity, 50),
       ),
       onPressed: () {
-        AuthService().appleSignIn();
+        setState(() {
+          _showSignInWithGoogleApple = !_showSignInWithGoogleApple;
+        });
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/apple_black.png', height: 24.0),
+          Icon(Icons.email),
           Padding(
             padding: const EdgeInsets.only(left: 10),
-            child: Text(strings.appleSignIn ?? 'Continue with Apple ID', style: const TextStyle(fontSize: 16, color: Colors.white)),
+            child: Text(strings.commonSignIn ?? 'Log In', style: const TextStyle(fontSize: 16, color: Colors.white)),
           ),
         ],
       ),
@@ -154,7 +158,7 @@ class LoginFormState extends State<LoginForm> {
   Widget _buildUsernameField(LocalizedStrings strings) {
     return TextFormField(
       controller: _usernameController,
-      decoration: InputDecoration(labelText: strings.username ?? 'User name'),
+      decoration: InputDecoration(labelText: "E-mail / " + (strings.username ?? 'User name') ),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return strings.pleaseEnterUsername ?? 'Please enter your username';
