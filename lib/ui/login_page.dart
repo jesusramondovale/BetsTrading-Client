@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:crypto/crypto.dart';
 import 'package:betrader/services/AuthService.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/helpers/common.dart';
