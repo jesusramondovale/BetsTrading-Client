@@ -456,9 +456,8 @@ class _SignInState extends State<SignIn> {
           return strings?.thisFieldIsRequired?? 'This field is required';
         }
         if (name == 'confirmPassword') {
-          final passwordBytes = utf8.encode(formKey.currentState?.fields['password']?.value.trim());
-          final hashedPassword = sha256.convert(passwordBytes);
-           _password = hashedPassword.toString();
+
+           _password = formKey.currentState?.fields['password']?.value.trim();
           if (val != formKey.currentState?.fields['password']?.value.trim()) {
             return strings?.passwordsNotMatching ?? 'Passwords not matching';
           }

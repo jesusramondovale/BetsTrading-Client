@@ -236,11 +236,11 @@ class LoginFormState extends State<LoginForm> {
       },
     );
 
-    final passwordBytes = utf8.encode(_passwordController.text.trim());
-    final hashedPassword = sha256.convert(passwordBytes);
+    
+    final pass = _passwordController.text.trim();
 
     try {
-      final result = await AuthService().logIn(_usernameController.text.trim(), hashedPassword.toString());
+      final result = await AuthService().logIn(_usernameController.text.trim(), pass.toString());
       Navigator.of(context).pop(); // Close the progress dialog
 
       if (result['success']) {
