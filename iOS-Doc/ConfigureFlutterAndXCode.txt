@@ -1,0 +1,30 @@
+1. Start the MacMini M1-M at https://console.scaleway.com/asaas/servers
+2. Download Flutter SDK (DOWNLOAD AND INSTALL TAB) https://docs.flutter.dev/get-started/install/macos/mobile-ios
+3. Add `/path/to/flutter/bin` to the PATH (export PATH="/path/to/flutter/bin:$PATH" in ~/.zshenv file)
+4. Copy MmacMini.zip file to the MacMini Desktop and decompress it
+5. Change "User Script Sandboxing" to NO in Xcode -> Targets -> Runner -> Build Settings Tab -> Build Options -> Almost at the end and XCode -> Targets -> Runner -> Signin & Capabilities -> Add Push Notifications
+6. Download the iOS Simulator and select it on XCode execution (top menu)
+7. Download GoogleService-Info.plist (Console Firebase iOS App) and put into BetsTrading-Client-main/ 
+8. Open the terminal and execute:
+   - flutter clean
+   - open /path/to/Desktop/BetsTrading…/ios/Runner.xcworkspace
+   - sudo gem install drb -v 2.0.6
+   - sudo gem install zeitwerk -v 2.6.18 
+   - sudo gem install activesupport -v 6.1.7.10 
+   - sudo gem install cocoapods
+   - sudo gem uninstall ffi
+   - sudo arch -arm64 gem install ffi
+   - cd ios
+   - pod install
+   
+   (Troubleshooting) 
+   1. Delete ios/Podfile
+   2. flutter clean
+   3. flutter pub get
+   4. pod install
+   
+9. Try Compile (Good Luck)
+10. cd ../ios
+11. Open iPhone Simulator
+12. clear && flutter run
+
