@@ -1,6 +1,7 @@
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../config/config.dart';
@@ -43,7 +44,11 @@ class SettingsViewState extends State<SettingsView> {
     final strings = LocalizedStrings.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(strings?.settings ?? "Settings"),
+        title: Text(strings?.settings ?? "Settings",
+            style: GoogleFonts.montserrat(
+              fontSize: 28,
+              fontWeight: FontWeight.w400,
+            )),
         backgroundColor:
         Theme.of(context).brightness == Brightness.dark
             ? Colors.black
