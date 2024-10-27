@@ -42,9 +42,18 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   bool isDark = await loadThemePreference();
 
+  // Initialization settings for Android
   var initializationSettingsAndroid = AndroidInitializationSettings('@drawable/notification');
-  var initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
 
+  // Initialization settings for iOS
+  var initializationSettingsDarwin = DarwinInitializationSettings(
+    onDidReceiveLocalNotification: onDidReceiveLocalNotification,
+  );
+
+  var initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsDarwin,
+  );
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
@@ -52,6 +61,11 @@ Future<void> main() async {
 
   runApp(MyApp(isDarkTheme: isDark));
 
+}
+
+Future onDidReceiveLocalNotification(
+  int id, String? title, String? body, String? payload) async {
+  // Handle the local notification received on iOS
 }
 
 class MyApp extends StatelessWidget {

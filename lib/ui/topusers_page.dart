@@ -73,6 +73,7 @@ class _TopUsersPageState extends State<TopUsersPage>
     final strings = LocalizedStrings.of(context);
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Rankings',
             style: GoogleFonts.montserrat(
               fontSize: 28,
