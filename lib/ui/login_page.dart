@@ -242,9 +242,32 @@ class LoginFormState extends State<LoginForm> {
       Navigator.of(context).pop(); // Close the progress dialog
 
       if (result['success']) {
-        Common().logInPopDialog(strings.welcome ?? "Welcome", _usernameController.text.trim(), context);
+        String? id = await _storage.read(key: 'sessionToken');
+        await BetsService().getUserInfo(id!);
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("${strings.welcome ?? "Welcome"}!  ${_usernameController.text.trim()}"),
+            backgroundColor: Colors.green,
+          ),
+        );
       } else {
-        Common().popDialog("Oops...", result['message'], context);
+        if ("null" == result['message'] || null == result['message']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Oops... ${strings.getMessage("serverUnavailable")}"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Oops... ${strings.getMessage(result['message'])}"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
       Navigator.of(context).pop();

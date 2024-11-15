@@ -118,7 +118,13 @@ class _SignInState extends State<SignIn> {
         if (result['success']) {
           Common().logInPopDialog("Registration successful!" , _username.trim(), context);
         } else {
-          Common().popDialog("Oops...", "${result['message']}" , context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Oops... ${result['message']}"),
+              backgroundColor: Colors.red,
+            ),
+          );
+
         }
       }
 

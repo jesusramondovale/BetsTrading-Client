@@ -108,6 +108,15 @@ class AuthService {
     }
   }
 
+  Future<int> changePassword(String token, String newPass) async {
+    final response = await Common().postRequestWrapper('Auth','ChangePassword', {'username': token, 'password' : newPass});
+    if (response['statusCode'] == 200) {
+      return 0; // SUCCESS
+    } else {
+      return 1; // ERROR
+    }
+  }
+
   Future<bool> _googleQuickRegister(GoogleSignInAccount user, String country,DateTime birthday) async {
     final Map<String, dynamic> data = {
       'id': user.id,

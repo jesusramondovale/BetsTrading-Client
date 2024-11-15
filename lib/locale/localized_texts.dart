@@ -13,6 +13,15 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'userOrEmailNotFound': 'User or email not found',
+      'serverUnavailable': 'Server unavailable',
+      'incorrectPassword': 'Incorrect password. Try again',
+      'errorChangingPassword': 'Error changing password',
+      'successPassword': 'Password changed successfully',
+      'newPassword': 'New Password',
+      'passwordMismatch': 'Passwords do not match',
+      'passwordChanged': 'Password changed successfully',
+      'confirm': 'Confirm',
       'takeIdPhoto': 'Take a photo',
       'finished': 'Finished',
       'day': 'day/s',
@@ -143,7 +152,15 @@ class LocalizedStrings {
     },
     'es': {
       // Español
-
+      'userOrEmailNotFound': 'Usuario o correo electrónico no encontrado',
+      'serverUnavailable': 'Servidor no disponible',
+      'incorrectPassword': 'Contraseña incorrecta. Inténtelo de nuevo',
+      'errorChangingPassword': 'Error al cambiar la contraseña',
+      'successPassword': 'Contraseña cambiada con éxito',
+      'newPassword': 'Nueva Contraseña',
+      'passwordMismatch': 'Las contraseñas no coinciden',
+      'passwordChanged': 'Contraseña cambiada con éxito',
+      'confirm': 'Confirmar',
       'takeIdPhoto': 'Tome una foto',
       'finished': 'Finalizado',
       'day': 'día/s',
@@ -180,7 +197,7 @@ class LocalizedStrings {
       'pleaseEnterUsername': 'Por favor, ingresa tu nombre de usuario',
       'pleaseEnterPassword': 'Por favor, ingresa tu contraseña',
       'connecting': 'Conectando ...',
-      'welcome': 'Bienvenido',
+      'welcome': 'Bienvenid@',
       'registrationSuccessful': '¡Registro exitoso!',
       'pleaseEnterCardNumber': 'Por favor, introduce el número de la tarjeta',
       'enterDate': 'Introduce una fecha',
@@ -274,6 +291,15 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'userOrEmailNotFound': "Utilisateur ou e-mail introuvable",
+      'serverUnavailable': 'Serveur indisponible',
+      'incorrectPassword': 'Mot de passe incorrect. Réessayez',
+      'errorChangingPassword': 'Erreur lors du changement de mot de passe',
+      'successPassword': 'Mot de passe changé avec succès',
+      'newPassword': 'Nouveau Mot de Passe',
+      'passwordMismatch': 'Les mots de passe ne correspondent pas',
+      'passwordChanged': 'Mot de passe changé avec succès',
+      'confirm': 'Confirmer',
       'takeIdPhoto': 'Prenez une photo',
       'finished': 'Terminé',
       'day': 'jour/s',
@@ -405,6 +431,15 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'userOrEmailNotFound': 'Utente o email non trovato',
+      'serverUnavailable': 'Server non disponibile',
+      'incorrectPassword': 'Password errata. Riprova',
+      'errorChangingPassword': 'Errore durante il cambio della password',
+      'successPassword': 'Password cambiata con successo',
+      'newPassword': 'Nuova Password',
+      'passwordMismatch': 'Le password non corrispondono',
+      'passwordChanged': 'Password cambiata con successo',
+      'confirm': 'Conferma',
       'takeIdPhoto': 'Scatta una foto',
       'finished': 'Finito',
       'day': 'gio.',
@@ -537,6 +572,15 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'userOrEmailNotFound': 'Benutzer oder E-Mail nicht gefunden',
+      'serverUnavailable': 'Server nicht verfügbar',
+      'incorrectPassword': 'Falsches Passwort. Versuchen Sie es erneut',
+      'errorChangingPassword': 'Fehler beim Ändern des Passworts',
+      'successPassword': 'Passwort erfolgreich geändert',
+      'newPassword': 'Neues Passwort',
+      'passwordMismatch': 'Passwörter stimmen nicht überein',
+      'passwordChanged': 'Passwort erfolgreich geändert',
+      'confirm': 'Bestätigen',
       'takeIdPhoto': 'Machen Sie ein Foto',
       'finished': 'Beendet',
       'day': 'Tag/e',
@@ -852,6 +896,20 @@ class LocalizedStrings {
   String? get day => _localizedValues[locale.languageCode]?['day'];
   String? get finished => _localizedValues[locale.languageCode]?['finished'];
   String? get takeIdPhoto => _localizedValues[locale.languageCode]?['takeIdPhoto'];
+  String? get newPassword => _localizedValues[locale.languageCode]?['newPassword'];
+  String? get passwordMismatch => _localizedValues[locale.languageCode]?['passwordMismatch'];
+  String? get passwordChanged => _localizedValues[locale.languageCode]?['passwordChanged'];
+  String? get confirm => _localizedValues[locale.languageCode]?['confirm'];
+  String? get errorChangingPassword => _localizedValues[locale.languageCode]?['errorChangingPassword'];
+  String? get successPassword => _localizedValues[locale.languageCode]?['successPassword'];
+  String? get incorrectPassword => _localizedValues[locale.languageCode]?['incorrectPassword'];
+
+
+  String? getMessage(String key) {
+    return _localizedValues[locale.languageCode]?[key];
+
+  }
+
 }
 
 class LocalizedStringsDelegate extends LocalizationsDelegate<LocalizedStrings> {

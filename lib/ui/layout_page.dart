@@ -144,7 +144,7 @@ class MainMenuPageState extends State<MainMenuPage> {
         controller: _controller,
       ),
       // SETTINGS
-      SettingsView(onPersonalInfoTap: () => _controller.updateIndex(3)),
+      SettingsView(onPersonalInfoTap: () => _controller.updateIndex(4)),
       // PERSONAL INFO
       const UserInfoPage()
     ];
