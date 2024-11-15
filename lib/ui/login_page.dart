@@ -109,6 +109,12 @@ class LoginFormState extends State<LoginForm> {
           // Validated
           String? id = await _storage.read(key: 'sessionToken');
           await BetsService().getUserInfo(id!);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("${strings.welcome ?? "Welcome"}!"),
+              backgroundColor: Colors.green,
+            ),
+          );
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
 
         } else {
