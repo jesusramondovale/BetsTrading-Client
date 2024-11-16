@@ -109,9 +109,10 @@ class LoginFormState extends State<LoginForm> {
           // Validated
           String? id = await _storage.read(key: 'sessionToken');
           await BetsService().getUserInfo(id!);
+          String? username = await _storage.read(key: 'username');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("${strings.welcome ?? "Welcome"}!"),
+              content: Text("${strings.welcome ?? "Welcome"}! $username"),
               backgroundColor: Colors.green,
             ),
           );
