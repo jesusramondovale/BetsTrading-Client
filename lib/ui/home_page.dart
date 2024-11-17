@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/BetsService.dart';
+import 'package:betrader/ui/store_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -108,7 +109,10 @@ class HomeScreenState extends State<HomeScreen> {
                 IconButton(
                   padding: const EdgeInsets.all(2.5),
                   onPressed: () {
-                    ///TO-DO
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => StorePage()),
+                    );
                   },
                   icon: DecoratedBox(
                     decoration: BoxDecoration(

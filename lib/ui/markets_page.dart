@@ -108,7 +108,12 @@ class MarketsViewState extends State<MarketsView> {
     return groups.map((String value) {
       return DropdownMenuItem<String>(
         value: value,
-        child: Text(value),
+        child: Text(
+          value,
+          style: TextStyle(),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
         alignment: Alignment.center,
       );
     }).toList();

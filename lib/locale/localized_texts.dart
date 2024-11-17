@@ -13,6 +13,11 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'store': 'Store',
+      'getCoins': 'Get Coins',
+      'buyCoins': 'Buy {coins}฿',
+      'earnCoins': 'Watch an Ad to Earn {coins}฿',
+      'priceInEuros': '€{price}',
       'userOrEmailNotFound': 'User or email not found',
       'serverUnavailable': 'Server unavailable',
       'incorrectPassword': 'Incorrect password. Try again',
@@ -152,6 +157,11 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'store': 'Tienda',
+      'getCoins': 'Obtener Monedas',
+      'buyCoins': 'Comprar {coins}฿',
+      'earnCoins': 'Mira un anuncio para ganar {coins}฿',
+      'priceInEuros': '€{price}',
       'userOrEmailNotFound': 'Usuario o correo electrónico no encontrado',
       'serverUnavailable': 'Servidor no disponible',
       'incorrectPassword': 'Contraseña incorrecta. Inténtelo de nuevo',
@@ -227,7 +237,7 @@ class LocalizedStrings {
       'wallet': 'Mi cartera',
       'staked': 'Apostado',
       'indexes': 'Índices',
-      'shares': 'Acciones',
+      'shares': 'Valores',
       'commodities': 'Futuros',
       'googleSignIn': 'Continuar con Google',
       'appleSignIn': 'Continuar con Apple ID',
@@ -291,6 +301,11 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'store': 'Magasin',
+      'getCoins': 'Obtenez des Pièces',
+      'buyCoins': 'Achetez {coins}฿',
+      'earnCoins': 'Regardez une annonce pour gagner {coins}฿',
+      'priceInEuros': '€{price}',
       'userOrEmailNotFound': "Utilisateur ou e-mail introuvable",
       'serverUnavailable': 'Serveur indisponible',
       'incorrectPassword': 'Mot de passe incorrect. Réessayez',
@@ -431,6 +446,11 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'store': 'Negozio',
+      'getCoins': 'Ottieni Monete',
+      'buyCoins': 'Acquista {coins}฿',
+      'earnCoins': 'Guarda un annuncio per guadagnare {coins}฿',
+      'priceInEuros': '€{price}',
       'userOrEmailNotFound': 'Utente o email non trovato',
       'serverUnavailable': 'Server non disponibile',
       'incorrectPassword': 'Password errata. Riprova',
@@ -572,6 +592,11 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'store': 'Geschäft',
+      'getCoins': 'Münzen erhalten',
+      'buyCoins': 'Kaufe {coins}฿',
+      'earnCoins': 'Sehen Sie sich eine Anzeige an, um {coins}฿',
+      'priceInEuros': '€{price}',
       'userOrEmailNotFound': 'Benutzer oder E-Mail nicht gefunden',
       'serverUnavailable': 'Server nicht verfügbar',
       'incorrectPassword': 'Falsches Passwort. Versuchen Sie es erneut',
