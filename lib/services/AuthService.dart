@@ -48,6 +48,16 @@ class AuthService {
     }
   }
 
+  Future<bool> addCoins(String id, double coins) async {
+    final response = await Common().postRequestWrapper('Store', 'AddCoins', {'user_id': id, 'reward': coins});
+
+    if (response['statusCode'] == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Future<Map<String, dynamic>> register(
       String idCard,
       String fcm,

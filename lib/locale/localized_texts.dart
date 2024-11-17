@@ -13,6 +13,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'youWonCoins': 'You won {coins}฿!',
       'store': 'Store',
       'getCoins': 'Get Coins',
       'buyCoins': 'Buy {coins}฿',
@@ -157,6 +158,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'youWonCoins': '¡Ganaste {coins}฿!',
       'store': 'Tienda',
       'getCoins': 'Obtener Monedas',
       'buyCoins': 'Comprar {coins}฿',
@@ -301,6 +303,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'youWonCoins': 'Vous avez gagné {coins}฿ !',
       'store': 'Magasin',
       'getCoins': 'Obtenez des Pièces',
       'buyCoins': 'Achetez {coins}฿',
@@ -446,6 +449,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'youWonCoins': 'Hai vinto {coins}฿!',
       'store': 'Negozio',
       'getCoins': 'Ottieni Monete',
       'buyCoins': 'Acquista {coins}฿',
@@ -592,6 +596,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'youWonCoins': 'Du hast {coins}฿ gewonnen!',
       'store': 'Geschäft',
       'getCoins': 'Münzen erhalten',
       'buyCoins': 'Kaufe {coins}฿',
@@ -928,6 +933,7 @@ class LocalizedStrings {
   String? get errorChangingPassword => _localizedValues[locale.languageCode]?['errorChangingPassword'];
   String? get successPassword => _localizedValues[locale.languageCode]?['successPassword'];
   String? get incorrectPassword => _localizedValues[locale.languageCode]?['incorrectPassword'];
+  String? get youWonCoins => _localizedValues[locale.languageCode]?['youWonCoins'];
 
 
   String? getMessage(String key) {
