@@ -2,6 +2,7 @@
 import 'package:betrader/Services/BetsService.dart';
 import 'package:betrader/services/FirebaseService.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'helpers/common.dart';
@@ -58,7 +59,7 @@ Future<void> main() async {
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
   await FirebaseService().initFirebase();
-
+  MobileAds.instance.initialize();
   runApp(MyApp(isDarkTheme: isDark));
 
 }

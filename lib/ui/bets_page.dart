@@ -354,7 +354,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             "Betrader",
             ( LocalizedStrings.of(context)!
                 .betPlacedSuccessfully != null  ?   "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}฿)"
-                : "Bet placed ssuccessfully! (${_betAmount}฿)" ),
+                : "Bet placed successfully! (${_betAmount}฿)" ),
 
             {"TICKER": widget.zone.ticker, "BET_AMOMUNT": _betAmount});
 

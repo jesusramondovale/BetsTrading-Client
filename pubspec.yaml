@@ -58,6 +58,7 @@ dependencies:
   flutter_local_notifications: ^17.2.2
   firebase_core: ^2.27.0
   firebase_messaging: ^14.7.19
+  google_mobile_ads: ^4.0.0
 
 
 
