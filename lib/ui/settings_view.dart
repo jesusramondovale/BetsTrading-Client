@@ -196,33 +196,7 @@ class SettingsViewState extends State<SettingsView> {
                     MaterialPageRoute(builder: (context) => const AboutUsPage()),
                   ),
             ),
-            ListTile(
-              title: Text(
-                "Demo / Real",
-                style: TextStyle(fontSize: 16),
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isRealNotifier.value)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Image.asset('assets/alpha_vantage.png', width: 55),
-                    ),
-                  Switch(
-                    value: isRealNotifier.value,
-                    inactiveThumbColor: Colors.black,
-                    inactiveTrackColor: Colors.grey,
-                    onChanged: (bool value) {
-                      isRealNotifier.value = value;
-                      setState(() {
 
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
             SwitchListTile(
               title: Text(strings?.darkMode ?? "Dark mode"),
               value: isDark,

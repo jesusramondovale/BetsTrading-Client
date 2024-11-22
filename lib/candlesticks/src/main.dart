@@ -158,6 +158,7 @@ class CandlesticksState extends State<Candlesticks> {
 
   @override
   Widget build(BuildContext context) {
+
     final style = widget.style ??
         (Theme.of(context).brightness == Brightness.dark
             ? CandleSticksStyle.dark()

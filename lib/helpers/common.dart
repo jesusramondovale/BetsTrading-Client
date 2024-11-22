@@ -23,7 +23,6 @@ import 'package:image_picker/image_picker.dart';
 import '../config/config.dart';
 import 'package:http/http.dart' as http;
 
-ValueNotifier<bool> isRealNotifier = ValueNotifier<bool>(false);
 
 class Common {
 
@@ -1002,23 +1001,6 @@ class Common {
       print('Error getting geolocation information: $error');
       return 'null';
     }
-  }
-  String rotateAlphaApiByHour() {
-
-    DateTime now = DateTime.now();
-    int hour = now.hour;
-    int interval;
-
-    if (hour >= 0 && hour < 9) {
-      interval = 1;
-    }
-    else {
-      int remainingHours = hour - 9;
-      interval = (remainingHours / (24 - 9) * 6).ceil() + 1;
-    }
-
-    int i = interval.clamp(1, 7);
-    return Config.ALPHA_KEYS[i]!;
   }
 }
 

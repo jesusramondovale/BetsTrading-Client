@@ -3,7 +3,6 @@ import 'package:betrader/services/BetsService.dart';
 import 'package:flutter/material.dart';
 import '../candlesticks/src/main.dart';
 import '../candlesticks/src/models/candle.dart';
-import '../config/config.dart';
 import '../helpers/common.dart';
 import '../models/rectangle_zone.dart';
 import 'layout_page.dart';
@@ -14,7 +13,6 @@ class CandlesticksView extends StatefulWidget {
   final String iconPath;
   final MainMenuPageController controller;
   final int? betZoneId;
-
 
   CandlesticksView({
     super.key,
@@ -48,20 +46,20 @@ class CandlesticksViewState extends State<CandlesticksView> {
       final List<Candle> candles;
       final List<BetZone> betZones =
           await BetsService().fetchBetZones(widget.ticker, widget.betZoneId);
-      (isRealNotifier.value ?
-          candles = await BetsService().fetchCandles(widget.ticker.split(".")[0], Common().rotateAlphaApiByHour())
-            :
-          candles = Common().generateRandomCandles(100, Config.PRICE_SIMULATION));
 
-      List<RectangleZone> rectangleZones =
-          Common().getRectangleZonesFromBetZones(betZones, candles.isNotEmpty ? candles.first.close : 0.0);
+      candles = await BetsService().fetchCandles(widget.ticker);
+
+      List<RectangleZone> rectangleZones = Common()
+          .getRectangleZonesFromBetZones(
+              betZones, candles.isNotEmpty ? candles.first.close : 0.0);
 
       setState(() {
+        _isLoading = false;
         _zones = rectangleZones;
         _candles = candles;
-        _isLoading = false;
+
       });
-    } catch (e) {
+    } catch (Exception) {
       setState(() {
         _isLoading = false;
       });
@@ -85,19 +83,17 @@ class CandlesticksViewState extends State<CandlesticksView> {
                           Center(child: CircularProgressIndicator())
                         else
                           Candlesticks(
-
                             candles: _candles,
                             displayZoomActions: false,
                             onScaleUpdate: (double scale) {
                               candleScaleNotifier.value = scale;
                             },
                             rectangleZones: _zones,
-                            inactiveZone : _inactive_zone,
+                            inactiveZone: _inactive_zone,
                             controller: widget.controller,
                             chartTitle: widget.name,
                             iconPath: widget.iconPath,
                             extraDays: Common().daysUntilLatestEndDate(_zones),
-
                           ),
                         Positioned(
                           top: 10.0,
