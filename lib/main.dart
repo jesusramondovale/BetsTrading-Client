@@ -8,17 +8,37 @@ import 'helpers/common.dart';
 import 'ui/login_page.dart';
 import 'ui/layout_page.dart';
 import 'services/AuthService.dart';
-import 'services/BetsService.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Para inicializar las localizaciones
 import 'firebase_options.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:betrader/Services/BetsService.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
+Future<String> getFirebaseInstanceId() async {
+  // Get the instance of Firebase Messaging
+  final FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // Get the token
+  String? token = await messaging.getToken();
+
+  // If the token is null, try again
+  if (token == null) {
+    token = await messaging.getToken();
+  }
+
+  return token!;
+}
+
 Future<void> main() async {
+
+
+
   WidgetsFlutterBinding.ensureInitialized();
 
   // Inicializa los datos de localización para fechas y otros formatos
@@ -28,8 +48,25 @@ Future<void> main() async {
   await FirebaseService().initFirebase();
 
   bool isDark = await loadThemePreference();
+  var initializationSettingsAndroid = AndroidInitializationSettings('@drawable/notification');
+  var initializationSettingsDarwin = DarwinInitializationSettings(
+    onDidReceiveLocalNotification: onDidReceiveLocalNotification,
+  );
 
+  var initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsDarwin,
+  );
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
+  await FirebaseService().initFirebase();
+  MobileAds.instance.initialize();
   runApp(MyApp(isDarkTheme: isDark));
+}
+Future onDidReceiveLocalNotification(
+    int id, String? title, String? body, String? payload) async {
+  // Handle the local notification received on iOS
 }
 
 Future<bool> loadThemePreference() async {
