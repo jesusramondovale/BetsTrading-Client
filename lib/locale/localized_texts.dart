@@ -13,6 +13,14 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'consent_required': 'Consent Required',
+      'consent_message': 'We need your consent to process your data for the following purposes:',
+      'advertising_content': 'Personalised advertising and content',
+      'advertising_details': 'Advertising and content measurement, audience insights.',
+      'data_storage': 'Store and access information',
+      'data_storage_details': 'Cookies and device data usage.',
+      'withdraw_consent': 'By accepting, you agree to the terms of data processing. You can withdraw your consent anytime.',
+      'i_consent': 'I Consent',
       'youWonCoins': 'You won {coins}฿!',
       'store': 'Store',
       'getCoins': 'Get Coins',
@@ -158,6 +166,14 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'consent_required': 'Se requiere consentimiento',
+      'consent_message': 'Necesitamos tu consentimiento para procesar tus datos con los siguientes propósitos:',
+      'advertising_content': 'Publicidad y contenido personalizado',
+      'advertising_details': 'Medición de publicidad y contenido, análisis de audiencia.',
+      'data_storage': 'Almacenar y acceder a la información',
+      'data_storage_details': 'Uso de cookies y datos del dispositivo.',
+      'withdraw_consent': 'Al aceptar, estás de acuerdo con los términos del procesamiento de datos. Puedes retirar tu consentimiento en cualquier momento.',
+      'i_consent': 'Doy mi consentimiento',
       'youWonCoins': '¡Ganaste {coins}฿!',
       'store': 'Tienda',
       'getCoins': 'Obtener Monedas',
@@ -303,6 +319,14 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'consent_required': 'Consentement requis',
+      'consent_message': 'Nous avons besoin de votre consentement pour traiter vos données à des fins suivantes :',
+      'advertising_content': 'Publicité et contenu personnalisés',
+      'advertising_details': 'Mesure de la publicité et du contenu, analyse de l\'audience.',
+      'data_storage': 'Stocker et accéder aux informations',
+      'data_storage_details': 'Utilisation des cookies et des données de l\'appareil.',
+      'withdraw_consent': 'En acceptant, vous acceptez les termes du traitement des données. Vous pouvez retirer votre consentement à tout moment.',
+      'i_consent': 'Je consens',
       'youWonCoins': 'Vous avez gagné {coins}฿ !',
       'store': 'Magasin',
       'getCoins': 'Obtenez des Pièces',
@@ -449,6 +473,14 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'consent_required': 'Consenso richiesto',
+      'consent_message': 'Abbiamo bisogno del tuo consenso per elaborare i tuoi dati per i seguenti scopi:',
+      'advertising_content': 'Pubblicità e contenuti personalizzati',
+      'advertising_details': 'Misurazione della pubblicità e dei contenuti, analisi del pubblico.',
+      'data_storage': 'Archiviare e accedere alle informazioni',
+      'data_storage_details': 'Uso di cookie e dati del dispositivo.',
+      'withdraw_consent': 'Accettando, acconsenti ai termini del trattamento dei dati. Puoi ritirare il tuo consenso in qualsiasi momento.',
+      'i_consent': 'Acconsento',
       'youWonCoins': 'Hai vinto {coins}฿!',
       'store': 'Negozio',
       'getCoins': 'Ottieni Monete',
@@ -596,6 +628,14 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'consent_required': 'Zustimmung erforderlich',
+      'consent_message': 'Wir benötigen Ihre Zustimmung, um Ihre Daten für folgende Zwecke zu verarbeiten:',
+      'advertising_content': 'Personalisierte Werbung und Inhalte',
+      'advertising_details': 'Werbe- und Inhaltsmessung, Analyse der Zielgruppe.',
+      'data_storage': 'Speichern und Zugreifen auf Informationen',
+      'data_storage_details': 'Verwendung von Cookies und Gerätedaten.',
+      'withdraw_consent': 'Indem Sie zustimmen, akzeptieren Sie die Bedingungen der Datenverarbeitung. Sie können Ihre Zustimmung jederzeit widerrufen.',
+      'i_consent': 'Ich stimme zu',
       'youWonCoins': 'Du hast {coins}฿ gewonnen!',
       'store': 'Geschäft',
       'getCoins': 'Münzen erhalten',
