@@ -13,6 +13,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'onPlay': 'On Play!',
       'consent_required': 'Consent Required',
       'consent_message': 'We need your consent to process your data for the following purposes:',
       'advertising_content': 'Personalised advertising and content',
@@ -166,6 +167,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'onPlay': 'En juego!',
       'consent_required': 'Se requiere consentimiento',
       'consent_message': 'Necesitamos tu consentimiento para procesar tus datos con los siguientes propósitos:',
       'advertising_content': 'Publicidad y contenido personalizado',
@@ -319,6 +321,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'onPlay': 'En cours!',
       'consent_required': 'Consentement requis',
       'consent_message': 'Nous avons besoin de votre consentement pour traiter vos données à des fins suivantes :',
       'advertising_content': 'Publicité et contenu personnalisés',
@@ -473,6 +476,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'onPlay': 'In corso!',
       'consent_required': 'Consenso richiesto',
       'consent_message': 'Abbiamo bisogno del tuo consenso per elaborare i tuoi dati per i seguenti scopi:',
       'advertising_content': 'Pubblicità e contenuti personalizzati',
@@ -628,6 +632,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'onPlay': 'Im Spiel!',
       'consent_required': 'Zustimmung erforderlich',
       'consent_message': 'Wir benötigen Ihre Zustimmung, um Ihre Daten für folgende Zwecke zu verarbeiten:',
       'advertising_content': 'Personalisierte Werbung und Inhalte',
@@ -974,6 +979,7 @@ class LocalizedStrings {
   String? get successPassword => _localizedValues[locale.languageCode]?['successPassword'];
   String? get incorrectPassword => _localizedValues[locale.languageCode]?['incorrectPassword'];
   String? get youWonCoins => _localizedValues[locale.languageCode]?['youWonCoins'];
+  String? get onPlay => _localizedValues[locale.languageCode]?['onPlay'];
 
 
   String? getMessage(String key) {

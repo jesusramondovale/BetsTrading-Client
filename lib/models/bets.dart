@@ -23,6 +23,7 @@ class Bet {
   final double targetValue;
   final double targetMargin;
   final DateTime targetDate;
+  final DateTime endDate;
   final double targetOdds;
   final int bet_zone;
   final bool? targetWon;
@@ -42,6 +43,7 @@ class Bet {
     required this.targetValue,
     required this.targetMargin,
     required this.targetDate,
+    required this.endDate,
     required this.targetOdds,
     required this.bet_zone,
   });
@@ -58,6 +60,7 @@ class Bet {
         targetValue = json['target_value'].toDouble(),
         targetMargin = json['target_margin'].toDouble(),
         targetDate = DateTime.parse(json['target_date']),
+        endDate = DateTime.parse(json['end_date']),
         targetOdds = json['target_odds'].toDouble(),
         targetWon = json['target_won'],
         profitLoss = DateTime.parse(json['target_date']).isAfter(DateTime.now())
@@ -417,6 +420,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
   @override
   Widget build(BuildContext context) {
     int daysUntilTarget =  widget.bet.targetDate.difference(DateTime.now()).inDays;
+    int daysUntilFinal =  widget.bet.endDate.difference(DateTime.now()).inDays;
     final strings = LocalizedStrings.of(context);
     String? trailingText =
         (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
@@ -591,7 +595,11 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                     mainAxisAlignment: MainAxisAlignment.center, // Centra los elementos
                     children: [
                       Text(
-                        (daysUntilTarget > 0 ? "$daysUntilTarget ${strings!.day ?? "day/s" }" : strings!.finished ?? "Finished" ),
+                        (daysUntilTarget > 0 ?
+                             "$daysUntilTarget ${strings!.day ?? "day/s" }" :
+                              (daysUntilFinal >= 0 ?
+                                      strings!.onPlay ?? "On play!" :
+                                      strings!.finished ?? "Finished" )),
                         style: GoogleFonts.rajdhani(
                           fontSize: 11,
                           color: Colors.white

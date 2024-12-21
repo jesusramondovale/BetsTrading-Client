@@ -282,7 +282,8 @@ class Common {
       originValue: originValue,
       targetValue: targetValue,
       targetMargin: targetMargin,
-      targetDate: targetDate,
+      targetDate: targetDate, 
+      endDate: targetDate.add(Duration(days: 2)),
       targetOdds: targetOdds,
       bet_zone: 999
     );
