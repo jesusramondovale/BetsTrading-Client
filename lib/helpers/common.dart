@@ -269,6 +269,7 @@ class Common {
     final targetValue = originValue + (random.nextDouble() * 100); // Valor objetivo mayor que el original
     final targetMargin = random.nextDouble() * 20; // Margen de objetivo aleatorio entre 0 y 20%
     final targetDate = DateTime.now().add(Duration(days: random.nextInt(365))); // Fecha objetivo en el próximo año
+    final endDate = targetDate.add(Duration(days: 2));
     final targetOdds = (odds != null ? odds : (random.nextDouble() * 20) + 1); // Probabilidades entre 1 y 21
 
     return Bet(
@@ -283,7 +284,7 @@ class Common {
       targetValue: targetValue,
       targetMargin: targetMargin,
       targetDate: targetDate, 
-      endDate: targetDate.add(Duration(days: 2)),
+      endDate: endDate,
       targetOdds: targetOdds,
       bet_zone: 999
     );

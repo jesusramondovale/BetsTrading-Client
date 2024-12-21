@@ -60,7 +60,7 @@ class Bet {
         targetValue = json['target_value'].toDouble(),
         targetMargin = json['target_margin'].toDouble(),
         targetDate = DateTime.parse(json['target_date']),
-        endDate = DateTime.parse(json['end_date']),
+        endDate = DateTime.parse(json['final_date']),
         targetOdds = json['target_odds'].toDouble(),
         targetWon = json['target_won'],
         profitLoss = DateTime.parse(json['target_date']).isAfter(DateTime.now())
