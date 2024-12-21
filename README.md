@@ -3,11 +3,12 @@
 This is the first version of the Pre-Alpha client app of the Bets Trading Project
 
 
-<img src="logo.png?raw=true" alt="Bets Trading" width="128" height="128"  style="margin-right: 20px">
+<div>
+  <img src="logo.png?raw=true" alt="Bets Trading" width="128" height="128" style="margin-right: 20px;">
+  <img src="android_logo.svg?raw=true" alt="Android Logo" width="128" height="128" style="margin-right: 20px;">
+  <img src="apple_logo.png?raw=true" alt="Apple Logo" width="128" height="128">
+</div>
 
-<img src="android_logo.svg?raw=true" alt="Bets Trading" width="128" height="128"  style="margin-right: 30px">
-
-<img src="apple_logo.png?raw=true" alt="Bets Trading" width="115" height="128">
 
 ## Android Pre-Alpha releases
 
