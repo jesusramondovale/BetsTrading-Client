@@ -4,6 +4,7 @@ import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/markets_page.dart';
 import 'package:betrader/ui/settings_view.dart';
 import 'package:betrader/ui/topusers_page.dart';
+import 'package:betrader/ui/tutorial_page.dart';
 import 'package:betrader/ui/userinfo_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -11,12 +12,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import 'home_page.dart';
 import 'login_page.dart';
 import 'package:http/http.dart' as http;
 
 final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
+bool _showTutorial = false;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -85,9 +88,23 @@ class MainMenuPageState extends State<MainMenuPage> {
     }
   }
 
+  Future<void> _checkFirstRun() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstRun = prefs.getBool('first_run') ?? true;
+
+    if (isFirstRun) {
+      setState(() {
+        _showTutorial = true;
+      });
+      await prefs.setBool('first_run', false);
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
+    _checkFirstRun();
     _initializeData();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -152,97 +169,106 @@ class MainMenuPageState extends State<MainMenuPage> {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     } else {
-      return
-
-        Scaffold(
-          body: SafeArea(
-            child: Column(
-              children: [
-                Container(
-                  height: 1.0,
-                  color: Colors.black45,
-                ),
-                Expanded(
-                  child: ValueListenableBuilder<int>(
-                    valueListenable: _controller.selectedIndexNotifier,
-                    builder: (context, index, _) {
-                      return IndexedStack(
-                        index: _controller.selectedIndexNotifier.value,
-                        children: _pages,
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          bottomNavigationBar: ValueListenableBuilder<int>(
-            valueListenable: _controller.selectedIndexNotifier,
-            builder: (context, index, _) {
-              return Container(
-                height: 66, // Ajusta la altura aquí
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12.withOpacity(0.5),
-                      spreadRadius: 10,
-                      blurRadius: 10,
-                      offset: Offset(0, 0),
-                    ),
-                  ],
-                ),
-                child: BottomNavigationBar(
-                  selectedItemColor: Colors.deepPurple,
-                  unselectedItemColor: Colors.grey,
-                  showUnselectedLabels: false,
-                  showSelectedLabels: true,
-                  iconSize: 32,
-                  items: <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.home_outlined),
-                      activeIcon: Icon(Icons.home),
-                      label: strings?.home ?? "Home",
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.public),
-                      label: strings?.ranking ?? "Ranking",
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Container(
-                        width: 34,
-                        child: Image.asset('assets/logo_simple.png'),
-                      ),
-                      activeIcon: Container(
-                        width: 27,
-                        child: Image.asset('assets/logo_simple.png'),
-                      ),
-                      label: strings?.liveMarkets ?? 'Live Markets',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.settings_outlined),
-                      activeIcon: Icon(Icons.settings),
-                      label: strings?.settings ?? 'Settings',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: (_profilePicBytes != null
-                          ? CircleAvatar(
-                        backgroundImage: MemoryImage(_profilePicBytes!),
-                        radius: 16, // Reducción del tamaño del avatar
-                      )
-                          : Icon(Icons.account_circle_outlined)),
-                      label: _username,
-                    ),
-                  ],
-                  currentIndex: _controller.selectedIndexNotifier.value,
-                  onTap: (index) {
-                    _controller.updateIndex(index);
+      return Scaffold(
+        body: _showTutorial
+            ? TutorialScreen(
+          onDone: () {
+            setState(() {
+              _showTutorial = false;
+            });
+          },
+        )
+            : SafeArea(
+          child: Column(
+            children: [
+              Container(
+                height: 1.0,
+                color: Colors.black45,
+              ),
+              Expanded(
+                child: ValueListenableBuilder<int>(
+                  valueListenable: _controller.selectedIndexNotifier,
+                  builder: (context, index, _) {
+                    return IndexedStack(
+                      index: _controller.selectedIndexNotifier.value,
+                      children: _pages,
+                    );
                   },
-                  type: BottomNavigationBarType.fixed,
                 ),
-              );
-            },
+              ),
+            ],
           ),
-        );
+        ),
+        bottomNavigationBar: !_showTutorial
+            ? ValueListenableBuilder<int>(
+          valueListenable: _controller.selectedIndexNotifier,
+          builder: (context, index, _) {
+            return Container(
+              height: 66, // Ajusta la altura aquí
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12.withOpacity(0.5),
+                    spreadRadius: 10,
+                    blurRadius: 10,
+                    offset: Offset(0, 0),
+                  ),
+                ],
+              ),
+              child: BottomNavigationBar(
+                selectedItemColor: Colors.deepPurple,
+                unselectedItemColor: Colors.grey,
+                showUnselectedLabels: false,
+                showSelectedLabels: true,
+                iconSize: 32,
+                items: <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home_outlined),
+                    activeIcon: Icon(Icons.home),
+                    label: strings?.home ?? "Home",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.public),
+                    label: strings?.ranking ?? "Ranking",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Container(
+                      width: 34,
+                      child: Image.asset('assets/logo_simple.png'),
+                    ),
+                    activeIcon: Container(
+                      width: 27,
+                      child: Image.asset('assets/logo_simple.png'),
+                    ),
+                    label: strings?.liveMarkets ?? 'Live Markets',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.settings_outlined),
+                    activeIcon: Icon(Icons.settings),
+                    label: strings?.settings ?? 'Settings',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: (_profilePicBytes != null
+                        ? CircleAvatar(
+                      backgroundImage: MemoryImage(_profilePicBytes!),
+                      radius: 16, // Reducción del tamaño del avatar
+                    )
+                        : Icon(Icons.account_circle_outlined)),
+                    label: _username,
+                  ),
+                ],
+                currentIndex: _controller.selectedIndexNotifier.value,
+                onTap: (index) {
+                  _controller.updateIndex(index);
+                },
+                type: BottomNavigationBarType.fixed,
+              ),
+            );
+          },
+        )
+            : null, // Oculta la barra inferior si el tutorial está activo.
+      );
+
 
 
     }
