@@ -10,7 +10,7 @@ import 'ui/layout_page.dart';
 import 'services/AuthService.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:intl/date_symbol_data_local.dart'; // Para inicializar las localizaciones
+import 'package:intl/date_symbol_data_local.dart';
 import 'firebase_options.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:betrader/Services/BetsService.dart';
