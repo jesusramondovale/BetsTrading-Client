@@ -13,7 +13,8 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
-      'advancedSettings': 'Advanced Settings',
+      'newsNotifications': 'News notifications',
+      'advancedSettings': 'Advanced app settings',
       'enableNotifications': 'Enable notifications',
       'trendingNotifications': 'Trending notifications',
       'bettingNotifications': 'Betting notifications',
@@ -182,7 +183,8 @@ class LocalizedStrings {
     },
     'es': {
       // Español
-      'advancedSettings': 'Ajustes avanzados',
+      'newsNotifications': 'Notificaciones de novedades',
+      'advancedSettings': 'Ajustes de app avanzados',
       'enableNotifications': 'Permitir notificaciones',
       'trendingNotifications': 'Notificaciones de tendencias',
       'bettingNotifications': 'Notificaciones de apuestas',
@@ -351,7 +353,8 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
-      'advancedSettings': 'Paramètres avancés',
+      'newsNotifications': 'Notifications de nouveautés',
+      'advancedSettings': 'Paramètres avancés du app',
       'enableNotifications': 'Autoriser les notifications',
       'trendingNotifications': 'Notifications de tendances',
       'bettingNotifications': 'Notifications de paris',
@@ -521,7 +524,8 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
-      'advancedSettings': 'Impostazioni avanzate',
+      'newsNotifications': 'Notifiche di novità',
+      'advancedSettings': 'Impostazioni avanzate di app',
       'enableNotifications': 'Abilita le notifiche',
       'trendingNotifications': 'Notifiche di tendenza',
       'bettingNotifications': 'Notifiche di scommesse',
@@ -692,6 +696,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'newsNotifications': 'Benachrichtigungen über Neuigkeiten',
       'advancedSettings': 'Erweiterte Einstellungen',
       'enableNotifications': 'Benachrichtigungen aktivieren',
       'trendingNotifications': 'Trend-Benachrichtigungen',
@@ -1059,6 +1064,7 @@ class LocalizedStrings {
   String? get trendingNotifications =>_localizedValues[locale.languageCode]?['trendingNotifications'];
   String? get bettingNotifications =>_localizedValues[locale.languageCode]?['bettingNotifications'];
   String? get advancedSettings =>_localizedValues[locale.languageCode]?['advancedSettings'];
+  String? get newsNotifications =>_localizedValues[locale.languageCode]?['newsNotifications'];
 
 
   String? getMessage(String key) {
