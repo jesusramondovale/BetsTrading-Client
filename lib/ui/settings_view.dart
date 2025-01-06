@@ -12,7 +12,11 @@ import 'aboutus_page.dart';
 class SettingsView extends StatefulWidget {
 
   final VoidCallback onPersonalInfoTap;
-  const SettingsView({super.key, required this.onPersonalInfoTap});
+  final VoidCallback onShowNotifications;
+
+  const SettingsView({super.key,
+    required this.onPersonalInfoTap,
+    required this.onShowNotifications,});
 
   @override
   SettingsViewState createState() => SettingsViewState();
@@ -163,32 +167,49 @@ class SettingsViewState extends State<SettingsView> {
           context: context,
           tiles: [
             ListTile(
-              title: Text(strings?.personalInfo ?? 'Personal info'),
+              title: Text(strings?.personalInfo ?? 'Personal info',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                ),),
               trailing: const Icon(Icons.chevron_right),
               onTap: widget.onPersonalInfoTap
             ),
             ListTile(
-              title: Text(strings?.changePassword ?? "Change password"),
+              title: Text(strings?.changePassword ?? 'Change password',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                ),),
               trailing: const Icon(Icons.chevron_right),
               onTap: () async =>
                   showChangePasswordDialog(context, await _storage.read(key: "sessionToken") ?? "none")
             ),
             ListTile(
-              title: Text(strings?.notifications ?? 'Notifications'),
+              title: Text(strings?.notifications ?? 'Notifications',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                ),),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () async {
-                await Common().showLocalNotification("Betrader" , "Test",  {"key":"value"});
-              }
-
+              onTap: widget.onShowNotifications,
             ),
             ListTile(
-              title:  Text(strings?.paymentHistory ?? 'Payment history'),
+              title:  Text(strings?.paymentHistory ?? 'Payment history',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                ),),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
                   Common().unimplementedAction(context , '(Payment history)'),
             ),
             ListTile(
-              title: Text(strings?.aboutUs ?? 'About us'),
+              title: Text(strings?.aboutUs ?? 'About us',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                ),),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
                   Navigator.push(
@@ -198,7 +219,11 @@ class SettingsViewState extends State<SettingsView> {
             ),
 
             SwitchListTile(
-              title: Text(strings?.darkMode ?? "Dark mode"),
+              title: Text(strings?.darkMode ?? "Dark mode",
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                ),),
               value: isDark,
               inactiveThumbColor: Colors.black,
               inactiveTrackColor: Colors.grey,

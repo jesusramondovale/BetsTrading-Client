@@ -18,6 +18,8 @@ import 'home_page.dart';
 import 'login_page.dart';
 import 'package:http/http.dart' as http;
 
+import 'notifications_page.dart';
+
 final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 bool _showTutorial = false;
 
@@ -35,6 +37,7 @@ class MyApp extends StatelessWidget {
 
 class MainMenuPage extends StatefulWidget {
   const MainMenuPage({super.key});
+
 
   @override
   MainMenuPageState createState() => MainMenuPageState();
@@ -55,6 +58,9 @@ class MainMenuPageState extends State<MainMenuPage> {
   final MainMenuPageController _controller = MainMenuPageController();
   String _username = '';
   bool _isLoading = true;
+  bool _showNotificationsPage = false;
+
+
 
   Future<void> _loadProfilePic() async {
     String? profilePicString = await _storage.read(key: 'profilepic');
@@ -100,6 +106,11 @@ class MainMenuPageState extends State<MainMenuPage> {
     }
   }
 
+  void _showNotifications() {
+    setState(() {
+      _showNotificationsPage = true;
+    });
+  }
 
   @override
   void initState() {
@@ -108,7 +119,9 @@ class MainMenuPageState extends State<MainMenuPage> {
     _initializeData();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+
       Common().showLocalNotification(
+          message.data['type'],
           message.notification!.title!,
           message.notification!.body!,
           message.data);
@@ -161,7 +174,9 @@ class MainMenuPageState extends State<MainMenuPage> {
         controller: _controller,
       ),
       // SETTINGS
-      SettingsView(onPersonalInfoTap: () => _controller.updateIndex(4)),
+      SettingsView(
+        onPersonalInfoTap: () => _controller.updateIndex(4),
+        onShowNotifications: _showNotifications,),
       // PERSONAL INFO
       const UserInfoPage()
     ];
@@ -186,7 +201,14 @@ class MainMenuPageState extends State<MainMenuPage> {
                 color: Colors.black45,
               ),
               Expanded(
-                child: ValueListenableBuilder<int>(
+                child: _showNotificationsPage
+                    ? NotificationsPage(
+                  onBack: () {
+                  setState(() {
+                    _showNotificationsPage = false;
+                  });
+                },)
+                : ValueListenableBuilder<int>(
                   valueListenable: _controller.selectedIndexNotifier,
                   builder: (context, index, _) {
                     return IndexedStack(
@@ -259,7 +281,15 @@ class MainMenuPageState extends State<MainMenuPage> {
                 ],
                 currentIndex: _controller.selectedIndexNotifier.value,
                 onTap: (index) {
-                  _controller.updateIndex(index);
+                  if(_showNotificationsPage) {
+                    setState(() {
+                      _showNotificationsPage = false;
+                      _controller.updateIndex(index);
+                    });
+                  }
+                  else {
+                    _controller.updateIndex(index);
+                  }
                 },
                 type: BottomNavigationBarType.fixed,
               ),

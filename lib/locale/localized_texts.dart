@@ -13,6 +13,11 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'newsNotifications': 'News notifications',
+      'advancedSettings': 'Advanced app settings',
+      'enableNotifications': 'Enable notifications',
+      'trendingNotifications': 'Trending notifications',
+      'bettingNotifications': 'Betting notifications',
       'onboarding_title_intro': 'Welcome to Our App',
       'onboarding_description_intro': 'Discover all the features we have to offer.',
       'onboarding_title_favorites': 'Favorites',
@@ -178,6 +183,11 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'newsNotifications': 'Notificaciones de novedades',
+      'advancedSettings': 'Ajustes de app avanzados',
+      'enableNotifications': 'Permitir notificaciones',
+      'trendingNotifications': 'Notificaciones de tendencias',
+      'bettingNotifications': 'Notificaciones de apuestas',
       'onboarding_title_intro': 'Bienvenido a Nuestra App',
       'onboarding_description_intro': 'Descubre todas las funciones que tenemos para ofrecerte.',
       'onboarding_title_favorites': 'Favoritos',
@@ -343,6 +353,11 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'newsNotifications': 'Notifications de nouveautés',
+      'advancedSettings': 'Paramètres avancés du app',
+      'enableNotifications': 'Autoriser les notifications',
+      'trendingNotifications': 'Notifications de tendances',
+      'bettingNotifications': 'Notifications de paris',
       'onboarding_title_intro': 'Bienvenue sur notre application',
       'onboarding_description_intro': 'Découvrez toutes les fonctionnalités que nous proposons.',
       'onboarding_title_favorites': 'Favoris',
@@ -509,6 +524,11 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'newsNotifications': 'Notifiche di novità',
+      'advancedSettings': 'Impostazioni avanzate di app',
+      'enableNotifications': 'Abilita le notifiche',
+      'trendingNotifications': 'Notifiche di tendenza',
+      'bettingNotifications': 'Notifiche di scommesse',
       'onboarding_title_intro': 'Benvenuto nella nostra app',
       'onboarding_description_intro': 'Scopri tutte le funzionalità che abbiamo da offrire.',
       'onboarding_title_favorites': 'Preferiti',
@@ -676,6 +696,11 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'newsNotifications': 'Benachrichtigungen über Neuigkeiten',
+      'advancedSettings': 'Erweiterte Einstellungen',
+      'enableNotifications': 'Benachrichtigungen aktivieren',
+      'trendingNotifications': 'Trend-Benachrichtigungen',
+      'bettingNotifications': 'Wett-Benachrichtigungen',
       'onboarding_title_intro': 'Willkommen in unserer App',
       'onboarding_description_intro': 'Entdecken Sie alle Funktionen, die wir anbieten.',
       'onboarding_title_favorites': 'Favoriten',
@@ -1035,6 +1060,11 @@ class LocalizedStrings {
   String? get incorrectPassword => _localizedValues[locale.languageCode]?['incorrectPassword'];
   String? get youWonCoins => _localizedValues[locale.languageCode]?['youWonCoins'];
   String? get onPlay => _localizedValues[locale.languageCode]?['onPlay'];
+  String? get enableNotifications =>_localizedValues[locale.languageCode]?['enableNotifications'];
+  String? get trendingNotifications =>_localizedValues[locale.languageCode]?['trendingNotifications'];
+  String? get bettingNotifications =>_localizedValues[locale.languageCode]?['bettingNotifications'];
+  String? get advancedSettings =>_localizedValues[locale.languageCode]?['advancedSettings'];
+  String? get newsNotifications =>_localizedValues[locale.languageCode]?['newsNotifications'];
 
 
   String? getMessage(String key) {

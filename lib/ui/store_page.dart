@@ -59,6 +59,7 @@ class _StorePageState extends State<StorePage> {
           bool success = await AuthService().addCoins(userId!, coins);
           if (success) {
             Common().showLocalNotification(
+                "other",
                 "Betrader",
                 ( localizedWarning ),  {"REWARD": 50});
 

@@ -60,6 +60,7 @@ dependencies:
   firebase_messaging: ^14.7.19
   google_mobile_ads: ^4.0.0
   intro_slider: ^4.2.1
+  app_settings: ^5.1.0
 
 dev_dependencies:
   flutter_test:

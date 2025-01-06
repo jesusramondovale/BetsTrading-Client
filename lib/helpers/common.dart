@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 import '../models/betZone.dart';
 import '../models/bets.dart';
@@ -68,19 +69,34 @@ class Common {
   );
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-  Future<void> showLocalNotification(String title, String body, Map<String,dynamic> payload) async {
-    AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(Random().toString(), 'Betrader', importance: Importance.max, priority: Priority.high);
-    NotificationDetails platformChannelSpecifics =
-    NotificationDetails(android: androidPlatformChannelSpecifics);
-    print("showLocalNotification! $body");
-    await flutterLocalNotificationsPlugin.show(
-      Random().nextInt(64),
-      title,
-      body,
-      platformChannelSpecifics,
-      payload: payload.toString()
-    );
+  Future<void> showLocalNotification(String type, String title, String body, Map<String,dynamic> payload) async {
+    final prefs = await SharedPreferences.getInstance();
+    bool _enableNotifications = prefs.getBool('enableNotifications') ?? true;
+    bool _trendingNotifications = prefs.getBool('trendingNotifications') ?? true;
+    bool _newsNotifications = prefs.getBool('newsNotifications') ?? true;
+    bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
+    if (_enableNotifications){
+
+      if ((type == "news" && _newsNotifications)
+       | (type == "trends" && _trendingNotifications)
+       | (type == "betting" && _bettingNotifications)
+       | (type == "other"))
+      {
+        AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(Random().toString(), 'Betrader', importance: Importance.max, priority: Priority.high);
+        NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+        print("showLocalNotification! $body");
+        await flutterLocalNotificationsPlugin.show(
+            Random().nextInt(64),
+            title,
+            body,
+            platformChannelSpecifics,
+            payload: payload.toString()
+        );
+      }
+
+    }
   }
   void unimplementedAction(BuildContext aContext,  [String? text = '']) {
         ScaffoldMessenger.of(aContext).showSnackBar(

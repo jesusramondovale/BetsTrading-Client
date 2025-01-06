@@ -6,13 +6,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart'; // Necesario para DateFormat
+import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../models/rectangle_zone.dart';
 import '../locale/localized_texts.dart';
 import 'layout_page.dart';
 
 class BetConfirmationPage extends StatefulWidget {
-
   final double currentValue;
   final String iconPath;
   final VoidCallback onCancel;
@@ -21,15 +21,12 @@ class BetConfirmationPage extends StatefulWidget {
 
   const BetConfirmationPage({
     Key? key,
-
     required this.name,
     required this.onCancel,
     required this.zone,
     required this.currentValue,
     required this.iconPath,
-
   }) : super(key: key);
-
 
   @override
   _BetConfirmationPageState createState() => _BetConfirmationPageState();
@@ -45,7 +42,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   final FocusNode _betAmountFocusNode = FocusNode();
 
   @override
-  void initState()  {
+  void initState() {
     super.initState();
     _betAmountFocusNode.addListener(() {
       if (_betAmountFocusNode.hasFocus) {
@@ -70,11 +67,12 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     _points = await _storage.read(key: 'points');
   }
 
-  void _calculatePotentialPrize(String value)  {
+  void _calculatePotentialPrize(String value) {
     setState(() {
       _betAmount = double.tryParse(value) ?? 0.0;
       _potentialPrize = _betAmount * widget.zone.odds;
-      _isAcceptButtonEnabled = _betAmount > 0.00999 && _betAmount <= double.parse(_points!);
+      _isAcceptButtonEnabled =
+          _betAmount > 0.00999 && _betAmount <= double.parse(_points!);
     });
   }
 
@@ -210,7 +208,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         _buildGridItem(
           context,
           icon: Icons.data_object_sharp,
-          value: '${widget.zone.margin.toStringAsFixed(2)}% (±${(widget.zone.targetPrice*widget.zone.margin/200).toStringAsFixed(1)}€)',
+          value:
+              '${widget.zone.margin.toStringAsFixed(2)}% (±${(widget.zone.targetPrice * widget.zone.margin / 200).toStringAsFixed(1)}€)',
           label: strings?.targetMargin ?? "Target margin",
         ),
       ],
@@ -264,8 +263,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
                 ),
               ),
               TextSpan(
-                text:
-                    'x${widget.zone.odds.toStringAsFixed(2)}',
+                text: 'x${widget.zone.odds.toStringAsFixed(2)}',
                 style: GoogleFonts.montserrat(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
@@ -289,21 +287,26 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               child: TextField(
                 textAlign: TextAlign.end,
                 style: GoogleFonts.montserrat(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.w800,
-                    color: _isAcceptButtonEnabled ? Colors.greenAccent : Colors.red,
-                    decoration: _isAcceptButtonEnabled ? null: TextDecoration.lineThrough,),
-
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.w800,
+                  color:
+                      _isAcceptButtonEnabled ? Colors.greenAccent : Colors.red,
+                  decoration: _isAcceptButtonEnabled
+                      ? null
+                      : TextDecoration.lineThrough,
+                ),
                 cursorColor: Colors.white,
                 focusNode: _betAmountFocusNode,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  focusColor: Colors.white,
-                  suffixIcon: Text(
-                    '\u0e3f',
-                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.w100, color: Colors.white),
-                  )
-                ),
+                    focusColor: Colors.white,
+                    suffixIcon: Text(
+                      '\u0e3f',
+                      style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w100,
+                          color: Colors.white),
+                    )),
                 onChanged: _calculatePotentialPrize,
               ),
             ),
@@ -331,7 +334,9 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? _isAcceptButtonEnabled ? Colors.greenAccent : Colors.red
+                  ? _isAcceptButtonEnabled
+                      ? Colors.greenAccent
+                      : Colors.red
                   : Colors.green,
             ),
           ),
@@ -341,41 +346,45 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   }
 
   Future<void> _onAccept(int betZone) async {
+    final prefs = await SharedPreferences.getInstance();
+    bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
+
     FocusScope.of(context).unfocus();
-    bool? confirmed = await Common().popConfirmOperationDialog(context, _betAmount, widget.iconPath);
+    bool? confirmed = await Common()
+        .popConfirmOperationDialog(context, _betAmount, widget.iconPath);
     if (confirmed == true) {
-
       String? userId = await _storage.read(key: 'sessionToken');
-      bool result = await BetsService().postNewBet(userId!, widget.zone.ticker, _betAmount, widget.currentValue, betZone);
+      bool result = await BetsService().postNewBet(userId!, widget.zone.ticker,
+          _betAmount, widget.currentValue, betZone);
 
-      if (result){
-
-        Common().showLocalNotification(
-            "Betrader",
-            ( LocalizedStrings.of(context)!
-                .betPlacedSuccessfully != null  ?   "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}฿)"
-                : "Bet placed successfully! (${_betAmount}฿)" ),
-
-            {"TICKER": widget.zone.ticker, "BET_AMOMUNT": _betAmount});
+      if (result) {
+        if (_bettingNotifications) {
+          Common().showLocalNotification(
+              "betting",
+              "Betrader",
+              (LocalizedStrings.of(context)!.betPlacedSuccessfully != null
+                  ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}฿)"
+                  : "Bet placed successfully! (${_betAmount}฿)"),
+              {"TICKER": widget.zone.ticker, "BET_AMOMUNT": _betAmount});
+        }
 
         await BetsService().getUserInfo(userId);
 
         Navigator.pop(context);
         Navigator.pop(context);
         homeScreenKey.currentState?.loadUserIdAndData();
-
-
-      }
-      else{
-        Common().showLocalNotification(
-            "Error",
-            ( LocalizedStrings.of(context)!.errorMakingBet ?? "Error creating bet!" ),
-
-            {"ERROR_CODE": "00000001"});
+      } else {
+        if (_bettingNotifications) {
+          Common().showLocalNotification(
+            "betting",
+              "Error",
+              (LocalizedStrings.of(context)!.errorMakingBet ??
+                  "Error creating bet!"),
+              {"ERROR_CODE": "00000001"});
+        }
 
         Navigator.pop(context);
         Navigator.pop(context);
-
       }
     }
   }
@@ -416,8 +425,9 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             ),
           ),
           ElevatedButton.icon(
-            onPressed:
-                _isAcceptButtonEnabled ? () => _onAccept(widget.zone.id) : () => _handleAcceptPressed(widget.zone.id),
+            onPressed: _isAcceptButtonEnabled
+                ? () => _onAccept(widget.zone.id)
+                : () => _handleAcceptPressed(widget.zone.id),
             icon: Icon(CupertinoIcons.check_mark, color: Colors.black),
             label: Text(
               strings?.accept ?? 'Accept',
