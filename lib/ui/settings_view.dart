@@ -12,7 +12,11 @@ import 'aboutus_page.dart';
 class SettingsView extends StatefulWidget {
 
   final VoidCallback onPersonalInfoTap;
-  const SettingsView({super.key, required this.onPersonalInfoTap});
+  final VoidCallback onShowNotifications;
+
+  const SettingsView({super.key,
+    required this.onPersonalInfoTap,
+    required this.onShowNotifications,});
 
   @override
   SettingsViewState createState() => SettingsViewState();
@@ -176,10 +180,7 @@ class SettingsViewState extends State<SettingsView> {
             ListTile(
               title: Text(strings?.notifications ?? 'Notifications'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () async {
-                await Common().showLocalNotification("Betrader" , "Test",  {"key":"value"});
-              }
-
+              onTap: widget.onShowNotifications,
             ),
             ListTile(
               title:  Text(strings?.paymentHistory ?? 'Payment history'),
