@@ -119,7 +119,9 @@ class MainMenuPageState extends State<MainMenuPage> {
     _initializeData();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+
       Common().showLocalNotification(
+          message.data['type'],
           message.notification!.title!,
           message.notification!.body!,
           message.data);

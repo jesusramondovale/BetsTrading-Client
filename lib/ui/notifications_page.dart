@@ -3,10 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app_settings/app_settings.dart';
 
+import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 
 class NotificationsPage extends StatefulWidget {
-  final VoidCallback onBack; // Callback para manejar retroceso
+  final VoidCallback onBack;
 
   const NotificationsPage({Key? key, required this.onBack}) : super(key: key);
 
@@ -106,12 +107,23 @@ class NotificationsPageState extends State<NotificationsPage> {
             },
           ),
           ListTile(
+            title: Text('Test!',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+              ),),
+            trailing: const Icon(Icons.notification_important, size: 40),
+            onTap: () async {
+              await Common().showLocalNotification("other", "Betrader" , "Test",  {"key":"value"});
+            },
+          ),
+          ListTile(
             title: Text(strings?.advancedSettings ?? 'Advanced app settings',
               style: GoogleFonts.montserrat(
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
               ),),
-            trailing: const Icon(Icons.settings),
+            trailing: const Icon(Icons.settings, size: 40),
             onTap: () {
               AppSettings.openAppSettings();
             },

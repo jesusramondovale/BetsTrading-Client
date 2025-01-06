@@ -119,7 +119,7 @@ class HomeScreenState extends State<HomeScreen> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white, Colors.grey.shade800], // Color normal
+                        colors: [Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white, Colors.grey.shade800],
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -313,7 +313,7 @@ class HomeScreenState extends State<HomeScreen> {
                     onPressed:  () async {
                         bool result = await BetsService().deleteHistoricBets(_userId);
                         if (result) {
-                          Common().showLocalNotification("Betrader", LocalizedStrings.of(context)!.betsDeleted ?? "Bets deleted",
+                          Common().showLocalNotification("betting", "Betrader", LocalizedStrings.of(context)!.betsDeleted ?? "Bets deleted",
                               {"DELETED" : "all"});
                           setState(() {
 
@@ -357,7 +357,6 @@ class HomeScreenState extends State<HomeScreen> {
                         scrollDirection: Axis.vertical,
                         itemCount: _bets.length,
                         itemBuilder: (context, index) {
-                          // Construye en orden inverso
                           final reversedIndex = _bets.length - 1 - index;
                           return RecentBetContainer(
                             dailyGain: _bets[reversedIndex].dailyGain,
@@ -386,7 +385,7 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(height: 30),
                               Container(
-                                width: 48,  // El ancho de tu icono
+                                width: 48,
                                 child: Image.asset('assets/logo.png'),
                               ),
                             ],
