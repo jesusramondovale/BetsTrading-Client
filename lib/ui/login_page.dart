@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:betrader/services/AuthService.dart';
 import 'package:betrader/locale/localized_texts.dart';
@@ -14,37 +16,34 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    double bottomMargin = MediaQuery.of(context).size.height/10;
-
     return Scaffold(
-      extendBodyBehindAppBar: false,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
+        backgroundColor: Colors.transparent,
         scrolledUnderElevation: 0.0,
         title: const Text(''),
         automaticallyImplyLeading: false,
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Container(
-            width: 350,
-            padding: const EdgeInsets.all(16.0),
-            margin: EdgeInsets.only(bottom: bottomMargin),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15.0),
-              color: Theme.of(context).colorScheme.onBackground,
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).colorScheme.onBackground,
-                  spreadRadius: 3,
-                  blurRadius: 7,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/backgn.png',
+              fit: BoxFit.cover,
             ),
-            child: const LoginForm(),
           ),
-        ),
+          // Contenedor centrado
+          Center(
+            child: SingleChildScrollView(
+              child: Container(
+                width: MediaQuery.of(context).size.width ,
+                padding: const EdgeInsets.all(16.0),
+                child: const LoginForm(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -70,27 +69,41 @@ class LoginFormState extends State<LoginForm> {
 
     return Form(
       key: _formKey,
-      child: Column(
+      child: Stack(
         children: [
-          Image.asset('assets/logo.png', width: 200, fit: BoxFit.cover),
-          const Padding(padding: EdgeInsets.all(10.0)),
-          if (_showSignInWithGoogleApple) ...[
-            _buildGoogleSignInButton(strings!),
-            const SizedBox(height: 8),
-            _buildManualLogInButton(strings),
-            const SizedBox(height: 10),
-          ] else ...[
-            _buildUsernameField(strings!),
-            const SizedBox(height: 16),
-            _buildPasswordField(strings),
-            const SizedBox(height: 20),
-            _buildLoginAndRegisterButtons(context, strings),
-            const SizedBox(height: 16),
-            _buildForgotPasswordButton(strings),
-            const SizedBox(height: 16),
-            _buildToggleButton(strings),
-          ],
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: Container(
+                color: Colors.black.withOpacity(0.0),
+              ),
+            ),
+          ),
 
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                Image.asset('assets/logo.png', width: 200, fit: BoxFit.cover),
+                const Padding(padding: EdgeInsets.all(10.0)),
+                if (_showSignInWithGoogleApple) ...[
+                  _buildGoogleSignInButton(strings!),
+                  const SizedBox(height: 8),
+                  _buildManualLogInButton(strings),
+                  const SizedBox(height: 10),
+                ] else ...[
+                  _buildUsernameField(strings!),
+                  const SizedBox(height: 16),
+                  _buildPasswordField(strings),
+                  const SizedBox(height: 20),
+                  _buildLoginAndRegisterButtons(context, strings),
+                  const SizedBox(height: 16),
+                  _buildForgotPasswordButton(strings),
+                  const SizedBox(height: 16),
+                  _buildToggleButton(strings),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
