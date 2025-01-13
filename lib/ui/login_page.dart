@@ -60,7 +60,7 @@ class LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _showSignInWithGoogleApple = true;
+  bool _showSocialSignIn = true;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
@@ -85,7 +85,7 @@ class LoginFormState extends State<LoginForm> {
               children: [
                 Image.asset('assets/logo.png', width: 200, fit: BoxFit.cover),
                 const Padding(padding: EdgeInsets.all(10.0)),
-                if (_showSignInWithGoogleApple) ...[
+                if (_showSocialSignIn) ...[
                   _buildGoogleSignInButton(strings!),
                   const SizedBox(height: 8),
                   _buildManualLogInButton(strings),
@@ -157,7 +157,7 @@ class LoginFormState extends State<LoginForm> {
       ),
       onPressed: () {
         setState(() {
-          _showSignInWithGoogleApple = !_showSignInWithGoogleApple;
+          _showSocialSignIn = !_showSocialSignIn;
         });
       },
       child: Row(
@@ -227,10 +227,10 @@ class LoginFormState extends State<LoginForm> {
     return ElevatedButton(
       onPressed: () {
         setState(() {
-          _showSignInWithGoogleApple = !_showSignInWithGoogleApple;
+          _showSocialSignIn = !_showSocialSignIn;
         });
       },
-      child: Text(_showSignInWithGoogleApple ? (strings.commonSignIn ?? "E-mail log-in") :
+      child: Text(_showSocialSignIn ? (strings.commonSignIn ?? "E-mail log-in") :
             (strings.backToSocialsLogin ?? "Back to Social Logins")),
     );
   }

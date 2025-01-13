@@ -17,8 +17,9 @@ import '../helpers/common.dart';
 import 'home_page.dart';
 import 'login_page.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:permission_handler/permission_handler.dart';
 import 'notifications_page.dart';
+
 
 final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 bool _showTutorial = false;
@@ -99,6 +100,7 @@ class MainMenuPageState extends State<MainMenuPage> {
     final isFirstRun = prefs.getBool('first_run') ?? true;
 
     if (isFirstRun) {
+      Permission.notification.request();
       setState(() {
         _showTutorial = true;
       });
