@@ -246,8 +246,8 @@ class MarketsViewState extends State<MarketsView> {
                               Text(
                                 asset.name,
                                 maxLines: 1,
-                                style: GoogleFonts.comfortaa(
-                                    fontSize: 16, fontWeight: FontWeight.w600),
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 14, fontWeight: FontWeight.w400),
                                 textAlign: TextAlign.center,
                               ),
                             ],
