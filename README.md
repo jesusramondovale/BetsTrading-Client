@@ -4,7 +4,9 @@ This is the first version of the Pre-Alpha client app of the Bets Trading Projec
 
 
 <div>
-  <img src="logo.png?raw=true" alt="Bets Trading" width="128" height="128" style="margin-right: 20px;">
+  <a href="https://betstrading.online/">
+    <img src="logo.png?raw=true" alt="BetsTrading Online" width="128" height="128" style="margin-right: 20px;">
+  <a/>
   <img src="android_logo.svg?raw=true" alt="Android Logo" width="128" height="128" style="margin-right: 40px;">
   <img src="apple_logo.png?raw=true" alt="Apple Logo" width="128" height="128">
 </div>

@@ -132,7 +132,12 @@ class LoginFormState extends State<LoginForm> {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
 
         } else {
-          Common().popDialog("Oops...", "Error", context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Ooops... error!"),
+              backgroundColor: Colors.red,
+            ),
+          );
           print("Error al intentar iniciar sesión con Google.");
         }
       },
