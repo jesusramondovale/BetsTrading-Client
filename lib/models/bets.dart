@@ -447,16 +447,30 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                     backgroundColor: Colors.transparent,
                     builder: (BuildContext context) {
                       return ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(25.0),
+                        ),
                         child: Container(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          height: MediaQuery.of(context).size.height * 0.6,
-                          child: CandlesticksView(
-                            ticker: widget.bet.ticker,
-                            betZoneId: widget.bet.bet_zone,
-                            name: widget.bet.name,
-                            controller: widget.controller,
-                            iconPath: widget.bet.iconPath,
+                          color:
+                          Theme.of(context).scaffoldBackgroundColor,
+                          height:
+                          MediaQuery.of(context).size.height * 0.6,
+                          child: OverflowBox(
+                            alignment: Alignment.topCenter,
+                            maxHeight:
+                            MediaQuery.of(context).size.height,
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: CandlesticksView(
+                                      ticker: widget.bet.ticker,
+                                      betZoneId : widget.bet.bet_zone,
+                                      name: widget.bet.name,
+                                      controller: widget.controller,
+                                      iconPath: widget.bet.iconPath),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -579,8 +593,10 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                             ? strings!.onPlay ?? "On play!"
                             : strings!.finished ?? "Finished")),
                         style: GoogleFonts.rajdhani(
-                          fontSize: 11,
-                          color: Colors.white,
+                          fontSize: 12,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.grey,
                         ),
                       ),
                       const SizedBox(width: 5),
