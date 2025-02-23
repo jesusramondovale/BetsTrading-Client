@@ -26,7 +26,7 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  bool showFavorites = false;
+  bool showFavorites = true;
   List<Bet> _bets = [];
   String _userId = "none";
   String _userPoints = '0';
