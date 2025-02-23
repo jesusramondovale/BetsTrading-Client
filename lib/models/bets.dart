@@ -10,6 +10,7 @@ import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../ui/candlesticks_view.dart';
 import '../ui/layout_page.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class Bet {
   final int id;
@@ -312,7 +313,6 @@ class RecentBetDialog extends StatelessWidget {
                             color: Colors.white,
                           ),
                           onPressed: () {
-                            Navigator.of(context).pop();
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,
@@ -323,22 +323,22 @@ class RecentBetDialog extends StatelessWidget {
                                     top: Radius.circular(25.0),
                                   ),
                                   child: Container(
-                                    color: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    height: MediaQuery.of(context).size.height *
-                                        0.6,
+                                    color:
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                    height:
+                                    MediaQuery.of(context).size.height * 0.6,
                                     child: OverflowBox(
                                       alignment: Alignment.topCenter,
                                       maxHeight:
-                                          MediaQuery.of(context).size.height,
+                                      MediaQuery.of(context).size.height,
                                       child: Column(
                                         children: [
                                           Expanded(
                                             child: CandlesticksView(
-                                                ticker: bet.ticker.toString(),
-                                                betZoneId: bet.bet_zone,
+                                                ticker: bet.ticker,
+                                                betZoneId : bet.bet_zone,
                                                 name: bet.name,
-                                                controller: this.controller,
+                                                controller: controller,
                                                 iconPath: bet.iconPath),
                                           ),
                                         ],
@@ -434,9 +434,57 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                      '-';  */
     return Column(
       children: <Widget>[
-        ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        Slidable(
+          key: Key(widget.bet.id.toString()),
+          endActionPane: ActionPane(
+            motion: const ScrollMotion(),
+            children: [
+              SlidableAction(
+                onPressed: (context) {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (BuildContext context) {
+                      return ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
+                        child: Container(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          height: MediaQuery.of(context).size.height * 0.6,
+                          child: CandlesticksView(
+                            ticker: widget.bet.ticker,
+                            betZoneId: widget.bet.bet_zone,
+                            name: widget.bet.name,
+                            controller: widget.controller,
+                            iconPath: widget.bet.iconPath,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                icon: Icons.remove_red_eye_outlined,
+              ),
+              SlidableAction(
+                onPressed: (context) async {
+                  final result = await BetsService().deleteRecentBet(widget.bet.id.toString());
+                  if (result) {
+                    Common().actionDialog(context, "Borrado con éxito!");
+                    widget.onDelete();
+                  } else {
+                    Common().actionDialog(context, "Error!");
+                  }
+                },
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+              ),
+            ],
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
             onLongPress: _triggerBetButtons,
             onTap: () {
               (_showEditButtons)
@@ -465,155 +513,87 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             ),
             subtitle: _showEditButtons
                 ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 6),
-                      Text(
-                        maxLines: 1,
-                        '(${widget.bet.betAmount.toStringAsFixed(2)}฿ @ ${widget.bet.originValue})',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        maxLines: 1,
-                        '${widget.bet.targetDate.year}-${widget.bet.targetDate.month}-${widget.bet.targetDate.day} @ ${widget.bet.targetValue} ± ${widget.bet.targetMargin}%',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w300,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.cyanAccent
-                              : Colors.deepPurple,
-                        ),
-                      ),
-                    ],
-                  )
-                : Text(
-                    (widget.dailyGain > 0.0)
-                        ? '▲ ${(widget.dailyGain * 100).toStringAsFixed(2)}%'
-                        : '▼ ${(widget.dailyGain.abs() * 100).toStringAsFixed(2)}%',
-                    style: GoogleFonts.rajdhani(
-                      fontSize: 16,
-                      fontWeight:
-                          Theme.of(context).brightness == Brightness.dark
-                              ? FontWeight.w200
-                              : FontWeight.w500,
-                      color: widget.dailyGain > 0.0 ? Colors.green : Colors.red,
-                    ),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 6),
+                Text(
+                  maxLines: 1,
+                  '(${widget.bet.betAmount.toStringAsFixed(2)}฿ @ ${widget.bet.originValue})',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    color: Colors.grey,
                   ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  maxLines: 1,
+                  '${widget.bet.targetDate.year}-${widget.bet.targetDate.month}-${widget.bet.targetDate.day} @ ${widget.bet.targetValue} ± ${widget.bet.targetMargin}%',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.cyanAccent
+                        : Colors.deepPurple,
+                  ),
+                ),
+              ],
+            )
+                : Text(
+              (widget.dailyGain > 0.0)
+                  ? '▲ ${(widget.dailyGain * 100).toStringAsFixed(2)}%'
+                  : '▼ ${(widget.dailyGain.abs() * 100).toStringAsFixed(2)}%',
+              style: GoogleFonts.rajdhani(
+                fontSize: 16,
+                fontWeight: Theme.of(context).brightness == Brightness.dark
+                    ? FontWeight.w200
+                    : FontWeight.w500,
+                color: widget.dailyGain > 0.0 ? Colors.green : Colors.red,
+              ),
+            ),
             trailing: _showEditButtons
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.remove_red_eye_outlined,
-                            color: Colors.grey),
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (BuildContext context) {
-                              return ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(25.0),
-                                ),
-                                child: Container(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.6,
-                                  child: OverflowBox(
-                                    alignment: Alignment.topCenter,
-                                    maxHeight:
-                                        MediaQuery.of(context).size.height,
-                                    child: Column(
-                                      children: [
-                                        Expanded(
-                                          child: CandlesticksView(
-                                              ticker: widget.bet.ticker,
-                                              betZoneId : widget.bet.bet_zone,
-                                              name: widget.bet.name,
-                                              controller: widget.controller,
-                                              iconPath: widget.bet.iconPath),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints:
-                            const BoxConstraints(maxHeight: 30, maxWidth: 30),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.grey),
-                        onPressed: () async {
-                          final result = await BetsService()
-                              .deleteRecentBet(widget.bet.id.toString());
-
-                          if (result) {
-                            Common().actionDialog(
-                                context,
-                                strings?.removedSuccesfully ??
-                                    "Borrado con éxito!");
-                            widget.onDelete();
-                          } else {
-                            Common().actionDialog(context, "Error!");
-                          }
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints:
-                            const BoxConstraints(maxHeight: 30, maxWidth: 30),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                  )
+                ? null
                 : Column(
               children: [
                 Text(
-                  maxLines: 1,
                   '$trailingText$currency',
+                  maxLines: 1,
                   style: GoogleFonts.montserrat(
                     fontSize: 20,
                     fontWeight: FontWeight.w300,
-                    color: (widget.bet.targetDate.isAfter(DateTime.now()))
+                    color: widget.bet.targetDate.isAfter(DateTime.now())
                         ? Colors.grey
                         : widget.bet.targetWon == true
                         ? Colors.green
                         : Colors.red,
                   ),
                 ),
-                Container(width: 61, child:
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // Centra los elementos
+                Container(
+                  width: 61,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        (daysUntilTarget > 0 ?
-                             "$daysUntilTarget ${strings!.day ?? "day/s" }" :
-                              (daysUntilFinal >= 0 ?
-                                      strings!.onPlay ?? "On play!" :
-                                      strings!.finished ?? "Finished" )),
+                        (daysUntilTarget > 0
+                            ? "$daysUntilTarget ${strings!.day ?? "day/s"}"
+                            : (daysUntilFinal >= 0
+                            ? strings!.onPlay ?? "On play!"
+                            : strings!.finished ?? "Finished")),
                         style: GoogleFonts.rajdhani(
                           fontSize: 11,
-                          color: Colors.white
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(width: 5),
-                      Icon((daysUntilTarget > 0 ? Icons.watch_later : Icons.timer_off_outlined) , size: 16), // El icono
-
-
+                      Icon(
+                        (daysUntilTarget > 0 ? Icons.watch_later : Icons.timer_off_outlined),
+                        size: 16,
+                      ),
                     ],
                   ),
-                )
+                ),
               ],
-            )
+            ),
+          ),
         ),
       ],
     );
