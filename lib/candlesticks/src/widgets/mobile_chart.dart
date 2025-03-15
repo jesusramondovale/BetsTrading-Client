@@ -224,14 +224,25 @@ class MobileChartState extends State<MobileChart> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SizedBox(height: 10),
-                            if (widget.iconPath != "null") ...[
+                            if (widget.iconPath != "null" &&
+                                !widget.iconPath.startsWith("http")) ...[
                               Image.memory(
                                 base64Decode(widget.iconPath),
                                 height: 120,
                                 width: 120,
                                 gaplessPlayback: true,
                               )
-                            ] else ...[
+                            ]
+                            else if (widget.iconPath.startsWith("http"))... [
+                              Image.network(widget.iconPath,
+                                height: 120,
+                                width: 120,
+                                gaplessPlayback: true,
+                              )
+
+                            ]
+
+                            else ...[
                               Text(
                                 widget.chartTitle.length > 15
                                     ? widget.chartTitle.substring(0, 15) + '...'

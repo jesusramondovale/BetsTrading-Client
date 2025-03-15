@@ -228,10 +228,17 @@ class MarketsViewState extends State<MarketsView> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               if (asset.icon.isNotEmpty &&
-                                  asset.icon != "null") ...[
+                                  asset.icon != "null" && 
+                                  !asset.icon.startsWith("http")) ...[
                                 Image.memory(base64Decode(asset.icon),
                                     height: 55),
-                              ] else ...[
+                              ]
+                              else if (asset.icon.isNotEmpty &&
+                                  asset.icon.startsWith("http")) ...[
+                                  Image.network((asset.icon),
+                                       height: 55),
+                              ]
+                              else ...[
                                 Text(
                                   Common()
                                       .createTrendViewNameFromName(asset.name),
