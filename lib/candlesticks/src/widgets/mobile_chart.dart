@@ -208,7 +208,7 @@ class MobileChartState extends State<MobileChart> {
                     : widget.candles[min(
                         max(
                             (maxWidth - longPressX!) ~/ widget.candleWidth +
-                                widget.index,
+                                widget.index - 1,
                             0),
                         widget.candles.length - 1)];
 
@@ -289,7 +289,10 @@ class MobileChartState extends State<MobileChart> {
                                         minIndex: -20,
                                         priceColumnWidth: PRICE_BAR_WIDTH,
                                         noBetsText: noBetsText,
-                                        noIcon: widget.iconPath == "null"),
+                                        noIcon: widget.iconPath == "null",
+                                        darkTheme: Theme.of(context).brightness == Brightness.dark
+                                    ),
+
                                   ),
                                 ),
                                 PriceColumn(
@@ -602,7 +605,9 @@ class MobileChartState extends State<MobileChart> {
                                   minIndex: -20,
                                   priceColumnWidth: PRICE_BAR_WIDTH,
                                   noBetsText: noBetsText,
-                                  noIcon: widget.iconPath == "null")
+                                  noIcon: widget.iconPath == "null",
+                                  darkTheme: Theme.of(context).brightness == Brightness.dark
+                                  )
                               .hit(details.localPosition.dx,
                                   details.localPosition.dy, size);
 
