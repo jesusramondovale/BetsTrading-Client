@@ -289,7 +289,7 @@ class LocalizedStrings {
       'wallet': 'Mi cartera',
       'staked': 'Apostado',
       'indexes': 'Índices',
-      'shares': 'Valores',
+      'shares': 'Acciones',
       'commodities': 'Futuros',
       'googleSignIn': 'Continuar con Google',
       'appleSignIn': 'Continuar con Apple ID',

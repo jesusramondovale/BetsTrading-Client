@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:betrader/services/AssetsService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,252 +18,191 @@ class MarketsView extends StatefulWidget {
   MarketsViewState createState() => MarketsViewState();
 }
 
-class MarketsViewState extends State<MarketsView> {
-  String? selectedGroup;
+class MarketsViewState extends State<MarketsView>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   List<String> groups = [];
-  List<FinancialAsset> assets = [];
-  late BuildContext _context;
-  int groupId = 0;
-  bool _isLoading = false;
+  Map<int, List<FinancialAsset>> assetsPerTab = {}; // Mapa con los activos por pestaña
+  bool _isLoading = true; // Se inicializa en true hasta que se carguen todos los datos
 
   @override
   void initState() {
     super.initState();
-    _loadAssets(groupId);
+    _tabController = TabController(length: 4, vsync: this);
+
   }
 
-  Future<void> _initGroups() async {
-    final strings = LocalizedStrings.of(_context);
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initGroups();
+    _loadAllAssets();
+  }
+
+  void _initGroups() {
+    final strings = LocalizedStrings.of(context);
     groups = [
       strings?.shares ?? 'Shares',
       'Crypto',
       strings?.indexes ?? 'Indexes',
       strings?.commodities ?? 'Commodities',
     ];
-    if (selectedGroup == null && groups.isNotEmpty) {
-      selectedGroup = groups.first;
-    }
   }
 
+  void _loadAllAssets() async {
+    Map<int, String> groupMapping = {
+      0: 'Shares',
+      1: 'Cryptos',
+      2: 'Indexes',
+      3: 'Commodities',
+    };
 
-  void _loadAssets(int id) {
-    String? theGroup;
+    for (int id = 0; id < groups.length; id++) {
+      String? theGroup = groupMapping[id];
+      if (theGroup != null) {
+        final newAssets = await AssetsService().getFinancialAssetsByGroup(theGroup);
+        assetsPerTab[id] = newAssets ?? [];
+      }
+    }
+
     setState(() {
-      _isLoading = true;
+      _isLoading = false; // Desactivar loading después de cargar todo
     });
-    switch (id) {
-      case 0:
-        theGroup = 'Shares';
-        break;
-      case 1:
-        theGroup = 'Cryptos';
-        break;
-      case 2:
-        theGroup = 'Indexes';
-        break;
-      case 3:
-        theGroup = 'Commodities';
-        break;
-    }
-
-    if (theGroup != null) {
-      AssetsService().getFinancialAssetsByGroup(theGroup).then((newAssets) {
-        setState(() {
-          assets = newAssets ?? [];
-          _isLoading = false;
-        });
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    _context = context;
-
-    return FutureBuilder(
-      future: _initGroups(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return _buildContent();
-        } else {
-          return const Center(child: CircularProgressIndicator());
-        }
-      },
-    );
-  }
-
-  void _onGroupChanged(String? newValue) {
-    if (newValue == null) return;
-
-    setState(() {
-      selectedGroup = newValue;
-      groupId = groups.indexOf(newValue);
-      debugPrint('Selected group ID: $groupId');
-      _loadAssets(groupId);
-    });
-  }
-
-  List<DropdownMenuItem<String>> _buildDropdownMenuItems() {
-    return groups.map((String value) {
-      return DropdownMenuItem<String>(
-        value: value,
-        child: Text(
-          value,
-          style: TextStyle(),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-        alignment: Alignment.center,
-      );
-    }).toList();
-  }
-
-  Widget _buildContent() {
-    Color dropDownColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white
-        : Colors.black;
     return Column(
+      verticalDirection: VerticalDirection.up,
       children: [
-        Center(
-          child: Container(
-            child: DropdownButton<String>(
-              padding: EdgeInsets.fromLTRB(100, 0, 100, 0),
-              value: selectedGroup,
-              underline: SizedBox.shrink(),
-              onChanged: _onGroupChanged,
-              items: _buildDropdownMenuItems(),
-              style: GoogleFonts.montserrat(
-                color: dropDownColor,
-                fontSize: 30.0,
-                fontWeight: FontWeight.w300,
-              ),
-              dropdownColor: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black
-                  : Colors.white,
-              elevation: 8,
-              borderRadius: BorderRadius.circular(25),
-              isExpanded: true,
-              iconEnabledColor: dropDownColor,
-              iconDisabledColor: Colors.grey,
-              itemHeight: 60,
-              icon: Icon(Icons.expand_more_rounded,
-                  color: dropDownColor, size: 45),
-              //iconSize: 65,
-              alignment: Alignment.center,
-            ),
+        TabBar(
+          tabAlignment: TabAlignment.center,
+          isScrollable: true,
+          controller: _tabController,
+          labelStyle: GoogleFonts.montserrat(
+            fontSize: 22,
+            fontWeight: FontWeight.w400,
           ),
+          labelPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
+          unselectedLabelStyle: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w300,
+          ),
+          tabs: groups.map((String group) => Tab(text: group)).toList(),
         ),
-        _isLoading
-              ? Center(heightFactor: 18, child: CircularProgressIndicator(color: Colors.grey ,strokeWidth: 1.0))
-              : Expanded(
-                  child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 5.0,
-                      mainAxisSpacing: 7.0,
-                      childAspectRatio: 1.0,
-                    ),
-                    itemCount: assets.length,
-                    itemBuilder: (context, index) {
-                      final FinancialAsset asset = assets[index];
-                      return GestureDetector(
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (BuildContext context) {
-                              return ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(25.0),
-                                ),
-                                child: Container(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.55,
-                                  child: OverflowBox(
-                                    alignment: Alignment.topCenter,
-                                    maxHeight:
-                                        MediaQuery.of(context).size.height,
-                                    child: Column(
-                                      children: [
-                                        Expanded(
-                                          child: CandlesticksView(
-                                            ticker: asset.ticker,
-                                            name: asset.name,
-                                            controller: widget.controller,
-                                            iconPath: asset.icon,
-                                          ),
-                                        ),
-                                      ],
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : TabBarView(
+            controller: _tabController,
+            children: List.generate(groups.length, (index) {
+              final List<FinancialAsset> assets = assetsPerTab[index] ?? [];
+
+              return GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 5.0,
+                  mainAxisSpacing: 7.0,
+                  childAspectRatio: 1.0,
+                ),
+                itemCount: assets.length,
+                itemBuilder: (context, assetIndex) {
+                  final FinancialAsset asset = assets[assetIndex];
+                  return GestureDetector(
+                    onTap: () {
+                      Common().vibrate(40,30);
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (BuildContext context) {
+                          return ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(25.0),
+                            ),
+                            child: Container(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              height: MediaQuery.of(context).size.height * 0.55,
+                              child: OverflowBox(
+                                alignment: Alignment.topCenter,
+                                maxHeight: MediaQuery.of(context).size.height,
+                                child: Column(
+                                  children: [
+                                    Expanded(
+                                      child: CandlesticksView(
+                                        ticker: asset.ticker,
+                                        name: asset.name,
+                                        controller: widget.controller,
+                                        iconPath: asset.icon,
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              );
-                            },
+                              ),
+                            ),
                           );
                         },
-                        child: Container(
-                          margin: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(20.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.white10
-                                    : Colors.black45,
-                                blurRadius: 5.0,
-                                spreadRadius: 2.0,
-                                offset: Offset(0, 0),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (asset.icon.isNotEmpty &&
-                                  asset.icon != "null" && 
-                                  !asset.icon.startsWith("http")) ...[
-                                Image.memory(base64Decode(asset.icon),
-                                    height: 55),
-                              ]
-                              else if (asset.icon.isNotEmpty &&
-                                  asset.icon.startsWith("http")) ...[
-                                  Image.network((asset.icon),
-                                       height: 55),
-                              ]
-                              else ...[
-                                Text(
-                                  Common()
-                                      .createTrendViewNameFromName(asset.name),
-                                  maxLines: 1,
-                                  style: GoogleFonts.roboto(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w100),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                              SizedBox(height: 10),
-                              Text(
-                                asset.name,
-                                maxLines: 1,
-                                style: GoogleFonts.montserrat(
-                                    fontSize: 14, fontWeight: FontWeight.w400),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
                       );
                     },
-                  ),
-                ),
-
+                    child: Container(
+                      margin: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(20.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white10
+                                : Colors.black45,
+                            blurRadius: 5.0,
+                            spreadRadius: 2.0,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(10.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (asset.icon.isNotEmpty &&
+                              asset.icon != "null" &&
+                              !asset.icon.startsWith("http")) ...[
+                            Image.memory(base64Decode(asset.icon), height: 55),
+                          ] else if (asset.icon.isNotEmpty &&
+                              asset.icon.startsWith("http")) ...[
+                            Image.network(asset.icon, height: 55),
+                          ] else ...[
+                            Text(
+                              Common().createTrendViewNameFromName(asset.name),
+                              maxLines: 1,
+                              style: GoogleFonts.roboto(
+                                  fontSize: 36, fontWeight: FontWeight.w100),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                          const SizedBox(height: 10),
+                          Text(
+                            asset.name,
+                            maxLines: 1,
+                            style: GoogleFonts.montserrat(
+                                fontSize: 14, fontWeight: FontWeight.w400),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
+          ),
+        ),
       ],
     );
   }

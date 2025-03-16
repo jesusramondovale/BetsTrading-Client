@@ -119,6 +119,7 @@ class _TopUsersPageState extends State<TopUsersPage>
               User user = users[index];
               return InkWell(
                 onTap: () {
+                  Common().vibrate(40,30);
                   popUserDialog(context, user);
                 },
                 child: Card(
@@ -218,6 +219,7 @@ class _TopUsersPageState extends State<TopUsersPage>
               User user = users[index];
               return InkWell(
                 onTap: () {
+                  Common().vibrate(40,30);
                   popUserDialog(context, user);
                 },
                 child: Card(

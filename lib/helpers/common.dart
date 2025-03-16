@@ -23,6 +23,7 @@ import 'dart:math';
 import 'package:image_picker/image_picker.dart';
 import '../config/config.dart';
 import 'package:http/http.dart' as http;
+import 'package:vibration/vibration.dart';
 
 
 class Common {
@@ -1020,6 +1021,12 @@ class Common {
       return 'null';
     }
   }
+  void vibrate(int miliseconds, int intensity) async {
+    if (await Vibration.hasVibrator()) {
+      Vibration.vibrate(duration: miliseconds, amplitude: intensity);
+    }
+  }
+
 }
 
 class BlankImageWidget extends StatelessWidget {

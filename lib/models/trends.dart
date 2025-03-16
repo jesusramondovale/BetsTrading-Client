@@ -289,7 +289,10 @@ class TrendContainerState extends State<TrendContainer> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => popTrendDialog(context,widget.trend,widget.index,widget.controller),
+          onTap: () => {
+            Common().vibrate(40,30),
+            popTrendDialog(context,widget.trend,widget.index,widget.controller)
+          },
           splashColor: Colors.white24,
           highlightColor: Colors.white12,
           borderRadius: BorderRadius.circular(8),
