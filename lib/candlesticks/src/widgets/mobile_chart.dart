@@ -208,7 +208,7 @@ class MobileChartState extends State<MobileChart> {
                     : widget.candles[min(
                         max(
                             (maxWidth - longPressX!) ~/ widget.candleWidth +
-                                widget.index,
+                                widget.index - 1,
                             0),
                         widget.candles.length - 1)];
 
