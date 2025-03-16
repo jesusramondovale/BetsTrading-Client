@@ -280,7 +280,9 @@ class FavoriteContainerState extends State<FavoriteContainer> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => popFavoritesDialog(context, widget.favorite, widget.controller),
+          onTap: () => {
+            Common().vibrate(40,30),
+            popFavoritesDialog(context, widget.favorite, widget.controller) },
           splashColor: Colors.white24,
           highlightColor: Colors.white12,
           borderRadius: BorderRadius.circular(8),

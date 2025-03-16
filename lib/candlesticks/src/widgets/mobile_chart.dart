@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../helpers/common.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../models/rectangle_zone.dart';
 import '../../../ui/bets_page.dart';
@@ -78,6 +79,7 @@ class MobileChartState extends State<MobileChart> {
   ScaleUpdateDetails lastDetails = ScaleUpdateDetails();
   int lastTimestamp = 0;
   bool firstVerticalDragOffset = true;
+  int? lastCandleIndex;
 
   @override
   void initState() {
@@ -203,6 +205,7 @@ class MobileChartState extends State<MobileChart> {
               duration:
                   Duration(milliseconds: manualScaleHigh == null ? 300 : 0),
               builder: (context, double low, _) {
+
                 final currentCandle = longPressX == null
                     ? null
                     : widget.candles[min(
@@ -534,6 +537,7 @@ class MobileChartState extends State<MobileChart> {
                           },
                           onLongPressStart: (LongPressStartDetails details) {
                             setState(() {
+                              Common().vibrate(40,30);
                               longPressX = details.localPosition.dx;
                               longPressY = details.localPosition.dy;
                             });
@@ -543,11 +547,23 @@ class MobileChartState extends State<MobileChart> {
                             longPressY = null;
                           },
                           behavior: HitTestBehavior.translucent,
-                          onLongPressMoveUpdate:
-                              (LongPressMoveUpdateDetails details) {
+                          onLongPressMoveUpdate: (LongPressMoveUpdateDetails details) {
                             setState(() {
                               longPressX = details.localPosition.dx;
                               longPressY = details.localPosition.dy;
+
+                              int currentCandleIndex = min(
+                                  max(
+                                      (maxWidth - longPressX!) ~/ widget.candleWidth + widget.index - 1,
+                                      0
+                                  ),
+                                  widget.candles.length - 1
+                              );
+
+                              if (currentCandleIndex != lastCandleIndex) {
+                                Common().vibrate(40, 30);
+                                lastCandleIndex = currentCandleIndex;
+                              }
                             });
                           },
                         ),

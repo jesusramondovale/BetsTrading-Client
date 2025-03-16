@@ -138,6 +138,7 @@ class RecentBetDialog extends StatelessWidget {
     return GestureDetector(
       key: key,
       onTap: () {
+        Common().vibrate(40,30);
         final renderBox = key.currentContext?.findRenderObject() as RenderBox;
         final position = renderBox.localToGlobal(Offset.zero);
         showPopup(context, infoText, position);
@@ -441,6 +442,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             children: [
               SlidableAction(
                 onPressed: (context) {
+                  Common().vibrate(40,30);
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
@@ -503,7 +505,9 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             onTap: () {
               (_showEditButtons)
                   ? _triggerBetButtons()
-                  : popBetDialog(context, widget.bet, widget.controller);
+                  :
+              Common().vibrate(40,30);
+              popBetDialog(context, widget.bet, widget.controller);
             },
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(10.0),

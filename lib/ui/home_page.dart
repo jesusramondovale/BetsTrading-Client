@@ -99,6 +99,7 @@ class HomeScreenState extends State<HomeScreen> {
                       ? Colors.grey
                       : Colors.black,
                   onPressed: () {
+                    Common().vibrate(40,30);
                     triggerFavorites();
                   },
                 ),
@@ -109,6 +110,7 @@ class HomeScreenState extends State<HomeScreen> {
                 IconButton(
                   padding: const EdgeInsets.all(2.5),
                   onPressed: () {
+                    Common().vibrate(40,30);
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => StorePage()),
@@ -311,6 +313,7 @@ class HomeScreenState extends State<HomeScreen> {
                 Spacer(),
                 IconButton(icon: Icon(Icons.auto_delete),
                     onPressed:  () async {
+                        Common().vibrate(40,30);
                         bool result = await BetsService().deleteHistoricBets(_userId);
                         if (result) {
                           Common().showLocalNotification("betting", "Betrader", LocalizedStrings.of(context)!.betsDeleted ?? "Bets deleted",
@@ -323,6 +326,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 IconButton(icon: Icon(Icons.autorenew_rounded),
                   onPressed: () async => {
+                  Common().vibrate(40,30),
                   await BetsService().getUserInfo(_userId),
                   loadUserIdAndData(),
                   setState(() {
