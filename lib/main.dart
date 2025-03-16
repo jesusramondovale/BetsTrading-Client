@@ -16,6 +16,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:betrader/Services/BetsService.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/services.dart';
 
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -37,13 +38,10 @@ Future<String> getFirebaseInstanceId() async {
 
 Future<void> main() async {
 
-
-
   WidgetsFlutterBinding.ensureInitialized();
 
   // Inicializa los datos de localización para fechas y otros formatos
   await initializeDateFormatting();
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FirebaseService().initFirebase();
 
@@ -62,6 +60,11 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
   await FirebaseService().initFirebase();
   MobileAds.instance.initialize();
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: [SystemUiOverlay.top],
+  );
+
   runApp(MyApp(isDarkTheme: isDark));
 }
 Future onDidReceiveLocalNotification(

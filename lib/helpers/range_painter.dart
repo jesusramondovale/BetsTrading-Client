@@ -17,6 +17,8 @@ class RangePainter extends CustomPainter {
   final double priceColumnWidth;
   final String noBetsText;
   final bool noIcon;
+  final bool darkTheme;
+
   RangePainter( {
     required this.zones,
     required this.candles,
@@ -28,10 +30,10 @@ class RangePainter extends CustomPainter {
     required this.priceColumnWidth,
     required this.noBetsText,
     required this.noIcon,
+    required this.darkTheme
   });
 
-  double dateToX(DateTime date, int index, double candleWidth,
-      DateTime lastCandleDate, Size size) {
+  double dateToX(DateTime date, int index, double candleWidth, DateTime lastCandleDate, Size size) {
     int daysFromLastCandle = date.difference(lastCandleDate).inDays;
     double startXForFuture =
         (size.width - priceColumnWidth) + (index * candleWidth);
@@ -56,7 +58,9 @@ class RangePainter extends CustomPainter {
       final textSpan = TextSpan(
         text: this.noBetsText,
         style: GoogleFonts.montserrat(
-            color: Colors.white,
+            color: darkTheme
+                ? Colors.white
+                : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w300),
       );
@@ -66,7 +70,7 @@ class RangePainter extends CustomPainter {
       );
       textPainter.layout(minWidth: 0, maxWidth: size.width);
       final double offsetX = (size.width - textPainter.width) / 2;
-      final double offsetY = size.height * (noIcon ? 0.12 : 0.25);
+      final double offsetY = size.height * (noIcon ? 0.12 : 0.3);
 
       textPainter.paint(canvas, Offset(offsetX , offsetY));
 
