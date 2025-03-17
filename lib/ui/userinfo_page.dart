@@ -74,7 +74,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
         if (response.statusCode == 200) {
           imageBytes = response.bodyBytes;
         } else {
-          print('Error al cargar la imagen de la red');
+          print('Error loading image from web');
           return;
         }
       } else {

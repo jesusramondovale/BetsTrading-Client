@@ -176,7 +176,18 @@ class MarketsViewState extends State<MarketsView>
                             Image.memory(base64Decode(asset.icon), height: 55),
                           ] else if (asset.icon.isNotEmpty &&
                               asset.icon.startsWith("http")) ...[
-                            Image.network(asset.icon, height: 55),
+                            Image.network(
+                                asset.icon,
+                                height: 55,
+                                errorBuilder: (context, error, StackTrace) =>
+                                    Text(
+                                      Common().createTrendViewNameFromName(asset.name),
+                                      maxLines: 1,
+                                      style: GoogleFonts.roboto(
+                                          fontSize: 36, fontWeight: FontWeight.w100),
+                                      textAlign: TextAlign.center,
+                                    ),
+                            ),
                           ] else ...[
                             Text(
                               Common().createTrendViewNameFromName(asset.name),

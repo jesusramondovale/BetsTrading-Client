@@ -172,6 +172,13 @@ class UserDialog extends StatelessWidget {
                                     height: 80,
                                     width: 80,
                                     fit: BoxFit.cover,
+                                    errorBuilder: (context, error, StackTrace) =>
+                                        Image.asset(
+                                          "assets/logo_simple.png",
+                                          height: 80,
+                                          width: 80,
+                                          fit: BoxFit.cover,
+                                        ),
                                   )
                                 : Image.memory(
                                     base64Decode(user.profilePic!),

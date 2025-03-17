@@ -44,6 +44,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   @override
   void initState() {
     super.initState();
+
     _betAmountFocusNode.addListener(() {
       if (_betAmountFocusNode.hasFocus) {
         _scrollController.animateTo(
@@ -94,10 +95,31 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         children: [
           // Imagen de fondo
           Positioned.fill(
-            child: Image.memory(
-              base64Decode(widget.iconPath),
-              fit: BoxFit.cover,
-            ),
+            child:
+            (widget.iconPath == "null")
+                ?
+              Image.asset(
+                'assets/logo_simple.png',
+                fit: BoxFit.cover,)
+                  :
+              ((widget.iconPath.startsWith("http")
+                  ?
+                Image.network(
+                  widget.iconPath,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, StackTrace) =>
+                      Image.asset(
+                        "assets/logo_simple.png",
+                        fit: BoxFit.cover,
+                      ),
+                )
+                    :
+                Image.memory(
+                  base64Decode(widget.iconPath),
+                  fit: BoxFit.cover,
+                )
+                )
+              )
           ),
           Positioned.fill(
             child: BackdropFilter(
@@ -350,8 +372,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
 
     FocusScope.of(context).unfocus();
-    bool? confirmed = await Common()
-        .popConfirmOperationDialog(context, _betAmount, widget.iconPath);
+
+    bool? confirmed = await Common().popConfirmOperationDialog(context, _betAmount, widget.iconPath);
     if (confirmed == true) {
       String? userId = await _storage.read(key: 'sessionToken');
       bool result = await BetsService().postNewBet(userId!, widget.zone.ticker,

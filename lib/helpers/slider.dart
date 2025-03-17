@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,19 +29,73 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
   @override
   void initState() {
     super.initState();
-    _loadImage(widget.icon);
+    if (widget.icon.startsWith("http")){
+      _loadImageFromUrl(widget.icon);
+    }
+    else if (widget.icon != "null"){
+      _loadImageFromBase64(widget.icon);
+    }
+    else {
+      _loadSimpleLogoImage();
+    }
   }
 
-  // Cargar la imagen a partir de base64
-  void _loadImage(String base64String) async {
+  void _loadSimpleLogoImage() async {
+    ByteData data = await rootBundle.load("assets/logo_simple.png");
+    Uint8List bytes = data.buffer.asUint8List();
+
+    final Completer<ui.Image> completer = Completer();
+    ui.decodeImageFromList(bytes, (ui.Image img) {
+      completer.complete(img);
+    });
+
+    _thumbImage = await completer.future;
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _loadImageFromUrl(String imageUrl) async {
+    try {
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode == 200) {
+        Uint8List bytes = response.bodyBytes;
+        final Completer<ui.Image> completer = Completer();
+        ui.decodeImageFromList(bytes, (ui.Image img) {
+          completer.complete(img);
+        });
+
+        _thumbImage = await completer.future;
+
+        if (mounted) {
+          setState(() {});
+        }
+      } else {
+        print("Error loading slider image: ${response.statusCode}");
+        _loadSimpleLogoImage();
+      }
+    } catch (e) {
+      print("Excepción al cargar la imagen: $e");
+      _loadSimpleLogoImage();
+    }
+  }
+
+  void _loadImageFromBase64(String base64String) async {
     Uint8List bytes = base64Decode(base64String);
     final Completer<ui.Image> completer = Completer();
     ui.decodeImageFromList(bytes, (ui.Image img) {
       completer.complete(img);
     });
+
     _thumbImage = await completer.future;
-    setState(() {});
+
+    if (mounted) {
+      setState(() {});
+    }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
