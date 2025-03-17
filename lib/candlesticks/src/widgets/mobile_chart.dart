@@ -234,6 +234,13 @@ class MobileChartState extends State<MobileChart> {
                                 height: 120,
                                 width: 120,
                                 gaplessPlayback: true,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset(
+                                      "assets/logo_simple.png",
+                                      height: 120,
+                                      width: 120,
+                                      gaplessPlayback: true,
+                                ),
                               )
                             ]
                             else if (widget.iconPath.startsWith("http"))... [
@@ -241,10 +248,15 @@ class MobileChartState extends State<MobileChart> {
                                 height: 120,
                                 width: 120,
                                 gaplessPlayback: true,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset(
+                                      "assets/logo_simple.png",
+                                      height: 120,
+                                      width: 120,
+                                      gaplessPlayback: true,
+                                    )
                               )
-
                             ]
-
                             else ...[
                               Text(
                                 widget.chartTitle.length > 15
