@@ -1022,11 +1022,16 @@ class Common {
     }
   }
   void vibrate(int miliseconds, int intensity) async {
-    if (await Vibration.hasVibrator()) {
+    final prefs = await SharedPreferences.getInstance();
+    bool vibrationOn = prefs.getBool('enableVibration') ?? false;
+    if (await Vibration.hasVibrator() && vibrationOn) {
       Vibration.vibrate(duration: miliseconds, amplitude: intensity);
     }
   }
-
+  Future<void> savePreference(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
 }
 
 class BlankImageWidget extends StatelessWidget {

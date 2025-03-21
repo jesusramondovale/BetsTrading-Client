@@ -6,6 +6,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'common.dart';
+
 class SlideToConfirm extends StatefulWidget {
   final double betAmount;
   final String icon;
@@ -76,7 +78,7 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
         _loadSimpleLogoImage();
       }
     } catch (e) {
-      print("Excepción al cargar la imagen: $e");
+      print("Exception loading imamge on custom slider: $e");
       _loadSimpleLogoImage();
     }
   }
@@ -134,8 +136,11 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                   inactiveTrackColor: Colors.green[700]?.withAlpha(128),
                 ),
                 child: Slider(
+                  divisions: 50,
                   value: _sliderValue,
                   onChanged: (value) {
+                    int intensity = (10 + (95 * value)).round();
+                    Common().vibrate(40,intensity);
                     setState(() {
                       _sliderValue = value;
                     });
@@ -146,6 +151,7 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                     } else {
                       // Si no llega al final, vuelve a 0
                       setState(() {
+                        Common().vibrate(40,50);
                         _sliderValue = 0.0;
                       });
                     }

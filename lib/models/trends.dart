@@ -107,6 +107,14 @@ class TrendDialog extends StatelessWidget {
                               base64Decode(trend.icon),
                               height: 160,
                               width: 160,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Text(
+                                    trend.name,
+                                    maxLines: 1,
+                                    style: GoogleFonts.roboto(
+                                        fontSize: 36, fontWeight: FontWeight.w100),
+                                    textAlign: TextAlign.center,
+                                  ),
                             )
                           ] else ...[
                             AutoSizeText(
@@ -339,6 +347,14 @@ class TrendContainerState extends State<TrendContainer> {
                           base64Decode(widget.trend.icon),
                           height: 42,
                           width: 42,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Text(
+                                widget.trend.name,
+                                maxLines: 1,
+                                style: GoogleFonts.roboto(
+                                    fontSize: 36, fontWeight: FontWeight.w100),
+                                textAlign: TextAlign.center,
+                              ),
                         )
                       ] else ...[
                         AutoSizeText(
