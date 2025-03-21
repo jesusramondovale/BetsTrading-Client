@@ -55,7 +55,7 @@ class NotificationsPageState extends State<NotificationsPage> {
             value: _enableNotifications,
             onChanged: (bool value) {
               setState(() => _enableNotifications = value);
-              _savePreference('enableNotifications', value);
+              Common().savePreference('enableNotifications', value);
             },
           ),
           SwitchListTile(
@@ -70,7 +70,7 @@ class NotificationsPageState extends State<NotificationsPage> {
             onChanged: (bool value) {
               if (_enableNotifications){
                 setState(() => _trendingNotifications = value);
-                _savePreference('trendingNotifications', value);
+                Common().savePreference('trendingNotifications', value);
               }
             },
           ),
@@ -86,7 +86,7 @@ class NotificationsPageState extends State<NotificationsPage> {
             onChanged: (bool value) {
               if (_enableNotifications){
                 setState(() => _bettingNotifications = value);
-                _savePreference('bettingNotifications', value);
+                Common().savePreference('bettingNotifications', value);
               }
             },
           ),
@@ -102,7 +102,7 @@ class NotificationsPageState extends State<NotificationsPage> {
             onChanged: (bool value) {
               if (_enableNotifications){
                 setState(() => _newsNotifications = value);
-                _savePreference('newsNotifications', value);
+                Common().savePreference('newsNotifications', value);
               }
             },
           ),
@@ -148,8 +148,5 @@ class NotificationsPageState extends State<NotificationsPage> {
     });
   }
 
-  Future<void> _savePreference(String key, bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value);
-  }
+
 }

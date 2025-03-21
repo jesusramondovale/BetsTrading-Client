@@ -101,6 +101,14 @@ class FavoriteDialog extends StatelessWidget {
                               base64Decode(favorite.icon),
                               height: 100,
                               width: 100,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Text(
+                                    favorite.name,
+                                    maxLines: 1,
+                                    style: GoogleFonts.roboto(
+                                        fontSize: 36, fontWeight: FontWeight.w100),
+                                    textAlign: TextAlign.center,
+                                  ),
                             )
                           ]
                           else ... [
@@ -325,6 +333,14 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                           base64Decode(widget.favorite.icon),
                           height: 40,
                           width: 40,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Text(
+                                widget.favorite.name,
+                                maxLines: 1,
+                                style: GoogleFonts.roboto(
+                                    fontSize: 36, fontWeight: FontWeight.w100),
+                                textAlign: TextAlign.center,
+                              ),
                         )
                       ]
                       else ... [

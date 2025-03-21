@@ -157,8 +157,10 @@ class _StorePageState extends State<StorePage> {
             SizedBox(height: 10),
             ElevatedButton.icon(
               onPressed: _isAdLoaded
-                  ? () =>_showRewardedAd(50, _interpolate(strings.getMessage('youWonCoins') ?? 'You won 50฿!', {
-                                         'coins': 50.toString(), }))
+                  ? () {  Common().vibrate(40, 30);
+                          _showRewardedAd(50, _interpolate(strings.getMessage('youWonCoins') ?? 'You won 50฿!', {
+                           'coins': 50.toString(), }));
+                        }
                   : null,
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),

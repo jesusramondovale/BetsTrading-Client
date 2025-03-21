@@ -25,6 +25,7 @@ class SettingsView extends StatefulWidget {
 class SettingsViewState extends State<SettingsView> {
 
   bool isDark = true;
+  bool enableVibration = true;
   @override
   void initState() {
     super.initState();
@@ -182,8 +183,10 @@ class SettingsViewState extends State<SettingsView> {
                   fontWeight: FontWeight.w400,
                 ),),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () async =>
+              onTap: () async => {
+                  Common().vibrate(40,40),
                   showChangePasswordDialog(context, await _storage.read(key: "sessionToken") ?? "none")
+              }
             ),
             ListTile(
               title: Text(strings?.notifications ?? 'Notifications',
@@ -192,7 +195,11 @@ class SettingsViewState extends State<SettingsView> {
                   fontWeight: FontWeight.w400,
                 ),),
               trailing: const Icon(Icons.chevron_right),
-              onTap: widget.onShowNotifications,
+              onTap: () =>
+              {
+                Common().vibrate(40,40),
+                widget.onShowNotifications,
+              }
             ),
             ListTile(
               title:  Text(strings?.paymentHistory ?? 'Payment history',
@@ -202,7 +209,10 @@ class SettingsViewState extends State<SettingsView> {
                 ),),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
-                  Common().unimplementedAction(context , '(Payment history)'),
+              {
+                Common().vibrate(40,40),
+                Common().unimplementedAction(context, '(Payment history)'),
+              }
             ),
             ListTile(
               title: Text(strings?.aboutUs ?? 'About us',
@@ -211,13 +221,32 @@ class SettingsViewState extends State<SettingsView> {
                   fontWeight: FontWeight.w400,
                 ),),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () =>
+              onTap: () => {
+                  Common().vibrate(40,40),
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const AboutUsPage()),
-                  ),
+                  )
+              },
             ),
-
+            SwitchListTile(
+              title: Text(strings?.enableVibration ?? "Enable vibration",
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                ),),
+              value: enableVibration,
+              inactiveThumbColor: Colors.black,
+              inactiveTrackColor: Colors.grey,
+              onChanged: (bool value) async {
+                Common().vibrate(40,40);
+                await _saveThemePreference(value);
+                setState(() {
+                  enableVibration = value;
+                  Common().savePreference('enableVibration', value);
+                });
+              },
+            ),
             SwitchListTile(
               title: Text(strings?.darkMode ?? "Dark mode",
                 style: GoogleFonts.montserrat(
@@ -228,6 +257,7 @@ class SettingsViewState extends State<SettingsView> {
               inactiveThumbColor: Colors.black,
               inactiveTrackColor: Colors.grey,
               onChanged: (bool value) async {
+                Common().vibrate(40,40);
                 await _saveThemePreference(value);
                 setState(() {
                   isDark = value;

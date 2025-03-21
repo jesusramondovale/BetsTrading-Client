@@ -13,6 +13,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'enableVibration': 'Enable vibration',
       'newsNotifications': 'News notifications',
       'advancedSettings': 'Advanced app settings',
       'enableNotifications': 'Enable notifications',
@@ -183,6 +184,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'enableVibration': 'Activar vibración',
       'newsNotifications': 'Notificaciones de novedades',
       'advancedSettings': 'Ajustes de app avanzados',
       'enableNotifications': 'Permitir notificaciones',
@@ -353,6 +355,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'enableVibration': 'Activer la vibration',
       'newsNotifications': 'Notifications de nouveautés',
       'advancedSettings': 'Paramètres avancés du app',
       'enableNotifications': 'Autoriser les notifications',
@@ -524,6 +527,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'enableVibration': 'Attiva vibrazione',
       'newsNotifications': 'Notifiche di novità',
       'advancedSettings': 'Impostazioni avanzate di app',
       'enableNotifications': 'Abilita le notifiche',
@@ -696,6 +700,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'enableVibration': 'Vibration aktivieren',
       'newsNotifications': 'Benachrichtigungen über Neuigkeiten',
       'advancedSettings': 'Erweiterte Einstellungen',
       'enableNotifications': 'Benachrichtigungen aktivieren',
@@ -1065,6 +1070,7 @@ class LocalizedStrings {
   String? get bettingNotifications =>_localizedValues[locale.languageCode]?['bettingNotifications'];
   String? get advancedSettings =>_localizedValues[locale.languageCode]?['advancedSettings'];
   String? get newsNotifications =>_localizedValues[locale.languageCode]?['newsNotifications'];
+  String? get enableVibration =>_localizedValues[locale.languageCode]?['enableVibration'];
 
 
   String? getMessage(String key) {

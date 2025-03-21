@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart'; // Necesario para DateFormat
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../models/rectangle_zone.dart';
@@ -117,6 +117,14 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
                 Image.memory(
                   base64Decode(widget.iconPath),
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Text(
+                        widget.name,
+                        maxLines: 1,
+                        style: GoogleFonts.roboto(
+                            fontSize: 36, fontWeight: FontWeight.w100),
+                        textAlign: TextAlign.center,
+                      ),
                 )
                 )
               )
@@ -368,6 +376,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   }
 
   Future<void> _onAccept(int betZone) async {
+    Common().vibrate(40, 30);
     final prefs = await SharedPreferences.getInstance();
     bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
 
@@ -412,6 +421,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   }
 
   void _handleAcceptPressed(int betZone) {
+    Common().vibrate(200, 70);
     if (!_isAcceptButtonEnabled) {
       _betAmountFocusNode.requestFocus();
       setState(() {});

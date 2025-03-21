@@ -228,33 +228,35 @@ class MobileChartState extends State<MobileChart> {
                           children: [
                             SizedBox(height: 10),
                             if (widget.iconPath != "null" &&
-                                !widget.iconPath.startsWith("http")) ...[
+                                !widget.iconPath.contains("http")) ...[
                               Image.memory(
                                 base64Decode(widget.iconPath),
                                 height: 120,
                                 width: 120,
                                 gaplessPlayback: true,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    Image.asset(
-                                      "assets/logo_simple.png",
-                                      height: 120,
-                                      width: 120,
-                                      gaplessPlayback: true,
-                                ),
+                                    Text(
+                                      widget.chartTitle,
+                                      maxLines: 1,
+                                      style: GoogleFonts.roboto(
+                                          fontSize: 36, fontWeight: FontWeight.w100),
+                                      textAlign: TextAlign.center,
+                                    ),
                               )
                             ]
-                            else if (widget.iconPath.startsWith("http"))... [
+                            else if (widget.iconPath.contains("http"))... [
                               Image.network(widget.iconPath,
                                 height: 120,
                                 width: 120,
                                 gaplessPlayback: true,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    Image.asset(
-                                      "assets/logo_simple.png",
-                                      height: 120,
-                                      width: 120,
-                                      gaplessPlayback: true,
-                                    )
+                                    Text(
+                                      widget.chartTitle,
+                                      maxLines: 1,
+                                      style: GoogleFonts.roboto(
+                                          fontSize: 36, fontWeight: FontWeight.w100),
+                                      textAlign: TextAlign.center,
+                                    ),
                               )
                             ]
                             else ...[
@@ -640,6 +642,7 @@ class MobileChartState extends State<MobileChart> {
                                   details.localPosition.dy, size);
 
                           if (zoneClicked != null && !widget.inactiveZone) {
+                            Common().vibrate(40,40);
                             Navigator.push(
                               context,
                               PageRouteBuilder(
@@ -651,6 +654,7 @@ class MobileChartState extends State<MobileChart> {
                                   currentValue: widget.candles.first.close,
                                   iconPath: widget.iconPath,
                                   onCancel: () {
+                                    Common().vibrate(40,30);
                                     Navigator.pop(context);
                                   },
                                 ),

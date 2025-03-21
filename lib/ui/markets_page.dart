@@ -172,10 +172,18 @@ class MarketsViewState extends State<MarketsView>
                         children: [
                           if (asset.icon.isNotEmpty &&
                               asset.icon != "null" &&
-                              !asset.icon.startsWith("http")) ...[
-                            Image.memory(base64Decode(asset.icon), height: 55),
+                              !asset.icon.contains("http")) ...[
+                            Image.memory(base64Decode(asset.icon), height: 55,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Text(
+                                    asset.name,
+                                    maxLines: 1,
+                                    style: GoogleFonts.roboto(
+                                        fontSize: 36, fontWeight: FontWeight.w100),
+                                    textAlign: TextAlign.center,
+                                  ),),
                           ] else if (asset.icon.isNotEmpty &&
-                              asset.icon.startsWith("http")) ...[
+                              asset.icon.contains("http")) ...[
                             Image.network(
                                 asset.icon,
                                 height: 55,
