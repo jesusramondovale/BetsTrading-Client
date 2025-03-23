@@ -110,6 +110,7 @@ class MainMenuPageState extends State<MainMenuPage> {
   }
 
   void _showNotifications() {
+    Common().vibrate(40,30);
     setState(() {
       _showNotificationsPage = true;
     });

@@ -195,11 +195,8 @@ class SettingsViewState extends State<SettingsView> {
                   fontWeight: FontWeight.w400,
                 ),),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () =>
-              {
-                Common().vibrate(40,40),
-                widget.onShowNotifications,
-              }
+              onTap: widget.onShowNotifications
+
             ),
             ListTile(
               title:  Text(strings?.paymentHistory ?? 'Payment history',
