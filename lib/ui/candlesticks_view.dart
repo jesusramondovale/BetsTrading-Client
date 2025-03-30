@@ -99,7 +99,16 @@ class CandlesticksViewState extends State<CandlesticksView> {
                           top: 10.0,
                           left: 10.0,
                           child: IconButton(
-                            icon: Icon(Icons.arrow_back), // Ícono de ejemplo
+                            icon: Icon(
+                                Icons.arrow_back,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 3.0,
+                                  color: Colors.black45,
+                                  offset: Offset(2.5, 2.5),
+                                ),
+                              ],
+                            ), // Ícono de ejemplo
                             onPressed: () {
                               Navigator.pop(context);
                             },
