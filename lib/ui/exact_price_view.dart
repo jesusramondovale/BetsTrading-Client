@@ -5,19 +5,23 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import '../Services/BetsService.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
+import 'layout_page.dart';
 
 class ExactPricePage extends StatefulWidget {
   final double currentValue;
   final String iconPath;
+  final String ticker;
   final String name;
 
   const ExactPricePage({
     super.key,
     required this.name,
     required this.currentValue,
+    required this.ticker,
     required this.iconPath,
   });
 
@@ -27,6 +31,7 @@ class ExactPricePage extends StatefulWidget {
 
 class _ExactPricePageState extends State<ExactPricePage> {
   double _selectedPrice = 0.0;
+  DateTime _selectedDate = DateTime.now();
   Timer? _holdTimer;
   DateTime? _holdStart;
   String _selectedMargin = "0%";
@@ -64,6 +69,23 @@ class _ExactPricePageState extends State<ExactPricePage> {
         return 1500;
       default:
         return 0;
+    }
+  }
+
+  double _getMarginAsDouble(String margin) {
+    switch (margin) {
+      case "0%":
+        return 0.0;
+      case "1%":
+        return 0.01;
+      case "5%":
+        return 0.05;
+      case "7.5%":
+        return 0.075;
+      case "10%":
+        return 0.1;
+      default:
+        return 0.0;
     }
   }
 
@@ -146,9 +168,61 @@ class _ExactPricePageState extends State<ExactPricePage> {
           Expanded(
             child: ElevatedButton.icon(
               onPressed: isEnabled
-                  ? () {
+                  ? () async {
                       Common().vibrate(40, 30);
-                      // TODO: call new PriceBet HTPP POST
+                      //TODO
+                      final prefs = await SharedPreferences.getInstance();
+                      bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
+
+                      FocusScope.of(context).unfocus();
+
+                      bool? confirmed = await Common().popConfirmOperationDialog(context,  _getBetAmountFromMargin(_selectedMargin).toDouble(), widget.iconPath);
+                      if (confirmed == true) {
+                        String? userId = await _storage.read(key: 'sessionToken');
+                        int result = await BetsService().postNewExactPriceBet(userId!, widget.ticker, _selectedPrice,
+                            _getMarginAsDouble(_selectedMargin), _selectedDate);
+
+                        if (result == 200) {
+                          if (_bettingNotifications) {
+                            Common().showLocalNotification(
+                                "betting",
+                                "Betrader",
+                                (LocalizedStrings.of(context)!.betPlacedSuccessfully != null
+                                    ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}฿)"
+                                    : "Bet placed successfully! (${_getBetAmountFromMargin(_selectedMargin)}฿)"),
+                                {"TICKER": widget.ticker, "BET_AMOUNT": _getBetAmountFromMargin(_selectedMargin)});
+                          }
+
+                          await BetsService().getUserInfo(userId);
+
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                          homeScreenKey.currentState?.loadUserIdAndData();
+                        }
+                        else if (result == 410){
+                          Common().showLocalNotification(
+                              "betting",
+                              "Error",
+                              (LocalizedStrings.of(context)!.errorMakingBet ??
+                                  "Error creating price bet!") + " (NO TIME)",
+                              {"ERROR_CODE": "BET-ERR-NOT-ENOUGH-TIMEE"});
+
+                        }
+                        else {
+                          if (_bettingNotifications) {
+                            Common().showLocalNotification(
+                                "betting",
+                                "Error",
+                                (LocalizedStrings.of(context)!.errorMakingBet ??
+                                    "Error creating price bet!"),
+                                {"ERROR_CODE": "BET-ERR-002"});
+                          }
+
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        }
+                      }
+
                     }
                   : () {
                       Common().vibrate(450, 80);
@@ -310,6 +384,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                         DateTime minDate =
                             DateTime.now().add(const Duration(days: 3));
                         DateTime selectedDate = minDate;
+                        _selectedDate = minDate;
 
                         return StatefulBuilder(
                           builder: (context, setStateDate) {
@@ -339,6 +414,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                 if (pickedDate != null) {
                                   setStateDate(() {
                                     selectedDate = pickedDate;
+                                    _selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
                                   });
                                 }
                               },

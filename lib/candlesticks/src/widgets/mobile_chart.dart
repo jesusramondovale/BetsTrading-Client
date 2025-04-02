@@ -39,6 +39,7 @@ class MobileChart extends StatefulWidget {
   final Function() onReachEnd;
   final List<RectangleZone> rectangleZones;
   final String chartTitle;
+  final String ticker;
   final String iconPath;
   final bool inactiveZone;
 
@@ -58,6 +59,7 @@ class MobileChart extends StatefulWidget {
     required this.onRemoveIndicator,
     required this.rectangleZones,
     required this.chartTitle,
+    required this.ticker,
     required this.iconPath,
     required this.inactiveZone,
   });
@@ -702,6 +704,7 @@ class MobileChartState extends State<MobileChart> {
                                 MaterialPageRoute(
                                   builder: (context) => ExactPricePage(
                                     name: widget.chartTitle,
+                                    ticker: widget.ticker,
                                     currentValue: widget.candles.first.close,
                                     iconPath: widget.iconPath,
                                   ),

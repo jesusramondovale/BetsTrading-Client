@@ -308,7 +308,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Text(
-              strings?.enterBetAmount ?? 'Enter Bet Amount',
+              strings?.enterBetAmount ?? 'Bet Amount',
               style:
                   GoogleFonts.montserrat(fontSize: 20.0, color: Colors.white),
             ),
@@ -396,7 +396,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               (LocalizedStrings.of(context)!.betPlacedSuccessfully != null
                   ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}฿)"
                   : "Bet placed successfully! (${_betAmount}฿)"),
-              {"TICKER": widget.zone.ticker, "BET_AMOMUNT": _betAmount});
+              {"TICKER": widget.zone.ticker, "BET_AMOUNT": _betAmount});
         }
 
         await BetsService().getUserInfo(userId);
@@ -411,7 +411,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               "Error",
               (LocalizedStrings.of(context)!.errorMakingBet ??
                   "Error creating bet!"),
-              {"ERROR_CODE": "00000001"});
+              {"ERROR_CODE": "BET-ERR-001"});
         }
 
         Navigator.pop(context);

@@ -92,6 +92,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                             inactiveZone: _inactive_zone,
                             controller: widget.controller,
                             chartTitle: widget.name,
+                            ticker: widget.ticker,
                             iconPath: widget.iconPath,
                             extraDays: Common().daysUntilLatestEndDate(_zones),
                           ),

@@ -26,7 +26,7 @@ class Candlesticks extends StatefulWidget {
   /// The arrangement of the array should be such that
   /// the newest item is in position 0
   final List<Candle> candles;
-
+  final String ticker;
   final MainMenuPageController controller;
 
   /// This callback calls when the last candle gets visible
@@ -67,6 +67,7 @@ class Candlesticks extends StatefulWidget {
 
   Candlesticks({
     super.key,
+    required this.ticker,
     required this.candles,
     this.onLoadMoreCandles,
     this.actions = const [],
@@ -97,7 +98,7 @@ class CandlesticksState extends State<Candlesticks> {
   int index = indexMarginRight;
   double lastX = 0;
   int lastIndex = indexMarginRight;
-
+  String ticker = "";
   /// candleWidth controls the width of the single candles.
   ///  range: [2...10]
   double candleWidth = 6;
@@ -263,6 +264,7 @@ class CandlesticksState extends State<Candlesticks> {
                 } else {
                   return MobileChart(
                       style: style,
+                      ticker: widget.ticker,
                       onRemoveIndicator: widget.onRemoveIndicator,
                       mainWindowDataContainer: mainWindowDataContainer!,
                       chartAdjust: widget.chartAdjust,
