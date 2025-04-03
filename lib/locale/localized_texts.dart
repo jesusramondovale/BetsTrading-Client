@@ -13,6 +13,11 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'atDate': 'At date',
+      'exactClosingValue': 'Exact closing value: ',
+      'nowLabel': 'Now:',
+      'betAlreadyExists': 'Bet already exists!',
+      'betErrorPoints': 'Not enough points',
       'enableVibration': 'Enable vibration',
       'newsNotifications': 'News notifications',
       'advancedSettings': 'Advanced app settings',
@@ -184,6 +189,11 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'atDate': 'A fecha',
+      'exactClosingValue': 'Valor exacto de cierre',
+      'nowLabel': 'Ahora:',
+      'betAlreadyExists': 'Apuesta ya existente!',
+      'betErrorPoints': 'Puntos insuficientes',
       'enableVibration': 'Activar vibración',
       'newsNotifications': 'Notificaciones de novedades',
       'advancedSettings': 'Ajustes de app avanzados',
@@ -355,6 +365,11 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'atDate': 'À la date',
+      'exactClosingValue': 'Valeur de clôture à la date',
+      'nowLabel': 'Maintenant :',
+      'betAlreadyExists': 'Pari déjà existant!',
+      'betErrorPoints': 'Points insuffisants',
       'enableVibration': 'Activer la vibration',
       'newsNotifications': 'Notifications de nouveautés',
       'advancedSettings': 'Paramètres avancés du app',
@@ -527,6 +542,11 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'atDate': 'Alla data',
+      'exactClosingValue': 'Valore di chiusura alla data',
+      'nowLabel': 'Adesso:',
+      'betAlreadyExists': 'Scommessa già esistente!',
+      'betErrorPoints': 'Punti insufficienti',
       'enableVibration': 'Attiva vibrazione',
       'newsNotifications': 'Notifiche di novità',
       'advancedSettings': 'Impostazioni avanzate di app',
@@ -700,6 +720,11 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'atDate': 'Zum datum',
+      'exactClosingValue': 'Schlusswert zum Datum',
+      'nowLabel': 'Jetzt:',
+      'betAlreadyExists': 'Wette existiert bereits!',
+      'betErrorPoints': 'Nicht genügend Punkte',
       'enableVibration': 'Vibration aktivieren',
       'newsNotifications': 'Benachrichtigungen über Neuigkeiten',
       'advancedSettings': 'Erweiterte Einstellungen',
@@ -1071,6 +1096,11 @@ class LocalizedStrings {
   String? get advancedSettings =>_localizedValues[locale.languageCode]?['advancedSettings'];
   String? get newsNotifications =>_localizedValues[locale.languageCode]?['newsNotifications'];
   String? get enableVibration =>_localizedValues[locale.languageCode]?['enableVibration'];
+  String? get betErrorPoints =>_localizedValues[locale.languageCode]?['betErrorPoints'];
+  String? get betAlreadyExists =>_localizedValues[locale.languageCode]?['betAlreadyExists'];
+  String? get nowLabel =>_localizedValues[locale.languageCode]?['nowLabel'];
+  String? get exactClosingValue =>_localizedValues[locale.languageCode]?['exactClosingValue'];
+  String? get atDate =>_localizedValues[locale.languageCode]?['atDate'];
 
 
   String? getMessage(String key) {
