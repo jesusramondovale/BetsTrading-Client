@@ -84,6 +84,21 @@ class BetsService {
     return response['statusCode'] == 200;
   }
 
+  Future<int> postNewExactPriceBet(String userId, String ticker, double priceBet,
+      double margin, DateTime endDate) async {
+
+    final Map<String, dynamic> data = {
+      'user_id': userId,
+      'ticker': ticker,
+      'price_bet': priceBet,
+      'margin': margin,
+      'end_date': endDate.toIso8601String()
+    };
+    final response = await Common().postRequestWrapper('Bet', 'NewPriceBet', data);
+
+    return response['statusCode'];
+  }
+
   Future<bool> postNewFavorite(String userId, String ticker) async {
     final response = await Common().postRequestWrapper(
         'Info', 'NewFavorite', {'user_id': userId, 'ticker': ticker});

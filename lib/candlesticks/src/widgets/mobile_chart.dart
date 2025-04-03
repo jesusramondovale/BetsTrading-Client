@@ -6,6 +6,7 @@ import '../../../helpers/common.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../models/rectangle_zone.dart';
 import '../../../ui/bets_page.dart';
+import '../../../ui/exact_price_view.dart';
 import '../../candlesticks.dart';
 import '../constant/view_constants.dart';
 import '../models/main_window_indicator.dart';
@@ -24,7 +25,6 @@ import 'dash_line.dart';
 /// Updates right-hand side numbers.
 /// And pass values down to [CandleStickWidget].
 class MobileChart extends StatefulWidget {
-
   final Function onScaleUpdate;
   final Function onHorizontalDragUpdate;
   final double candleWidth;
@@ -39,12 +39,12 @@ class MobileChart extends StatefulWidget {
   final Function() onReachEnd;
   final List<RectangleZone> rectangleZones;
   final String chartTitle;
+  final String ticker;
   final String iconPath;
   final bool inactiveZone;
 
   const MobileChart({
     super.key,
-
     required this.style,
     required this.onScaleUpdate,
     required this.onHorizontalDragUpdate,
@@ -59,9 +59,10 @@ class MobileChart extends StatefulWidget {
     required this.onRemoveIndicator,
     required this.rectangleZones,
     required this.chartTitle,
+    required this.ticker,
     required this.iconPath,
     required this.inactiveZone,
-      });
+  });
 
   @override
   State<MobileChart> createState() => MobileChartState();
@@ -117,7 +118,6 @@ class MobileChartState extends State<MobileChart> {
       offsetY = 0.0;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -205,13 +205,13 @@ class MobileChartState extends State<MobileChart> {
               duration:
                   Duration(milliseconds: manualScaleHigh == null ? 300 : 0),
               builder: (context, double low, _) {
-
                 final currentCandle = longPressX == null
                     ? null
                     : widget.candles[min(
                         max(
                             (maxWidth - longPressX!) ~/ widget.candleWidth +
-                                widget.index - 1,
+                                widget.index -
+                                1,
                             0),
                         widget.candles.length - 1)];
 
@@ -236,30 +236,31 @@ class MobileChartState extends State<MobileChart> {
                                 gaplessPlayback: true,
                                 errorBuilder: (context, error, stackTrace) =>
                                     Text(
-                                      widget.chartTitle,
-                                      maxLines: 1,
-                                      style: GoogleFonts.roboto(
-                                          fontSize: 36, fontWeight: FontWeight.w100),
-                                      textAlign: TextAlign.center,
-                                    ),
+                                  widget.chartTitle,
+                                  maxLines: 1,
+                                  style: GoogleFonts.roboto(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w100),
+                                  textAlign: TextAlign.center,
+                                ),
                               )
-                            ]
-                            else if (widget.iconPath.contains("http"))... [
-                              Image.network(widget.iconPath,
+                            ] else if (widget.iconPath.contains("http")) ...[
+                              Image.network(
+                                widget.iconPath,
                                 height: 120,
                                 width: 120,
                                 gaplessPlayback: true,
                                 errorBuilder: (context, error, stackTrace) =>
                                     Text(
-                                      widget.chartTitle,
-                                      maxLines: 1,
-                                      style: GoogleFonts.roboto(
-                                          fontSize: 36, fontWeight: FontWeight.w100),
-                                      textAlign: TextAlign.center,
-                                    ),
+                                  widget.chartTitle,
+                                  maxLines: 1,
+                                  style: GoogleFonts.roboto(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w100),
+                                  textAlign: TextAlign.center,
+                                ),
                               )
-                            ]
-                            else ...[
+                            ] else ...[
                               Text(
                                 widget.chartTitle.length > 15
                                     ? widget.chartTitle.substring(0, 15) + '...'
@@ -307,9 +308,9 @@ class MobileChartState extends State<MobileChart> {
                                         priceColumnWidth: PRICE_BAR_WIDTH,
                                         noBetsText: noBetsText,
                                         noIcon: widget.iconPath == "null",
-                                        darkTheme: Theme.of(context).brightness == Brightness.dark
-                                    ),
-
+                                        darkTheme:
+                                            Theme.of(context).brightness ==
+                                                Brightness.dark),
                                   ),
                                 ),
                                 PriceColumn(
@@ -551,7 +552,7 @@ class MobileChartState extends State<MobileChart> {
                           },
                           onLongPressStart: (LongPressStartDetails details) {
                             setState(() {
-                              Common().vibrate(40,30);
+                              Common().vibrate(40, 30);
                               longPressX = details.localPosition.dx;
                               longPressY = details.localPosition.dy;
                             });
@@ -561,18 +562,20 @@ class MobileChartState extends State<MobileChart> {
                             longPressY = null;
                           },
                           behavior: HitTestBehavior.translucent,
-                          onLongPressMoveUpdate: (LongPressMoveUpdateDetails details) {
+                          onLongPressMoveUpdate:
+                              (LongPressMoveUpdateDetails details) {
                             setState(() {
                               longPressX = details.localPosition.dx;
                               longPressY = details.localPosition.dy;
 
                               int currentCandleIndex = min(
                                   max(
-                                      (maxWidth - longPressX!) ~/ widget.candleWidth + widget.index - 1,
-                                      0
-                                  ),
-                                  widget.candles.length - 1
-                              );
+                                      (maxWidth - longPressX!) ~/
+                                              widget.candleWidth +
+                                          widget.index -
+                                          1,
+                                      0),
+                                  widget.candles.length - 1);
 
                               if (currentCandleIndex != lastCandleIndex) {
                                 Common().vibrate(40, 30);
@@ -636,13 +639,13 @@ class MobileChartState extends State<MobileChart> {
                                   priceColumnWidth: PRICE_BAR_WIDTH,
                                   noBetsText: noBetsText,
                                   noIcon: widget.iconPath == "null",
-                                  darkTheme: Theme.of(context).brightness == Brightness.dark
-                                  )
+                                  darkTheme: Theme.of(context).brightness ==
+                                      Brightness.dark)
                               .hit(details.localPosition.dx,
                                   details.localPosition.dy, size);
 
                           if (zoneClicked != null && !widget.inactiveZone) {
-                            Common().vibrate(40,40);
+                            Common().vibrate(40, 40);
                             Navigator.push(
                               context,
                               PageRouteBuilder(
@@ -654,7 +657,7 @@ class MobileChartState extends State<MobileChart> {
                                   currentValue: widget.candles.first.close,
                                   iconPath: widget.iconPath,
                                   onCancel: () {
-                                    Common().vibrate(40,30);
+                                    Common().vibrate(40, 30);
                                     Navigator.pop(context);
                                   },
                                 ),
@@ -671,16 +674,44 @@ class MobileChartState extends State<MobileChart> {
                         },
                       ),
                       Positioned(
-                        top: 10.0,
-                        right: 10.0,
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.refresh,
-                            size: 25,
-                          ), // Ícono de ejemplo
-                          onPressed: () {
-                            _ensureZonesVisible();
-                          },
+                        top: 0.0,
+                        right: 0.0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: widget.style.background,
+                          ),
+                          height: 60.0,
+                          width: PRICE_BAR_WIDTH,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.flash_on_sharp,
+                              size: 35,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 1.5,
+                                  color: Colors.black45,
+                                  offset: Offset(8.0, 4.0),
+                                ),
+                              ],
+                            ),
+                            onPressed: () {
+                              Common().vibrate(40, 30);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ExactPricePage(
+                                    name: widget.chartTitle,
+                                    ticker: widget.ticker,
+                                    currentValue: widget.candles.first.close,
+                                    iconPath: widget.iconPath,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ],
