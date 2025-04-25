@@ -1048,7 +1048,7 @@ class BlankImageWidget extends StatelessWidget {
           children: <Widget>[
             SizedBox(
               width: 300,
-              child: Image.asset('assets/logo.png', fit: BoxFit.contain),
+              child: Image.asset('assets/new_icon.png', fit: BoxFit.contain),
             ),
             Text(strings?.comingSoon ?? "Coming soon..."),
           ],

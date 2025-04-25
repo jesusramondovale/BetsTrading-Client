@@ -99,7 +99,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             (widget.iconPath == "null")
                 ?
               Image.asset(
-                'assets/logo_simple.png',
+                'assets/new_icon.png',
                 fit: BoxFit.cover,)
                   :
               ((widget.iconPath.startsWith("http")
@@ -109,7 +109,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, StackTrace) =>
                       Image.asset(
-                        "assets/logo_simple.png",
+                        "assets/new_icon.png",
                         fit: BoxFit.cover,
                       ),
                 )

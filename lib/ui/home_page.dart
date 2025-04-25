@@ -390,7 +390,7 @@ class HomeScreenState extends State<HomeScreen> {
                               const SizedBox(height: 30),
                               Container(
                                 width: 48,
-                                child: Image.asset('assets/logo.png'),
+                                child: Image.asset('assets/new_icon.png'),
                               ),
                             ],
                           ),
