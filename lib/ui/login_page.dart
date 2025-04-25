@@ -83,7 +83,7 @@ class LoginFormState extends State<LoginForm> {
           SingleChildScrollView(
             child: Column(
               children: [
-                Image.asset('assets/logo.png', width: 200, fit: BoxFit.cover),
+                Image.asset('assets/new_icon.png', width: 200, fit: BoxFit.cover),
                 const Padding(padding: EdgeInsets.all(10.0)),
                 if (_showSocialSignIn) ...[
                   _buildGoogleSignInButton(strings!),

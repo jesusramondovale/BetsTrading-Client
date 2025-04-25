@@ -19,7 +19,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
     {
       "title": "onboarding_title_intro",
       "description": "onboarding_description_intro",
-      "image": "assets/logo_simple.png",
+      "image": "assets/new_icon.png",
       "width": "200"
     },
     {

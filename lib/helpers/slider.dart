@@ -43,7 +43,7 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
   }
 
   void _loadSimpleLogoImage() async {
-    ByteData data = await rootBundle.load("assets/logo_simple.png");
+    ByteData data = await rootBundle.load("assets/new_icon.png");
     Uint8List bytes = data.buffer.asUint8List();
 
     final Completer<ui.Image> completer = Completer();

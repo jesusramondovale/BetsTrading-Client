@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -261,8 +262,18 @@ class SettingsViewState extends State<SettingsView> {
                   Common().exitPopDialog(strings?.attention ?? "Attention!" , strings?.needToRestart ?? "App must restart", context);
                 });
               },
-            )
-
+            ),
+            ListTile(
+              title: Text(strings?.advancedSettings ?? 'Advanced app settings',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                ),),
+              trailing: const Icon(Icons.settings_suggest_outlined, size: 40),
+              onTap: () {
+                AppSettings.openAppSettings();
+              },
+            ),
           ],
         ).toList(),
       ),

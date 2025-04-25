@@ -290,14 +290,14 @@ class _ExactPricePageState extends State<ExactPricePage> {
                         widget.iconPath,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
-                            Image.asset('assets/logo_simple.png',
+                            Image.asset('assets/new_icon.png',
                                 fit: BoxFit.cover),
                       )
                     : Image.memory(
                         base64Decode(widget.iconPath),
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
-                            Image.asset('assets/logo_simple.png',
+                            Image.asset('assets/new_icon.png',
                                 fit: BoxFit.cover),
                       )),
           ),

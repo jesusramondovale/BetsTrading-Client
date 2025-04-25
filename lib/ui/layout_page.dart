@@ -260,11 +260,11 @@ class MainMenuPageState extends State<MainMenuPage> {
                   BottomNavigationBarItem(
                     icon: Container(
                       width: 34,
-                      child: Image.asset('assets/logo_simple.png'),
+                      child: Image.asset('assets/new_icon.png'),
                     ),
                     activeIcon: Container(
                       width: 27,
-                      child: Image.asset('assets/logo_simple.png'),
+                      child: Image.asset('assets/new_icon.png'),
                     ),
                     label: strings?.liveMarkets ?? 'Live Markets',
                   ),
