@@ -322,35 +322,43 @@ class Common {
     return daysUntil > 0 ? daysUntil : 0;
   }
   List<RectangleZone> getRectangleZonesFromBetZones(List<BetZone> betZones, double current) {
-    Color strokeColor = Colors.white;
+    const Color strokeColor = Colors.white;
 
-    List<RectangleZone> zones = betZones.map((betZone) {
-      //TO-DO
-      // Determinar el color de relleno basado en algún criterio
+    return betZones.map((betZone) {
+      final double halfMargin = (betZone.betMargin / 200) * betZone.targetValue;
+      final double upperBound = betZone.targetValue + halfMargin;
+      final double lowerBound = betZone.targetValue - halfMargin;
+
       Color fillColor;
-      if (betZone.targetValue > current) {
+
+
+      if (lowerBound > current) {
         fillColor = Colors.green.withOpacity(0.4);
-      } else {
+      }
+
+      else if (upperBound < current) {
         fillColor = Colors.red.withOpacity(0.4);
+      }
+
+      else {
+        fillColor = Colors.orange.withOpacity(0.3);
       }
 
       return RectangleZone(
         id: betZone.id,
         startDate: betZone.startDate,
         endDate: betZone.endDate ?? DateTime.now().add(const Duration(days: 1)),
-        highPrice: betZone.targetValue + (betZone.targetValue * betZone.betMargin/200),
-        lowPrice: betZone.targetValue - (betZone.targetValue * betZone.betMargin/200),
+        highPrice: upperBound,
+        lowPrice: lowerBound,
         margin: betZone.betMargin,
         fillColor: fillColor,
         strokeColor: strokeColor,
         odds: betZone.targetOdds,
-        ticker: betZones.first.ticker,
-
+        ticker: betZone.ticker,
       );
     }).toList();
-
-    return zones;
   }
+
   List<RectangleZone> generateRectangleZones() {
     Color strokeColor = Colors.white;
     List<RectangleZone> zones = [
