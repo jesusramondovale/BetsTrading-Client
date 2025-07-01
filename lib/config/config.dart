@@ -1,9 +1,9 @@
 class Config {
 
 
-  static const PUBLIC_DOMAIN = '30.pool90-175-130.dynamic.orange.es';
+  static const PUBLIC_DOMAIN = '191.pool92-190-129.dynamic.orange.es';
   static const SERVICE_PORT = '44346';
-  static const CODE_VERSION = '25.115.1';
+  static const CODE_VERSION = '25.182.1';
   static const ADMOB_APP_ID = 'ca-app-pub-2465898294053562/1629478765';
   static const ADMOB_AD_TOKEN = 'ca-app-pub-2465898294053562/4804536511';
   static const ADMOB_AD_TOKEN_TEST = 'ca-app-pub-3940256099942544/5224354917';
