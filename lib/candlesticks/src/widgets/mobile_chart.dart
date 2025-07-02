@@ -70,7 +70,7 @@ class MobileChart extends StatefulWidget {
   State<MobileChart> createState() => MobileChartState();
 }
 
-class MobileChartState extends State<MobileChart> {
+class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
   final GlobalKey _customPaintKey = GlobalKey();
   double? longPressX;
   double? longPressY;
@@ -87,6 +87,7 @@ class MobileChartState extends State<MobileChart> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _ensureZonesVisible();
     _fetchZones();
     BetZoneRefresher().start(widget.ticker, widget.rectangleZones);
@@ -739,4 +740,21 @@ class MobileChartState extends State<MobileChart> {
       },
     );
   }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    BetZoneRefresher().stop();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive || state == AppLifecycleState.detached) {
+      BetZoneRefresher().stop();
+    } else if (state == AppLifecycleState.resumed) {
+      BetZoneRefresher().start(widget.ticker, widget.rectangleZones);
+    }
+  }
+
 }
