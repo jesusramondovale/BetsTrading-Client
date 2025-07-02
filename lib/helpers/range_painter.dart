@@ -7,7 +7,7 @@ import 'common.dart';
 import '../models/rectangle_zone.dart';
 
 class RangePainter extends CustomPainter {
-  final List<RectangleZone> zones;
+  final ValueNotifier<List<RectangleZone>> zones;
   final List<Candle> candles;
   final double candleWidth;
   final double topPrice;
@@ -31,7 +31,7 @@ class RangePainter extends CustomPainter {
     required this.noBetsText,
     required this.noIcon,
     required this.darkTheme
-  });
+  }) : super(repaint: zones);
 
   double dateToX(DateTime date, int index, double candleWidth, DateTime lastCandleDate, Size size) {
     int daysFromLastCandle = date.difference(lastCandleDate).inDays;
@@ -53,7 +53,7 @@ class RangePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (zones.isEmpty){
+    if (zones.value.isEmpty){
 
       final textSpan = TextSpan(
         text: this.noBetsText,
@@ -80,7 +80,7 @@ class RangePainter extends CustomPainter {
         .map((candle) => candle.date)
         .reduce((a, b) => a.isAfter(b) ? a : b);
 
-    for (final zone in zones) {
+    for (final zone in zones.value) {
       double startX = dateToX(zone.startDate, index, candleWidth, maxCandleDate, size);
       double endX = dateToX(zone.endDate, index, candleWidth, maxCandleDate, size);
       endX = max(endX, startX + candleWidth);
@@ -92,6 +92,14 @@ class RangePainter extends CustomPainter {
         ..color = zone.fillColor
         ..style = PaintingStyle.fill;
       canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintFill);
+
+
+      final paintStroke = Paint()
+        ..color = Colors.purple
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1;
+
+      canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintStroke);
 
       double fontSize = Common()
           .calculateMaxFontSize('x${zone.odds.toStringAsFixed(2)}', FontWeight.bold, endX - startX);
@@ -121,7 +129,7 @@ class RangePainter extends CustomPainter {
     DateTime maxCandleDate = candles
         .map((candle) => candle.date)
         .reduce((a, b) => a.isAfter(b) ? a : b);
-    for (final zone in zones) {
+    for (final zone in zones.value) {
       if (x >=
               dateToX(
                   zone.startDate, index, candleWidth, maxCandleDate, size) &&

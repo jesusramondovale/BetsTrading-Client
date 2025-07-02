@@ -29,7 +29,7 @@ class CandlesticksView extends StatefulWidget {
 
 class CandlesticksViewState extends State<CandlesticksView> {
   final ValueNotifier<double> candleScaleNotifier = ValueNotifier<double>(1.0);
-  List<RectangleZone> _zones = [];
+  final ValueNotifier<List<RectangleZone>> _zonesNotifier = ValueNotifier([]);
   List<Candle> _candles = [];
   bool _isLoading = true;
   late bool _inactive_zone;
@@ -55,7 +55,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
 
       setState(() {
         _isLoading = false;
-        _zones = rectangleZones;
+        _zonesNotifier.value = rectangleZones;
         _candles = candles;
 
       });
@@ -88,13 +88,13 @@ class CandlesticksViewState extends State<CandlesticksView> {
                             onScaleUpdate: (double scale) {
                               candleScaleNotifier.value = scale;
                             },
-                            rectangleZones: _zones,
+                            rectangleZones: _zonesNotifier,
                             inactiveZone: _inactive_zone,
                             controller: widget.controller,
                             chartTitle: widget.name,
                             ticker: widget.ticker,
                             iconPath: widget.iconPath,
-                            extraDays: Common().daysUntilLatestEndDate(_zones),
+                            extraDays: Common().daysUntilLatestEndDate(_zonesNotifier.value),
                           ),
                         Positioned(
                           top: 10.0,
