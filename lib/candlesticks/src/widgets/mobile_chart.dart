@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../Services/BetsService.dart';
 import '../../../helpers/common.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../models/rectangle_zone.dart';
+import '../../../services/BetZoneRefresher.dart';
 import '../../../ui/bets_page.dart';
 import '../../../ui/exact_price_view.dart';
 import '../../candlesticks.dart';
@@ -37,7 +39,7 @@ class MobileChart extends StatefulWidget {
   final void Function() onPanEnd;
   final void Function(String)? onRemoveIndicator;
   final Function() onReachEnd;
-  final List<RectangleZone> rectangleZones;
+  final ValueNotifier<List<RectangleZone>> rectangleZones;
   final String chartTitle;
   final String ticker;
   final String iconPath;
@@ -86,17 +88,19 @@ class MobileChartState extends State<MobileChart> {
   void initState() {
     super.initState();
     _ensureZonesVisible();
+    _fetchZones();
+    BetZoneRefresher().start(widget.ticker, widget.rectangleZones);
   }
 
   void _ensureZonesVisible() {
-    if (widget.rectangleZones.isEmpty) return;
+    if (widget.rectangleZones.value.isEmpty) return;
 
     List<Candle> last30Candles = widget.candles.length > 30
         ? widget.candles.sublist(0, 30)
         : widget.candles;
 
     double minPrice = min(
-        widget.rectangleZones
+        widget.rectangleZones.value
             .map((zone) => zone.lowPrice)
             .reduce((value, element) => value < element ? value : element),
         last30Candles
@@ -104,7 +108,7 @@ class MobileChartState extends State<MobileChart> {
             .reduce((value, element) => value < element ? value : element));
 
     double maxPrice = max(
-        widget.rectangleZones
+        widget.rectangleZones.value
             .map((zone) => zone.highPrice)
             .reduce((value, element) => value > element ? value : element),
         last30Candles
@@ -117,6 +121,17 @@ class MobileChartState extends State<MobileChart> {
       scaleX = 1.0;
       offsetY = 0.0;
     });
+  }
+
+  void _fetchZones() async {
+    try {
+      final zones = await BetsService().fetchBetZones(widget.ticker, null);
+      final candles = await BetsService().fetchCandles(widget.ticker);
+      final rectangleZones = Common().getRectangleZonesFromBetZones(zones, candles.isNotEmpty ? candles.first.close : 0.0);
+      widget.rectangleZones.value = rectangleZones;
+    } catch (e) {
+      print("Error loading initial bet zones: $e");
+    }
   }
 
   @override
@@ -183,13 +198,13 @@ class MobileChartState extends State<MobileChart> {
           longPressY = min(longPressY!, maxHeight);
         }
 
-        if (widget.rectangleZones.isNotEmpty) {
+        if (widget.rectangleZones.value.isNotEmpty) {
           tweenBegin = min(
-              widget.rectangleZones.map((zone) => zone.lowPrice).reduce(
+              widget.rectangleZones.value.map((zone) => zone.lowPrice).reduce(
                   (value, element) => value < element ? value : element),
               candlesLowPrice);
           tweenEnd = max(
-              widget.rectangleZones.map((zone) => zone.highPrice).reduce(
+              widget.rectangleZones.value.map((zone) => zone.highPrice).reduce(
                   (value, element) => value > element ? value : element),
               candlesHighPrice);
         } else {
@@ -531,7 +546,7 @@ class MobileChartState extends State<MobileChart> {
                                           chartHeight *
                                           (manualScaleHigh! - manualScaleLow!);
                                   for (RectangleZone zone
-                                      in widget.rectangleZones) {
+                                      in widget.rectangleZones.value) {
                                     zone.centerPrice +=
                                         details.focalPointDelta.dy;
                                   }
@@ -619,7 +634,7 @@ class MobileChartState extends State<MobileChart> {
                                   candles: widget.candles,
                                   candleWidth: widget.candleWidth,
                                   topPrice: max(
-                                      widget.rectangleZones
+                                      widget.rectangleZones.value
                                           .map((zone) => zone.highPrice)
                                           .reduce((value, element) =>
                                               value > element
@@ -627,7 +642,7 @@ class MobileChartState extends State<MobileChart> {
                                                   : element),
                                       candlesHighPrice),
                                   bottomPrice: min(
-                                      widget.rectangleZones
+                                      widget.rectangleZones.value
                                           .map((zone) => zone.lowPrice)
                                           .reduce((value, element) =>
                                               value < element

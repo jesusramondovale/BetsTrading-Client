@@ -333,15 +333,15 @@ class Common {
 
 
       if (lowerBound > current) {
-        fillColor = Colors.green.withOpacity(0.4);
+        fillColor = Colors.green.withOpacity(1);
       }
 
       else if (upperBound < current) {
-        fillColor = Colors.red.withOpacity(0.4);
+        fillColor = Colors.red.withOpacity(1);
       }
 
       else {
-        fillColor = Colors.orange.withOpacity(0.3);
+        fillColor = Colors.orange.withOpacity(1);
       }
 
       return RectangleZone(

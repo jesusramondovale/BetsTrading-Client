@@ -54,7 +54,7 @@ class Candlesticks extends StatefulWidget {
 
   final Function(double scale) onScaleUpdate;
 
-  List<RectangleZone> rectangleZones = [];
+  ValueNotifier<List<RectangleZone>> rectangleZones = ValueNotifier([]);
 
   final String chartTitle;
 
