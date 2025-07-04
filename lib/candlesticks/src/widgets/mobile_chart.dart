@@ -89,8 +89,10 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _ensureZonesVisible();
-    _fetchZones();
-    BetZoneRefresher().start(widget.ticker, widget.rectangleZones);
+    if (!widget.inactiveZone) {
+      _fetchZones();
+      BetZoneRefresher().start(widget.ticker, widget.rectangleZones);
+    }
   }
 
   void _ensureZonesVisible() {

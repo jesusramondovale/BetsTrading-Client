@@ -366,7 +366,7 @@ class RecentBetDialog extends StatelessWidget {
                                           Expanded(
                                             child: CandlesticksView(
                                                 ticker: bet.ticker,
-                                                betZoneId: bet.bet_zone,
+                                                betId: bet.id,
                                                 name: bet.name,
                                                 controller: controller,
                                                 iconPath: bet.iconPath),
@@ -492,7 +492,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                 Expanded(
                                   child: CandlesticksView(
                                       ticker: widget.bet.ticker,
-                                      betZoneId: widget.bet.bet_zone,
+                                      betId: widget.bet.id,
                                       name: widget.bet.name,
                                       controller: widget.controller,
                                       iconPath: widget.bet.iconPath),
