@@ -12,14 +12,14 @@ class CandlesticksView extends StatefulWidget {
   final String name;
   final String iconPath;
   final MainMenuPageController controller;
-  final int? betZoneId;
+  final int? betId;
 
   CandlesticksView({
     super.key,
     required this.controller,
     required this.iconPath,
     required this.ticker,
-    this.betZoneId,
+    this.betId,
     required this.name,
   });
 
@@ -30,6 +30,8 @@ class CandlesticksView extends StatefulWidget {
 class CandlesticksViewState extends State<CandlesticksView> {
   final ValueNotifier<double> candleScaleNotifier = ValueNotifier<double>(1.0);
   final ValueNotifier<List<RectangleZone>> _zonesNotifier = ValueNotifier([]);
+  late final List<RectangleZone> _initialZones;
+  late final ValueNotifier<List<RectangleZone>> _frozenZonesNotifier;
   List<Candle> _candles = [];
   bool _isLoading = true;
   late bool _inactive_zone;
@@ -38,24 +40,28 @@ class CandlesticksViewState extends State<CandlesticksView> {
   void initState() {
     super.initState();
     _loadData();
-    _inactive_zone = widget.betZoneId != null;
+    _inactive_zone = widget.betId != null;
   }
 
   Future<void> _loadData() async {
     try {
       final List<Candle> candles;
-      final List<BetZone> betZones =
-          await BetsService().fetchBetZones(widget.ticker, widget.betZoneId);
+
+     final List<BetZone> betZones =
+        await BetsService().fetchBetZones(widget.ticker, widget.betId);
 
       candles = await BetsService().fetchCandles(widget.ticker);
 
       List<RectangleZone> rectangleZones = Common()
           .getRectangleZonesFromBetZones(
               betZones, candles.isNotEmpty ? candles.first.close : 0.0);
-
+      _initialZones = rectangleZones;
+      _frozenZonesNotifier = ValueNotifier(_initialZones);
       setState(() {
         _isLoading = false;
-        _zonesNotifier.value = rectangleZones;
+        if (!_inactive_zone) {
+          _zonesNotifier.value = _initialZones;
+        }
         _candles = candles;
 
       });
@@ -83,19 +89,19 @@ class CandlesticksViewState extends State<CandlesticksView> {
                           Center(child: CircularProgressIndicator())
                         else
                           Candlesticks(
-                            candles: _candles,
-                            displayZoomActions: false,
-                            onScaleUpdate: (double scale) {
-                              candleScaleNotifier.value = scale;
-                            },
-                            rectangleZones: _zonesNotifier,
-                            inactiveZone: _inactive_zone,
-                            controller: widget.controller,
-                            chartTitle: widget.name,
-                            ticker: widget.ticker,
-                            iconPath: widget.iconPath,
-                            extraDays: Common().daysUntilLatestEndDate(_zonesNotifier.value),
-                          ),
+                              candles: _candles,
+                              displayZoomActions: false,
+                              onScaleUpdate: (double scale) {
+                                candleScaleNotifier.value = scale;
+                              },
+                              rectangleZones: _inactive_zone ? _frozenZonesNotifier : _zonesNotifier,
+                              inactiveZone: _inactive_zone,
+                              controller: widget.controller,
+                              chartTitle: widget.name,
+                              ticker: widget.ticker,
+                              iconPath: widget.iconPath,
+                              extraDays: Common().daysUntilLatestEndDate(_zonesNotifier.value),
+                            ),
                         Positioned(
                           top: 10.0,
                           left: 10.0,
@@ -109,7 +115,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                                   offset: Offset(2.5, 2.5),
                                 ),
                               ],
-                            ), // Ícono de ejemplo
+                            ),
                             onPressed: () {
                               Navigator.pop(context);
                             },
