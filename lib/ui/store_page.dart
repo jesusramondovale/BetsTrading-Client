@@ -1,6 +1,7 @@
 import 'package:betrader/services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../Services/BetsService.dart';
@@ -8,6 +9,7 @@ import '../config/config.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import 'layout_page.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 class StorePage extends StatefulWidget {
   @override
@@ -17,6 +19,8 @@ class StorePage extends StatefulWidget {
 class _StorePageState extends State<StorePage> {
   RewardedAd? _rewardedAd;
   bool _isAdLoaded = false;
+
+  final InAppPurchase _iap = InAppPurchase.instance;
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
@@ -122,7 +126,7 @@ class _StorePageState extends State<StorePage> {
               coins: 100,
               price: 1.99,
               onPressed: () {
-                // Acción para comprar 100 monedas
+                _showPaymentOptions(context, 1.99);
               },
             ),
             _buildStoreButton(
@@ -131,7 +135,7 @@ class _StorePageState extends State<StorePage> {
               coins: 500,
               price: 7.99,
               onPressed: () {
-                // Acción para comprar 500 monedas
+                _showPaymentOptions(context, 7.99);
               },
             ),
             _buildStoreButton(
@@ -140,7 +144,7 @@ class _StorePageState extends State<StorePage> {
               coins: 1000,
               price: 14.99,
               onPressed: () {
-                // Acción para comprar 1000 monedas
+                _showPaymentOptions(context, 14.99);
               },
             ),
             _buildStoreButton(
@@ -149,7 +153,7 @@ class _StorePageState extends State<StorePage> {
               coins: 5000,
               price: 59.99,
               onPressed: () {
-                // Acción para comprar 5000 monedas
+                _showPaymentOptions(context, 59.99);
               },
             ),
             SizedBox(height: 30),
@@ -196,53 +200,52 @@ class _StorePageState extends State<StorePage> {
         required double price,
         required VoidCallback onPressed,
       }) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 10.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      elevation: 5,
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-        leading: CircleAvatar(
-          radius: 30,
-          child: Text(
-            '$coins',
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(15.0),
+      child: Card(
+        margin: EdgeInsets.symmetric(vertical: 10.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        elevation: 5,
+        child: ListTile(
+          contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+          leading: CircleAvatar(
+            radius: 30,
+            child: Text(
+              '$coins',
+              style: GoogleFonts.roboto(
+                fontSize: 20,
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.amber,
+          ),
+          title: Text(
+            _interpolate(strings.getMessage('buyCoins') ?? 'Buy {coins} Coins', {
+              'coins': coins.toString(),
+            }),
             style: GoogleFonts.roboto(
-              fontSize: 20,
-              fontWeight: FontWeight.w400,
-              color: Colors.white,
+              fontWeight: FontWeight.w200,
+              fontSize: 20.0,
             ),
           ),
-          backgroundColor: Colors.amber,
-        ),
-        title: Text(
-          _interpolate(strings.getMessage('buyCoins') ?? 'Buy {coins} Coins', {
-            'coins': coins.toString(),
-          }),
-          style: GoogleFonts.roboto(
-            fontWeight: FontWeight.w200,
-            fontSize: 20.0,
-          ),
-        ),
-        trailing: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-          ),
-          child: Text(
+          trailing: Text(
             _interpolate(strings.getMessage('priceInEuros') ?? '€{price}', {
               'price': price.toStringAsFixed(2),
             }),
-            style: GoogleFonts.roboto(fontSize: 18.0),
+            style: GoogleFonts.roboto(
+              fontSize: 18.0,
+              fontWeight: FontWeight.w400,
+            ),
           ),
         ),
       ),
     );
   }
+
 
   String _interpolate(String template, Map<String, String> values) {
     values.forEach((key, value) {
@@ -250,4 +253,132 @@ class _StorePageState extends State<StorePage> {
     });
     return template;
   }
+
+  void _showPaymentOptions(BuildContext context, double price) {
+
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(LocalizedStrings.of(context)?.paymentOptionsTitle ?? "How do you want to pay?", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 20),
+              ListTile(
+                leading: Icon(Icons.credit_card),
+                title: Text(LocalizedStrings.of(context)?.payWithCard ?? 'Credit or Debit card'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _cardPayment(price);
+                },
+              ),
+              ListTile(
+                leading: Image.asset('assets/paypal.png', height: 24.0),
+                title: Text('PayPal'),
+                onTap: () {
+                  Navigator.pop(context);
+                  //_payPalPayment(price);
+                },
+              ),
+              ListTile(
+                leading: Image.asset(
+                  'assets/google.png',
+                  height: 24.0,
+                  fit: BoxFit.contain,
+                ),
+                title: Text('Google Play'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _buyFromGooglePlay('test');
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _cardPayment(double precio) async {
+    try {
+      final billingDetails = stripe.BillingDetails(
+        email: 'betsontrading@gmail.com',
+        phone: '',
+        address: stripe.Address(
+          city: 'Carreño',
+          country: 'ES',
+          line1: '',
+          postalCode: '34300',
+          state: 'Asturias', line2: '',
+        ),
+      );
+
+      final clientSecret = await _getClientSecret(precio);
+
+      await stripe.Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: stripe.SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret,
+          style: ThemeMode.dark,
+          merchantDisplayName: 'Betrader',
+          billingDetails: billingDetails,
+          googlePay: stripe.PaymentSheetGooglePay(
+            merchantCountryCode: 'ES',
+            currencyCode: 'EUR',
+          ),
+        ),
+      );
+
+      await stripe.Stripe.instance.presentPaymentSheet();
+
+      print("✅ Pago completado");
+
+    } catch (e) {
+      print("❌ Error de pago: $e");
+    }
+  }
+
+  void _buyFromGooglePlay(String productId) async {
+    final bool available = await _iap.isAvailable();
+    if (!available) {
+      print("❌ Google Play no disponible");
+      return;
+    }
+
+    final ProductDetailsResponse response = await _iap.queryProductDetails({productId});
+    if (response.notFoundIDs.isNotEmpty) {
+      print("❌ Producto no encontrado en Play Console");
+      return;
+    }
+
+    final ProductDetails productDetails = response.productDetails.first;
+    final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
+
+    _iap.buyConsumable(purchaseParam: purchaseParam);
+  }
+
+
+  Future<String> _getClientSecret(double precio) async {
+    final Map<String, dynamic> requestData = {
+      'amount': (precio * 100).toInt(),
+      'currency': 'eur',
+    };
+
+    final response = await Common().postRequestWrapper(
+      'Payments',
+      'CreatePaymentIntent',
+      requestData,
+    );
+
+    if (response['statusCode'] == 200 && response['body'] != null && response['body']['client_secret'] != null) {
+      return response['body']['client_secret'];
+    } else {
+      throw Exception('Error al obtener client_secret desde el backend');
+    }
+  }
+
 }

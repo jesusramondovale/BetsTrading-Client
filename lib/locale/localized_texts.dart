@@ -13,6 +13,9 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'paymentOptionsTitle': 'How do you want to pay?',
+      'payWithCard': 'Credit or Debit Card',
+      'payWithGooglePay': 'Google Pay',
       'atDate': 'At date',
       'exactClosingValue': 'Exact closing value: ',
       'nowLabel': 'Now:',
@@ -189,6 +192,9 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'paymentOptionsTitle': '¿Cómo quieres pagar?',
+      'payWithCard': 'Tarjeta de crédito o débito',
+      'payWithGooglePay': 'Google Pay',
       'atDate': 'A fecha',
       'exactClosingValue': 'Valor exacto de cierre',
       'nowLabel': 'Ahora:',
@@ -365,6 +371,9 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'paymentOptionsTitle': 'Comment souhaitez-vous payer ?',
+      'payWithCard': 'Carte de crédit ou de débit',
+      'payWithGooglePay': 'Google Pay',
       'atDate': 'À la date',
       'exactClosingValue': 'Valeur de clôture à la date',
       'nowLabel': 'Maintenant :',
@@ -542,6 +551,9 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'paymentOptionsTitle': 'Come vuoi pagare?',
+      'payWithCard': 'Carta di credito o debito',
+      'payWithGooglePay': 'Google Pay',
       'atDate': 'Alla data',
       'exactClosingValue': 'Valore di chiusura alla data',
       'nowLabel': 'Adesso:',
@@ -720,6 +732,9 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'paymentOptionsTitle': 'Wie möchtest du bezahlen?',
+      'payWithCard': 'Kredit- oder Debitkarte',
+      'payWithGooglePay': 'Google Pay',
       'atDate': 'Zum datum',
       'exactClosingValue': 'Schlusswert zum Datum',
       'nowLabel': 'Jetzt:',
@@ -1101,6 +1116,9 @@ class LocalizedStrings {
   String? get nowLabel =>_localizedValues[locale.languageCode]?['nowLabel'];
   String? get exactClosingValue =>_localizedValues[locale.languageCode]?['exactClosingValue'];
   String? get atDate =>_localizedValues[locale.languageCode]?['atDate'];
+  String? get paymentOptionsTitle =>_localizedValues[locale.languageCode]?['paymentOptionsTitle'];
+  String? get payWithCard =>_localizedValues[locale.languageCode]?['payWithCard'];
+  String? get payWithGooglePay =>_localizedValues[locale.languageCode]?['payWithGooglePay'];
 
 
   String? getMessage(String key) {
