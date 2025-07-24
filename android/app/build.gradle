@@ -20,7 +20,7 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-def flutterVersionCode = 2  // O el número que necesites
+def flutterVersionCode = 10  // O el número que necesites
 def flutterVersionName = "1.0.1"
 
 android {
@@ -53,7 +53,6 @@ android {
         minSdkVersion 21
         compileSdkVersion 34
         targetSdkVersion 34
-        targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
