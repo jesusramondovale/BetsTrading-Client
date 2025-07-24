@@ -17,7 +17,7 @@ import 'package:betrader/Services/BetsService.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
-
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -65,6 +65,9 @@ Future<void> main() async {
     overlays: [SystemUiOverlay.top],
   );
 
+  stripe.Stripe.publishableKey = 'pk_test_51Ro4wcIoWhLn7aPbiJW4oRV3Gtvyijmw9hSGkn7pVMcOYZ4wpKmjRX1SA4tDPlJa8iKS1iRD5edE894KWgrRkqnM007ZLfNfKr';
+
+  await stripe.Stripe.instance.applySettings();
   runApp(MyApp(isDarkTheme: isDark));
 }
 Future onDidReceiveLocalNotification(
