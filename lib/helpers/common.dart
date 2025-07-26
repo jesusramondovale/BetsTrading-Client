@@ -179,6 +179,7 @@ class Common {
   void exitPopDialog(String aTitle, String aBody, BuildContext aContext) {
     showDialog(
       barrierColor: Colors.black.withAlpha(220),
+      barrierDismissible: false,
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -193,11 +194,7 @@ class Common {
           actions: [
             ElevatedButton(
               onPressed: () {
-                if (Platform.isAndroid) {
-                  SystemNavigator.pop();
-                } else if (Platform.isIOS) {
-                  exit(0);
-                }
+                exit(0);
               },
               child: const Text("Ok"),
             ),
