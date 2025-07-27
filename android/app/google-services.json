@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "1020559524014",
     "project_id": "betrader-v1",
-    "storage_bucket": "betrader-v1.appspot.com"
+    "storage_bucket": "betrader-v1.firebasestorage.app"
   },
   "client": [
     {

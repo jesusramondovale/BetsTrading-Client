@@ -42,8 +42,18 @@ Future<void> main() async {
 
   // Inicializa los datos de localización para fechas y otros formatos
   await initializeDateFormatting();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } catch (_) {
+
+  }
   await FirebaseService().initFirebase();
+
 
   bool isDark = await loadThemePreference();
   var initializationSettingsAndroid = AndroidInitializationSettings('@drawable/notification');
@@ -57,8 +67,8 @@ Future<void> main() async {
   );
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
-  await FirebaseService().initFirebase();
+
+
   MobileAds.instance.initialize();
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.manual,

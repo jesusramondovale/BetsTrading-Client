@@ -17,7 +17,16 @@ class FirebaseService {
 
   Future<void> initFirebase() async {
     final FirebaseMessaging messaging = FirebaseMessaging.instance;
-    final String? userId = await _storage.read(key: 'sessionToken');
+    String? userId;
+
+    try {
+      userId = await _storage.read(key: 'sessionToken');
+    } catch (e) {
+      // Prevent decrypt failures on version changes
+      await _storage.deleteAll();
+      userId = null;
+    }
+
     _firebaseToken = await messaging.getToken();
     if (kDebugMode) {
       print("Firebase Instance ID (Token): $_firebaseToken");
