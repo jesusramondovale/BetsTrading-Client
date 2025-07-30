@@ -57,9 +57,7 @@ Future<void> main() async {
 
   bool isDark = await loadThemePreference();
   var initializationSettingsAndroid = AndroidInitializationSettings('@drawable/notification');
-  var initializationSettingsDarwin = DarwinInitializationSettings(
-    onDidReceiveLocalNotification: onDidReceiveLocalNotification,
-  );
+  var initializationSettingsDarwin = const DarwinInitializationSettings();
 
   var initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,

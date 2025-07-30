@@ -16,7 +16,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+
+version: 25.211.0+25211
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -36,36 +37,36 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   http: ^1.1.2
-  flutter_form_builder: ^9.1.1
-  form_builder_validators: ^9.1.0
+  flutter_form_builder: ^10.1.0
+  form_builder_validators: ^11.2.0
   flutter_credit_card: ^4.0.1
   country_flags: ^3.0.0
   crypto: ^3.0.3
   flutter_secure_storage: ^9.0.0
-  intl: ^0.18.1
   country_codes: ^3.1.0+2
   image_picker: ^1.0.8
   image: ^4.1.3
-  fl_chart: ^0.68.0
+  fl_chart: ^1.0.0
   shared_preferences: ^2.2.2
   auto_size_text: ^3.0.0
   oauth2: ^2.0.2
   google_sign_in: ^6.2.1
-  flutter_statusbarcolor_ns: ^0.5.0
-  google_fonts: ^4.0.5
-  google_mlkit_text_recognition : ^0.13.0
-  camera: ^0.10.0+1
-  flutter_local_notifications: ^17.2.2
-  firebase_core: ^2.27.0
-  firebase_messaging: ^14.7.19
-  google_mobile_ads: ^4.0.0
+  flutter_statusbarcolor_ns: ^0.6.0
+  google_fonts: ^6.2.1
+  google_mlkit_text_recognition : ^0.15.0
+  camera: ^0.11.2
+  flutter_local_notifications: ^19.4.0
+  firebase_core: ^4.0.0
+  firebase_messaging: ^16.0.0
+  google_mobile_ads: ^6.0.0
   intro_slider: ^4.2.1
-  app_settings: ^5.1.0
-  permission_handler: ^11.3.1
-  flutter_launcher_icons: ^0.13.1
-  flutter_slidable: ^3.1.2
+  app_settings: ^6.1.1
+  permission_handler: ^12.0.1
+  flutter_launcher_icons: ^0.14.4
+  flutter_slidable: ^4.0.0
   vibration: ^3.1.3
-  flutter_stripe: ^9.5.0
+  flutter_stripe: ^10.1.1
+  stripe_platform_interface: ^10.1.0
   in_app_purchase: ^3.1.13
 
 
@@ -87,7 +88,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
