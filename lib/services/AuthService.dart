@@ -152,7 +152,7 @@ class AuthService {
         'https://www.googleapis.com/auth/user.addresses.read',
         'https://www.googleapis.com/auth/userinfo.profile'
       ];
-      GoogleSignIn googleSignIn = GoogleSignIn(scopes: scopes);
+      final googleSignIn = GoogleSignIn.standard(scopes: scopes);
 
       final user = await googleSignIn.signIn();
       String country = await Common().getUserCountry();
