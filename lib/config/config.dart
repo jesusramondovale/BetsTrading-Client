@@ -2,7 +2,6 @@ class Config {
 
 
   static const PUBLIC_DOMAIN = 'api.betstrading.online';
-  static const SERVICE_PORT = '8443';
   static const CODE_VERSION = '25.213.1';
   static const ADMOB_APP_ID = 'ca-app-pub-2465898294053562/1629478765';
   static const ADMOB_AD_TOKEN = 'ca-app-pub-2465898294053562/4804536511';
