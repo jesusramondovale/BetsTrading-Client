@@ -1,38 +1,35 @@
-import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../config/config.dart';
 import '../enums/financial_assets.dart';
+import '../helpers/common.dart';
 
 class AssetsService {
 
-  static const API_URL = 'https://${Config.PUBLIC_DOMAIN}:44346/api/FinancialAssets';
-
   Future<List<FinancialAsset>?> getFinancialAssetsByGroup(String group) async {
-    var client = HttpClient()
-      ..badCertificateCallback =
-          ((X509Certificate cert, String host, int port) => true);
+    final response = await Common().postRequestWrapper(
+      "FinancialAssets",
+      "ByGroup",
+      {'id': group},
+    );
 
-    var request = await client.getUrl(Uri.parse('$API_URL/ByGroup/$group'));
-    var response = await request.close();
-
-    if (response.statusCode == 200) {
-      var responseBody = await response.transform(utf8.decoder).join();
-      List<dynamic> data = json.decode(responseBody);
+    if (response['statusCode'] == 200) {
+      final List<dynamic> data = response['body'];
       return data.map((json) => FinancialAsset.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load [$group] financial assets');
     }
   }
-
+  /*** UNUSED **********
   Future<List<FinancialAsset>> getFinancialAssets() async {
-    final response = await http.get(Uri.parse('$API_URL/FinancialAssets/'));
+    final response = await Common().postRequestWrapper(
+      "FinancialAssets",
+      "FinancialAssets",
+      {}
+    );
 
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
+    if (response['statusCode'] == 200) {
+      final List<dynamic> data = response['body'];
       return data.map((json) => FinancialAsset.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to load financial assets');
+      throw Exception('Failed to load allfinancial assets');
     }
-  }
+  }****************************/
 }
