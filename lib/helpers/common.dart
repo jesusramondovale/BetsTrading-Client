@@ -24,6 +24,7 @@ import 'package:image_picker/image_picker.dart';
 import '../config/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibration/vibration.dart';
+import 'package:crypto/crypto.dart';
 
 
 class Common {
@@ -979,13 +980,26 @@ class Common {
     List<String> words = s.split(' ');
     return words[0];
   }
-  Future<Map<String, dynamic>> postRequestWrapper(String controller, String endpoint, Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> postRequestWrapper(
+      String controller, String endpoint, Map<String, dynamic> data) async {
     try {
-      bool certificateCheck(X509Certificate cert, String host, int port) => true;
-      HttpClient client = HttpClient()..badCertificateCallback = certificateCheck;
+      bool certificateCheck(X509Certificate cert, String host, int port) {
+        final digest = sha256.convert(cert.der);
+        final serverHash = digest.bytes
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join()
+            .toUpperCase();
 
-      final HttpClientRequest request = await client.postUrl(Uri.parse("https://${Config.PUBLIC_DOMAIN}:${Config.SERVICE_PORT}/api/$controller/$endpoint"));
-      request.headers.set('Content-Type', 'application/json charset=utf-8');
+        return serverHash == Config.SERVER_CERTIFICATE_HASH;
+      }
+
+      final client = HttpClient()..badCertificateCallback = certificateCheck;
+
+      final url = Uri.parse(
+          "https://${Config.PUBLIC_DOMAIN}:${Config.SERVICE_PORT}/api/$controller/$endpoint");
+      final HttpClientRequest request = await client.postUrl(url);
+
+      request.headers.set('Content-Type', 'application/json; charset=utf-8');
       request.write(jsonEncode(data));
 
       final HttpClientResponse response = await request.close();

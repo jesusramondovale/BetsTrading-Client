@@ -1,4 +1,3 @@
-import 'package:betrader/services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
@@ -8,6 +7,8 @@ import '../Services/BetsService.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
+import '../native_rewarded.dart';
+import '../services/AuthService.dart';
 import 'layout_page.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
@@ -33,6 +34,7 @@ class _StorePageState extends State<StorePage> {
 
   void _loadRewardedAd() {
     RewardedAd.load(
+      //TODO: Use only ADMBOD_AD_TOKEN (not _TEST) in production
       adUnitId: Config.ADMOB_AD_TOKEN_TEST,
       request: AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
@@ -51,48 +53,47 @@ class _StorePageState extends State<StorePage> {
 
   Future<void> _showRewardedAd(double coins, String localizedWarning) async {
     String? userId = await _storage.read(key: 'sessionToken');
-    if (_rewardedAd == null) {
-      print('Ad not loaded.');
+
+    if (userId == null) {
+      print('No hay userId, no se puede mostrar el anuncio.');
       return;
     }
 
-    _rewardedAd!.show(
-      onUserEarnedReward: (ad, reward) {
-        setState(() async {
-          print('Reward earned: ${reward.amount} ${reward.type}');
-          bool success = await AuthService().addCoins(userId!, coins);
-          if (success) {
-            Common().showLocalNotification(
-                "other",
-                "Betrader",
-                ( localizedWarning ),  {"REWARD": 50});
+    try {
 
-            await BetsService().getUserInfo(userId);
+      //TODO: Use only ADMBOD_AD_TOKEN (not _TEST) in production
+      await NativeRewarded.loadRewarded(Config.ADMOB_AD_TOKEN_TEST, userId);
 
-            Navigator.pop(context);
+      final reward = await NativeRewarded.showRewarded();
 
-            homeScreenKey.currentState?.loadUserIdAndData();
+      /** TODO: Delete AddCoins call when using real ADMBOD_AD_TOKEN with SSV :
+      * All the business logic goes into -> (Backend .NET) PaymentsController:59 (HTTP GET VerifyAd) which
+      * will be called by GoogleAdmob system automatically when user finishes watching real ads
+      */
+      await AuthService().addCoins(userId!, coins);
+      /******************* **********************/
 
-          }
 
-        });
-      },
-    );
 
-    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        _loadRewardedAd();
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        ad.dispose();
-        print('Error al mostrar el anuncio: $error');
-        _loadRewardedAd();
-      },
-    );
+      if (reward != null && reward > 0) {
+        Common().showLocalNotification(
+          "other",
+          "Betrader",
+          localizedWarning,
+          {"REWARD": reward},
+        );
 
-    _rewardedAd = null;
+        await BetsService().getUserInfo(userId);
+        Navigator.pop(context);
+        homeScreenKey.currentState?.loadUserIdAndData();
+      } else {
+        print('El anuncio no devolvió recompensa.');
+      }
+    } catch (e) {
+      print('Error mostrando anuncio recompensado: $e');
+    }
   }
+
 
   @override
   void dispose() {

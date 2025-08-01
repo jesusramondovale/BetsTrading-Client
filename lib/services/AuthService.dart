@@ -48,16 +48,6 @@ class AuthService {
     }
   }
 
-  Future<bool> addCoins(String id, double coins) async {
-    final response = await Common().postRequestWrapper('Store', 'AddCoins', {'user_id': id, 'reward': coins});
-
-    if (response['statusCode'] == 200) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   Future<Map<String, dynamic>> register(
       String idCard,
       String fcm,
@@ -215,7 +205,7 @@ class AuthService {
 
   Future<int?> verifyAccount(String idCard) async {
     String? id = await _storage.read(key: 'sessionToken');
-    final response = await Common().postRequestWrapper('Auth','Verify', {'id': id , 'idCard': idCard });
+    final response = await Common().postRequestWrapper('Auth','VerifyID', {'id': id , 'idCard': idCard });
     if (response['statusCode'] == 200) {
       return 0; // OK
     } else {
@@ -233,6 +223,18 @@ class AuthService {
       return {'success': false, 'message': response['body']['message']};
     }
   }
+
+  //TODO: Delete when using real ADMOB_TOKEN with SSV
+  Future<bool> addCoins(String id, double coins) async {
+    final response = await Common().postRequestWrapper('Store', 'AddCoins', {'user_id': id, 'reward': coins});
+
+    if (response['statusCode'] == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   //TODO
   Future<bool> appleSignIn() async {
     return true;
