@@ -68,6 +68,9 @@ Future<void> main() async {
 
 
   MobileAds.instance.initialize();
+
+
+
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.manual,
     overlays: [SystemUiOverlay.top],
