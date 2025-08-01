@@ -356,7 +356,6 @@ class Common {
       );
     }).toList();
   }
-
   List<RectangleZone> generateRectangleZones() {
     Color strokeColor = Colors.white;
     List<RectangleZone> zones = [
@@ -996,7 +995,7 @@ class Common {
       final client = HttpClient()..badCertificateCallback = certificateCheck;
 
       final url = Uri.parse(
-          "https://${Config.PUBLIC_DOMAIN}:${Config.SERVICE_PORT}/api/$controller/$endpoint");
+          "https://${Config.PUBLIC_DOMAIN}/api/$controller/$endpoint");
       final HttpClientRequest request = await client.postUrl(url);
 
       request.headers.set('Content-Type', 'application/json; charset=utf-8');
@@ -1051,6 +1050,13 @@ class Common {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
   }
+  String interpolate(String template, Map<String, String> values) {
+    values.forEach((key, value) {
+      template = template.replaceAll('{$key}', value);
+    });
+    return template;
+  }
+
 }
 
 class BlankImageWidget extends StatelessWidget {

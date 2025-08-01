@@ -1,9 +1,8 @@
 class Config {
 
 
-  static const PUBLIC_DOMAIN = '191.pool92-190-129.dynamic.orange.es';
-  static const SERVICE_PORT = '44346';
-  static const CODE_VERSION = '25.212.1';
+  static const PUBLIC_DOMAIN = 'api.betstrading.online';
+  static const CODE_VERSION = '25.213.1';
   static const ADMOB_APP_ID = 'ca-app-pub-2465898294053562/1629478765';
   static const ADMOB_AD_TOKEN = 'ca-app-pub-2465898294053562/4804536511';
   //TODO: Use only ADMBOD_AD_TOKEN (not _TEST) in production
