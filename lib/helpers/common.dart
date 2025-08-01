@@ -24,8 +24,6 @@ import 'package:image_picker/image_picker.dart';
 import '../config/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibration/vibration.dart';
-import 'package:crypto/crypto.dart';
-
 
 class Common {
 
@@ -982,18 +980,7 @@ class Common {
   Future<Map<String, dynamic>> postRequestWrapper(
       String controller, String endpoint, Map<String, dynamic> data) async {
     try {
-      bool certificateCheck(X509Certificate cert, String host, int port) {
-        final digest = sha256.convert(cert.der);
-        final serverHash = digest.bytes
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join()
-            .toUpperCase();
-
-        return serverHash == Config.SERVER_CERTIFICATE_HASH;
-      }
-
-      final client = HttpClient()..badCertificateCallback = certificateCheck;
-
+      final client = HttpClient();
       final url = Uri.parse(
           "https://${Config.PUBLIC_DOMAIN}/api/$controller/$endpoint");
       final HttpClientRequest request = await client.postUrl(url);
