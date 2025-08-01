@@ -356,7 +356,6 @@ class Common {
       );
     }).toList();
   }
-
   List<RectangleZone> generateRectangleZones() {
     Color strokeColor = Colors.white;
     List<RectangleZone> zones = [
@@ -1051,6 +1050,13 @@ class Common {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
   }
+  String interpolate(String template, Map<String, String> values) {
+    values.forEach((key, value) {
+      template = template.replaceAll('{$key}', value);
+    });
+    return template;
+  }
+
 }
 
 class BlankImageWidget extends StatelessWidget {

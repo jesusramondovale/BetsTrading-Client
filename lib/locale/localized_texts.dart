@@ -13,6 +13,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'youEarnedCoins': 'You earned {coins}฿!',
       'paymentOptionsTitle': 'How do you want to pay?',
       'payWithCard': 'Credit or Debit Card',
       'payWithGooglePay': 'Google Pay',
@@ -192,6 +193,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'youEarnedCoins': 'Has conseguido {coins}฿!',
       'paymentOptionsTitle': '¿Cómo quieres pagar?',
       'payWithCard': 'Tarjeta de crédito o débito',
       'payWithGooglePay': 'Google Pay',
@@ -371,6 +373,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'youEarnedCoins': 'Vous avez gagné {coins}฿ !',
       'paymentOptionsTitle': 'Comment souhaitez-vous payer ?',
       'payWithCard': 'Carte de crédit ou de débit',
       'payWithGooglePay': 'Google Pay',
@@ -551,6 +554,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'youEarnedCoins': 'Hai guadagnato {coins}฿!',
       'paymentOptionsTitle': 'Come vuoi pagare?',
       'payWithCard': 'Carta di credito o debito',
       'payWithGooglePay': 'Google Pay',
@@ -732,6 +736,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'youEarnedCoins': 'Du hast {coins}฿ verdient!',
       'paymentOptionsTitle': 'Wie möchtest du bezahlen?',
       'payWithCard': 'Kredit- oder Debitkarte',
       'payWithGooglePay': 'Google Pay',
@@ -1104,6 +1109,7 @@ class LocalizedStrings {
   String? get successPassword => _localizedValues[locale.languageCode]?['successPassword'];
   String? get incorrectPassword => _localizedValues[locale.languageCode]?['incorrectPassword'];
   String? get youWonCoins => _localizedValues[locale.languageCode]?['youWonCoins'];
+  String? get youEarnedCoins => _localizedValues[locale.languageCode]?['youEarnedCoins'];
   String? get onPlay => _localizedValues[locale.languageCode]?['onPlay'];
   String? get enableNotifications =>_localizedValues[locale.languageCode]?['enableNotifications'];
   String? get trendingNotifications =>_localizedValues[locale.languageCode]?['trendingNotifications'];
