@@ -199,8 +199,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                 "betting",
                                 "Betrader",
                                 (LocalizedStrings.of(context)!.betPlacedSuccessfully != null
-                                    ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}฿)"
-                                    : "Bet placed successfully! (${_getBetAmountFromMargin(_selectedMargin)}฿)"),
+                                    ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}🪙)"
+                                    : "Bet placed successfully! (${_getBetAmountFromMargin(_selectedMargin)}🪙)"),
                                 {"TICKER": widget.ticker, "BET_AMOUNT": _getBetAmountFromMargin(_selectedMargin)});
                           }
 
@@ -571,7 +571,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                 ),
                               ),
                               TextSpan(
-                                text: "${_getBetAmountFromMargin(_selectedMargin)} ฿",
+                                text: "${_getBetAmountFromMargin(_selectedMargin)} 🪙",
                                 style: GoogleFonts.montserrat(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w500,

@@ -276,7 +276,7 @@ class RecentBetDialog extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          '${bet.profitLoss!.toStringAsFixed(2)}฿',
+                          '${bet.profitLoss!.toStringAsFixed(2)}🪙',
                           style: GoogleFonts.montserrat(
                             fontSize: 25,
                             fontWeight: FontWeight.w400,
@@ -303,7 +303,7 @@ class RecentBetDialog extends StatelessWidget {
                         _buildGridItem(
                             context,
                             Icons.casino,
-                            '${bet.betAmount.toStringAsFixed(2)}฿',
+                            '${bet.betAmount.toStringAsFixed(2)}🪙',
                             strings!.betAmount ?? "Bet amount"),
                         _buildGridItem(
                             context,
@@ -456,7 +456,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             ? (widget.bet.profitLoss)?.toStringAsFixed(2)
             : '¿?';
     //TODO
-    String currency = '฿';
+    String currency = '🪙';
 
     /* TO-DO
     String currency = (bet.currency != null) ?
@@ -595,7 +595,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                       const SizedBox(height: 6),
                       Text(
                         maxLines: 1,
-                        '(${widget.bet.betAmount.toStringAsFixed(2)}฿ @ ${widget.bet.originValue})',
+                        '(${widget.bet.betAmount.toStringAsFixed(2)}🪙 @ ${widget.bet.originValue})',
                         style: GoogleFonts.montserrat(
                           fontSize: 14,
                           color: Colors.grey,

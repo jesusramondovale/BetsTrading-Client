@@ -215,7 +215,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         mainAxisSpacing: 0.0,
         childAspectRatio: 1,
       ),
-      //TO-DO: CURRENCY $$$฿฿฿
+      //TO-DO: CURRENCY $$$🪙🪙🪙
       children: [
         _buildGridItem(
           context,
@@ -359,7 +359,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
                 fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
           ),
           Text(
-            '${_potentialPrize.toStringAsFixed(2)}฿',
+            '${_potentialPrize.toStringAsFixed(2)}🪙',
             style: GoogleFonts.montserrat(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -394,8 +394,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               "betting",
               "Betrader",
               (LocalizedStrings.of(context)!.betPlacedSuccessfully != null
-                  ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}฿)"
-                  : "Bet placed successfully! (${_betAmount}฿)"),
+                  ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}🪙)"
+                  : "Bet placed successfully! (${_betAmount}🪙)"),
               {"TICKER": widget.zone.ticker, "BET_AMOUNT": _betAmount});
         }
 
