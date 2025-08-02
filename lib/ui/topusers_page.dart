@@ -51,7 +51,7 @@ class _TopUsersPageState extends State<TopUsersPage>
       },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha:0.5),
       transitionDuration: const Duration(milliseconds: 300),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
@@ -72,7 +72,9 @@ class _TopUsersPageState extends State<TopUsersPage>
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
         title: Text('Rankings',
             style: GoogleFonts.montserrat(
@@ -81,12 +83,12 @@ class _TopUsersPageState extends State<TopUsersPage>
             )),
         bottom: TabBar(
           labelStyle: GoogleFonts.comfortaa(
-            fontSize: 18,
+            fontSize: 22,
             fontWeight: FontWeight.w400,
           ),
           controller: _tabController,
           tabs: [
-            Tab(text: strings!.worldwide ?? 'Worldide'),
+            Tab(text: strings!.worldwide ?? 'Worldide',),
             Tab(text: strings.yourCountry ?? 'Your Country'),
           ],
         ),
@@ -118,11 +120,13 @@ class _TopUsersPageState extends State<TopUsersPage>
             itemBuilder: (context, index) {
               User user = users[index];
               return InkWell(
+
                 onTap: () {
                   Common().vibrate(40,30);
                   popUserDialog(context, user);
                 },
                 child: Card(
+                  color: Colors.transparent.withValues(alpha: 0.5),
                   margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
@@ -220,6 +224,7 @@ class _TopUsersPageState extends State<TopUsersPage>
                   popUserDialog(context, user);
                 },
                 child: Card(
+                  color: Colors.transparent.withValues(alpha: 0.3),
                   margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
@@ -296,17 +301,17 @@ class _TopUsersPageState extends State<TopUsersPage>
   }
 
   Widget _buildTopBadge(IconData icon, Color color) {
-    return Container(
-      padding: EdgeInsets.all(4.0),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 1),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        icon,
-        color: Colors.white,
-        size: 16.0,
-      ),
-    );
-  }
+      return Container(
+        padding: EdgeInsets.all(4.0),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: Colors.white,
+          size: 16.0,
+        ),
+      );
+    }
 }

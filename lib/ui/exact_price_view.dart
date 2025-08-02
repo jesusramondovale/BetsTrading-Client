@@ -304,7 +304,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-              child: Container(color: Colors.black.withOpacity(0.7)),
+              child: Container(color: Colors.black.withValues(alpha:0.7)),
             ),
           ),
           Center(

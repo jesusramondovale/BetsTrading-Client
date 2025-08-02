@@ -116,15 +116,27 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
               ),
               child: Align(
                 alignment: Alignment.topCenter,
-                child: Text(
-                  '${widget.betAmount.toStringAsFixed(2)}🪙',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.betAmount.toStringAsFixed(2),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Image.asset(
+                      'assets/coin.png',
+                      width: 28,
+                      height: 28,
+                    ),
+                  ],
                 ),
               ),
+
             ),
             if (_thumbImage != null)
               SliderTheme(

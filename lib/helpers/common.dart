@@ -7,7 +7,6 @@ import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
@@ -52,7 +51,7 @@ class Common {
     brightness: Brightness.light,
     colorScheme: ColorScheme.light(
       background: Colors.white,
-      onBackground: Colors.grey.withOpacity(0.5),
+      onBackground: Colors.grey.withValues(alpha:0.5),
       surface: Colors.white,
       onSurface: Colors.black,
     ),
@@ -329,15 +328,15 @@ class Common {
 
 
       if (lowerBound > current) {
-        fillColor = Colors.green.withOpacity(1);
+        fillColor = Colors.green.withValues(alpha:1);
       }
 
       else if (upperBound < current) {
-        fillColor = Colors.red.withOpacity(1);
+        fillColor = Colors.red.withValues(alpha:1);
       }
 
       else {
-        fillColor = Colors.orange.withOpacity(1);
+        fillColor = Colors.orange.withValues(alpha:1);
       }
 
       return RectangleZone(
@@ -363,7 +362,7 @@ class Common {
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.2,
           lowPrice: 1.12,
-          fillColor: Colors.green.withOpacity(0.4),
+          fillColor: Colors.green.withValues(alpha:0.4),
           strokeColor: strokeColor,
           odds: (Random().nextDouble()*25),
           margin: 5, ticker: ''
@@ -376,7 +375,7 @@ class Common {
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.25,
           lowPrice: 1.2,
-          fillColor: Colors.green.withOpacity(0.6),
+          fillColor: Colors.green.withValues(alpha:0.6),
           strokeColor: strokeColor,
           odds: (Random().nextDouble()*25),
           margin: 5, ticker: ''
@@ -390,7 +389,7 @@ class Common {
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 1.05,
           lowPrice: 0.95,
-          fillColor: Colors.red.withOpacity(0.4),
+          fillColor: Colors.red.withValues(alpha:0.4),
           strokeColor: strokeColor,
           odds: (Random().nextDouble()*25),
           margin: 5, ticker: ''
@@ -404,7 +403,7 @@ class Common {
           endDate: DateTime.now().add(const Duration(days: 20)),
           highPrice: 0.95,
           lowPrice: 0.8,
-          fillColor: Colors.red.withOpacity(0.6),
+          fillColor: Colors.red.withValues(alpha:0.6),
           strokeColor: strokeColor,
           odds: (Random().nextDouble()*25),
           margin: 5, ticker: ''
@@ -904,7 +903,7 @@ class Common {
         endDate: DateTime.now().add(const Duration(days: 1)),
         highPrice: 1.0,
         lowPrice: 0.0,
-        fillColor: Colors.green.withOpacity(0.4),
+        fillColor: Colors.green.withValues(alpha:0.4),
         strokeColor: Colors.white,
         odds: 0.0,
         margin: 0, ticker: ''

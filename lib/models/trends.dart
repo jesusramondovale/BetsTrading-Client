@@ -63,11 +63,11 @@ class TrendDialog extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
-          color: Colors.white12.withOpacity(0.05),
+          color: Colors.white12.withValues(alpha:0.05),
           boxShadow: [
             BoxShadow(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withOpacity(1)
+                  ? Colors.black.withValues(alpha:1)
                   : Colors.grey,
               spreadRadius: 1,
               blurRadius: 2,
@@ -89,7 +89,7 @@ class TrendDialog extends StatelessWidget {
                     style: TextStyle(
                       letterSpacing: 0,
                       fontSize: 240,
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha:0.1),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -272,7 +272,7 @@ class TrendContainerState extends State<TrendContainer> {
       },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha:0.5),
       transitionDuration: const Duration(milliseconds: 300),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
@@ -289,117 +289,161 @@ class TrendContainerState extends State<TrendContainer> {
     );
   }
 
+  Widget _buildTopBadge(IconData icon, Color color) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.9),
+        shape: BoxShape.circle,
+      ),
+      padding: const EdgeInsets.all(2),
+      child: Icon(
+        icon,
+        color: Colors.white,
+        size: 25,
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => {
-            Common().vibrate(40,30),
-            popTrendDialog(context,widget.trend,widget.index,widget.controller)
-          },
-          splashColor: Colors.white24,
-          highlightColor: Colors.white12,
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            width: 120,
-            decoration: BoxDecoration(
-              color: Colors.white12,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  spreadRadius: 1,
-                  blurRadius: 1,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // El propio TrendContainer clicable
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => {
+                Common().vibrate(40,30),
+                popTrendDialog(context,widget.trend,widget.index,widget.controller)
+              },
+              splashColor: Colors.white24,
+              highlightColor: Colors.white12,
               borderRadius: BorderRadius.circular(8),
-            ),
-            child: Stack(
-              children: [
-                // Background number
-                Positioned(
-                  top: 0,
-                  right: (widget.index == 0 || widget.index >= 9) ? -20 : -5,
-                  child: Text(
-                    '${widget.index + 1}',
-                    style: TextStyle(
-                      letterSpacing: 0,
-                      fontSize: 120,
-                      color: Colors.white.withOpacity(0.1),
-                      fontWeight: FontWeight.w800,
+              child: Container(
+                width: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white12,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha:0.3),
+                      spreadRadius: 1,
+                      blurRadius: 1,
+                      offset: const Offset(0, 1),
                     ),
-                  ),
+                  ],
+                  borderRadius: BorderRadius.circular(8),
                 ),
-
-                // Main content
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.trend.icon != "null") ...[
-                        Image.memory(
-                          base64Decode(widget.trend.icon),
-                          height: 42,
-                          width: 42,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Text(
-                                widget.trend.name,
-                                maxLines: 1,
-                                style: GoogleFonts.roboto(
-                                    fontSize: 36, fontWeight: FontWeight.w100),
-                                textAlign: TextAlign.center,
-                              ),
-                        )
-                      ] else ...[
-                        AutoSizeText(
-                          Common().createTrendViewName(widget.trend),
-                          maxLines: 1,
-                          style: GoogleFonts.josefinSans(
-                            fontSize: 40,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                      const Spacer(),
-                      AutoSizeText(
-                        widget.trend.name,
-                        maxLines: 1,
-                        style: GoogleFonts.robotoCondensed(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
+                child: Stack(
+                  children: [
+                    // número grande de fondo
+                    Positioned(
+                      top: 0,
+                      right: (widget.index == 0 || widget.index >= 9) ? -20 : -5,
+                      child: Text(
+                        '${widget.index + 1}',
+                        style: TextStyle(
+                          letterSpacing: 0,
+                          fontSize: 120,
+                          color: Colors.white.withValues(alpha:0.1),
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                      Text(
-                        (widget.trend.dailyGain > 0.0)
-                            ? '▲ ${(widget.trend.dailyGain).toStringAsFixed(2)}%'
-                            : '▼ ${(widget.trend.dailyGain.abs()).toStringAsFixed(2)}%',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight:
+                    ),
+
+                    // contenido principal
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // icono o letras
+                          if (widget.trend.icon != "null") ...[
+                            Image.memory(
+                              base64Decode(widget.trend.icon),
+                              height: 42,
+                              width: 42,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Text(
+                                    widget.trend.name,
+                                    maxLines: 1,
+                                    style: GoogleFonts.roboto(
+                                        fontSize: 36, fontWeight: FontWeight.w100),
+                                    textAlign: TextAlign.center,
+                                  ),
+                            )
+                          ] else ...[
+                            AutoSizeText(
+                              Common().createTrendViewName(widget.trend),
+                              maxLines: 1,
+                              style: GoogleFonts.josefinSans(
+                                fontSize: 40,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                          const Spacer(),
+                          AutoSizeText(
+                            widget.trend.name,
+                            maxLines: 1,
+                            style: GoogleFonts.robotoCondensed(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            (widget.trend.dailyGain > 0.0)
+                                ? '▲ ${(widget.trend.dailyGain).toStringAsFixed(2)}%'
+                                : '▼ ${(widget.trend.dailyGain.abs()).toStringAsFixed(2)}%',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight:
                               Theme.of(context).brightness == Brightness.dark
                                   ? FontWeight.w200
                                   : FontWeight.w500,
-                          color: widget.trend.dailyGain > 0.0
-                              ? Colors.green
-                              : Colors.red,
-                        ),
+                              color: widget.trend.dailyGain > 0.0
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+
+          // badge arriba a la izquierda, fuera del contenedor
+          if (widget.index == 0)
+            Positioned(
+              top: -8,
+              left: -8,
+              child: _buildTopBadge(Icons.emoji_events, Colors.amber),
+            )
+          else if (widget.index == 1)
+            Positioned(
+              top: -8,
+              left: -8,
+              child: _buildTopBadge(Icons.emoji_events, Colors.grey),
+            )
+          else if (widget.index == 2)
+              Positioned(
+                top: -8,
+                left: -8,
+                child: _buildTopBadge(Icons.emoji_events, Colors.brown),
+              ),
+        ],
       ),
     );
   }
+
+
 }

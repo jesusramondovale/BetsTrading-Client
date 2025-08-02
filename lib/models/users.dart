@@ -102,7 +102,7 @@ class UserDialog extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withOpacity(1)
+                  ? Colors.black.withValues(alpha:1)
                   : Colors.grey[200]!,
               borderRadius: BorderRadius.circular(8.0),
             ),

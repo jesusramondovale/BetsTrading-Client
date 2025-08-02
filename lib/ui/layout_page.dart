@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/markets_page.dart';
@@ -20,7 +21,6 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'notifications_page.dart';
 
-
 final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 bool _showTutorial = false;
 
@@ -38,7 +38,6 @@ class MyApp extends StatelessWidget {
 
 class MainMenuPage extends StatefulWidget {
   const MainMenuPage({super.key});
-
 
   @override
   MainMenuPageState createState() => MainMenuPageState();
@@ -61,8 +60,6 @@ class MainMenuPageState extends State<MainMenuPage> {
   String _username = '';
   bool _isLoading = true;
   bool _showNotificationsPage = false;
-
-
 
   Future<void> _loadProfilePic() async {
     String? profilePicString = await _storage.read(key: 'profilepic');
@@ -110,7 +107,7 @@ class MainMenuPageState extends State<MainMenuPage> {
   }
 
   void _showNotifications() {
-    Common().vibrate(40,30);
+    Common().vibrate(40, 30);
     setState(() {
       _showNotificationsPage = true;
     });
@@ -123,14 +120,12 @@ class MainMenuPageState extends State<MainMenuPage> {
     _initializeData();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-
       Common().showLocalNotification(
           message.data['type'],
           message.notification!.title!,
           message.notification!.body!,
           message.data);
     });
-
   }
 
   Future<void> _initializeData() async {
@@ -150,10 +145,7 @@ class MainMenuPageState extends State<MainMenuPage> {
       statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
 
-    FlutterStatusbarcolor.setStatusBarColor(
-        Theme.of(context).brightness == Brightness.dark
-            ? Colors.black
-            : Colors.white);
+    FlutterStatusbarcolor.setStatusBarColor(Colors.transparent);
 
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
@@ -180,7 +172,8 @@ class MainMenuPageState extends State<MainMenuPage> {
       // SETTINGS
       SettingsView(
         onPersonalInfoTap: () => _controller.updateIndex(4),
-        onShowNotifications: _showNotifications,),
+        onShowNotifications: _showNotifications,
+      ),
       // PERSONAL INFO
       const UserInfoPage()
     ];
@@ -189,122 +182,144 @@ class MainMenuPageState extends State<MainMenuPage> {
       return const Center(child: CircularProgressIndicator());
     } else {
       return Scaffold(
-        body: _showTutorial
-            ? TutorialScreen(
-          onDone: () {
-            setState(() {
-              _showTutorial = false;
-            });
-          },
-        )
-            : SafeArea(
-          child: Column(
-            children: [
-              Container(
-                height: 1.0,
-                color: Colors.black45,
-              ),
-              Expanded(
-                child: _showNotificationsPage
-                    ? NotificationsPage(
-                  onBack: () {
-                  setState(() {
-                    _showNotificationsPage = false;
-                  });
-                },)
-                : ValueListenableBuilder<int>(
-                  valueListenable: _controller.selectedIndexNotifier,
-                  builder: (context, index, _) {
-                    return IndexedStack(
-                      index: _controller.selectedIndexNotifier.value,
-                      children: _pages,
-                    );
-                  },
-                ),
-              ),
-            ],
+        body: Stack(children: [
+          // Fondo
+          Positioned.fill(
+            child: Image.asset(
+              'assets/android12splash.png',
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
+
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.2),
+              ),
+            ),
+          ),
+
+          Positioned.fill(
+            child: _showTutorial
+                ? TutorialScreen(
+                    onDone: () {
+                      setState(() {
+                        _showTutorial = false;
+                      });
+                    },
+                  )
+                : SafeArea(
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 1.0,
+                          color: Colors.black45,
+                        ),
+                        Expanded(
+                          child: _showNotificationsPage
+                              ? NotificationsPage(
+                                  onBack: () {
+                                    setState(() {
+                                      _showNotificationsPage = false;
+                                    });
+                                  },
+                                )
+                              : ValueListenableBuilder<int>(
+                                  valueListenable:
+                                      _controller.selectedIndexNotifier,
+                                  builder: (context, index, _) {
+                                    return IndexedStack(
+                                      index: _controller
+                                          .selectedIndexNotifier.value,
+                                      children: _pages,
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+          )
+        ]),
+
         bottomNavigationBar: !_showTutorial
             ? ValueListenableBuilder<int>(
-          valueListenable: _controller.selectedIndexNotifier,
-          builder: (context, index, _) {
-            return Container(
-              height: 66, // Ajusta la altura aquí
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12.withOpacity(0.5),
-                    spreadRadius: 10,
-                    blurRadius: 10,
-                    offset: Offset(0, 0),
-                  ),
-                ],
-              ),
-              child: BottomNavigationBar(
-                selectedItemColor: Colors.deepPurple,
-                unselectedItemColor: Colors.grey,
-                showUnselectedLabels: false,
-                showSelectedLabels: true,
-                iconSize: 32,
-                items: <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    activeIcon: Icon(Icons.home),
-                    label: strings?.home ?? "Home",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.public),
-                    label: strings?.ranking ?? "Ranking",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Container(
-                      width: 34,
-                      child: Image.asset('assets/new_icon.png'),
+                valueListenable: _controller.selectedIndexNotifier,
+                builder: (context, index, _) {
+                  return Container(
+                    height: 66, // Ajusta la altura aquí
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12.withValues(alpha: 0.5),
+                          spreadRadius: 10,
+                          blurRadius: 10,
+                          offset: Offset(0, 0),
+                        ),
+                      ],
                     ),
-                    activeIcon: Container(
-                      width: 27,
-                      child: Image.asset('assets/new_icon.png'),
+                    child: BottomNavigationBar(
+                      selectedItemColor: Colors.deepPurple,
+                      unselectedItemColor: Colors.grey,
+                      showUnselectedLabels: false,
+                      showSelectedLabels: true,
+                      iconSize: 32,
+                      items: <BottomNavigationBarItem>[
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.home_outlined),
+                          activeIcon: Icon(Icons.home),
+                          label: strings?.home ?? "Home",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.public),
+                          label: strings?.ranking ?? "Ranking",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Container(
+                            width: 34,
+                            child: Image.asset('assets/new_icon.png'),
+                          ),
+                          activeIcon: Container(
+                            width: 27,
+                            child: Image.asset('assets/new_icon.png'),
+                          ),
+                          label: strings?.liveMarkets ?? 'Live Markets',
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.settings_outlined),
+                          activeIcon: Icon(Icons.settings),
+                          label: strings?.settings ?? 'Settings',
+                        ),
+                        BottomNavigationBarItem(
+                          icon: (_profilePicBytes != null
+                              ? CircleAvatar(
+                                  backgroundImage:
+                                      MemoryImage(_profilePicBytes!),
+                                  radius: 16, // Reducción del tamaño del avatar
+                                )
+                              : Icon(Icons.account_circle_outlined)),
+                          label: _username,
+                        ),
+                      ],
+                      currentIndex: _controller.selectedIndexNotifier.value,
+                      onTap: (index) {
+                        if (_showNotificationsPage) {
+                          setState(() {
+                            _showNotificationsPage = false;
+                            _controller.updateIndex(index);
+                          });
+                        } else {
+                          _controller.updateIndex(index);
+                        }
+                      },
+                      type: BottomNavigationBarType.fixed,
                     ),
-                    label: strings?.liveMarkets ?? 'Live Markets',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.settings_outlined),
-                    activeIcon: Icon(Icons.settings),
-                    label: strings?.settings ?? 'Settings',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: (_profilePicBytes != null
-                        ? CircleAvatar(
-                      backgroundImage: MemoryImage(_profilePicBytes!),
-                      radius: 16, // Reducción del tamaño del avatar
-                    )
-                        : Icon(Icons.account_circle_outlined)),
-                    label: _username,
-                  ),
-                ],
-                currentIndex: _controller.selectedIndexNotifier.value,
-                onTap: (index) {
-                  if(_showNotificationsPage) {
-                    setState(() {
-                      _showNotificationsPage = false;
-                      _controller.updateIndex(index);
-                    });
-                  }
-                  else {
-                    _controller.updateIndex(index);
-                  }
+                  );
                 },
-                type: BottomNavigationBarType.fixed,
-              ),
-            );
-          },
-        )
+              )
             : null, // Oculta la barra inferior si el tutorial está activo.
       );
-
-
-
     }
   }
 }

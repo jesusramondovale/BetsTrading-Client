@@ -61,11 +61,11 @@ class FavoriteDialog extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
-          color: Colors.white12.withOpacity(0.05),
+          color: Colors.white12.withValues(alpha:0.05),
           boxShadow: [
             BoxShadow(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withOpacity(1)
+                  ? Colors.black.withValues(alpha:1)
                   : Colors.grey,
               spreadRadius: 1,
               blurRadius: 2,
@@ -84,7 +84,7 @@ class FavoriteDialog extends StatelessWidget {
                   right: -100,
                   child: Icon(Icons.star,
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.withOpacity(0.1)
+                          ? Colors.grey.withValues(alpha:0.1)
                           : Colors.grey,
                       size: 350),
                 ),
@@ -264,7 +264,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
       },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha:0.5),
       transitionDuration: const Duration(milliseconds: 300),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
@@ -300,7 +300,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
               color: Colors.white12,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha:0.3),
                   spreadRadius: 1,
                   blurRadius: 1,
                   offset: const Offset(0, 1),
@@ -316,7 +316,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                   right: -30,
                   child: Icon(Icons.star,
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.withOpacity(0.1)
+                          ? Colors.grey.withValues(alpha:0.1)
                           : Colors.grey,
                       size: 150),
                 ),

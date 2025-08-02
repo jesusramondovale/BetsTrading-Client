@@ -134,7 +134,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               filter:
                   ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Desenfoque
               child: Container(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withValues(alpha:0.7),
               ),
             ),
           ),
@@ -253,6 +253,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     required String label,
   }) {
     return Column(
+
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [

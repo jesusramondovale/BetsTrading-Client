@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../helpers/common.dart';
 import '../config/config.dart';
 import '../services/AuthService.dart';
-import 'aboutus_page.dart';
 
 class SettingsView extends StatefulWidget {
 
@@ -26,7 +26,7 @@ class SettingsView extends StatefulWidget {
 class SettingsViewState extends State<SettingsView> {
 
   bool isDark = true;
-  bool enableVibration = true;
+  bool enableVibration = false;
   @override
   void initState() {
     super.initState();
@@ -146,6 +146,15 @@ class SettingsViewState extends State<SettingsView> {
     );
   }
 
+  Future<void> _openInAppBrowser(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(
+      uri,
+      mode: LaunchMode.inAppWebView,// navegador interno
+    )) {
+      Common().actionDialog(context, "Error!");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,16 +162,14 @@ class SettingsViewState extends State<SettingsView> {
     final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
+        backgroundColor : Colors.transparent,
         title: Text(strings?.settings ?? "Settings",
             style: GoogleFonts.montserrat(
               fontSize: 28,
               fontWeight: FontWeight.w400,
             )),
-        backgroundColor:
-        Theme.of(context).brightness == Brightness.dark
-            ? Colors.black
-            : Colors.white,
       ),
       body: ListView(
         children: ListTile.divideTiles(
@@ -221,11 +228,8 @@ class SettingsViewState extends State<SettingsView> {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => {
                   Common().vibrate(40,40),
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AboutUsPage()),
-                  )
-              },
+                 _openInAppBrowser("https://betstrading.online")
+            },
             ),
             SwitchListTile(
               title: Text(strings?.enableVibration ?? "Enable vibration",

@@ -153,7 +153,7 @@ class MarketsViewState extends State<MarketsView>
                     child: Container(
                       margin: const EdgeInsets.all(8.0),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
+                        color: Colors.transparent.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(20.0),
                         boxShadow: [
                           BoxShadow(

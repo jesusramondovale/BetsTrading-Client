@@ -1,5 +1,3 @@
-// ignore_for_file: constant_identifier_names, prefer_const_constructors
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
@@ -26,11 +24,10 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  bool showFavorites = true;
   List<Bet> _bets = [];
   String _userId = "none";
   String _userPoints = '0';
-
+  bool showFavorites = true;
   Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
@@ -60,12 +57,6 @@ class HomeScreenState extends State<HomeScreen> {
     loadUserIdAndData();
   }
 
-  void triggerFavorites() {
-    setState(() {
-      showFavorites = (showFavorites ? false : true);
-    });
-  }
-
   void refreshFavorites() {
     setState(() {
       showFavorites = true;
@@ -81,6 +72,8 @@ class HomeScreenState extends State<HomeScreen> {
         DateFormat.yMMMMd(locale.toString()).format(DateTime.now());
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       body: Padding(
         padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
         child: Column(
@@ -91,37 +84,43 @@ class HomeScreenState extends State<HomeScreen> {
               children: [
                 IconButton(
                   padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                  icon: showFavorites
-                      ? Icon(Icons.star_rounded)
-                      : Icon(Icons.star_border_rounded),
-                  iconSize: 40,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey
-                      : Colors.black,
-                  onPressed: () {
-                    Common().vibrate(40,30);
-                    triggerFavorites();
-                  },
-                ),
-                Spacer(flex: 5),
-                Image.asset('assets/logo_simple.png', width: 60),
-                Spacer(flex: 4),
-
-                IconButton(
-                  padding: const EdgeInsets.all(2.5),
+                  icon: Icon(Icons.local_grocery_store_outlined),
+                  iconSize: 30,
+                  color: Colors.white,
                   onPressed: () {
                     Common().vibrate(40,30);
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => StorePage()),
                     );
+
+                  },
+                ),
+                Spacer(flex: 5),
+                Text(
+                  "Betrader",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.syncopate(
+                    fontSize: 25,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white,
+                  ),
+                ),
+                Spacer(flex: 4),
+
+                IconButton(
+                  padding: const EdgeInsets.all(2.5),
+                  onPressed: () {
+                    Common().vibrate(40,30);
+                    Common().actionDialog(context, "Prizes view unimplemented yet!");
                   },
                   icon: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white, Colors.grey.shade800],
+                        colors: [Theme.of(context).brightness == Brightness.dark ? Colors.black.withValues(alpha: 0.1) :
+                        Colors.white.withValues(alpha: 0.25), Colors.grey.shade800.withValues(alpha: 1.0)],
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -134,8 +133,8 @@ class HomeScreenState extends State<HomeScreen> {
                             margin: const EdgeInsets.fromLTRB(0, 0, 0, 2),
                             child: Image.asset(
                               'assets/coin.png',
-                              width: 20,
-                              height: 20,
+                              width: 25,
+                              height: 25,
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -181,7 +180,7 @@ class HomeScreenState extends State<HomeScreen> {
                 thickness: 0.5,
                 height: 0.5),
             Expanded(
-              flex: showFavorites ? 9 : 2,
+              flex: 9,
               child: FutureBuilder<Trends>(
                   future: BetsService().fetchTrendsData(_userId),
                   builder: (context, snapshot) {
@@ -204,7 +203,8 @@ class HomeScreenState extends State<HomeScreen> {
                           return TrendContainer(
                               trend: sortedTrends[index],
                               index: sortedIndex,
-                              onFavoriteUpdated: refreshFavorites, controller: widget.controller,);
+                              onFavoriteUpdated: refreshFavorites,
+                              controller: widget.controller,);
                         },
                       );
                     } else {
@@ -230,83 +230,81 @@ class HomeScreenState extends State<HomeScreen> {
                   }),
             ),
 
-            // Favorites
-            if (showFavorites) ...[
-              Text(strings!.favs ?? 'Favs',
+            Text(strings!.favs ?? 'Favs',
                   style: GoogleFonts.comfortaa(
                     fontSize: 20,
                     fontWeight: FontWeight.w400,
                   )),
-              Divider(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
-                  thickness: 0.5,
-                  height: 0.5),
-              Expanded(
-                flex: 8,
-                child: FutureBuilder<Favorites>(
-                    future: BetsService().fetchFavouritesData(_userId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(color: Colors.grey),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      } else if (snapshot.hasData &&
-                          snapshot.data!.favorites.isNotEmpty) {
-                        final data = snapshot.data!;
-                        return ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: data.length,
-                          itemBuilder: (context, index) {
-                            return FavoriteContainer(
-                                favorite: data.favorites[index],
-                                onFavoriteUpdated: refreshFavorites, controller: widget.controller,);
-                          },
-                        );
-                      } else {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  LocalizedStrings.of(context)!.noFavsYet ??
-                                      "No favorites yet!",
-                                  style: GoogleFonts.dosis(
-                                    fontSize: 18,
-                                    fontWeight: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? FontWeight.w200
-                                        : FontWeight.w400,
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                Icon(
-                                  Icons.star_border,
-                                  size: 50,
-                                  color: Theme.of(context).brightness ==
+            Divider(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+                thickness: 0.5,
+                height: 0.5),
+            Expanded(
+              flex: 8,
+              child: FutureBuilder<Favorites>(
+                  future: BetsService().fetchFavouritesData(_userId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.grey),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (snapshot.hasData &&
+                        snapshot.data!.favorites.isNotEmpty) {
+                      final data = snapshot.data!;
+                      return ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          return FavoriteContainer(
+                              favorite: data.favorites[index],
+                              onFavoriteUpdated: refreshFavorites, controller: widget.controller,);
+                        },
+                      );
+                    } else {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                LocalizedStrings.of(context)!.noFavsYet ??
+                                    "No favorites yet!",
+                                style: GoogleFonts.dosis(
+                                  fontSize: 18,
+                                  fontWeight: Theme.of(context).brightness ==
                                           Brightness.dark
-                                      ? Colors.grey
-                                      : Colors.black,
+                                      ? FontWeight.w200
+                                      : FontWeight.w400,
                                 ),
-                              ],
-                            ),
+                              ),
+                              SizedBox(height: 10),
+                              Icon(
+                                Icons.star_border,
+                                size: 50,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.grey
+                                    : Colors.black,
+                              ),
+                            ],
                           ),
-                        );
-                      }
-                    }),
-              ),
-            ],
+                        ),
+                      );
+                    }
+                  }),
+            ),
+
 
             // Recent bets
             Row(
               children: [
                 Text(
-                  strings?.recentBets ?? 'Recent Bets',
+                  strings.recentBets ?? 'Recent Bets',
                   style: GoogleFonts.comfortaa(
                       fontSize: 20, fontWeight: FontWeight.w400),
                 ),
@@ -343,7 +341,7 @@ class HomeScreenState extends State<HomeScreen> {
                 thickness: 0.5,
                 height: 0.5),
             Expanded(
-              flex: showFavorites ? 12 : 5,
+              flex: 12,
               child: FutureBuilder<Bets>(
                   future: BetsService().fetchInvestmentData(_userId),
                   builder: (context, snapshot) {
@@ -378,12 +376,12 @@ class HomeScreenState extends State<HomeScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                strings?.noLiveBets ??
+                                strings.noLiveBets ??
                                     'You have no live bets at the moment, go to the markets tab to create a new one.',
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.roboto(
                                   fontSize: 20,
-                                  fontWeight: FontWeight.w200,
+                                  fontWeight: FontWeight.w400,
                                   color: Colors.grey,
                                 ),
                               ),

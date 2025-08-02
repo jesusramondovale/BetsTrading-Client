@@ -66,7 +66,7 @@ class CandleSticksStyle {
       primaryTextColor: primaryTextColor ?? const Color(0xFF848E9C),
       secondaryTextColor: secondaryTextColor ?? const Color(0XFFFFFFFF),
       mobileCandleHoverColor:
-          mobileCandleHoverColor ?? const Color(0xFFF0B90A).withOpacity(0.2),
+          mobileCandleHoverColor ?? const Color(0xFFF0B90A).withValues(alpha: 0.2),
       loadingColor: loadingColor ?? const Color(0xFFF0B90A),
       toolBarColor: toolBarColor ?? const Color(0xFF191B20),
     );
@@ -98,7 +98,7 @@ class CandleSticksStyle {
       primaryTextColor: primaryTextColor ?? const Color(0XFF000000),
       secondaryTextColor: secondaryTextColor ?? const Color(0XFFFFFFFF),
       mobileCandleHoverColor:
-          mobileCandleHoverColor ?? const Color(0xFFF0B90A).withOpacity(0.2),
+          mobileCandleHoverColor ?? const Color(0xFFF0B90A).withValues(alpha:0.2),
       loadingColor: loadingColor ?? const Color(0xFFF0B90A),
       toolBarColor: toolBarColor ?? const Color(0xFFFAFAFA),
     );
