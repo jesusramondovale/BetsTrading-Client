@@ -130,23 +130,23 @@ class HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                        Container(margin: EdgeInsets.fromLTRB(0, 0, 0, 2),
-                        child: Text(
-                            '\u0e3f',
-                            textAlign: TextAlign.start,
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w100,
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
-                            )
-                        ),
+                          Container(
+                            margin: const EdgeInsets.fromLTRB(0, 0, 0, 2),
+                            child: Image.asset(
+                              'assets/coin.png',
+                              width: 20,
+                              height: 20,
+                            ),
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             _userPoints,
                             style: GoogleFonts.montserrat(color: Colors.white),
                           ),
                         ],
-                      ),
-                    ),
-                  ),
+                      )
+                    )
+                  )
                 )
               ],
             ),
@@ -387,11 +387,11 @@ class HomeScreenState extends State<HomeScreen> {
                                   color: Colors.grey,
                                 ),
                               ),
-                              const SizedBox(height: 30),
+
                               Container(
-                                width: 48,
-                                child: Image.asset('assets/new_icon.png'),
-                              ),
+                                  child:
+                                      Icon(Icons.arrow_downward_rounded , size: 50, color: Colors.grey,),
+                                  )
                             ],
                           ),
                         ),

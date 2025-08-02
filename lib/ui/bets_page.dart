@@ -215,7 +215,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         mainAxisSpacing: 0.0,
         childAspectRatio: 1,
       ),
-      //TO-DO: CURRENCY $$$฿฿฿
+      //TO-DO: CURRENCY
       children: [
         _buildGridItem(
           context,
@@ -319,27 +319,29 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
                 style: GoogleFonts.montserrat(
                   fontSize: 20.0,
                   fontWeight: FontWeight.w800,
-                  color:
-                      _isAcceptButtonEnabled ? Colors.greenAccent : Colors.red,
-                  decoration: _isAcceptButtonEnabled
-                      ? null
-                      : TextDecoration.lineThrough,
+                  color: _isAcceptButtonEnabled ? Colors.greenAccent : Colors.red,
+                  decoration:
+                  _isAcceptButtonEnabled ? null : TextDecoration.lineThrough,
                 ),
                 cursorColor: Colors.white,
                 focusNode: _betAmountFocusNode,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                    focusColor: Colors.white,
-                    suffixIcon: Text(
-                      '\u0e3f',
-                      style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w100,
-                          color: Colors.white),
-                    )),
+                  focusColor: Colors.white,
+                  suffixIcon: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Image.asset(
+                      'assets/coin.png',
+                      width: 24,
+                      height: 24,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
                 onChanged: _calculatePotentialPrize,
               ),
-            ),
+            )
+
           ],
         ),
       ],
@@ -358,18 +360,31 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             style: GoogleFonts.montserrat(
                 fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
           ),
-          Text(
-            '${_potentialPrize.toStringAsFixed(2)}฿',
-            style: GoogleFonts.montserrat(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? _isAcceptButtonEnabled
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _potentialPrize.toStringAsFixed(2),
+                style: GoogleFonts.montserrat(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? _isAcceptButtonEnabled
                       ? Colors.greenAccent
                       : Colors.red
-                  : Colors.green,
-            ),
-          ),
+                      : Colors.green,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Image.asset(
+                'assets/coin.png',
+                width: 22,
+                height: 22,
+                fit: BoxFit.contain,
+              ),
+            ],
+          )
+
         ],
       ),
     );
@@ -394,8 +409,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
               "betting",
               "Betrader",
               (LocalizedStrings.of(context)!.betPlacedSuccessfully != null
-                  ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)}฿)"
-                  : "Bet placed successfully! (${_betAmount}฿)"),
+                  ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)} 🪙)"
+                  : "Bet placed successfully! (${_betAmount} 🪙)"),
               {"TICKER": widget.zone.ticker, "BET_AMOUNT": _betAmount});
         }
 

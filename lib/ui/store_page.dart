@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
@@ -10,29 +11,33 @@ import '../locale/localized_texts.dart';
 import '../native_rewarded.dart';
 import '../services/AuthService.dart';
 import 'layout_page.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
 
 class StorePage extends StatefulWidget {
   @override
   _StorePageState createState() => _StorePageState();
 }
 
-class _StorePageState extends State<StorePage> {
+class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   RewardedAd? _rewardedAd;
   bool _isAdLoaded = false;
-  final InAppPurchase _iap = InAppPurchase.instance;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  late AnimationController _progressController;
 
   @override
   void initState() {
     super.initState();
+    _progressController = AnimationController(
+      upperBound: 0.9,
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..forward();
     _loadRewardedAd();
-
   }
 
   @override
   void dispose() {
     _rewardedAd?.dispose();
+    _progressController.dispose();
     super.dispose();
   }
 
@@ -61,8 +66,10 @@ class _StorePageState extends State<StorePage> {
               strings,
               coins: 100,
               price: 1.99,
+              color: Colors.brown,
+              k: 1,
               onPressed: () {
-                _showPaymentOptions(context, 100, 1.99);
+                _cardPayment(100, 1.99);
               },
             ),
             _buildStoreButton(
@@ -70,8 +77,10 @@ class _StorePageState extends State<StorePage> {
               strings,
               coins: 500,
               price: 7.99,
+              color: Colors.grey,
+              k: 1.15,
               onPressed: () {
-                _showPaymentOptions(context, 500 , 7.99 );
+                _cardPayment(500, 7.99);
               },
             ),
             _buildStoreButton(
@@ -79,8 +88,10 @@ class _StorePageState extends State<StorePage> {
               strings,
               coins: 1000,
               price: 14.99,
+              color: Colors.amber,
+              k: 1.25,
               onPressed: () {
-                _showPaymentOptions(context, 1000,  14.99);
+                _cardPayment(1000, 14.99);
               },
             ),
             _buildStoreButton(
@@ -88,40 +99,85 @@ class _StorePageState extends State<StorePage> {
               strings,
               coins: 5000,
               price: 59.99,
+              color: Colors.deepPurple,
+              k: 1.35,
               onPressed: () {
-                _showPaymentOptions(context, 5000 , 59.99);
+                _cardPayment(5000, 59.99);
               },
             ),
             SizedBox(height: 30),
             Divider(),
             SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: _isAdLoaded
-                  ? () {  Common().vibrate(40, 30);
-              _showRewardedAd(50, Common().interpolate(strings.getMessage('youWonCoins') ?? 'You won 50฿!', {
-                'coins': 50.toString(), }));
-              }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
-                shape: RoundedRectangleBorder(
+            const Spacer(),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              icon: Icon(Icons.play_circle_fill, size: 34),
-              label: Padding(
-                padding: const EdgeInsets.only(left: 0),
-                child: Text(
-                  Common().interpolate(strings.getMessage('earnCoins') ??
-                      'Watch an Ad to Earn {coins}฿', {
-                    'coins': '50',
-                  }),
-                  style: GoogleFonts.roboto(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w300,
+                  child: AnimatedBuilder(
+                    animation: _progressController,
+                    builder: (context, child) {
+                      return LinearProgressIndicator(
+                        value: _isAdLoaded ? 1 : _progressController.value,
+                        minHeight: 56,
+                        backgroundColor: Colors.grey.shade800,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.purple),
+                      );
+                    },
                   ),
                 ),
-              ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 56),
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding:
+                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: _isAdLoaded
+                      ? () {
+                    Common().vibrate(40, 30);
+                    _showRewardedAd(
+                        50,
+                        Common().interpolate(
+                            strings.getMessage('youWonCoins') ??
+                                'You won 50', {
+                          'coins': 50.toString() + '🪙',
+                        }));
+                  }
+                      : null,
+                  icon: Icon(Icons.ondemand_video, size: 34),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        Common().interpolate(
+                          strings.getMessage('earnCoins') ??
+                              'Watch an Ad to Earn {coins}🪙',
+                          {
+                            'coins': '50',
+                          },
+                        ),
+                        style: GoogleFonts.roboto(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Image.asset(
+                        'assets/coin.png',
+                        width: 18,
+                        height: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -131,7 +187,6 @@ class _StorePageState extends State<StorePage> {
 
   void _loadRewardedAd() {
     RewardedAd.load(
-      //TODO: Use only ADMBOD_AD_TOKEN (not _TEST) in production
       adUnitId: Config.ADMOB_AD_TOKEN_TEST,
       request: AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
@@ -139,6 +194,7 @@ class _StorePageState extends State<StorePage> {
           setState(() {
             _rewardedAd = ad;
             _isAdLoaded = true;
+            _progressController.value = 1;
           });
         },
         onAdFailedToLoad: (error) {
@@ -150,27 +206,11 @@ class _StorePageState extends State<StorePage> {
 
   Future<void> _showRewardedAd(double coins, String localizedWarning) async {
     String? userId = await _storage.read(key: 'sessionToken');
-
-    if (userId == null) {
-      print('No hay userId, no se puede mostrar el anuncio.');
-      return;
-    }
-
+    if (userId == null) return;
     try {
-
-      //TODO: Use only ADMBOD_AD_TOKEN (not _TEST) in production
       await NativeRewarded.loadRewarded(Config.ADMOB_AD_TOKEN_TEST, userId);
-
       final reward = await NativeRewarded.showRewarded();
-
-      /** TODO: Delete this addCoins call when using real ADMBOD_AD_TOKEN with SSV :
-       * All the business logic goes into -> (Backend .NET) PaymentsController:59 (HTTP GET VerifyAd)
-       * will be called by GoogleAdmob system automatically when user finishes watching real ads
-       * D E L E T E   M E -->**/ await AuthService().addCoins(userId, coins); /** **/
-      /******  ******  ******* ******** ******** ******  ******* *********   *******/
-
-
-
+      await AuthService().addCoins(userId, coins);
       if (reward != null && reward > 0) {
         Common().showLocalNotification(
           "other",
@@ -178,12 +218,9 @@ class _StorePageState extends State<StorePage> {
           localizedWarning,
           {"REWARD": reward},
         );
-
         await BetsService().getUserInfo(userId);
         Navigator.pop(context);
         homeScreenKey.currentState?.loadUserIdAndData();
-      } else {
-        print('El anuncio no devolvió recompensa.');
       }
     } catch (e) {
       print('Error mostrando anuncio recompensado: $e');
@@ -196,100 +233,80 @@ class _StorePageState extends State<StorePage> {
         required int coins,
         required double price,
         required VoidCallback onPressed,
+        required Color color,
+        required double k,
       }) {
     return InkWell(
       onTap: onPressed,
-      borderRadius: BorderRadius.circular(15.0),
+      borderRadius: BorderRadius.circular(20.0),
       child: Card(
-        margin: EdgeInsets.symmetric(vertical: 10.0),
+        margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 4),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
+          borderRadius: BorderRadius.circular(20.0),
         ),
-        elevation: 5,
-        child: ListTile(
-          contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-          leading: CircleAvatar(
-            radius: 30,
-            child: Text(
-              '$coins',
-              style: GoogleFonts.roboto(
-                fontSize: 20,
-                fontWeight: FontWeight.w400,
-                color: Colors.white,
-              ),
-            ),
-            backgroundColor: Colors.amber,
-          ),
-          title: Text(
-            Common().interpolate(strings.getMessage('buyCoins') ?? 'Buy {coins} Coins', {
-              'coins': coins.toString(),
-            }),
-            style: GoogleFonts.roboto(
-              fontWeight: FontWeight.w200,
-              fontSize: 20.0,
-            ),
-          ),
-          trailing: Text(
-            Common().interpolate(strings.getMessage('priceInEuros') ?? '€{price}', {
-              'price': price.toStringAsFixed(2),
-            }),
-            style: GoogleFonts.roboto(
-              fontSize: 18.0,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showPaymentOptions(BuildContext context, double coins, double price) {
-
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        elevation: 6,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 6.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(LocalizedStrings.of(context)?.paymentOptionsTitle ?? "How do you want to pay?", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 20),
-              ListTile(
-                leading: Icon(Icons.credit_card),
-                title: Text(LocalizedStrings.of(context)?.payWithCard ?? 'Credit or Debit card'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _cardPayment(coins, price);
-                },
-              ),
-              ListTile(
-                leading: Image.asset('assets/paypal.png', height: 24.0),
-                title: Text('PayPal'),
-                onTap: () {
-                  Navigator.pop(context);
-                  //_payPalPayment(price);
-                },
-              ),
-              ListTile(
-                leading: Image.asset(
-                  'assets/google.png',
-                  height: 24.0,
-                  fit: BoxFit.contain,
+              Container(
+                width: 60 * k,
+                height: 60 * k,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
                 ),
-                title: Text('Google Play'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _buyFromGooglePlay('test');
-                },
+                margin: EdgeInsets.fromLTRB(12 / 4 * k, 0, 12, 0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/coin.png',
+                      width: 20 * k,
+                      height: 20 * k,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$coins',
+                      style: GoogleFonts.roboto(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  Common().interpolate(
+                    strings.getMessage('buyCoins') ?? 'Buy {coins} Coins',
+                    {'coins': coins.toString()},
+                  ),
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.w200,
+                    fontSize: 20.0,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 12.0),
+                child: Text(
+                  Common().interpolate(
+                    strings.getMessage('priceInEuros') ?? '€{price}',
+                    {'price': price.toStringAsFixed(2)},
+                  ),
+                  style: GoogleFonts.roboto(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -300,17 +317,14 @@ class _StorePageState extends State<StorePage> {
         email: 'betsontrading@gmail.com',
         phone: '',
         address: stripe.Address(
-          city: 'Carreño',
-          country: 'ES',
-          line1: '',
-          line2: '',
-          postalCode: '33430',
-          state: 'Asturias'
-        ),
+            city: 'Carreño',
+            country: 'ES',
+            line1: '',
+            line2: '',
+            postalCode: '33430',
+            state: 'Asturias'),
       );
-
       final clientSecret = await _getClientSecret(price, userId!, coins);
-
       await stripe.Stripe.instance.initPaymentSheet(
         paymentSheetParameters: stripe.SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
@@ -323,73 +337,52 @@ class _StorePageState extends State<StorePage> {
           ),
         ),
       );
-
       await stripe.Stripe.instance.presentPaymentSheet();
-
       await BetsService().getUserInfo(userId);
       Navigator.pop(context);
       homeScreenKey.currentState?.loadUserIdAndData();
-
-      //TODO: Check real complete before to notify user
-      /** No excepion means transaction OK? */
-
       Common().showLocalNotification(
         "other",
         "Betrader",
-        Common().interpolate(LocalizedStrings.of(context)!.youEarnedCoins ?? 'You earned ${coins}฿!', { 'coins': coins.toString() }),
+        Common().interpolate(
+            LocalizedStrings.of(context)!.youEarnedCoins ??
+                'You earned ${coins}🪙!',
+            {'coins': coins.toString()}),
         {"REWARD": coins},
       );
-
-    } catch (e) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: Duration(seconds: 3),
-          content: Text("Error! Cannot process transaction"),
-          backgroundColor: Colors.red,
-        ),
-      );
+    } on stripe.StripeException catch (e) {
+      if (e.error.code != stripe.FailureCode.Canceled){
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text("Error during transaction process!"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
-  void _buyFromGooglePlay(String productId) async {
-    final bool available = await _iap.isAvailable();
-    if (!available) {
-      print("❌ Google Play no disponible");
-      return;
-    }
-
-    final ProductDetailsResponse response = await _iap.queryProductDetails({productId});
-    if (response.notFoundIDs.isNotEmpty) {
-      print("❌ Producto no encontrado en Play Console");
-      return;
-    }
-
-    final ProductDetails productDetails = response.productDetails.first;
-    final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
-
-    _iap.buyConsumable(purchaseParam: purchaseParam);
-  }
-
-  Future<String> _getClientSecret(double price, String userId, double coins) async {
+  Future<String> _getClientSecret(
+      double price, String userId, double coins) async {
     final Map<String, dynamic> requestData = {
       'amount': (price * 100).toInt(),
       'currency': "eur",
       'userId': userId,
       'coins': coins,
     };
-
     final response = await Common().postRequestWrapper(
       'Payments',
       'CreatePaymentIntent',
       requestData,
     );
-
-    if (response['statusCode'] == 200 && response['body'] != null && response['body']['client_secret'] != null) {
+    if (response['statusCode'] == 200 &&
+        response['body'] != null &&
+        response['body']['client_secret'] != null) {
       return response['body']['client_secret'];
     } else {
       throw Exception('Error al obtener client_secret desde el backend');
     }
   }
-
 }

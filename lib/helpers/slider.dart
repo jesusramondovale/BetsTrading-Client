@@ -117,7 +117,7 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
               child: Align(
                 alignment: Alignment.topCenter,
                 child: Text(
-                  '${widget.betAmount.toStringAsFixed(2)}฿',
+                  '${widget.betAmount.toStringAsFixed(2)}🪙',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.montserrat(
                     fontSize: 24,

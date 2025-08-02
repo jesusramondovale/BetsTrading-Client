@@ -172,13 +172,14 @@ class UserDialog extends StatelessWidget {
                                     height: 80,
                                     width: 80,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, StackTrace) =>
-                                        Image.asset(
-                                          "assets/new_icon.png",
-                                          height: 80,
-                                          width: 80,
-                                          fit: BoxFit.cover,
-                                        ),
+                                    errorBuilder:
+                                        (context, error, StackTrace) =>
+                                            Image.asset(
+                                      "assets/new_icon.png",
+                                      height: 80,
+                                      width: 80,
+                                      fit: BoxFit.cover,
+                                    ),
                                   )
                                 : Image.memory(
                                     base64Decode(user.profilePic!),
@@ -192,7 +193,7 @@ class UserDialog extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             AutoSizeText(
-                              user.fullname,
+                              (user.fullname.length < 12 ? user.fullname : user.fullname.substring(0,12) + '...') ,
                               maxLines: 1,
                               style: GoogleFonts.robotoCondensed(
                                 fontSize: 20,
@@ -201,7 +202,7 @@ class UserDialog extends StatelessWidget {
                               ),
                             ),
                             AutoSizeText(
-                              '@${user.username}',
+                              '@${(user.username.length < 20 ? user.username : user.username.substring(0,17) + '...')}',
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
@@ -220,8 +221,9 @@ class UserDialog extends StatelessWidget {
                           color: Colors.white, size: 20),
                       title: Text(
                         maxLines: 1,
-                        user.email,
-                        style: GoogleFonts.montserrat(color: Colors.white, fontSize: 16),
+                        (user.email.length < 35 ? user.email : user.email.substring(0,30) + '...') ,
+                        style: GoogleFonts.montserrat(
+                            color: Colors.white, fontSize: 12),
                       ),
                     ),
                     ListTile(
@@ -244,16 +246,18 @@ class UserDialog extends StatelessWidget {
                     ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
-                      leading: Text(
-                        '\u0e3f',
-                        style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.w100,
-                            color: Colors.yellowAccent),
+                      leading: Container(
+                        margin: const EdgeInsets.fromLTRB(0, 5, 0, 10),
+                        child: Image.asset(
+                          'assets/coin.png',
+                          width: 25,
+                          height: 25,
+                        ),
                       ),
                       title: Text(
                         user.points.toString(),
-                        style: GoogleFonts.montserrat(color: Colors.white, fontSize: 20),
+                        style: GoogleFonts.montserrat(
+                            color: Colors.white, fontSize: 20),
                       ),
                     ),
                     // Estado activo
@@ -267,7 +271,8 @@ class UserDialog extends StatelessWidget {
                       ),
                       title: Text(
                         user.isActive ? 'Cuenta activa' : 'Cuenta inactiva',
-                        style: GoogleFonts.montserrat(color: Colors.white, fontSize: 20),
+                        style: GoogleFonts.montserrat(
+                            color: Colors.white, fontSize: 20),
                       ),
                     ),
                   ],
