@@ -109,7 +109,7 @@ class RecentBetDialog extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withOpacity(1)
+                  ? Colors.black.withValues(alpha: 1)
                   : Colors.grey[200]!,
               borderRadius: BorderRadius.circular(8.0),
             ),
@@ -154,14 +154,35 @@ class RecentBetDialog extends StatelessWidget {
               size: 34,
               color: Colors.white70,
             ),
-            Text(
+            icon != Icons.casino
+                ? Text(
               value,
               style: GoogleFonts.montserrat(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: color,
               ),
-            ),
+            )
+                : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Image.asset(
+                  'assets/coin.png',
+                  width: 16,
+                  height: 16,
+                ),
+              ],
+            )
+
           ],
         ),
       ),
@@ -275,15 +296,27 @@ class RecentBetDialog extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          '${bet.profitLoss!.toStringAsFixed(2)}🪙',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 25,
-                            fontWeight: FontWeight.w400,
-                            color: bet.profitLoss! > 0.0
-                                ? Colors.green
-                                : Colors.red,
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              bet.profitLoss!.toStringAsFixed(2),
+                              style: GoogleFonts.montserrat(
+                                fontSize: 25,
+                                fontWeight: FontWeight.w400,
+                                color: bet.profitLoss! > 0.0
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Image.asset(
+                              'assets/coin.png',
+                              width: 24,
+                              height: 24,
+                              fit: BoxFit.contain,
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -303,11 +336,12 @@ class RecentBetDialog extends StatelessWidget {
                         _buildGridItem(
                             context,
                             Icons.casino,
-                            '${bet.betAmount.toStringAsFixed(2)}🪙',
+                            '${bet.betAmount.toStringAsFixed(2)}',
                             strings!.betAmount ?? "Bet amount"),
                         _buildGridItem(
                             context,
                             Icons.update,
+                            //TODO Currency
                             '${bet.originValue.toStringAsFixed(2)}€',
                             strings.originValue ?? "Origin value"),
                         _buildGridItem(
@@ -428,7 +462,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
       },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       transitionDuration: const Duration(milliseconds: 300),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
@@ -456,7 +490,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             ? (widget.bet.profitLoss)?.toStringAsFixed(2)
             : '¿?';
     //TODO
-    String currency = '🪙';
+    //String currency = 'xd';
 
     /* TO-DO
     String currency = (bet.currency != null) ?
@@ -631,51 +665,63 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             trailing: _showEditButtons
                 ? null
                 : Column(
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      trailingText!,
+                      maxLines: 1,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w300,
+                        color: widget.bet.targetDate.isAfter(DateTime.now())
+                            ? Colors.grey
+                            : widget.bet.targetWon == true
+                            ? Colors.green
+                            : Colors.red,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Image.asset(
+                      'assets/coin.png',
+                      width: 20,
+                      height: 20,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
+                ),
+                Container(
+                  width: 61,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        '$trailingText$currency',
-                        maxLines: 1,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w300,
-                          color: widget.bet.targetDate.isAfter(DateTime.now())
-                              ? Colors.grey
-                              : widget.bet.targetWon == true
-                                  ? Colors.green
-                                  : Colors.red,
+                        (daysUntilTarget > 0
+                            ? "$daysUntilTarget ${strings!.day ?? "day/s"}"
+                            : (daysUntilFinal >= 0
+                            ? strings!.onPlay ?? "On play!"
+                            : strings!.finished ?? "Finished")),
+                        style: GoogleFonts.rajdhani(
+                          fontSize: 12,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.grey,
                         ),
                       ),
-                      Container(
-                        width: 61,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              (daysUntilTarget > 0
-                                  ? "$daysUntilTarget ${strings!.day ?? "day/s"}"
-                                  : (daysUntilFinal >= 0
-                                      ? strings!.onPlay ?? "On play!"
-                                      : strings!.finished ?? "Finished")),
-                              style: GoogleFonts.rajdhani(
-                                fontSize: 12,
-                                color: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.white
-                                    : Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Icon(
-                              (daysUntilTarget > 0
-                                  ? Icons.watch_later
-                                  : Icons.timer_off_outlined),
-                              size: 16,
-                            ),
-                          ],
-                        ),
+                      const SizedBox(width: 5),
+                      Icon(
+                        (daysUntilTarget > 0
+                            ? Icons.watch_later
+                            : Icons.timer_off_outlined),
+                        size: 16,
                       ),
                     ],
                   ),
+                ),
+              ],
+            )
+
           ),
         ),
       ],

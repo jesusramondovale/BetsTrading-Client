@@ -11,7 +11,6 @@ import '../locale/localized_texts.dart';
 import '../native_rewarded.dart';
 import '../services/AuthService.dart';
 import 'layout_page.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
 
 class StorePage extends StatefulWidget {
   @override
@@ -21,7 +20,6 @@ class StorePage extends StatefulWidget {
 class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   RewardedAd? _rewardedAd;
   bool _isAdLoaded = false;
-  final InAppPurchase _iap = InAppPurchase.instance;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late AnimationController _progressController;
 
@@ -71,7 +69,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
               color: Colors.brown,
               k: 1,
               onPressed: () {
-                _showPaymentOptions(context, 100, 1.99);
+                _cardPayment(100, 1.99);
               },
             ),
             _buildStoreButton(
@@ -82,7 +80,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
               color: Colors.grey,
               k: 1.15,
               onPressed: () {
-                _showPaymentOptions(context, 500 , 7.99 );
+                _cardPayment(500, 7.99);
               },
             ),
             _buildStoreButton(
@@ -93,7 +91,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
               color: Colors.amber,
               k: 1.25,
               onPressed: () {
-                _showPaymentOptions(context, 1000,  14.99);
+                _cardPayment(1000, 14.99);
               },
             ),
             _buildStoreButton(
@@ -104,7 +102,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
               color: Colors.deepPurple,
               k: 1.35,
               onPressed: () {
-                _showPaymentOptions(context, 5000 , 59.99);
+                _cardPayment(5000, 59.99);
               },
             ),
             SizedBox(height: 30),
@@ -159,7 +157,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                       Text(
                         Common().interpolate(
                           strings.getMessage('earnCoins') ??
-                              'Watch an Ad to Earn {coins}',
+                              'Watch an Ad to Earn {coins}🪙',
                           {
                             'coins': '50',
                           },
@@ -312,58 +310,6 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     );
   }
 
-  void _showPaymentOptions(BuildContext context, double coins, double price) {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                  LocalizedStrings.of(context)?.paymentOptionsTitle ??
-                      "How do you want to pay?",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 20),
-              ListTile(
-                leading: Icon(Icons.credit_card),
-                title: Text(LocalizedStrings.of(context)?.payWithCard ??
-                    'Credit or Debit card'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _cardPayment(coins, price);
-                },
-              ),
-              ListTile(
-                leading: Image.asset('assets/paypal.png', height: 24.0),
-                title: Text('PayPal'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: Image.asset(
-                  'assets/play_store.png',
-                  height: 24.0,
-                  fit: BoxFit.contain,
-                ),
-                title: Text('Play Store'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _buyFromGooglePlay('test');
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _cardPayment(double coins, double price) async {
     try {
       String? userId = await _storage.read(key: 'sessionToken');
@@ -404,28 +350,18 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
             {'coins': coins.toString()}),
         {"REWARD": coins},
       );
-    } catch (e) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: Duration(seconds: 3),
-          content: Text("Error! Cannot process transaction"),
-          backgroundColor: Colors.red,
-        ),
-      );
+    } on stripe.StripeException catch (e) {
+      if (e.error.code != stripe.FailureCode.Canceled){
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text("Error during transaction process!"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
-  }
-
-  void _buyFromGooglePlay(String productId) async {
-    final bool available = await _iap.isAvailable();
-    if (!available) return;
-    final ProductDetailsResponse response =
-    await _iap.queryProductDetails({productId});
-    if (response.notFoundIDs.isNotEmpty) return;
-    final ProductDetails productDetails = response.productDetails.first;
-    final PurchaseParam purchaseParam =
-    PurchaseParam(productDetails: productDetails);
-    _iap.buyConsumable(purchaseParam: purchaseParam);
   }
 
   Future<String> _getClientSecret(

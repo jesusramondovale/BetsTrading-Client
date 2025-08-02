@@ -13,7 +13,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
-      'youEarnedCoins': 'You earned {coins}!',
+      'youEarnedCoins': 'You earned {coins}🪙!!',
       'paymentOptionsTitle': 'How do you want to pay?',
       'payWithCard': 'Credit or Debit Card',
       'payWithGooglePay': 'Google Pay',
@@ -49,7 +49,7 @@ class LocalizedStrings {
       'data_storage_details': 'Cookies and device data usage.',
       'withdraw_consent': 'By accepting, you agree to the terms of data processing. You can withdraw your consent anytime.',
       'i_consent': 'I Consent',
-      'youWonCoins': 'You won {coins}',
+      'youWonCoins': 'You won {coins}🪙!',
       'store': 'Store',
       'getCoins': 'Get Coins',
       'buyCoins': 'Buy {coins}',
@@ -193,7 +193,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
-      'youEarnedCoins': 'Has conseguido {coins}',
+      'youEarnedCoins': 'Has conseguido {coins}🪙! ',
       'paymentOptionsTitle': '¿Cómo quieres pagar?',
       'payWithCard': 'Tarjeta de crédito o débito',
       'payWithGooglePay': 'Google Pay',
@@ -229,7 +229,7 @@ class LocalizedStrings {
       'data_storage_details': 'Uso de cookies y datos del dispositivo.',
       'withdraw_consent': 'Al aceptar, estás de acuerdo con los términos del procesamiento de datos. Puedes retirar tu consentimiento en cualquier momento.',
       'i_consent': 'Doy mi consentimiento',
-      'youWonCoins': '¡Ganaste {coins}!',
+      'youWonCoins': '¡Ganaste {coins}🪙!',
       'store': 'Tienda',
       'getCoins': 'Obtener Monedas',
       'buyCoins': 'Comprar {coins}',
@@ -373,7 +373,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
-      'youEarnedCoins': 'Vous avez gagné {coins}',
+      'youEarnedCoins': 'Vous avez gagné {coins}🪙!',
       'paymentOptionsTitle': 'Comment souhaitez-vous payer ?',
       'payWithCard': 'Carte de crédit ou de débit',
       'payWithGooglePay': 'Google Pay',
@@ -409,7 +409,7 @@ class LocalizedStrings {
       'data_storage_details': 'Utilisation des cookies et des données de l\'appareil.',
       'withdraw_consent': 'En acceptant, vous acceptez les termes du traitement des données. Vous pouvez retirer votre consentement à tout moment.',
       'i_consent': 'Je consens',
-      'youWonCoins': 'Vous avez gagné {coins} !',
+      'youWonCoins': 'Vous avez gagné {coins}🪙 !',
       'store': 'Magasin',
       'getCoins': 'Obtenez des Pièces',
       'buyCoins': 'Achetez {coins}',
@@ -554,7 +554,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
-      'youEarnedCoins': 'Hai guadagnato {coins}',
+      'youEarnedCoins': 'Hai guadagnato {coins}🪙',
       'paymentOptionsTitle': 'Come vuoi pagare?',
       'payWithCard': 'Carta di credito o debito',
       'payWithGooglePay': 'Google Pay',
@@ -590,7 +590,7 @@ class LocalizedStrings {
       'data_storage_details': 'Uso di cookie e dati del dispositivo.',
       'withdraw_consent': 'Accettando, acconsenti ai termini del trattamento dei dati. Puoi ritirare il tuo consenso in qualsiasi momento.',
       'i_consent': 'Acconsento',
-      'youWonCoins': 'Hai vinto {coins}!',
+      'youWonCoins': 'Hai vinto {coins}🪙!',
       'store': 'Negozio',
       'getCoins': 'Ottieni Monete',
       'buyCoins': 'Acquista {coins}',
@@ -736,7 +736,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
-      'youEarnedCoins': 'Du hast verdient {coins}',
+      'youEarnedCoins': 'Du hast verdient {coins}🪙',
       'paymentOptionsTitle': 'Wie möchtest du bezahlen?',
       'payWithCard': 'Kredit- oder Debitkarte',
       'payWithGooglePay': 'Google Pay',
@@ -772,7 +772,7 @@ class LocalizedStrings {
       'data_storage_details': 'Verwendung von Cookies und Gerätedaten.',
       'withdraw_consent': 'Indem Sie zustimmen, akzeptieren Sie die Bedingungen der Datenverarbeitung. Sie können Ihre Zustimmung jederzeit widerrufen.',
       'i_consent': 'Ich stimme zu',
-      'youWonCoins': 'Du hast {coins} gewonnen!',
+      'youWonCoins': 'Du hast {coins}🪙 gewonnen!',
       'store': 'Geschäft',
       'getCoins': 'Münzen erhalten',
       'buyCoins': 'Kaufe {coins}',

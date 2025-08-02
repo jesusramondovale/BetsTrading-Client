@@ -387,11 +387,11 @@ class HomeScreenState extends State<HomeScreen> {
                                   color: Colors.grey,
                                 ),
                               ),
-                              const SizedBox(height: 30),
+
                               Container(
-                                width: 48,
-                                child: Image.asset('assets/new_icon.png'),
-                              ),
+                                  child:
+                                      Icon(Icons.arrow_downward_rounded , size: 50, color: Colors.grey,),
+                                  )
                             ],
                           ),
                         ),

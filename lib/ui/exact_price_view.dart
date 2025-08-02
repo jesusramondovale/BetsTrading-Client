@@ -560,28 +560,40 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           TextSpan(
                             children: [
                               TextSpan(
-                                text: "${LocalizedStrings.of(context)?.enterBetAmount ?? 'Bet amount'}: ",
+                                text:
+                                "${LocalizedStrings.of(context)?.enterBetAmount ?? 'Bet amount'}: ",
                                 style: GoogleFonts.montserrat(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w200,
-                                  color: _isAcceptEnabled ? Theme.of(context).brightness ==
-                                        Brightness.dark
-                                          ? Colors.white
-                                          : Colors.grey : Colors.red,
+                                  color: _isAcceptEnabled
+                                      ? Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : Colors.grey
+                                      : Colors.red,
                                 ),
                               ),
                               TextSpan(
-                                text: "${_getBetAmountFromMargin(_selectedMargin)} 🪙",
+                                text: _getBetAmountFromMargin(_selectedMargin).toString(),
                                 style: GoogleFonts.montserrat(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w500,
                                   color: Colors.green,
                                 ),
                               ),
+                              const WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: Padding(
+                                  padding: EdgeInsets.only(left: 6, bottom: 4),
+                                  child: Image(
+                                    image: AssetImage('assets/coin.png'),
+                                    width: 25,
+                                    height: 25,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 5),
                         _buildMarginButtons(context, updateMargin),
                         const SizedBox(height: 5),

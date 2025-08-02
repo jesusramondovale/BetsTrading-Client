@@ -129,7 +129,7 @@ class _TopUsersPageState extends State<TopUsersPage>
                   ),
                   elevation: 5,
                   child: ListTile(
-                    contentPadding: EdgeInsets.all(10.0),
+                    contentPadding: EdgeInsets.all(6.0),
                     leading: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -162,32 +162,29 @@ class _TopUsersPageState extends State<TopUsersPage>
                     ),
                     title: Text(
                       user.username,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.0,
-                      ),
+                      style: GoogleFonts.roboto(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w300),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           '${user.points}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16.0,
+                            style: GoogleFonts.roboto(
+                            fontSize: 16,
                             color: Colors.white,
-                          ),
+                            fontWeight: FontWeight.w200),
                         ),
                         SizedBox(width: 4),
                         Container(
-                            margin: EdgeInsets.fromLTRB(0, 5, 0, 10),
-                            child: Text(
-                              '\u0e3f',
-                              style: TextStyle(
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.w100,
-                                  color: Colors.yellowAccent),
-                            )
+                          margin: const EdgeInsets.fromLTRB(0, 5, 0, 10),
+                          child: Image.asset(
+                            'assets/coin.png',
+                            width: 20,
+                            height: 20,
+                          ),
                         )
                       ],
                     ),
@@ -229,7 +226,7 @@ class _TopUsersPageState extends State<TopUsersPage>
                   ),
                   elevation: 5,
                   child: ListTile(
-                    contentPadding: EdgeInsets.all(10.0),
+                    contentPadding: EdgeInsets.all(6.0),
                     leading: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -262,32 +259,29 @@ class _TopUsersPageState extends State<TopUsersPage>
                     ),
                     title: Text(
                       user.username,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.0,
-                      ),
+                      style: GoogleFonts.roboto(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w300),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           '${user.points}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16.0,
-                            color: Colors.white,
-                          ),
+                          style: GoogleFonts.roboto(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w200),
                         ),
                         SizedBox(width: 4),
                         Container(
-                            margin: EdgeInsets.fromLTRB(0, 5, 0, 10),
-                            child: Text(
-                              '\u0e3f',
-                              style: TextStyle(
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.w100,
-                                  color: Colors.yellowAccent),
-                            )
+                          margin: const EdgeInsets.fromLTRB(0, 5, 0, 10),
+                          child: Image.asset(
+                            'assets/coin.png',
+                            width: 25,
+                            height: 25,
+                          ),
                         )
                       ],
                     ),
@@ -305,7 +299,7 @@ class _TopUsersPageState extends State<TopUsersPage>
     return Container(
       padding: EdgeInsets.all(4.0),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.8),
+        color: color.withValues(alpha: 1),
         shape: BoxShape.circle,
       ),
       child: Icon(
