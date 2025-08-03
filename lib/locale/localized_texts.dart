@@ -13,7 +13,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
-      'pendingBalance': 'Pending balance to send',
+      'pendingBalance': 'Pending balance to send:',
       'yourCoins': 'Your coins',
       'exchangeTitle': 'Exchange',
       'buyMoreCoins': 'Buy more coins',
@@ -199,7 +199,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
-      'pendingBalance': 'Saldo pendiente de envío',
+      'pendingBalance': 'Saldo pendiente de envío:',
       'yourCoins': 'Tus monedas',
       'exchangeTitle': 'Exchange',
       'buyMoreCoins': 'Obtener más monedas',
@@ -385,7 +385,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
-      'pendingBalance': 'Solde en attente d\'envoi',
+      'pendingBalance': 'Solde en attente d\'envoi:',
       'yourCoins': 'Vos pièces',
       'exchangeTitle': 'Échange',
       'buyMoreCoins': 'Acheter plus de pièces',
@@ -572,7 +572,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
-      'pendingBalance': 'Saldo in attesa di invio',
+      'pendingBalance': 'Saldo in attesa di invio:',
       'yourCoins': 'Le tue monete',
       'exchangeTitle': 'Scambio',
       'buyMoreCoins': 'Compra altre monete',
@@ -760,7 +760,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
-      'pendingBalance': 'Ausstehendes Guthaben zum Senden',
+      'pendingBalance': 'Ausstehendes Guthaben zum Senden:',
       'yourCoins': 'Deine Münzen',
       'exchangeTitle': 'Tausch',
       'buyMoreCoins': 'Mehr Münzen kaufen',

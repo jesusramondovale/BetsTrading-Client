@@ -17,7 +17,8 @@ class ExchangePage extends StatefulWidget {
 class _ExchangePageState extends State<ExchangePage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String _userPoints = '0';
-
+  //TODO Get actual pending balance from backend
+  double _pendingBalance = 2500;
   //TODO: Get exchange current options from backend with a determined currency
   final List<Map<String, dynamic>> _exchangeOptions = [
     {'coins': 5000, 'euros': 50},
@@ -52,7 +53,6 @@ class _ExchangePageState extends State<ExchangePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -66,7 +66,6 @@ class _ExchangePageState extends State<ExchangePage> {
                 ),
               ],
             ),
-
             Center(
               child: Column(
                 children: [
@@ -100,12 +99,18 @@ class _ExchangePageState extends State<ExchangePage> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       Common().vibrate(40, 30);
-                      Navigator.push(
+                      Common().vibrate(40, 30);
+
+                      // Espera a que se cierre StorePage
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => StorePage()),
                       );
+
+                      // Cuando vuelve, recarga puntos
+                      _loadPoints();
                     },
                     child: Text(
                       strings?.get('buyMoreCoins') ?? 'Buy more coins',
@@ -119,7 +124,6 @@ class _ExchangePageState extends State<ExchangePage> {
               ),
             ),
             const SizedBox(height: 30),
-
             Text(
               strings?.get('exchangeCoinsTitle') ?? 'Exchange coins',
               style: GoogleFonts.montserrat(
@@ -129,28 +133,32 @@ class _ExchangePageState extends State<ExchangePage> {
               ),
             ),
             const SizedBox(height: 10),
-
-            // Opciones de intercambio
             Expanded(
               child: ListView.builder(
                 itemCount: _exchangeOptions.length,
                 itemBuilder: (context, index) {
                   final option = _exchangeOptions[index];
+                  final requiredCoins = option['coins'] as int;
+                  final currentPoints = int.tryParse(_userPoints) ?? 0;
+                  final canExchange = currentPoints >= requiredCoins;
+
                   return Card(
-                    color: Colors.white10,
+                    color: Colors.transparent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                     margin: const EdgeInsets.symmetric(vertical: 5),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(16),
-                      onTap: () {
+                      onTap: canExchange
+                          ? () {
                         Common().vibrate(40, 30);
                         Common().unimplementedAction(
                           context,
-                          "Exchange option pressed",
+                          'Exchange option pressed',
                         );
-                      },
+                      }
+                          : null, // Desactivado si no llega
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
@@ -158,7 +166,7 @@ class _ExchangePageState extends State<ExchangePage> {
                             Row(
                               children: [
                                 Text(
-                                  NumberFormat.compact().format(option['coins']),
+                                  NumberFormat.compact().format(requiredCoins),
                                   style: GoogleFonts.montserrat(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w300,
@@ -174,33 +182,14 @@ class _ExchangePageState extends State<ExchangePage> {
                               ],
                             ),
                             const Spacer(),
-                            Text(
-                              '➤',
-                              style: GoogleFonts.roboto(
-                                fontSize: 20,
-
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              '➤',
-                              style: GoogleFonts.roboto(
-                                fontSize: 20,
-
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              '➤',
-                              style: GoogleFonts.roboto(
-                                fontSize: 20,
-
-                                color: Colors.white,
-                              ),
-                            ),
+                            const Text('➤',
+                                style: TextStyle(fontSize: 20, color: Colors.white)),
+                            const Text('➤',
+                                style: TextStyle(fontSize: 20, color: Colors.white)),
+                            const Text('➤',
+                                style: TextStyle(fontSize: 20, color: Colors.white)),
                             const Spacer(),
                             Text(
-                              //TODO Currency
                               '${option['euros']} EUR',
                               style: GoogleFonts.montserrat(
                                 fontSize: 20,
@@ -213,11 +202,10 @@ class _ExchangePageState extends State<ExchangePage> {
                       ),
                     ),
                   );
+
                 },
               ),
             ),
-
-            // Botón de puntos pendientes
             Card(
               color: Colors.transparent,
               elevation: 0,
@@ -236,23 +224,23 @@ class _ExchangePageState extends State<ExchangePage> {
                 },
                 child: Padding(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
                   child: Row(
                     children: [
                       Text(
                         strings?.get('pendingBalance') ??
                             'Pending points to send',
                         style: GoogleFonts.montserrat(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w300,
                           color: Colors.white,
                         ),
                       ),
                       const Spacer(),
                       Text(
-                        NumberFormat('#,###', 'es_ES').format(1500),
+                        NumberFormat('#,###', 'es_ES').format(_pendingBalance) + 'EUR',
                         style: GoogleFonts.montserrat(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w400,
                           color: Colors.amber,
                         ),
@@ -262,7 +250,6 @@ class _ExchangePageState extends State<ExchangePage> {
                 ),
               ),
             ),
-
           ],
         ),
       ),
