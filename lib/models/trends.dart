@@ -140,7 +140,7 @@ class TrendDialog extends StatelessWidget {
                                   if (ok) {
                                     Common().newFavoriteCompleted(
                                         context,
-                                        LocalizedStrings.of(context)!.updatedFavs ?? "Updated favs!");
+                                        LocalizedStrings.of(context)!.get('updatedFavs') ?? "Updated favs!");
                                     homeScreenKey.currentState?.refreshFavorites();
                                     Navigator.of(context).pop(true);
                                   }
@@ -174,7 +174,7 @@ class TrendDialog extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '${strings?.close ?? 'Close'}: ${trend.close.toStringAsFixed(2)}€',
+                        '${strings?.get('close') ?? 'Close'}: ${trend.close.toStringAsFixed(2)}€',
                         style: GoogleFonts.montserrat(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -184,7 +184,7 @@ class TrendDialog extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            '${strings?.current ?? 'Current'}: ${trend.current.toStringAsFixed(2)}€',
+                            '${strings?.get('current') ?? 'Current'}: ${trend.current.toStringAsFixed(2)}€',
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,

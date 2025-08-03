@@ -140,7 +140,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final noBetsText =
-        LocalizedStrings.of(context)!.noBetsAvailable ?? "No Bets available!";
+        LocalizedStrings.of(context)!.get('noBetsAvailable') ?? "No Bets available!";
     return LayoutBuilder(
       builder: (context, constraints) {
         final double maxWidth = constraints.maxWidth - PRICE_BAR_WIDTH;

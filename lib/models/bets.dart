@@ -337,33 +337,33 @@ class RecentBetDialog extends StatelessWidget {
                             context,
                             Icons.casino,
                             '${bet.betAmount.toStringAsFixed(2)}',
-                            strings!.betAmount ?? "Bet amount"),
+                            strings?.get('betAmount') ?? "Bet amount"),
                         _buildGridItem(
                             context,
                             Icons.update,
                             //TODO Currency
                             '${bet.originValue.toStringAsFixed(2)}€',
-                            strings.originValue ?? "Origin value"),
+                            strings?.get('originValue') ?? "Origin value"),
                         _buildGridItem(
                             context,
                             Icons.crop_sharp,
                             '${bet.targetValue.toStringAsFixed(2)}€',
-                            strings.targetValue ?? "Target value"),
+                            strings?.get('targetValue') ?? "Target value"),
                         _buildGridItem(
                             context,
                             Icons.date_range,
                             DateFormat('dd-MM-yyyy').format(bet.targetDate),
-                            strings.targetDate ?? "Target date"),
+                            strings?.get('targetDate') ?? "Target date"),
                         _buildGridItem(
                             context,
                             Icons.data_object_sharp,
                             '${bet.targetMargin.toStringAsFixed(2)}%',
-                            strings.targetMargin ?? "Target margin"),
+                            strings?.get('targetMargin') ?? "Target margin"),
                         _buildGridItem(
                             context,
                             Icons.attach_money,
                             'x${bet.targetOdds.toStringAsFixed(2)}',
-                            strings.winBonus ?? "Win bonus"),
+                            strings?.get('winBonus') ?? "Win bonus"),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -698,10 +698,10 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                     children: [
                       Text(
                         (daysUntilTarget > 0
-                            ? "$daysUntilTarget ${strings!.day ?? "day/s"}"
+                            ? "$daysUntilTarget ${strings?.get('day') ?? "day/s"}"
                             : (daysUntilFinal >= 0
-                            ? strings!.onPlay ?? "On play!"
-                            : strings!.finished ?? "Finished")),
+                            ? strings?.get('onPlay') ?? "On play!"
+                            : strings?.get('finished') ?? "Finished")),
                         style: GoogleFonts.rajdhani(
                           fontSize: 12,
                           color: Theme.of(context).brightness == Brightness.dark

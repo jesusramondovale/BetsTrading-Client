@@ -49,7 +49,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
       appBar: AppBar(
         automaticallyImplyLeading: true,
         title: Text(
-          strings!.getMessage('store') ?? 'Store',
+          strings!.get('store') ?? 'Store',
           style: GoogleFonts.montserrat(
             fontSize: 28,
             fontWeight: FontWeight.w400,
@@ -144,7 +144,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                     _showRewardedAd(
                         50,
                         Common().interpolate(
-                            strings.getMessage('youWonCoins') ??
+                            strings.get('youWonCoins') ??
                                 'You won 50', {
                           'coins': 50.toString() + '🪙',
                         }));
@@ -156,7 +156,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                     children: [
                       Text(
                         Common().interpolate(
-                          strings.getMessage('earnCoins') ??
+                          strings.get('earnCoins') ??
                               'Watch an Ad to Earn {coins}🪙',
                           {
                             'coins': '50',
@@ -281,7 +281,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
               Expanded(
                 child: Text(
                   Common().interpolate(
-                    strings.getMessage('buyCoins') ?? 'Buy {coins} Coins',
+                    strings.get('buyCoins') ?? 'Buy {coins} Coins',
                     {'coins': coins.toString()},
                   ),
                   style: GoogleFonts.roboto(
@@ -294,7 +294,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                 padding: const EdgeInsets.only(right: 12.0),
                 child: Text(
                   Common().interpolate(
-                    strings.getMessage('priceInEuros') ?? '€{price}',
+                    strings.get('priceInEuros') ?? '€{price}',
                     {'price': price.toStringAsFixed(2)},
                   ),
                   style: GoogleFonts.roboto(
@@ -345,7 +345,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
         "other",
         "Betrader",
         Common().interpolate(
-            LocalizedStrings.of(context)!.youEarnedCoins ??
+            LocalizedStrings.of(context)!.get('youEarnedCoins') ??
                 'You earned ${coins}🪙!',
             {'coins': coins.toString()}),
         {"REWARD": coins},

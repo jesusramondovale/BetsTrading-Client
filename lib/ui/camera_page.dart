@@ -58,7 +58,7 @@ class _CameraPageState extends State<CameraPage> {
       print('Error taking picture: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(strings?.cameraError ??
+            content: Text(strings?.get('cameraError') ??
                 'Error taking picture. Please try again.')),
       );
       Navigator.pop(context, null);
@@ -121,7 +121,7 @@ class _CameraPageState extends State<CameraPage> {
                     Icon(Icons.camera_alt),
                     SizedBox(width: 10),
                     Text(
-                      " ${strings?.takePhoto ?? "Take photo"}",
+                      " ${strings?.get('takePhoto') ?? "Take photo"}",
                       style: TextStyle(fontSize: 16),
                     ),
                   ],
@@ -151,7 +151,7 @@ class _CameraPageState extends State<CameraPage> {
             ),
             child: Center(
               child: Text(
-                strings?.alignText ?? 'Align your ID here',
+                strings?.get('alignText') ?? 'Align your ID here',
                 style: TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),

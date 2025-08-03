@@ -125,7 +125,7 @@ class LoginFormState extends State<LoginForm> {
           String? username = await _storage.read(key: 'username');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("${strings.welcome ?? "Welcome"}! $username"),
+              content: Text("${strings.get('welcome') ?? "Welcome"}! $username"),
               backgroundColor: Colors.green,
             ),
           );
@@ -147,7 +147,7 @@ class LoginFormState extends State<LoginForm> {
           Image.asset('assets/google.png', height: 24.0),
           Padding(
             padding: const EdgeInsets.only(left: 10),
-            child: Text(strings.googleSignIn ?? 'Continue with Google', style: const TextStyle(fontSize: 16, color: Colors.black)),
+            child: Text(strings.get('googleSignIn') ?? 'Continue with Google', style: const TextStyle(fontSize: 16, color: Colors.black)),
           ),
         ],
       ),
@@ -171,7 +171,7 @@ class LoginFormState extends State<LoginForm> {
           Icon(Icons.email),
           Padding(
             padding: const EdgeInsets.only(left: 10),
-            child: Text(strings.commonSignIn ?? 'Log In', style: const TextStyle(fontSize: 16, color: Colors.white)),
+            child: Text(strings.get('commonSignIn') ?? 'Log In', style: const TextStyle(fontSize: 16, color: Colors.white)),
           ),
         ],
       ),
@@ -181,10 +181,10 @@ class LoginFormState extends State<LoginForm> {
   Widget _buildUsernameField(LocalizedStrings strings) {
     return TextFormField(
       controller: _usernameController,
-      decoration: InputDecoration(labelText: "E-mail / " + (strings.username ?? 'User name') ),
+      decoration: InputDecoration(labelText: "E-mail / " + (strings.get('username') ?? 'User name') ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return strings.pleaseEnterUsername ?? 'Please enter your username';
+          return strings.get('pleaseEnterUsername') ?? 'Please enter your username';
         }
         return null;
       },
@@ -195,10 +195,10 @@ class LoginFormState extends State<LoginForm> {
     return TextFormField(
       controller: _passwordController,
       obscureText: true,
-      decoration: InputDecoration(labelText: strings.password ?? 'Password'),
+      decoration: InputDecoration(labelText: strings.get('password') ?? 'Password'),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return strings.pleaseEnterPassword ?? 'Please enter your password';
+          return strings.get('pleaseEnterPassword') ?? 'Please enter your password';
         }
         return null;
       },
@@ -215,14 +215,14 @@ class LoginFormState extends State<LoginForm> {
               logInHelper(strings);
             }
           },
-          child: Text(strings.logIn ?? 'Log In'),
+          child: Text(strings.get('logIn') ?? 'Log In'),
         ),
         const Padding(padding: EdgeInsets.all(2.0)),
         ElevatedButton(
           onPressed: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const SignIn()));
           },
-          child: Text(strings.signIn ?? 'Register'),
+          child: Text(strings.get('signIn') ?? 'Register'),
         ),
       ],
     );
@@ -235,8 +235,8 @@ class LoginFormState extends State<LoginForm> {
           _showSocialSignIn = !_showSocialSignIn;
         });
       },
-      child: Text(_showSocialSignIn ? (strings.commonSignIn ?? "E-mail log-in") :
-            (strings.backToSocialsLogin ?? "Back to Social Logins")),
+      child: Text(_showSocialSignIn ? (strings.get('commonSignIn') ?? "E-mail log-in") :
+            (strings.get('backToSocialsLogin') ?? "Back to Social Logins")),
     );
   }
 
@@ -245,7 +245,7 @@ class LoginFormState extends State<LoginForm> {
       onPressed: () {
         // Forgot password logic
       },
-      child: Text(strings.forgotPassword ?? 'Forgot Password?'),
+      child: Text(strings.get('forgotPassword') ?? 'Forgot Password?'),
     );
   }
 
@@ -272,7 +272,7 @@ class LoginFormState extends State<LoginForm> {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("${strings.welcome ?? "Welcome"}!  ${_usernameController.text.trim()}"),
+            content: Text("${strings.get('welcome') ?? "Welcome"}!  ${_usernameController.text.trim()}"),
             backgroundColor: Colors.green,
           ),
         );
@@ -280,7 +280,7 @@ class LoginFormState extends State<LoginForm> {
         if ("null" == result['message'] || null == result['message']) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Oops... ${strings.getMessage("serverUnavailable")}"),
+              content: Text("Oops... ${strings.get("serverUnavailable")}"),
               backgroundColor: Colors.red,
             ),
           );
@@ -288,7 +288,7 @@ class LoginFormState extends State<LoginForm> {
         else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Oops... ${strings.getMessage(result['message'])}"),
+              content: Text("Oops... ${strings.get(result['message'])}"),
               backgroundColor: Colors.red,
             ),
           );

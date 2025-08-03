@@ -66,7 +66,7 @@ class SettingsViewState extends State<SettingsView> {
                 ? Colors.black
                 : Colors.grey[200]!,
             title: Text(
-              strings?.changePassword ?? "Change Password",
+              strings?.get('changePassword') ?? "Change Password",
               textAlign: TextAlign.center,
               style: GoogleFonts.roboto(
                 fontSize: 24,
@@ -81,7 +81,7 @@ class SettingsViewState extends State<SettingsView> {
                   controller: newPasswordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: strings?.newPassword ?? "New Password",
+                    labelText: strings?.get('newPassword') ?? "New Password",
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -90,7 +90,7 @@ class SettingsViewState extends State<SettingsView> {
                   controller: confirmPasswordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: strings?.confirmPassword ?? "Confirm Password",
+                    labelText: strings?.get('confirmPassword') ?? "Confirm Password",
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -101,7 +101,7 @@ class SettingsViewState extends State<SettingsView> {
                 onPressed: () {
                   Navigator.of(dialogContext).pop(false);
                 },
-                child: Text(strings?.cancel ?? "Cancel"),
+                child: Text(strings?.get('cancel') ?? "Cancel"),
               ),
               TextButton(
                 onPressed: () async {
@@ -115,7 +115,7 @@ class SettingsViewState extends State<SettingsView> {
                     if (result == 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(strings?.success ?? "Password changed successfully"),
+                          content: Text(strings?.get('success') ?? "Password changed successfully"),
                           backgroundColor: Colors.green,
                         ),
                       );
@@ -123,7 +123,7 @@ class SettingsViewState extends State<SettingsView> {
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(strings?.errorChangingPassword ?? "Error changing password"),
+                          content: Text(strings?.get('errorChangingPassword') ?? "Error changing password"),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -131,13 +131,13 @@ class SettingsViewState extends State<SettingsView> {
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(strings?.passwordMismatch ?? "Passwords do not match"),
+                        content: Text(strings?.get('passwordMismatch') ?? "Passwords do not match"),
                         backgroundColor: Colors.red,
                       ),
                     );
                   }
                 },
-                child: Text(strings?.confirm ?? "Confirm"),
+                child: Text(strings?.get('confirm') ?? "Confirm"),
               ),
             ],
           ),
@@ -162,10 +162,12 @@ class SettingsViewState extends State<SettingsView> {
     final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.black
+          : Colors.white,
       appBar: AppBar(
         backgroundColor : Colors.transparent,
-        title: Text(strings?.settings ?? "Settings",
+        title: Text(strings?.get('settings') ?? "Settings",
             style: GoogleFonts.montserrat(
               fontSize: 28,
               fontWeight: FontWeight.w400,
@@ -176,7 +178,7 @@ class SettingsViewState extends State<SettingsView> {
           context: context,
           tiles: [
             ListTile(
-              title: Text(strings?.personalInfo ?? 'Personal info',
+              title: Text(strings?.get('personalInfo') ?? 'Personal info',
                 style: GoogleFonts.montserrat(
                   fontSize: 20,
                   fontWeight: FontWeight.w400,
@@ -185,7 +187,7 @@ class SettingsViewState extends State<SettingsView> {
               onTap: widget.onPersonalInfoTap
             ),
             ListTile(
-              title: Text(strings?.changePassword ?? 'Change password',
+              title: Text(strings?.get('changePassword') ?? 'Change password',
                 style: GoogleFonts.montserrat(
                   fontSize: 20,
                   fontWeight: FontWeight.w400,
@@ -197,7 +199,7 @@ class SettingsViewState extends State<SettingsView> {
               }
             ),
             ListTile(
-              title: Text(strings?.notifications ?? 'Notifications',
+              title: Text(strings?.get('notifications') ?? 'Notifications',
                 style: GoogleFonts.montserrat(
                   fontSize: 20,
                   fontWeight: FontWeight.w400,
@@ -207,7 +209,7 @@ class SettingsViewState extends State<SettingsView> {
 
             ),
             ListTile(
-              title:  Text(strings?.paymentHistory ?? 'Payment history',
+              title:  Text(strings?.get('paymentHistory') ?? 'Payment history',
                 style: GoogleFonts.montserrat(
                   fontSize: 20,
                   fontWeight: FontWeight.w400,
@@ -220,7 +222,7 @@ class SettingsViewState extends State<SettingsView> {
               }
             ),
             ListTile(
-              title: Text(strings?.aboutUs ?? 'About us',
+              title: Text(strings?.get('aboutUs') ?? 'About us',
                 style: GoogleFonts.montserrat(
                   fontSize: 20,
                   fontWeight: FontWeight.w400,
@@ -232,7 +234,7 @@ class SettingsViewState extends State<SettingsView> {
             },
             ),
             SwitchListTile(
-              title: Text(strings?.enableVibration ?? "Enable vibration",
+              title: Text(strings?.get('enableVibration') ?? "Enable vibration",
                 style: GoogleFonts.montserrat(
                   fontSize: 20,
                   fontWeight: FontWeight.w400,
@@ -250,7 +252,7 @@ class SettingsViewState extends State<SettingsView> {
               },
             ),
             SwitchListTile(
-              title: Text(strings?.darkMode ?? "Dark mode",
+              title: Text(strings?.get('darkMode') ?? "Dark mode",
                 style: GoogleFonts.montserrat(
                   fontSize: 20,
                   fontWeight: FontWeight.w400,
@@ -263,12 +265,12 @@ class SettingsViewState extends State<SettingsView> {
                 await _saveThemePreference(value);
                 setState(() {
                   isDark = value;
-                  Common().exitPopDialog(strings?.attention ?? "Attention!" , strings?.needToRestart ?? "App must restart", context);
+                  Common().exitPopDialog(strings?.get('attention') ?? "Attention!" , strings?.get('needToRestart') ?? "App must restart", context);
                 });
               },
             ),
             ListTile(
-              title: Text(strings?.advancedSettings ?? 'Advanced app settings',
+              title: Text(strings?.get('advancedSettings') ?? 'Advanced app settings',
                 style: GoogleFonts.montserrat(
                   fontSize: 20,
                   fontWeight: FontWeight.w400,
@@ -284,7 +286,7 @@ class SettingsViewState extends State<SettingsView> {
       bottomSheet: Container(
         padding: const EdgeInsets.all(16.0),
         child: Text(
-            (strings?.versionCode ?? 'Version code: ') + ((!kReleaseMode) ? 'DEBUG': Config.CODE_VERSION),
+            (strings?.get('versionCode') ?? 'Version code: ') + ((!kReleaseMode) ? 'DEBUG': Config.CODE_VERSION),
             textAlign: TextAlign.center),
       ),
     );

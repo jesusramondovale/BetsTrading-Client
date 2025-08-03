@@ -120,10 +120,10 @@ class Common {
           backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
           title: Text(
               aTitle,
-              style: const TextStyle(color: Colors.white)),
+              style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)),
           content: Text(
             aBody,
-            style: const TextStyle(fontSize: 16.0, color: Colors.white),
+            style: TextStyle(fontSize: 16.0, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
           ),
           actions: [
             ElevatedButton(
@@ -150,13 +150,13 @@ class Common {
           child: AlertDialog(
             backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
             title: Text(
-              LocalizedStrings.of(context)!.confirmOperation ?? "Confirm operation",
+              LocalizedStrings.of(context)!.get('confirmOperation') ?? "Confirm operation",
               textAlign: TextAlign.center,
               maxLines: 1,
               style: GoogleFonts.roboto(fontSize: 24, color: Colors.white, fontWeight: FontWeight.w400),
             ),
             content: Text(
-              LocalizedStrings.of(context)!.confirmBet ?? "Slide to confirm the operation",
+              LocalizedStrings.of(context)!.get('confirmBet') ?? "Slide to confirm the operation",
               textAlign: TextAlign.center,
               style: GoogleFonts.openSans(fontSize: 14.0, color: Colors.white),
             ),
@@ -184,10 +184,10 @@ class Common {
           backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
           title: Text(
               aTitle,
-              style: const TextStyle(color: Colors.white)),
+              style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)),
           content: Text(
             aBody,
-            style: const TextStyle(fontSize: 16.0, color: Colors.white),
+            style: TextStyle(fontSize: 16.0, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
           ),
           actions: [
             ElevatedButton(
@@ -1061,7 +1061,7 @@ class BlankImageWidget extends StatelessWidget {
               width: 300,
               child: Image.asset('assets/new_icon.png', fit: BoxFit.contain),
             ),
-            Text(strings?.comingSoon ?? "Coming soon..."),
+            Text(strings?.get('comingSoon') ?? "Coming soon..."),
           ],
         ),
       ),

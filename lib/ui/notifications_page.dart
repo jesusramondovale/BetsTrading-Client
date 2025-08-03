@@ -27,7 +27,7 @@ class NotificationsPageState extends State<NotificationsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          strings?.notifications ?? 'Notifications',
+          strings?.get('notifications') ?? 'Notifications',
           style: GoogleFonts.montserrat(
             fontSize: 28,
             fontWeight: FontWeight.w400,
@@ -46,7 +46,7 @@ class NotificationsPageState extends State<NotificationsPage> {
           SwitchListTile(
             inactiveThumbColor: Colors.black,
             inactiveTrackColor: Colors.grey,
-            title: Text(strings?.enableNotifications ?? 'Enable notifications',
+            title: Text(strings?.get('enableNotifications') ?? 'Enable notifications',
               style: GoogleFonts.montserrat(
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
@@ -60,7 +60,7 @@ class NotificationsPageState extends State<NotificationsPage> {
           SwitchListTile(
             inactiveThumbColor: Colors.black,
             inactiveTrackColor: !_enableNotifications ? Colors.white24 : Colors.grey,
-            title: Text(strings?.trendingNotifications ?? 'Trending notifications',
+            title: Text(strings?.get('trendingNotifications') ?? 'Trending notifications',
               style: GoogleFonts.montserrat(
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
@@ -76,7 +76,7 @@ class NotificationsPageState extends State<NotificationsPage> {
           SwitchListTile(
             inactiveThumbColor: Colors.black,
             inactiveTrackColor: !_enableNotifications ? Colors.white24 : Colors.grey,
-            title: Text(strings?.bettingNotifications ?? 'Betting notifications',
+            title: Text(strings?.get('bettingNotifications') ?? 'Betting notifications',
               style: GoogleFonts.montserrat(
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
@@ -92,7 +92,7 @@ class NotificationsPageState extends State<NotificationsPage> {
           SwitchListTile(
             inactiveThumbColor: Colors.black,
             inactiveTrackColor: !_enableNotifications ? Colors.white24 : Colors.grey,
-            title: Text(strings?.newsNotifications ?? 'News notifications',
+            title: Text(strings?.get('newsNotifications') ?? 'News notifications',
               style: GoogleFonts.montserrat(
                 fontSize: 16,
                 fontWeight: FontWeight.w400,

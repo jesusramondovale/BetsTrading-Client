@@ -48,10 +48,10 @@ class MarketsViewState extends State<MarketsView>
   void _initGroups() {
     final strings = LocalizedStrings.of(context);
     groups = [
-      strings?.shares ?? 'Shares',
+      strings?.get('shares') ?? 'Shares',
       'Crypto',
-      strings?.indexes ?? 'Indexes',
-      strings?.commodities ?? 'Commodities',
+      strings?.get('indexes') ?? 'Indexes',
+      strings?.get('commodities') ?? 'Commodities',
     ];
   }
 

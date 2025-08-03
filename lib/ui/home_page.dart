@@ -2,7 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/BetsService.dart';
-import 'package:betrader/ui/store_page.dart';
+import 'package:betrader/ui/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,6 +12,7 @@ import '../helpers/common.dart';
 import '../models/bets.dart';
 import '../models/trends.dart';
 import 'layout_page.dart';
+import 'notifications_page.dart';
 
 class HomeScreen extends StatefulWidget {
   final MainMenuPageController controller;
@@ -84,16 +85,36 @@ class HomeScreenState extends State<HomeScreen> {
               children: [
                 IconButton(
                   padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                  icon: Icon(Icons.local_grocery_store_outlined),
+                  icon: Icon(Icons.settings),
                   iconSize: 30,
                   color: Colors.white,
                   onPressed: () {
                     Common().vibrate(40,30);
+
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => StorePage()),
-                    );
+                      MaterialPageRoute(
+                        builder: (_) => SettingsView(
+                          onPersonalInfoTap: () {
+                            Navigator.pop(context);
+                            widget.controller.updateIndex(4);
 
+                          },
+                          onShowNotifications: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => NotificationsPage(
+                                  onBack: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    );
                   },
                 ),
                 Spacer(flex: 5),
@@ -153,7 +174,7 @@ class HomeScreenState extends State<HomeScreen> {
             // Trends
             Row(
               children: <Widget>[
-                Text(strings?.liveBets ?? 'Trends',
+                Text(strings?.get('liveBets') ?? 'Trends',
                     style: GoogleFonts.comfortaa(
                       fontSize: 20,
                       fontWeight: FontWeight.w400,
@@ -230,7 +251,7 @@ class HomeScreenState extends State<HomeScreen> {
                   }),
             ),
 
-            Text(strings!.favs ?? 'Favs',
+            Text(strings?.get('favs') ?? 'Favs',
                   style: GoogleFonts.comfortaa(
                     fontSize: 20,
                     fontWeight: FontWeight.w400,
@@ -272,7 +293,7 @@ class HomeScreenState extends State<HomeScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                LocalizedStrings.of(context)!.noFavsYet ??
+                                LocalizedStrings.of(context)!.get('noFavsYet') ??
                                     "No favorites yet!",
                                 style: GoogleFonts.dosis(
                                   fontSize: 18,
@@ -304,7 +325,7 @@ class HomeScreenState extends State<HomeScreen> {
             Row(
               children: [
                 Text(
-                  strings.recentBets ?? 'Recent Bets',
+                  strings?.get('recentBets') ?? 'Recent Bets',
                   style: GoogleFonts.comfortaa(
                       fontSize: 20, fontWeight: FontWeight.w400),
                 ),
@@ -314,7 +335,7 @@ class HomeScreenState extends State<HomeScreen> {
                         Common().vibrate(40,30);
                         bool result = await BetsService().deleteHistoricBets(_userId);
                         if (result) {
-                          Common().showLocalNotification("betting", "Betrader", LocalizedStrings.of(context)!.betsDeleted ?? "Bets deleted",
+                          Common().showLocalNotification("betting", "Betrader", LocalizedStrings.of(context)!.get('betsDeleted') ?? "Bets deleted",
                               {"DELETED" : "all"});
                           setState(() {
 
@@ -376,7 +397,7 @@ class HomeScreenState extends State<HomeScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                strings.noLiveBets ??
+                                strings!.get('noLiveBets')??
                                     'You have no live bets at the moment, go to the markets tab to create a new one.',
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.roboto(

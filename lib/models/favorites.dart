@@ -136,7 +136,7 @@ class FavoriteDialog extends StatelessWidget {
                                       favorite.ticker);
                                   if (ok) {
                                     Common().newFavoriteCompleted(context,
-                                        LocalizedStrings.of(context)!.updatedFavs ?? "Updated favs!");
+                                        LocalizedStrings.of(context)!.get('updatedFavs') ?? "Updated favs!");
                                     homeScreenKey.currentState?.refreshFavorites();
                                     Navigator.of(context).pop(true);
                                   }
@@ -172,7 +172,7 @@ class FavoriteDialog extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '${strings?.close ?? 'Close'}: ${favorite.close.toStringAsFixed(2)}€',
+                        '${strings?.get('close') ?? 'Close'}: ${favorite.close.toStringAsFixed(2)}€',
                         style: GoogleFonts.montserrat(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -182,7 +182,7 @@ class FavoriteDialog extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            '${strings?.current ?? 'Current'}: ${favorite.current.toStringAsFixed(2)}€',
+                            '${strings?.get('current') ?? 'Current'}: ${favorite.current.toStringAsFixed(2)}€',
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,

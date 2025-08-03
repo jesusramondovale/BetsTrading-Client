@@ -85,7 +85,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
       appBar: AppBar(
         surfaceTintColor: Colors.black,
         title: Text(
-          strings?.confirmOperation ?? 'Confirm Order',
+          strings?.get('confirmOperation') ?? 'Confirm Order',
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.w600,
           ),
@@ -221,26 +221,26 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           context,
           icon: Icons.update,
           value: '${widget.currentValue.toStringAsFixed(2)}€',
-          label: strings?.originValue ?? "Origin value",
+          label: strings?.get('originValue') ?? "Origin value",
         ),
         _buildGridItem(
           context,
           icon: Icons.crop_sharp,
           value: '${widget.zone.targetPrice.toStringAsFixed(2)}€',
-          label: strings?.targetValue ?? "Target value",
+          label: strings?.get('targetValue') ?? "Target value",
         ),
         _buildGridItem(
           context,
           icon: Icons.date_range,
           value: DateFormat('dd-MM-yyyy').format(widget.zone.endDate),
-          label: strings?.targetDate ?? "Target date",
+          label: strings?.get('targetDate') ?? "Target date",
         ),
         _buildGridItem(
           context,
           icon: Icons.data_object_sharp,
           value:
               '${widget.zone.margin.toStringAsFixed(2)}% (±${(widget.zone.targetPrice * widget.zone.margin / 200).toStringAsFixed(1)}€)',
-          label: strings?.targetMargin ?? "Target margin",
+          label: strings?.get('targetMargin') ?? "Target margin",
         ),
       ],
     );
@@ -277,7 +277,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
 
   Widget _buildBetMultiplier(BuildContext context) {
     final strings = LocalizedStrings.of(context);
-    final multiplierString = strings?.multiplier ?? "Multiplier";
+    final multiplierString = strings?.get('multiplier') ?? "Multiplier";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -309,7 +309,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Text(
-              strings?.enterBetAmount ?? 'Bet Amount',
+              strings?.get('enterBetAmount') ?? 'Bet Amount',
               style:
                   GoogleFonts.montserrat(fontSize: 20.0, color: Colors.white),
             ),
@@ -357,7 +357,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            strings?.potentialPrize ?? 'Potential Prize:',
+            strings?.get('potentialPrize') ?? 'Potential Prize:',
             style: GoogleFonts.montserrat(
                 fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
           ),
@@ -409,8 +409,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           Common().showLocalNotification(
               "betting",
               "Betrader",
-              (LocalizedStrings.of(context)!.betPlacedSuccessfully != null
-                  ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_betAmount.toStringAsFixed(2)} 🪙)"
+              (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null
+                  ? "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} (${_betAmount.toStringAsFixed(2)} 🪙)"
                   : "Bet placed successfully! (${_betAmount} 🪙)"),
               {"TICKER": widget.zone.ticker, "BET_AMOUNT": _betAmount});
         }
@@ -425,7 +425,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           Common().showLocalNotification(
             "betting",
               "Error",
-              (LocalizedStrings.of(context)!.errorMakingBet ??
+              (LocalizedStrings.of(context)!.get('errorMakingBet') ??
                   "Error creating bet!"),
               {"ERROR_CODE": "BET-ERR-001"});
         }
@@ -460,7 +460,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             onPressed: widget.onCancel,
             icon: Icon(CupertinoIcons.clear, color: Colors.black),
             label: Text(
-              strings?.cancel ?? 'Cancel',
+              strings?.get('cancel') ?? 'Cancel',
               style: GoogleFonts.montserrat(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -478,7 +478,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
                 : () => _handleAcceptPressed(widget.zone.id),
             icon: Icon(CupertinoIcons.check_mark, color: Colors.black),
             label: Text(
-              strings?.accept ?? 'Accept',
+              strings?.get('accept') ?? 'Accept',
               style: GoogleFonts.montserrat(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,

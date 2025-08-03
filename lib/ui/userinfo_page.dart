@@ -60,7 +60,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
       if (value != null && key == 'country') {
         countryCode = value;
       }
-      userInfo[key] = value ?? strings?.notAvailable ?? 'Not available';
+      userInfo[key] = value ?? strings?.get('notAvailable') ?? 'Not available';
     }
     return userInfo;
   }
@@ -106,25 +106,25 @@ class _UserInfoPageState extends State<UserInfoPage> {
             String title = '';
             switch (entry.key) {
               case "lastsession":
-                title = strings?.lastSession ?? 'Last Session';
+                title = strings?.get('lastSession') ?? 'Last Session';
                 break;
               case "fullname":
-                title = strings?.fullName ?? 'Full Name';
+                title = strings?.get('fullName') ?? 'Full Name';
                 break;
               case "username":
-                title = strings?.username ?? 'User Name';
+                title = strings?.get('username') ?? 'User Name';
                 break;
               case "email":
-                title = strings?.email ?? 'E-mail';
+                title = strings?.get('email') ?? 'E-mail';
                 break;
               case "country":
-                title = strings?.country ?? 'Country';
+                title = strings?.get('country') ?? 'Country';
                 break;
               case "address":
-                title = strings?.address ?? 'Address';
+                title = strings?.get('address') ?? 'Address';
                 break;
               case "birthday":
-                title = strings?.birthday ?? 'Birthday';
+                title = strings?.get('birthday') ?? 'Birthday';
                 break;
 
               default:
@@ -176,8 +176,8 @@ class _UserInfoPageState extends State<UserInfoPage> {
                           _loadProfilePic();
                           setState(() {
                             Common().popDialog(
-                                strings?.success ?? "Success!",
-                                strings?.profilePictureUploadedSuccessfully ??
+                                strings?.get('success') ?? "Success!",
+                                strings?.get('profilePictureUploadedSuccessfully') ??
                                     "Profile picture uploaded successfully",
                                 context);
                           });
@@ -185,7 +185,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                           setState(() {
                             Common().popDialog(
                                 "Oops!",
-                                strings?.errorUploadingProfilePic ??
+                                strings?.get('errorUploadingProfilePic') ??
                                     "An error has occurred while uploading the profile pic",
                                 context);
                           });
@@ -207,7 +207,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
             listItems.add(
               ListTile(
                 leading: const Icon(Icons.verified),
-                title: Text(strings?.verified ?? 'Account verified!'),
+                title: Text(strings?.get('verified') ?? 'Account verified!'),
                 onTap: () async {},
               ),
             );
@@ -215,7 +215,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
             listItems.add(
               ListTile(
                 leading: const Icon(Icons.verified_outlined),
-                title: Text(strings?.verify ?? 'Verify Account'),
+                title: Text(strings?.get('verify') ?? 'Verify Account'),
                 onTap: () async {
                   await Navigator.push(
                     context,
@@ -232,7 +232,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
           listItems.add(
             ListTile(
               leading: const Icon(Icons.logout),
-              title: Text(strings?.logOut ?? 'Log Out'),
+              title: Text(strings?.get('logOut') ?? 'Log Out'),
               onTap: () async {
                 String id = await _storage.read(key: 'sessionToken') ?? "None";
                 final response = await AuthService().logOut(id.toString());
@@ -258,7 +258,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
           return ListView(children: listItems);
         } else {
           return Center(
-              child: Text(strings?.noInfoAvailable ?? 'No info available!'));
+              child: Text(strings?.get('noInfoAvailable') ?? 'No info available!'));
         }
       },
     );

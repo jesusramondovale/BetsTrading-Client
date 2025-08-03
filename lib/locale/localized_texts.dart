@@ -13,6 +13,12 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> _localizedValues = {
     'en': {
       // Inglés
+      'pendingBalance': 'Pending balance to send',
+      'yourCoins': 'Your coins',
+      'exchangeTitle': 'Exchange',
+      'buyMoreCoins': 'Buy more coins',
+      'exchangeCoinsTitle': 'Retire coins',
+      'exchangeOption': '{coins}  ->  {euros} EUR',
       'youEarnedCoins': 'You earned {coins}🪙!!',
       'paymentOptionsTitle': 'How do you want to pay?',
       'payWithCard': 'Credit or Debit Card',
@@ -193,6 +199,12 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'pendingBalance': 'Saldo pendiente de envío',
+      'yourCoins': 'Tus monedas',
+      'exchangeTitle': 'Exchange',
+      'buyMoreCoins': 'Obtener más monedas',
+      'exchangeCoinsTitle': 'Retirar monedas',
+      'exchangeOption': '{coins}  ->  {euros} EUR',
       'youEarnedCoins': 'Has conseguido {coins}🪙! ',
       'paymentOptionsTitle': '¿Cómo quieres pagar?',
       'payWithCard': 'Tarjeta de crédito o débito',
@@ -373,6 +385,12 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'pendingBalance': 'Solde en attente d\'envoi',
+      'yourCoins': 'Vos pièces',
+      'exchangeTitle': 'Échange',
+      'buyMoreCoins': 'Acheter plus de pièces',
+      'exchangeCoinsTitle': 'Échanger des pièces',
+      'exchangeOption': '{coins}  ->  {euros} EUR',
       'youEarnedCoins': 'Vous avez gagné {coins}🪙!',
       'paymentOptionsTitle': 'Comment souhaitez-vous payer ?',
       'payWithCard': 'Carte de crédit ou de débit',
@@ -554,6 +572,12 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'pendingBalance': 'Saldo in attesa di invio',
+      'yourCoins': 'Le tue monete',
+      'exchangeTitle': 'Scambio',
+      'buyMoreCoins': 'Compra altre monete',
+      'exchangeCoinsTitle': 'Scambia monete',
+      'exchangeOption': '{coins}  ->  {euros} EUR',
       'youEarnedCoins': 'Hai guadagnato {coins}🪙',
       'paymentOptionsTitle': 'Come vuoi pagare?',
       'payWithCard': 'Carta di credito o debito',
@@ -736,6 +760,12 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'pendingBalance': 'Ausstehendes Guthaben zum Senden',
+      'yourCoins': 'Deine Münzen',
+      'exchangeTitle': 'Tausch',
+      'buyMoreCoins': 'Mehr Münzen kaufen',
+      'exchangeCoinsTitle': 'Münzen umtauschen',
+      'exchangeOption': '{coins}  ->  {euros} EUR',
       'youEarnedCoins': 'Du hast verdient {coins}🪙',
       'paymentOptionsTitle': 'Wie möchtest du bezahlen?',
       'payWithCard': 'Kredit- oder Debitkarte',
@@ -915,221 +945,9 @@ class LocalizedStrings {
   String? getTextFromValue(String key) {
     return _localizedValues[locale.languageCode]?[key];
   }
-  String? get menu => _localizedValues[locale.languageCode]?['menu'];
-  String? get profile => _localizedValues[locale.languageCode]?['profile'];
-  String? get home => _localizedValues[locale.languageCode]?['home'];
-  String? get comingSoon =>
-      _localizedValues[locale.languageCode]?['comingSoon'];
-  String? get liveMarkets =>
-      _localizedValues[locale.languageCode]?['liveMarkets'];
-  String? get settings => _localizedValues[locale.languageCode]?['settings'];
-  String? get fullName => _localizedValues[locale.languageCode]?['fullName'];
-  String? get username => _localizedValues[locale.languageCode]?['username'];
-  String? get email => _localizedValues[locale.languageCode]?['email'];
-  String? get birthday => _localizedValues[locale.languageCode]?['birthday'];
-  String? get address => _localizedValues[locale.languageCode]?['address'];
-  String? get country => _localizedValues[locale.languageCode]?['country'];
-  String? get lastSession =>
-      _localizedValues[locale.languageCode]?['lastSession'];
-  String? get logOut => _localizedValues[locale.languageCode]?['logOut'];
-  String? get logIn => _localizedValues[locale.languageCode]?['logIn'];
-  String? get forgotPassword =>
-      _localizedValues[locale.languageCode]?['forgotPassword'];
-  String? get exit => _localizedValues[locale.languageCode]?['exit'];
-  String? get personalInfo =>
-      _localizedValues[locale.languageCode]?['personalInfo'];
-  String? get gender => _localizedValues[locale.languageCode]?['gender'];
-  String? get continueText =>
-      _localizedValues[locale.languageCode]?['continue'];
-  String? get creditCard =>
-      _localizedValues[locale.languageCode]?['creditCard'];
-  String? get zipCode => _localizedValues[locale.languageCode]?['zipCode'];
-  String? get back => _localizedValues[locale.languageCode]?['back'];
-  String? get cardNumber =>
-      _localizedValues[locale.languageCode]?['cardNumber'];
-  String? get expireDate =>
-      _localizedValues[locale.languageCode]?['expireDate'];
-  String? get cardHolder =>
-      _localizedValues[locale.languageCode]?['cardHolder'];
-  String? get credentials =>
-      _localizedValues[locale.languageCode]?['credentials'];
-  String? get idCard => _localizedValues[locale.languageCode]?['idCard'];
-  String? get password => _localizedValues[locale.languageCode]?['password'];
-  String? get confirmPassword =>
-      _localizedValues[locale.languageCode]?['confirmPassword'];
-  String? get acceptTerms =>
-      _localizedValues[locale.languageCode]?['acceptTerms'];
-  String? get termsAndConditions =>
-      _localizedValues[locale.languageCode]?['termsAndConditions'];
-  String? get signIn => _localizedValues[locale.languageCode]?['signIn'];
-  String? get pleaseEnterUsername =>
-      _localizedValues[locale.languageCode]?['pleaseEnterUsername'];
-  String? get pleaseEnterPassword =>
-      _localizedValues[locale.languageCode]?['pleaseEnterPassword'];
-  String? get connecting =>
-      _localizedValues[locale.languageCode]?['connecting'];
-  String? get registrationSuccessful =>
-      _localizedValues[locale.languageCode]?['registrationSuccessful'];
-  String? get pleaseEnterCardNumber =>
-      _localizedValues[locale.languageCode]?['pleaseEnterCardNumber'];
-  String? get enterDate => _localizedValues[locale.languageCode]?['enterDate'];
-  String? get welcome => _localizedValues[locale.languageCode]?['welcome'];
-  String? get pleaseEnterCVV =>
-      _localizedValues[locale.languageCode]?['pleaseEnterCVV'];
-  String? get pleaseEnterCardHolderName =>
-      _localizedValues[locale.languageCode]?['pleaseEnterCardHolderName'];
-  String? get thisFieldIsRequired =>
-      _localizedValues[locale.languageCode]?['thisFieldIsRequired'];
-  String? get enterValidEmail =>
-      _localizedValues[locale.languageCode]?['enterValidEmail'];
-  String? get passwordsNotMatching =>
-      _localizedValues[locale.languageCode]?['passwordsNotMatching'];
-  String? get acceptTermsToContinue =>
-      _localizedValues[locale.languageCode]?['acceptTermsToContinue'];
-  String? get notAvailable =>
-      _localizedValues[locale.languageCode]?['notAvailable'];
-  String? get success => _localizedValues[locale.languageCode]?['success'];
-  String? get profilePictureUploadedSuccessfully =>
-      _localizedValues[locale.languageCode]
-          ?['profilePictureUploadedSuccessfully'];
-  String? get errorUploadingProfilePic =>
-      _localizedValues[locale.languageCode]?['errorUploadingProfilePic'];
-  String? get noInfoAvailable =>
-      _localizedValues[locale.languageCode]?['noInfoAvailable'];
-  String? get favs => _localizedValues[locale.languageCode]?['favs'];
-  String? get currentBalance =>
-      _localizedValues[locale.languageCode]?['currentBalance'];
-  String? get mostCommon =>
-      _localizedValues[locale.languageCode]?['mostCommon'];
-  String? get totalBet => _localizedValues[locale.languageCode]?['totalBet'];
-  String? get recentBets =>
-      _localizedValues[locale.languageCode]?['recentBets'];
-  String? get darkMode => _localizedValues[locale.languageCode]?['darkMode'];
-  String? get attention => _localizedValues[locale.languageCode]?['attention'];
-  String? get needToRestart =>
-      _localizedValues[locale.languageCode]?['needToRestart'];
-  String? get liveBets => _localizedValues[locale.languageCode]?['liveBets'];
-  String? get wallet => _localizedValues[locale.languageCode]?['wallet'];
-  String? get staked => _localizedValues[locale.languageCode]?['staked'];
-  String? get indexes => _localizedValues[locale.languageCode]?['indexes'];
-  String? get shares => _localizedValues[locale.languageCode]?['shares'];
-  String? get commodities =>
-      _localizedValues[locale.languageCode]?['commodities'];
-  String? get googleSignIn =>
-      _localizedValues[locale.languageCode]?['googleSignIn'];
-  String? get appleSignIn =>
-      _localizedValues[locale.languageCode]?['appleSignIn'];
-  String? get commonSignIn =>
-      _localizedValues[locale.languageCode]?['commonSignIn'];
-  String? get backToSocialsLogin =>
-      _localizedValues[locale.languageCode]?['backToSocialsLogin'];
-  String? get noLiveBets =>
-      _localizedValues[locale.languageCode]?['noLiveBets'];
-  String? get noClosedBets =>
-      _localizedValues[locale.languageCode]?['noClosedBets'];
-  String? get changePassword =>
-      _localizedValues[locale.languageCode]?['changePassword'];
-  String? get notifications =>
-      _localizedValues[locale.languageCode]?['notifications'];
-  String? get contentSettings =>
-      _localizedValues[locale.languageCode]?['contentSettings'];
-  String? get paymentHistory =>
-      _localizedValues[locale.languageCode]?['paymentHistory'];
-  String? get aboutUs => _localizedValues[locale.languageCode]?['aboutUs'];
-  String? get versionCode =>
-      _localizedValues[locale.languageCode]?['versionCode'];
-  String? get close => _localizedValues[locale.languageCode]?['close'];
-  String? get current => _localizedValues[locale.languageCode]?['current'];
-  String? get updatedFavs =>
-      _localizedValues[locale.languageCode]?['updatedFavs'];
-  String? get noFavsYet => _localizedValues[locale.languageCode]?['noFavsYet'];
-  String? get removedSuccesfully =>
-      _localizedValues[locale.languageCode]?['removedSuccesfully'];
-  String? get betAmount => _localizedValues[locale.languageCode]?['betAmount'];
-  String? get originValue =>
-      _localizedValues[locale.languageCode]?['originValue'];
-  String? get currentValue =>
-      _localizedValues[locale.languageCode]?['currentValue'];
-  String? get targetValue =>
-      _localizedValues[locale.languageCode]?['targetValue'];
-  String? get targetDate =>
-      _localizedValues[locale.languageCode]?['targetDate'];
-  String? get targetMargin =>
-      _localizedValues[locale.languageCode]?['targetMargin'];
-  String? get winBonus => _localizedValues[locale.languageCode]?['winBonus'];
-  String? get verify => _localizedValues[locale.languageCode]?['verify'];
-  String? get verified => _localizedValues[locale.languageCode]?['verified'];
-  String? get ranking => _localizedValues[locale.languageCode]?['ranking'];
-  String? get instructionsTitle =>
-      _localizedValues[locale.languageCode]?['instructionsTitle'];
-  String? get instructions =>
-      _localizedValues[locale.languageCode]?['instructions'];
-  String? get scanButton =>
-      _localizedValues[locale.languageCode]?['scanButton'];
-  String? get idNumberTitle =>
-      _localizedValues[locale.languageCode]?['idNumberTitle'];
-  String? get verificationResultTitle =>
-      _localizedValues[locale.languageCode]?['verificationResultTitle'];
-  String? get idNotFound =>
-      _localizedValues[locale.languageCode]?['idNotFound'];
-  String? get alignText => _localizedValues[locale.languageCode]?['alignText'];
-  String? get cameraError =>
-      _localizedValues[locale.languageCode]?['cameraError'];
-  String? get takePhoto => _localizedValues[locale.languageCode]?['takePhoto'];
-  String? get accountVerifiedSuccess =>
-      _localizedValues[locale.languageCode]?['accountVerifiedSuccess'];
-  String? get accountVerificationError =>
-      _localizedValues[locale.languageCode]?['accountVerificationError'];
-  String? get worldwide => _localizedValues[locale.languageCode]?['worldwide'];
-  String? get yourCountry =>
-      _localizedValues[locale.languageCode]?['yourCountry'];
-  String? get enterBetAmount =>
-      _localizedValues[locale.languageCode]?['enterBetAmount'];
-  String? get potentialPrize =>
-      _localizedValues[locale.languageCode]?['potentialPrize'];
-  String? get multiplier =>
-      _localizedValues[locale.languageCode]?['multiplier'];
-  String? get confirmOperation =>
-      _localizedValues[locale.languageCode]?['confirmOperation'];
-  String? get accept => _localizedValues[locale.languageCode]?['accept'];
-  String? get cancel => _localizedValues[locale.languageCode]?['cancel'];
-  String? get noBetsAvailable => _localizedValues[locale.languageCode]?['noBetsAvailable'];
-  String? get betPlacedSuccessfully => _localizedValues[locale.languageCode]?['betPlacedSuccessfully'];
-  String? get errorMakingBet => _localizedValues[locale.languageCode]?['errorMakingBet'];
-  String? get betsDeleted => _localizedValues[locale.languageCode]?['betsDeleted'];
-  String? get confirmBet => _localizedValues[locale.languageCode]?['confirmBet'];
-  String? get day => _localizedValues[locale.languageCode]?['day'];
-  String? get finished => _localizedValues[locale.languageCode]?['finished'];
-  String? get takeIdPhoto => _localizedValues[locale.languageCode]?['takeIdPhoto'];
-  String? get newPassword => _localizedValues[locale.languageCode]?['newPassword'];
-  String? get passwordMismatch => _localizedValues[locale.languageCode]?['passwordMismatch'];
-  String? get passwordChanged => _localizedValues[locale.languageCode]?['passwordChanged'];
-  String? get confirm => _localizedValues[locale.languageCode]?['confirm'];
-  String? get errorChangingPassword => _localizedValues[locale.languageCode]?['errorChangingPassword'];
-  String? get successPassword => _localizedValues[locale.languageCode]?['successPassword'];
-  String? get incorrectPassword => _localizedValues[locale.languageCode]?['incorrectPassword'];
-  String? get youWonCoins => _localizedValues[locale.languageCode]?['youWonCoins'];
-  String? get youEarnedCoins => _localizedValues[locale.languageCode]?['youEarnedCoins'];
-  String? get onPlay => _localizedValues[locale.languageCode]?['onPlay'];
-  String? get enableNotifications =>_localizedValues[locale.languageCode]?['enableNotifications'];
-  String? get trendingNotifications =>_localizedValues[locale.languageCode]?['trendingNotifications'];
-  String? get bettingNotifications =>_localizedValues[locale.languageCode]?['bettingNotifications'];
-  String? get advancedSettings =>_localizedValues[locale.languageCode]?['advancedSettings'];
-  String? get newsNotifications =>_localizedValues[locale.languageCode]?['newsNotifications'];
-  String? get enableVibration =>_localizedValues[locale.languageCode]?['enableVibration'];
-  String? get betErrorPoints =>_localizedValues[locale.languageCode]?['betErrorPoints'];
-  String? get betAlreadyExists =>_localizedValues[locale.languageCode]?['betAlreadyExists'];
-  String? get nowLabel =>_localizedValues[locale.languageCode]?['nowLabel'];
-  String? get exactClosingValue =>_localizedValues[locale.languageCode]?['exactClosingValue'];
-  String? get atDate =>_localizedValues[locale.languageCode]?['atDate'];
-  String? get paymentOptionsTitle =>_localizedValues[locale.languageCode]?['paymentOptionsTitle'];
-  String? get payWithCard =>_localizedValues[locale.languageCode]?['payWithCard'];
-  String? get payWithGooglePay =>_localizedValues[locale.languageCode]?['payWithGooglePay'];
 
-
-  String? getMessage(String key) {
+  String? get(String key) {
     return _localizedValues[locale.languageCode]?[key];
-
   }
 
 }

@@ -163,7 +163,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
               icon: Icon(CupertinoIcons.arrow_uturn_left, color: Colors.black),
               label: Text(
                 maxLines: 1,
-                strings?.cancel ?? 'Cancel',
+                strings?.get('cancel') ?? 'Cancel',
                 style: GoogleFonts.montserrat(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
@@ -198,8 +198,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             Common().showLocalNotification(
                                 "betting",
                                 "Betrader",
-                                (LocalizedStrings.of(context)!.betPlacedSuccessfully != null
-                                    ? "${LocalizedStrings.of(context)!.betPlacedSuccessfully} (${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}🪙)"
+                                (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null
+                                    ? "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} (${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}🪙)"
                                     : "Bet placed successfully! (${_getBetAmountFromMargin(_selectedMargin)}🪙)"),
                                 {"TICKER": widget.ticker, "BET_AMOUNT": _getBetAmountFromMargin(_selectedMargin)});
                           }
@@ -213,7 +213,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           Common().showLocalNotification(
                               "betting",
                               "Error!",
-                              (LocalizedStrings.of(context)!.errorMakingBet ??
+                              (LocalizedStrings.of(context)!.get('errorMakingBet') ??
                                   "Error creating price bet!") + " (NO TIME)",
                               {"ERROR_CODE": "BET-ERR-NOT-ENOUGH-TIME"});
 
@@ -222,7 +222,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           Common().showLocalNotification(
                               "betting",
                               "Error!",
-                              (LocalizedStrings.of(context)!.betErrorPoints ??
+                              (LocalizedStrings.of(context)!.get('betErrorPoints') ??
                                   "Not enough points!"),
                               {"ERROR_CODE": "BET-ERR-NOT-ENOUGH-POINTS"});
 
@@ -231,7 +231,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           Common().showLocalNotification(
                               "betting",
                               "Error!",
-                              (LocalizedStrings.of(context)!.betAlreadyExists ??
+                              (LocalizedStrings.of(context)!.get('betAlreadyExists') ??
                                   "Bet already exists!"),
                               {"ERROR_CODE": "BET-ERR-EXISTING-EXACT-BET"});
 
@@ -241,7 +241,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             Common().showLocalNotification(
                                 "betting",
                                 "Error!",
-                                (LocalizedStrings.of(context)!.errorMakingBet ??
+                                (LocalizedStrings.of(context)!.get('errorMakingBet') ??
                                     "Error creating price bet!"),
                                 {"ERROR_CODE": "BET-ERR-UNKNOWN"});
                           }
@@ -257,7 +257,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     },
               icon: Icon(CupertinoIcons.checkmark_alt, color: Colors.black),
               label: Text(
-                strings?.accept ?? 'Accept',
+                strings?.get('accept') ?? 'Accept',
                 style: GoogleFonts.montserrat(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
@@ -327,7 +327,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      "${LocalizedStrings.of(context)?.nowLabel ?? 'Now:'}",
+                      "${LocalizedStrings.of(context)?.get('nowLabel')
+ ?? 'Now:'}",
                       style: GoogleFonts.montserrat(
                         fontSize: 18,
                         fontWeight: FontWeight.w200,
@@ -351,7 +352,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
                     const SizedBox(height: 40),
                     Text(
-                      ("${LocalizedStrings.of(context)?.exactClosingValue ?? 'Exact closing value'}").toUpperCase(),
+                      ("${LocalizedStrings.of(context)?.get('exactClosingValue')
+ ?? 'Exact closing value'}").toUpperCase(),
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w300,
@@ -466,7 +468,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      ("${LocalizedStrings.of(context)?.atDate ?? 'At date'}").toUpperCase(),
+                      ("${LocalizedStrings.of(context)?.get('atDate')
+ ?? 'At date'}").toUpperCase(),
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w300,
@@ -561,7 +564,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             children: [
                               TextSpan(
                                 text:
-                                "${LocalizedStrings.of(context)?.enterBetAmount ?? 'Bet amount'}: ",
+                                "${LocalizedStrings.of(context)?.get('enterBetAmount')
+ ?? 'Bet amount'}: ",
                                 style: GoogleFonts.montserrat(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w200,

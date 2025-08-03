@@ -40,10 +40,10 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title:
-              Text(strings?.verificationResultTitle ?? 'Verification Result'),
+              Text(strings?.get('verificationResultTitle') ?? 'Verification Result'),
           content: Text(_idNumber.isNotEmpty
-              ? '${strings?.idNumberTitle ?? 'Scanned ID Number'}: $_idNumber'
-              : strings?.idNotFound ?? 'No valid ID found.'),
+              ? '${strings?.get('idNumberTitle') ?? 'Scanned ID Number'}: $_idNumber'
+              : strings?.get('idNotFound') ?? 'No valid ID found.'),
           actions: <Widget>[
             TextButton(
               child: Text('OK'),
@@ -68,7 +68,7 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
     final strings = LocalizedStrings.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(strings?.verify ?? 'Verify Account'),
+        title: Text(strings?.get('verify') ?? 'Verify Account'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -76,13 +76,13 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              strings?.instructionsTitle ??
+              strings?.get('instructionsTitle') ??
                   'To verify your account, follow these steps:',
               style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 12),
             Text(
-              strings?.instructions ??
+              strings?.get('instructions') ??
                   '1. Make sure you have your ID document handy.\n\n'
                       '2. Click the button below to open the camera.\n\n'
                       '3. Take a clear picture of your ID document.\n\n'
@@ -112,14 +112,14 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
               child: ElevatedButton.icon(
                 onPressed: _navigateToCameraPage,
                 icon: Icon(Icons.camera_alt, size: 40),
-                label: Text(strings?.scanButton ?? 'Scan Document',
+                label: Text(strings?.get('scanButton') ?? 'Scan Document',
                     style: TextStyle(fontSize: 20)),
               ),
             ),
             if (_idNumber.isNotEmpty) ...[
               SizedBox(height: 30),
               Text(
-                strings?.idNumberTitle ?? 'Scanned ID Number:',
+                strings?.get('idNumberTitle') ?? 'Scanned ID Number:',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
@@ -142,8 +142,8 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
                   // OK
                   if (response == 0) {
                     verifyExitPopDialog(
-                        strings?.success ?? "Success",
-                        strings?.accountVerifiedSuccess ??
+                        strings?.get('success') ?? "Success",
+                        strings?.get('accountVerifiedSuccess') ??
                             "Account succesfully verified",
                         context);
                   }
@@ -151,7 +151,7 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
                   else if (response == 1) {
                     Common().popDialog(
                         "Ooops ...",
-                        strings?.accountVerificationError ??
+                        strings?.get('accountVerificationError') ??
                             "Error verifying account",
                         context);
                   }
@@ -162,7 +162,7 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
                     SizedBox(width: 4),
                     Icon(Icons.check),
                     Text(
-                      " ${strings?.verify ?? "Verify account"}",
+                      " ${strings?.get('verify') ?? "Verify account"}",
                       style: TextStyle(fontSize: 16),
                     ),
                   ],

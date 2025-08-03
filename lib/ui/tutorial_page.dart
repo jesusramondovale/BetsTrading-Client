@@ -92,7 +92,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                             child: Text(
                               textAlign: TextAlign.center,
                               LocalizedStrings.of(context)
-                                      ?.getMessage(page["title"]!) ??
+                                      ?.get(page["title"]!) ??
                                   '',
                               style: GoogleFonts.montserrat(
                                 fontSize: 36,
@@ -105,7 +105,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 28),
                           child: Text(
                             LocalizedStrings.of(context)
-                                    ?.getMessage(page["description"]!) ??
+                                    ?.get(page["description"]!) ??
                                 '',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.montserrat(
@@ -160,10 +160,10 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   child: Text(
                     _currentIndex == _tutorialPages.length - 1
                         ? LocalizedStrings.of(context)
-                                ?.getMessage('onboarding_title_get_started') ??
+                                ?.get('onboarding_title_get_started') ??
                             'Get Started'
                         : LocalizedStrings.of(context)
-                                ?.getMessage('continue') ??
+                                ?.get('continue') ??
                             'Continue',
                     style: const TextStyle(
                       fontSize: 22,

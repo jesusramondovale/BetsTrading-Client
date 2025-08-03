@@ -41,7 +41,7 @@ class _SignInState extends State<SignIn> {
     final strings = LocalizedStrings.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(strings?.signIn ?? 'Sign In'),
+        title: Text(strings?.get('signIn') ?? 'Sign In'),
         elevation: 0,
       ),
         body: Column(
@@ -148,17 +148,17 @@ class _SignInState extends State<SignIn> {
     final strings = LocalizedStrings.of(context);
     return [
       Step(
-        title: Text(strings?.personalInfo ?? 'Personal info'),
+        title: Text(strings?.get('personalInfo') ?? 'Personal info'),
         content: _buildBasicInfoStep(context),
         isActive: _currentStep == 0,
       ),
       Step(
-        title: Text(strings?.address ?? 'Address'),
+        title: Text(strings?.get('address') ?? 'Address'),
         content: _buildAddressInfoStep(context),
         isActive: _currentStep == 1,
       ),
       Step(
-        title: Text(strings?.credentials ?? 'Credentials'),
+        title: Text(strings?.get('credentials') ?? 'Credentials'),
         content: _buildCredentialsStep(context),
         isActive: _currentStep == 2,
       ),
@@ -171,7 +171,7 @@ class _SignInState extends State<SignIn> {
         if (_currentStep > 0)
           TextButton(
             onPressed: details.onStepCancel,
-            child: Text(strings?.back ?? 'Back'),
+            child: Text(strings?.get('back') ?? 'Back'),
           ),
         const SizedBox(width: 8),
         TextButton(
@@ -180,8 +180,8 @@ class _SignInState extends State<SignIn> {
               details.onStepContinue?.call();
             }
           },
-          child: Text(_currentStep == _formKeys.length - 1 ? strings?.signIn ?? 'Sign In' :
-                                                             strings?.continueText ?? 'Continue'),
+          child: Text(_currentStep == _formKeys.length - 1 ? strings?.get('signIn') ?? 'Sign In' :
+                                                             strings?.get('continueText') ?? 'Continue'),
         ),
       ],
     );
@@ -218,15 +218,15 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4.5),
-            _buildTextField(context, strings?.fullName ?? 'Full Name', 'fullName', Icons.person, false),
+            _buildTextField(context, strings?.get('fullName') ?? 'Full Name', 'fullName', Icons.person, false),
             const SizedBox(height: 10.0),
-            _buildTextField(context , strings?.username ??'Username', 'username', Icons.account_circle, false),
+            _buildTextField(context , strings?.get('username') ??'Username', 'username', Icons.account_circle, false),
             const SizedBox(height: 10.0),
             _buildGenderDropdown(),
             const SizedBox(height: 10.0),
             _buildTextField(
               context,
-              strings?.birthday ?? 'Birthday',
+              strings?.get('birthday') ?? 'Birthday',
               'birthday',
               Icons.calendar_today,
               true,
@@ -246,9 +246,9 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4),
-            _buildTextField(context, strings?.address ?? 'Address', 'address', Icons.location_on, false),
+            _buildTextField(context, strings?.get('address') ?? 'Address', 'address', Icons.location_on, false),
             const SizedBox(height: 10.0),
-            _buildTextField(context , strings?.zipCode ??'ZIP Code', 'zipCode', Icons.gps_fixed, false),
+            _buildTextField(context , strings?.get('zipCode') ??'ZIP Code', 'zipCode', Icons.gps_fixed, false),
             const SizedBox(height: 10.0),
             _buildCountryDropdown(context),
           ],
@@ -261,14 +261,14 @@ class _SignInState extends State<SignIn> {
     return FormBuilderDropdown(
       name: 'country',
       decoration: InputDecoration(
-        labelText: strings?.country ?? 'Country',
+        labelText: strings?.get('country') ?? 'Country',
         prefixIcon: const Icon(Icons.flag),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
-      validator: FormBuilderValidators.required(errorText: strings?.thisFieldIsRequired ?? "This field is required"),
+      validator: FormBuilderValidators.required(errorText: strings?.get('thisFieldIsRequired') ?? "This field is required"),
       items: Common().getTopCountries().map((countryMap) {
         return DropdownMenuItem(
           alignment: AlignmentDirectional.center,
@@ -301,13 +301,13 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4),
-            _buildTextField(context , strings?.idCard ?? 'ID Card', 'idCard', Icons.credit_card, true),
+            _buildTextField(context , strings?.get('idCard') ?? 'ID Card', 'idCard', Icons.credit_card, true),
             const SizedBox(height: 10.0),
-            _buildEmailField(context, strings?.email ?? 'Email', 'email', Icons.email, false),
+            _buildEmailField(context, strings?.get('email') ?? 'Email', 'email', Icons.email, false),
             const SizedBox(height: 10.0),
-            _buildPasswordField(context, strings?.password ?? 'Password', 'password', Icons.lock, false, _formKeys[2], obscureText: true),
+            _buildPasswordField(context, strings?.get('password') ?? 'Password', 'password', Icons.lock, false, _formKeys[2], obscureText: true),
             const SizedBox(height: 10.0),
-            _buildPasswordField(context, strings?.confirmPassword ?? 'Confirm Password', 'confirmPassword', Icons.lock, false, _formKeys[2], obscureText: true),
+            _buildPasswordField(context, strings?.get('confirmPassword') ?? 'Confirm Password', 'confirmPassword', Icons.lock, false, _formKeys[2], obscureText: true),
             _buildTermsAndConditionsCheckbox(context),
           ],
         ),
@@ -330,8 +330,8 @@ class _SignInState extends State<SignIn> {
       onTap: onTap,
       keyboardType: TextInputType.emailAddress,
       validator: FormBuilderValidators.compose([
-        FormBuilderValidators.required(errorText: strings?.thisFieldIsRequired ?? 'This field is required'),
-        FormBuilderValidators.email(errorText: strings?.enterValidEmail ?? 'Enter a valid email address'),
+        FormBuilderValidators.required(errorText: strings?.get('thisFieldIsRequired') ?? 'This field is required'),
+        FormBuilderValidators.email(errorText: strings?.get('enterValidEmail') ?? 'Enter a valid email address'),
       ]),
       onChanged: (value) {
         final trimmedValue = value?.trim();
@@ -353,7 +353,7 @@ class _SignInState extends State<SignIn> {
         text: TextSpan(
           children: [
             TextSpan(
-              text: strings?.acceptTerms ?? 'I accept the ',
+              text: strings?.get('acceptTerms') ?? 'I accept the ',
               style: TextStyle(
                   color:  Theme.of(context).brightness == Brightness.dark
                       ? Colors.white
@@ -362,7 +362,7 @@ class _SignInState extends State<SignIn> {
               ),
             ),
             TextSpan(
-              text: strings?.termsAndConditions ?? 'terms and conditions',
+              text: strings?.get('termsAndConditions') ?? 'terms and conditions',
               style: const TextStyle(
                 fontSize: 16,
                 color: Colors.blue,
@@ -380,7 +380,7 @@ class _SignInState extends State<SignIn> {
       ),
       validator: FormBuilderValidators.equal(
         true,
-        errorText: strings?.acceptTermsToContinue?? 'Accept the terms and conditions to continue',
+        errorText: strings?.get('acceptTermsToContinue')?? 'Accept the terms and conditions to continue',
       ),
     );
   }
@@ -388,7 +388,7 @@ class _SignInState extends State<SignIn> {
     final strings = LocalizedStrings.of(context);
     return FormBuilderTextField(
       readOnly: readonly,
-      initialValue: (name == 'idCard' ? strings!.takeIdPhoto ?? "Take a photo of your document" : null ),
+      initialValue: (name == 'idCard' ? strings?.get('takeIdPhoto') ?? "Take a photo of your document" : null ),
       name: name,
       decoration: InputDecoration(
         labelText: label,
@@ -416,7 +416,7 @@ class _SignInState extends State<SignIn> {
       obscureText: obscureText,
       onTap: onTap,
       validator: FormBuilderValidators.required(
-        errorText: strings?.thisFieldIsRequired ?? 'This field is required',
+        errorText: strings?.get('thisFieldIsRequired') ?? 'This field is required',
       ),
     );
   }
@@ -455,13 +455,13 @@ class _SignInState extends State<SignIn> {
       onTap: onTap,
       validator: (val) {
         if (val == null || val.isEmpty) {
-          return strings?.thisFieldIsRequired?? 'This field is required';
+          return strings?.get('thisFieldIsRequired')?? 'This field is required';
         }
         if (name == 'confirmPassword') {
 
            _password = formKey.currentState?.fields['password']?.value.trim();
           if (val != formKey.currentState?.fields['password']?.value.trim()) {
-            return strings?.passwordsNotMatching ?? 'Passwords not matching';
+            return strings?.get('passwordsNotMatching') ?? 'Passwords not matching';
           }
         }
         return null;
@@ -473,14 +473,14 @@ class _SignInState extends State<SignIn> {
     return FormBuilderDropdown(
       name: 'gender',
       decoration: InputDecoration(
-        labelText: strings?.gender ??'Gender',
+        labelText: strings?.get('gender') ??'Gender',
         prefixIcon: const Icon(Icons.person_outline),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
-      validator: FormBuilderValidators.required(errorText: strings?.thisFieldIsRequired ?? "This field is required"),
+      validator: FormBuilderValidators.required(errorText: strings?.get('thisFieldIsRequired') ?? "This field is required"),
       items: Common().getAllGenders().map((gender) => DropdownMenuItem(
         value: gender,
         child: Text(gender),

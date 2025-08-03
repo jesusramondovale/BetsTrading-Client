@@ -88,8 +88,8 @@ class _TopUsersPageState extends State<TopUsersPage>
           ),
           controller: _tabController,
           tabs: [
-            Tab(text: strings!.worldwide ?? 'Worldide',),
-            Tab(text: strings.yourCountry ?? 'Your Country'),
+            Tab(text: strings?.get('worldwide') ?? 'Worldide',),
+            Tab(text: strings?.get('yourCountry') ?? 'Your Country'),
           ],
         ),
       ),
@@ -126,7 +126,7 @@ class _TopUsersPageState extends State<TopUsersPage>
                   popUserDialog(context, user);
                 },
                 child: Card(
-                  color: Colors.transparent.withValues(alpha: 0.5),
+                  color: Colors.transparent.withValues(alpha: 0.3),
                   margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),

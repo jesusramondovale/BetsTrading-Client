@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/markets_page.dart';
-import 'package:betrader/ui/settings_view.dart';
 import 'package:betrader/ui/topusers_page.dart';
 import 'package:betrader/ui/tutorial_page.dart';
 import 'package:betrader/ui/userinfo_page.dart';
@@ -15,6 +14,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
+import 'exchange_page.dart';
 import 'home_page.dart';
 import 'login_page.dart';
 import 'package:http/http.dart' as http;
@@ -106,12 +106,6 @@ class MainMenuPageState extends State<MainMenuPage> {
     }
   }
 
-  void _showNotifications() {
-    Common().vibrate(40, 30);
-    setState(() {
-      _showNotificationsPage = true;
-    });
-  }
 
   @override
   void initState() {
@@ -149,11 +143,11 @@ class MainMenuPageState extends State<MainMenuPage> {
 
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
-      strings?.home ?? 'Home',
-      strings?.ranking ?? 'Ranking',
-      strings?.liveMarkets ?? 'Live Markets',
-      strings?.settings ?? 'Settings',
-      strings?.profile ?? 'Profile'
+      strings?.get('home') ?? 'Home',
+      strings?.get('ranking') ?? 'Ranking',
+      strings?.get('liveMarkets') ?? 'Live Markets',
+      strings?.get('settings') ?? 'Settings',
+      strings?.get('profile') ?? 'Profile'
     ];
     titles[3] = "Info  |  $_username";
 
@@ -169,11 +163,7 @@ class MainMenuPageState extends State<MainMenuPage> {
       MarketsView(
         controller: _controller,
       ),
-      // SETTINGS
-      SettingsView(
-        onPersonalInfoTap: () => _controller.updateIndex(4),
-        onShowNotifications: _showNotifications,
-      ),
+      ExchangePage(),
       // PERSONAL INFO
       const UserInfoPage()
     ];
@@ -269,11 +259,11 @@ class MainMenuPageState extends State<MainMenuPage> {
                         BottomNavigationBarItem(
                           icon: Icon(Icons.home_outlined),
                           activeIcon: Icon(Icons.home),
-                          label: strings?.home ?? "Home",
+                          label: strings?.get('home') ?? "Home",
                         ),
                         BottomNavigationBarItem(
                           icon: Icon(Icons.public),
-                          label: strings?.ranking ?? "Ranking",
+                          label: strings?.get('ranking') ?? "Ranking",
                         ),
                         BottomNavigationBarItem(
                           icon: Container(
@@ -284,12 +274,12 @@ class MainMenuPageState extends State<MainMenuPage> {
                             width: 27,
                             child: Image.asset('assets/new_icon.png'),
                           ),
-                          label: strings?.liveMarkets ?? 'Live Markets',
+                          label: strings?.get('liveMarkets') ?? 'Live Markets',
                         ),
                         BottomNavigationBarItem(
-                          icon: Icon(Icons.settings_outlined),
-                          activeIcon: Icon(Icons.settings),
-                          label: strings?.settings ?? 'Settings',
+                          icon: Icon(Icons.currency_exchange),
+                          activeIcon: Icon(Icons.currency_exchange_sharp),
+                          label: 'Exchange',
                         ),
                         BottomNavigationBarItem(
                           icon: (_profilePicBytes != null
