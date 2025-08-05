@@ -126,7 +126,7 @@ class _TopUsersPageState extends State<TopUsersPage>
                   popUserDialog(context, user);
                 },
                 child: Card(
-                  color: Colors.transparent.withValues(alpha: 0.3),
+                  color: Colors.transparent.withValues(alpha: 0.1),
                   margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
@@ -224,7 +224,7 @@ class _TopUsersPageState extends State<TopUsersPage>
                   popUserDialog(context, user);
                 },
                 child: Card(
-                  color: Colors.transparent.withValues(alpha: 0.3),
+                  color: Colors.transparent.withValues(alpha: 0.1),
                   margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),

@@ -3,6 +3,7 @@ import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:betrader/ui/settings_view.dart';
+import 'package:betrader/ui/store_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -119,10 +120,10 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 Spacer(flex: 5),
                 Text(
-                  "Betrader",
+                  "betrader.v1",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.syncopate(
-                    fontSize: 25,
+                    fontSize: 22,
                     fontWeight: FontWeight.w400,
                     color: Colors.white,
                   ),
@@ -131,17 +132,23 @@ class HomeScreenState extends State<HomeScreen> {
 
                 IconButton(
                   padding: const EdgeInsets.all(2.5),
-                  onPressed: () {
+                  onPressed: () async {
                     Common().vibrate(40,30);
-                    Common().actionDialog(context, "Prizes view unimplemented yet!");
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => StorePage()),
+                    );
+                    exchangePageKey.currentState?.loadPoints();
                   },
                   icon: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Theme.of(context).brightness == Brightness.dark ? Colors.black.withValues(alpha: 0.1) :
-                        Colors.white.withValues(alpha: 0.25), Colors.grey.shade800.withValues(alpha: 1.0)],
+                          colors: [
+                            Colors.black.withValues(alpha: 0.1),
+                            Colors.grey.shade800.withValues(alpha: 1.0),
+                          ]
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -185,9 +192,7 @@ class HomeScreenState extends State<HomeScreen> {
                   formattedDate,
                   style: GoogleFonts.dosis(
                     fontSize: 18,
-                    fontWeight: Theme.of(context).brightness == Brightness.dark
-                        ? FontWeight.w200
-                        : FontWeight.w400,
+                    fontWeight: FontWeight.w200,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 1,
@@ -195,9 +200,7 @@ class HomeScreenState extends State<HomeScreen> {
               ],
             ),
             Divider(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
+                color: Colors.white,
                 thickness: 0.5,
                 height: 0.5),
             Expanded(
@@ -238,10 +241,7 @@ class HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 Icons.wifi_off_sharp,
                                 size: 90,
-                                color: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black,
+                                color: Colors.white,
                               ),
                             ],
                           ),
@@ -257,9 +257,7 @@ class HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.w400,
                   )),
             Divider(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
+                color: Colors.white,
                 thickness: 0.5,
                 height: 0.5),
             Expanded(
@@ -297,20 +295,14 @@ class HomeScreenState extends State<HomeScreen> {
                                     "No favorites yet!",
                                 style: GoogleFonts.dosis(
                                   fontSize: 18,
-                                  fontWeight: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? FontWeight.w200
-                                      : FontWeight.w400,
+                                  fontWeight: FontWeight.w200,
                                 ),
                               ),
                               SizedBox(height: 10),
                               Icon(
                                 Icons.star_border,
                                 size: 50,
-                                color: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.grey
-                                    : Colors.black,
+                                color: Colors.grey,
                               ),
                             ],
                           ),
@@ -356,9 +348,7 @@ class HomeScreenState extends State<HomeScreen> {
               ],
             ),
             Divider(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
+                color: Colors.white,
                 thickness: 0.5,
                 height: 0.5),
             Expanded(

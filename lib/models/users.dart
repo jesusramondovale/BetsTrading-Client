@@ -101,17 +101,13 @@ class UserDialog extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withValues(alpha:1)
-                  : Colors.grey[200]!,
+              color:Colors.black.withValues(alpha:1),
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Text(message,
                 style: GoogleFonts.josefinSans(
                     fontSize: 12,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black)),
+                    color: Colors.white)),
           ),
         ),
       ),
@@ -130,21 +126,15 @@ class UserDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? Colors.black87
-          : Colors.grey[800],
+      backgroundColor: Colors.black87,
       child: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(10.0),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black
-                    : Colors.white70,
-                Theme.of(context).brightness == Brightness.dark
-                    ? Colors.grey[900]!
-                    : Colors.deepPurple,
+                Colors.black,
+                Colors.grey[900]!,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,

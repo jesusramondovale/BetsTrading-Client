@@ -81,7 +81,12 @@ class MarketsViewState extends State<MarketsView>
     return Column(
       verticalDirection: VerticalDirection.up,
       children: [
+
+
         TabBar(
+          indicatorColor: Colors.purple,
+          labelColor: Colors.white,
+          dividerColor: Colors.white30,
           tabAlignment: TabAlignment.center,
           isScrollable: true,
           controller: _tabController,
@@ -95,6 +100,11 @@ class MarketsViewState extends State<MarketsView>
             fontWeight: FontWeight.w300,
           ),
           tabs: groups.map((String group) => Tab(text: group)).toList(),
+        ),
+        const Divider(
+          color: Colors.white30, // o el color que quieras
+          thickness: 2,
+          height: 1,
         ),
         Expanded(
           child: _isLoading
@@ -127,7 +137,6 @@ class MarketsViewState extends State<MarketsView>
                               top: Radius.circular(25.0),
                             ),
                             child: Container(
-                              color: Theme.of(context).scaffoldBackgroundColor,
                               height: MediaQuery.of(context).size.height * 0.55,
                               child: OverflowBox(
                                 alignment: Alignment.topCenter,
@@ -157,9 +166,7 @@ class MarketsViewState extends State<MarketsView>
                         borderRadius: BorderRadius.circular(20.0),
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white10
-                                : Colors.black45,
+                            color: Colors.white10,
                             blurRadius: 5.0,
                             spreadRadius: 2.0,
                             offset: const Offset(0, 0),

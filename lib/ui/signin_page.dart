@@ -355,9 +355,7 @@ class _SignInState extends State<SignIn> {
             TextSpan(
               text: strings?.get('acceptTerms') ?? 'I accept the ',
               style: TextStyle(
-                  color:  Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
+                  color:  Colors.white,
                   fontSize: 16
               ),
             ),

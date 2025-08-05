@@ -369,11 +369,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
                 style: GoogleFonts.montserrat(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? _isAcceptButtonEnabled
-                      ? Colors.greenAccent
-                      : Colors.red
-                      : Colors.green,
+                  color: _isAcceptButtonEnabled ? Colors.greenAccent : Colors.red,
                 ),
               ),
               const SizedBox(width: 6),
@@ -393,6 +389,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
 
   Future<void> _onAccept(int betZone) async {
     Common().vibrate(40, 30);
+    FocusScope.of(context).requestFocus(FocusNode());
+    await Future.delayed(Duration(milliseconds: 100));
     final prefs = await SharedPreferences.getInstance();
     bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
 
@@ -420,6 +418,8 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         Navigator.pop(context);
         Navigator.pop(context);
         homeScreenKey.currentState?.loadUserIdAndData();
+        exchangePageKey.currentState?.loadPoints();
+
       } else {
         if (_bettingNotifications) {
           Common().showLocalNotification(

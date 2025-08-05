@@ -123,6 +123,8 @@ class LoginFormState extends State<LoginForm> {
           String? id = await _storage.read(key: 'sessionToken');
           await BetsService().getUserInfo(id!);
           String? username = await _storage.read(key: 'username');
+          Common().actionDialog(context, "${strings.get('welcome') ?? "Welcome"}! $username" );
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("${strings.get('welcome') ?? "Welcome"}! $username"),

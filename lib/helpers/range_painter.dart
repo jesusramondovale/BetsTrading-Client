@@ -17,7 +17,6 @@ class RangePainter extends CustomPainter {
   final double priceColumnWidth;
   final String noBetsText;
   final bool noIcon;
-  final bool darkTheme;
 
   RangePainter( {
     required this.zones,
@@ -30,7 +29,7 @@ class RangePainter extends CustomPainter {
     required this.priceColumnWidth,
     required this.noBetsText,
     required this.noIcon,
-    required this.darkTheme
+
   }) : super(repaint: zones);
 
   double dateToX(DateTime date, int index, double candleWidth, DateTime lastCandleDate, Size size) {
@@ -58,9 +57,7 @@ class RangePainter extends CustomPainter {
       final textSpan = TextSpan(
         text: this.noBetsText,
         style: GoogleFonts.montserrat(
-            color: darkTheme
-                ? Colors.white
-                : Colors.black,
+            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w300),
       );

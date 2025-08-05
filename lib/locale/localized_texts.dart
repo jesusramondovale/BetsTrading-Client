@@ -5,14 +5,22 @@ class LocalizedStrings {
 
   final Locale locale;
 
-
   static LocalizedStrings? of(BuildContext context) {
     return Localizations.of<LocalizedStrings>(context, LocalizedStrings);
   }
 
-  static final Map<String?, Map<String?, String?>> _localizedValues = {
+  static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'configureWithdrawalOptions': 'Withdrawal methods',
+      'withdrawMethodPaypal': 'PayPal',
+      'withdrawMethodBTC': 'Bitcoin (BTC)',
+      'withdrawMethodXRP': 'Ripple (XRP)',
+      'withdrawTitle': 'Withdrawal cash',
+      'slideToConfirm': 'Slide to confirm',
+      'chooseMethod': 'Choose your withdrawal method:',
+      'noMethods': "You don't have any withdrawal methods configured. Please add one in settings",
+      'withdrawMethodBank': 'Bank transfer',
       'pendingBalance': 'Pending balance to send:',
       'yourCoins': 'Your coins',
       'exchangeTitle': 'Exchange',
@@ -199,6 +207,15 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'configureWithdrawalOptions': 'Métodos de retiro',
+      'withdrawMethodPaypal': 'PayPal',
+      'withdrawMethodBTC': 'Bitcoin (BTC)',
+      'withdrawMethodXRP': 'Ripple (XRP)',
+      'withdrawTitle': 'Retirar efectivo',
+      'slideToConfirm': 'Desliza para confirmar',
+      'chooseMethod': 'Elige tu método de retirada:',
+      'noMethods': 'No tienes ningún método de retirada configurado. Añade un nuevo método en los ajustes',
+      'withdrawMethodBank': 'Transferencia bancaria',
       'pendingBalance': 'Saldo pendiente de envío:',
       'yourCoins': 'Tus monedas',
       'exchangeTitle': 'Exchange',
@@ -241,7 +258,7 @@ class LocalizedStrings {
       'data_storage_details': 'Uso de cookies y datos del dispositivo.',
       'withdraw_consent': 'Al aceptar, estás de acuerdo con los términos del procesamiento de datos. Puedes retirar tu consentimiento en cualquier momento.',
       'i_consent': 'Doy mi consentimiento',
-      'youWonCoins': '¡Ganaste {coins}🪙!',
+      'youWonCoins': '¡Ganaste {coins}!',
       'store': 'Tienda',
       'getCoins': 'Obtener Monedas',
       'buyCoins': 'Comprar {coins}',
@@ -297,17 +314,17 @@ class LocalizedStrings {
       'enterDate': 'Introduce una fecha',
       'pleaseEnterCVV': 'Por favor, introduce el CVV',
       'pleaseEnterCardHolderName':
-          'Por favor, introduce el nombre del titular de la tarjeta',
+      'Por favor, introduce el nombre del titular de la tarjeta',
       'thisFieldIsRequired': 'Este campo es obligatorio',
       'enterValidEmail': 'Introduce una dirección de correo válida',
       'passwordsNotMatching': 'Las contraseñas no coinciden',
       'acceptTermsToContinue':
-          'Acepta los términos y condiciones para continuar',
+      'Acepta los términos y condiciones para continuar',
       'notAvailable': 'No disponible',
       'success': '¡Éxito!',
       'profilePictureUploadedSuccessfully': 'Foto de perfil subida con éxito',
       'errorUploadingProfilePic':
-          'Ha ocurrido un error al subir la foto de perfil',
+      'Ha ocurrido un error al subir la foto de perfil',
       'noInfoAvailable': '¡No hay información disponible!',
       'favs': 'Favoritos',
       'currentBalance': 'Balance actual',
@@ -328,7 +345,7 @@ class LocalizedStrings {
       'commonSignIn': 'Inicio de sesión con e-mail',
       'backToSocialsLogin': 'Inicio de sesión social',
       'noLiveBets':
-          'No tiene apuestas en directo en este momento, vaya a la pestaña de mercados para crear una nueva',
+      'No tiene apuestas en directo en este momento, vaya a la pestaña de mercados para crear una nueva',
       'noClosedBets': 'No existen apuestas cerradas\n(por ahora...) 😏',
       'personalInfo': 'Información personal',
       'changePassword': 'Cambiar contraseña',
@@ -354,10 +371,10 @@ class LocalizedStrings {
       'ranking': 'Rankings',
       'instructionsTitle': 'Para verificar tu cuenta, sigue estos pasos:',
       'instructions':
-          '1. Asegúrate de tener tu documento de identidad a mano.\n\n'
-              '2. Haz clic en el botón de abajo para abrir la cámara.\n\n'
-              '3. Toma una foto clara (frontal) de tu documento de identidad.\n\n'
-              '4. Espera unos segundos mientras procesamos la imagen.',
+      '1. Asegúrate de tener tu documento de identidad a mano.\n\n'
+          '2. Haz clic en el botón de abajo para abrir la cámara.\n\n'
+          '3. Toma una foto clara (frontal) de tu documento de identidad.\n\n'
+          '4. Espera unos segundos mientras procesamos la imagen.',
       'scanButton': 'Escanear Documento',
       'idNumberTitle': 'Número de ID escaneado',
       'verificationResultTitle': 'Resultado de la Verificación',
@@ -366,7 +383,7 @@ class LocalizedStrings {
       'cameraError': 'Error al tomar la foto. Por favor, inténtalo de nuevo.',
       'takePhoto': 'Hacer foto',
       'accountVerifiedSuccess':
-          'Cuenta verificada con éxito.\nInicie sesión de nuevo',
+      'Cuenta verificada con éxito.\nInicie sesión de nuevo',
       'accountVerificationError': 'Error verificando la cuenta',
       'worldwide': 'Mundial',
       'yourCountry': 'Tu País',
@@ -385,6 +402,15 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'configureWithdrawalOptions': 'Configurer les options de retrait',
+      'withdrawMethodPaypal': 'PayPal',
+      'withdrawMethodBTC': 'Bitcoin (BTC)',
+      'withdrawMethodXRP': 'Ripple (XRP)',
+      'withdrawTitle': 'Retirer de l\'argent',
+      'slideToConfirm': 'Faites glisser pour confirmer',
+      'chooseMethod': 'Choisissez votre méthode de retrait :',
+      'noMethods': "Vous n'avez configuré aucune méthode de retrait. Veuillez en ajouter une dans les paramètres de votre profil.",
+      'withdrawMethodBank': 'Virement bancaire',
       'pendingBalance': 'Solde en attente d\'envoi:',
       'yourCoins': 'Vos pièces',
       'exchangeTitle': 'Échange',
@@ -572,6 +598,15 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'configureWithdrawalOptions': 'Configura le opzioni di prelievo',
+      'withdrawMethodPaypal': 'PayPal',
+      'withdrawMethodBTC': 'Bitcoin (BTC)',
+      'withdrawMethodXRP': 'Ripple (XRP)',
+      'withdrawTitle': 'Preleva denaro',
+      'slideToConfirm': 'Scorri per confermare',
+      'chooseMethod': 'Scegli il metodo di prelievo:',
+      'noMethods': "Non hai configurato alcun metodo di prelievo. Aggiungine uno nelle impostazioni del profilo.",
+      'withdrawMethodBank': 'Bonifico bancario',
       'pendingBalance': 'Saldo in attesa di invio:',
       'yourCoins': 'Le tue monete',
       'exchangeTitle': 'Scambio',
@@ -760,6 +795,15 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'configureWithdrawalOptions': 'Konfiguration der Auszahlungsoptionen',
+      'withdrawMethodPaypal': 'PayPal',
+      'withdrawMethodBTC': 'Bitcoin (BTC)',
+      'withdrawMethodXRP': 'Ripple (XRP)',
+      'withdrawTitle': 'Geld auszahlen',
+      'slideToConfirm': 'Zum Bestätigen schieben',
+      'chooseMethod': 'Wähle deine Auszahlungsmethode:',
+      'noMethods': "Du hast keine Auszahlungsmethode konfiguriert. Bitte füge eine in deinen Profileinstellungen hinzu.",
+      'withdrawMethodBank': 'Banküberweisung',
       'pendingBalance': 'Ausstehendes Guthaben zum Senden:',
       'yourCoins': 'Deine Münzen',
       'exchangeTitle': 'Tausch',
@@ -943,11 +987,11 @@ class LocalizedStrings {
   };
 
   String? getTextFromValue(String key) {
-    return _localizedValues[locale.languageCode]?[key];
+    return localizedValues[locale.languageCode]?[key];
   }
 
   String? get(String key) {
-    return _localizedValues[locale.languageCode]?[key];
+    return localizedValues[locale.languageCode]?[key];
   }
 
 }

@@ -161,9 +161,7 @@ class CandlesticksState extends State<Candlesticks> {
   Widget build(BuildContext context) {
 
     final style = widget.style ??
-        (Theme.of(context).brightness == Brightness.dark
-            ? CandleSticksStyle.dark()
-            : CandleSticksStyle.light());
+        (CandleSticksStyle.dark());
     return Column(
       children: [
         if (widget.displayZoomActions == true || widget.actions.isNotEmpty) ...[

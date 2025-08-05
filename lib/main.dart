@@ -3,7 +3,6 @@ import 'package:betrader/services/FirebaseService.dart';
 import 'package:betrader/ui/consent_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'helpers/common.dart';
 import 'ui/login_page.dart';
 import 'ui/layout_page.dart';
@@ -54,8 +53,6 @@ Future<void> main() async {
   }
   await FirebaseService().initFirebase();
 
-
-  bool isDark = await loadThemePreference();
   var initializationSettingsAndroid = AndroidInitializationSettings('@drawable/notification');
   var initializationSettingsDarwin = const DarwinInitializationSettings();
 
@@ -79,27 +76,21 @@ Future<void> main() async {
   stripe.Stripe.publishableKey = 'pk_test_51Ro4wcIoWhLn7aPbiJW4oRV3Gtvyijmw9hSGkn7pVMcOYZ4wpKmjRX1SA4tDPlJa8iKS1iRD5edE894KWgrRkqnM007ZLfNfKr';
 
   await stripe.Stripe.instance.applySettings();
-  runApp(MyApp(isDarkTheme: isDark));
+  runApp(MyApp());
 }
 Future onDidReceiveLocalNotification(
     int id, String? title, String? body, String? payload) async {
   // Handle the local notification received on iOS
 }
 
-Future<bool> loadThemePreference() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getBool('darkTheme') ?? true;
-}
-
 class MyApp extends StatelessWidget {
-  final bool isDarkTheme;
 
-  const MyApp({super.key, required this.isDarkTheme});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: isDarkTheme ? Common().themeDark : Common().themeLight,
+      theme: Common().themeDark,
       title: 'Betrader',
       supportedLocales: const [
         Locale('en', ''),

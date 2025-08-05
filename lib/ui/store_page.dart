@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
@@ -29,7 +30,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     _progressController = AnimationController(
       upperBound: 0.9,
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2),
     )..forward();
     _loadRewardedAd();
   }
@@ -46,143 +47,163 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     final strings = LocalizedStrings.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        title: Text(
-          strings!.get('store') ?? 'Store',
-          style: GoogleFonts.montserrat(
-            fontSize: 28,
-            fontWeight: FontWeight.w400,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent.withValues(alpha: 0.0),
+          automaticallyImplyLeading: true,
+          title: Text(
+            strings!.get('store') ?? 'Store',
+            style: GoogleFonts.montserrat(
+              fontSize: 28,
+              fontWeight: FontWeight.w400,
+            ),
           ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        body: Stack(
           children: [
-            _buildStoreButton(
-              context,
-              strings,
-              coins: 100,
-              price: 1.99,
-              color: Colors.brown,
-              k: 1,
-              onPressed: () {
-                _cardPayment(100, 1.99);
-              },
+            // Fondo
+            Positioned.fill(
+              child: Image.asset(
+                'assets/android12splash.png',
+                fit: BoxFit.cover,
+              ),
             ),
-            _buildStoreButton(
-              context,
-              strings,
-              coins: 500,
-              price: 7.99,
-              color: Colors.grey,
-              k: 1.15,
-              onPressed: () {
-                _cardPayment(500, 7.99);
-              },
+
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.2),
+                ),
+              ),
             ),
-            _buildStoreButton(
-              context,
-              strings,
-              coins: 1000,
-              price: 14.99,
-              color: Colors.amber,
-              k: 1.25,
-              onPressed: () {
-                _cardPayment(1000, 14.99);
-              },
-            ),
-            _buildStoreButton(
-              context,
-              strings,
-              coins: 5000,
-              price: 59.99,
-              color: Colors.deepPurple,
-              k: 1.35,
-              onPressed: () {
-                _cardPayment(5000, 59.99);
-              },
-            ),
-            SizedBox(height: 30),
-            Divider(),
-            SizedBox(height: 10),
-            const Spacer(),
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: AnimatedBuilder(
-                    animation: _progressController,
-                    builder: (context, child) {
-                      return LinearProgressIndicator(
-                        value: _isAdLoaded ? 1 : _progressController.value,
-                        minHeight: 56,
-                        backgroundColor: Colors.grey.shade800,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.purple),
-                      );
+
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 90.0, 16.0, 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildStoreButton(
+                    context,
+                    strings,
+                    coins: 100,
+                    price: 1.99,
+                    color: Colors.brown,
+                    k: 1,
+                    onPressed: () {
+                      _cardPayment(100, 1.99);
                     },
                   ),
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 56),
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    padding:
-                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                  _buildStoreButton(
+                    context,
+                    strings,
+                    coins: 500,
+                    price: 7.99,
+                    color: Colors.grey,
+                    k: 1.15,
+                    onPressed: () {
+                      _cardPayment(500, 7.99);
+                    },
                   ),
-                  onPressed: _isAdLoaded
-                      ? () {
-                    Common().vibrate(40, 30);
-                    _showRewardedAd(
-                        50,
-                        Common().interpolate(
-                            strings.get('youWonCoins') ??
-                                'You won 50', {
-                          'coins': 50.toString() + '🪙',
-                        }));
-                  }
-                      : null,
-                  icon: Icon(Icons.ondemand_video, size: 34),
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  _buildStoreButton(
+                    context,
+                    strings,
+                    coins: 1000,
+                    price: 14.99,
+                    color: Colors.amber,
+                    k: 1.25,
+                    onPressed: () {
+                      _cardPayment(1000, 14.99);
+                    },
+                  ),
+                  _buildStoreButton(
+                    context,
+                    strings,
+                    coins: 5000,
+                    price: 59.99,
+                    color: Colors.deepPurple,
+                    k: 1.35,
+                    onPressed: () {
+                      _cardPayment(5000, 59.99);
+                    },
+                  ),
+                  const Spacer(),
+                  Stack(
+                    alignment: Alignment.center,
                     children: [
-                      Text(
-                        Common().interpolate(
-                          strings.get('earnCoins') ??
-                              'Watch an Ad to Earn {coins}🪙',
-                          {
-                            'coins': '50',
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: AnimatedBuilder(
+                          animation: _progressController,
+                          builder: (context, child) {
+                            return LinearProgressIndicator(
+                              value:
+                                  _isAdLoaded ? 1 : _progressController.value,
+                              minHeight: 56,
+                              backgroundColor: Colors.grey.shade800,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.purple),
+                            );
                           },
                         ),
-                        style: GoogleFonts.roboto(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white
-                        ),
                       ),
-                      const SizedBox(width: 8),
-                      Image.asset(
-                        'assets/coin.png',
-                        width: 18,
-                        height: 18,
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: Size(double.infinity, 56),
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.symmetric(
+                              vertical: 16.0, horizontal: 10.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: _isAdLoaded
+                            ? () {
+                                Common().vibrate(40, 30);
+                                _showRewardedAd(
+                                    50,
+                                    Common().interpolate(
+                                        strings.get('youWonCoins') ??
+                                            'You won 50',
+                                        {
+                                          'coins': 50.toString() + '🪙',
+                                        }));
+                              }
+                            : null,
+                        icon: Icon(Icons.ondemand_video, size: 34),
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              Common().interpolate(
+                                strings.get('earnCoins') ??
+                                    'Watch an Ad to Earn {coins}🪙',
+                                {
+                                  'coins': '50',
+                                },
+                              ),
+                              style: GoogleFonts.roboto(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white),
+                            ),
+                            const SizedBox(width: 8),
+                            Image.asset(
+                              'assets/coin.png',
+                              width: 18,
+                              height: 18,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
-        ),
-      ),
-    );
+        ));
   }
 
   void _loadRewardedAd() {
@@ -236,79 +257,87 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
         required Color color,
         required double k,
       }) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(20.0),
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 4),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
-        ),
-        elevation: 6,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 6.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 60 * k,
-                height: 60 * k,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
-                margin: EdgeInsets.fromLTRB(12 / 4 * k, 0, 12, 0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/coin.png',
-                      width: 20 * k,
-                      height: 20 * k,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$coins',
-                      style: GoogleFonts.roboto(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white,
+    return Material(
+      color: Colors.transparent, // Permite el splash
+      borderRadius: BorderRadius.circular(50.0),
+      child: InkWell(
+        onTap: onPressed,
+        splashColor: Colors.white24,
+        highlightColor: Colors.white12,
+        borderRadius: BorderRadius.circular(50.0),
+        child: Card(
+          color: Colors.transparent.withValues(alpha: .1),
+          margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50.0),
+          ),
+          elevation: 6,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 6.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 60 * k,
+                  height: 60 * k,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                  margin: EdgeInsets.fromLTRB(12 / 4 * k, 0, 12, 0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/coin.png',
+                        width: 20 * k,
+                        height: 20 * k,
                       ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$coins',
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    Common().interpolate(
+                      strings.get('buyCoins') ?? 'Buy {coins} Coins',
+                      {'coins': coins.toString()},
                     ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  Common().interpolate(
-                    strings.get('buyCoins') ?? 'Buy {coins} Coins',
-                    {'coins': coins.toString()},
-                  ),
-                  style: GoogleFonts.roboto(
-                    fontWeight: FontWeight.w200,
-                    fontSize: 20.0,
+                    style: GoogleFonts.roboto(
+                      fontWeight: FontWeight.w200,
+                      fontSize: 20.0,
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 12.0),
-                child: Text(
-                  Common().interpolate(
-                    strings.get('priceInEuros') ?? '€{price}',
-                    {'price': price.toStringAsFixed(2)},
-                  ),
-                  style: GoogleFonts.roboto(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.w400,
+                Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: Text(
+                    Common().interpolate(
+                      strings.get('priceInEuros') ?? '€{price}',
+                      {'price': price.toStringAsFixed(2)},
+                    ),
+                    style: GoogleFonts.roboto(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
 
   Future<void> _cardPayment(double coins, double price) async {
     try {
@@ -351,7 +380,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
         {"REWARD": coins},
       );
     } on stripe.StripeException catch (e) {
-      if (e.error.code != stripe.FailureCode.Canceled){
+      if (e.error.code != stripe.FailureCode.Canceled) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -99,7 +99,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
       textDirection: TextDirection.ltr,
     )..layout();
 
-    return textPainter.size.width*0.75;
+    return textPainter.size.width * 0.75;
   }
 
   Widget _buildMarginButtons(
@@ -184,64 +184,82 @@ class _ExactPricePageState extends State<ExactPricePage> {
                   ? () async {
                       Common().vibrate(40, 30);
                       final prefs = await SharedPreferences.getInstance();
-                      bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
+                      bool _bettingNotifications =
+                          prefs.getBool('bettingNotifications') ?? true;
                       FocusScope.of(context).unfocus();
-                      bool? confirmed = await Common().popConfirmOperationDialog(context,  _getBetAmountFromMargin(_selectedMargin).toDouble(), widget.iconPath);
+                      bool? confirmed = await Common()
+                          .popConfirmOperationDialog(
+                              context,
+                              _getBetAmountFromMargin(_selectedMargin)
+                                  .toDouble(),
+                              widget.iconPath);
                       if (confirmed == true) {
-                        String? userId = await _storage.read(key: 'sessionToken');
-                        _selectedPrice = double.tryParse(_priceController.text.replaceAll(',', '.')) ?? _selectedPrice;
-                        int result = await BetsService().postNewExactPriceBet(userId!, widget.ticker, _selectedPrice,
-                            _getMarginAsDouble(_selectedMargin), _selectedDate);
+                        String? userId =
+                            await _storage.read(key: 'sessionToken');
+                        _selectedPrice = double.tryParse(
+                                _priceController.text.replaceAll(',', '.')) ??
+                            _selectedPrice;
+                        int result = await BetsService().postNewExactPriceBet(
+                            userId!,
+                            widget.ticker,
+                            _selectedPrice,
+                            _getMarginAsDouble(_selectedMargin),
+                            _selectedDate);
 
                         if (result == 200) {
                           if (_bettingNotifications) {
                             Common().showLocalNotification(
                                 "betting",
                                 "Betrader",
-                                (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null
+                                (LocalizedStrings.of(context)!
+                                            .get('betPlacedSuccessfully') !=
+                                        null
                                     ? "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} (${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}🪙)"
                                     : "Bet placed successfully! (${_getBetAmountFromMargin(_selectedMargin)}🪙)"),
-                                {"TICKER": widget.ticker, "BET_AMOUNT": _getBetAmountFromMargin(_selectedMargin)});
+                                {
+                                  "TICKER": widget.ticker,
+                                  "BET_AMOUNT":
+                                      _getBetAmountFromMargin(_selectedMargin)
+                                });
                           }
 
                           await BetsService().getUserInfo(userId);
-
-
+                          Navigator.pop(context);
+                          Navigator.pop(context);
                           homeScreenKey.currentState?.loadUserIdAndData();
-                        }
-                        else if (result == 410){
+                          exchangePageKey.currentState?.loadPoints();
+                        } else if (result == 410) {
                           Common().showLocalNotification(
                               "betting",
                               "Error!",
-                              (LocalizedStrings.of(context)!.get('errorMakingBet') ??
-                                  "Error creating price bet!") + " (NO TIME)",
+                              (LocalizedStrings.of(context)!
+                                          .get('errorMakingBet') ??
+                                      "Error creating price bet!") +
+                                  " (NO TIME)",
                               {"ERROR_CODE": "BET-ERR-NOT-ENOUGH-TIME"});
-
-                        }
-                        else if (result == 420){
+                        } else if (result == 420) {
                           Common().showLocalNotification(
                               "betting",
                               "Error!",
-                              (LocalizedStrings.of(context)!.get('betErrorPoints') ??
+                              (LocalizedStrings.of(context)!
+                                      .get('betErrorPoints') ??
                                   "Not enough points!"),
                               {"ERROR_CODE": "BET-ERR-NOT-ENOUGH-POINTS"});
-
-                        }
-                        else if (result == 430){
+                        } else if (result == 430) {
                           Common().showLocalNotification(
                               "betting",
                               "Error!",
-                              (LocalizedStrings.of(context)!.get('betAlreadyExists') ??
+                              (LocalizedStrings.of(context)!
+                                      .get('betAlreadyExists') ??
                                   "Bet already exists!"),
                               {"ERROR_CODE": "BET-ERR-EXISTING-EXACT-BET"});
-
-                        }
-                        else {
+                        } else {
                           if (_bettingNotifications) {
                             Common().showLocalNotification(
                                 "betting",
                                 "Error!",
-                                (LocalizedStrings.of(context)!.get('errorMakingBet') ??
+                                (LocalizedStrings.of(context)!
+                                        .get('errorMakingBet') ??
                                     "Error creating price bet!"),
                                 {"ERROR_CODE": "BET-ERR-UNKNOWN"});
                           }
@@ -250,7 +268,6 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           Navigator.pop(context);
                         }
                       }
-
                     }
                   : () {
                       Common().vibrate(450, 80);
@@ -304,7 +321,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-              child: Container(color: Colors.black.withValues(alpha:0.7)),
+              child: Container(color: Colors.black.withValues(alpha: 0.7)),
             ),
           ),
           Center(
@@ -327,41 +344,27 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      "${LocalizedStrings.of(context)?.get('nowLabel')
- ?? 'Now:'}",
+                      "${LocalizedStrings.of(context)?.get('nowLabel') ?? 'Now:'}",
                       style: GoogleFonts.montserrat(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w200,
-                          color: Theme.of(context).brightness ==
-                              Brightness.dark
-                              ? Colors.white
-                              : Colors.grey
-                      ),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w200,
+                          color: Colors.white),
                     ),
                     Text(
                       '\$ ${widget.currentValue.toStringAsFixed(2)}', //TODO
                       style: GoogleFonts.montserrat(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w400,
-                          color: Theme.of(context).brightness ==
-                              Brightness.dark
-                              ? Colors.white
-                              : Colors.grey
-                      ),
+                          fontSize: 36,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white),
                     ),
-
                     const SizedBox(height: 40),
                     Text(
-                      ("${LocalizedStrings.of(context)?.get('exactClosingValue')
- ?? 'Exact closing value'}").toUpperCase(),
+                      ("${LocalizedStrings.of(context)?.get('exactClosingValue') ?? 'Exact closing value'}")
+                          .toUpperCase(),
                       style: GoogleFonts.montserrat(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w300,
-                        color: Theme.of(context).brightness ==
-                          Brightness.dark
-                          ? Colors.white
-                          : Colors.grey
-                      ),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.white),
                     ),
                     StatefulBuilder(
                       builder: (context, setPriceState) {
@@ -370,7 +373,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           setPriceState(() {
                             _selectedPrice += delta;
                             if (_selectedPrice < 0) _selectedPrice = 0;
-                            _priceController.text = _selectedPrice.toStringAsFixed(2);
+                            _priceController.text =
+                                _selectedPrice.toStringAsFixed(2);
                           });
                         }
 
@@ -412,13 +416,17 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                     color: Colors.redAccent, size: 36),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0),
                                 child: SizedBox(
-                                  width: _calculateTextWidth(_priceController.text, GoogleFonts.montserrat(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  )) + 50,
+                                  width: _calculateTextWidth(
+                                          _priceController.text,
+                                          GoogleFonts.montserrat(
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          )) +
+                                      50,
                                   child: TextFormField(
                                     controller: _priceController,
                                     style: GoogleFonts.montserrat(
@@ -427,9 +435,12 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                       color: Colors.white,
                                     ),
                                     textAlign: TextAlign.center,
-                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                            decimal: true),
                                     inputFormatters: [
-                                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp(r'^\d*\.?\d{0,2}')),
                                     ],
                                     decoration: InputDecoration(
                                       border: InputBorder.none,
@@ -443,7 +454,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                       ),
                                     ),
                                     onChanged: (value) {
-                                      final parsed = double.tryParse(value.replaceAll(',', '.'));
+                                      final parsed = double.tryParse(
+                                          value.replaceAll(',', '.'));
                                       if (parsed != null && parsed >= 0) {
                                         _selectedPrice = parsed;
                                       }
@@ -462,30 +474,25 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             ],
                           ),
                         );
-
-
                       },
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      ("${LocalizedStrings.of(context)?.get('atDate')
- ?? 'At date'}").toUpperCase(),
+                      ("${LocalizedStrings.of(context)?.get('atDate') ?? 'At date'}")
+                          .toUpperCase(),
                       style: GoogleFonts.montserrat(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w300,
-                          color: Theme.of(context).brightness ==
-                              Brightness.dark
-                              ? Colors.white
-                              : Colors.grey
-                      ),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.white),
                     ),
-
                     Builder(
                       builder: (context) {
                         DateTime minDate =
                             DateTime.now().add(const Duration(days: 3));
                         DateTime selectedDate = minDate;
-                        _selectedDate = DateTime(minDate.year, minDate.month, minDate.day);;
+                        _selectedDate =
+                            DateTime(minDate.year, minDate.month, minDate.day);
+                        ;
 
                         return StatefulBuilder(
                           builder: (context, setStateDate) {
@@ -515,7 +522,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                 if (pickedDate != null) {
                                   setStateDate(() {
                                     selectedDate = pickedDate;
-                                    _selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+                                    _selectedDate = DateTime(selectedDate.year,
+                                        selectedDate.month, selectedDate.day);
                                   });
                                 }
                               },
@@ -564,20 +572,18 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             children: [
                               TextSpan(
                                 text:
-                                "${LocalizedStrings.of(context)?.get('enterBetAmount')
- ?? 'Bet amount'}: ",
+                                    "${LocalizedStrings.of(context)?.get('enterBetAmount') ?? 'Bet amount'}: ",
                                 style: GoogleFonts.montserrat(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w200,
                                   color: _isAcceptEnabled
-                                      ? Theme.of(context).brightness == Brightness.dark
                                       ? Colors.white
-                                      : Colors.grey
                                       : Colors.red,
                                 ),
                               ),
                               TextSpan(
-                                text: _getBetAmountFromMargin(_selectedMargin).toString(),
+                                text: _getBetAmountFromMargin(_selectedMargin)
+                                    .toString(),
                                 style: GoogleFonts.montserrat(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w500,

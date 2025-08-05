@@ -180,7 +180,7 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
+          backgroundColor: Colors.black ,
           title: Text(
               aTitle,
               style: const TextStyle(color: Colors.white)),

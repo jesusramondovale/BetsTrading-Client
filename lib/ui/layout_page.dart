@@ -22,6 +22,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'notifications_page.dart';
 
 final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
+final GlobalKey<ExchangePageState> exchangePageKey= GlobalKey<ExchangePageState>();
 bool _showTutorial = false;
 
 class MyApp extends StatelessWidget {
@@ -132,11 +133,11 @@ class MainMenuPageState extends State<MainMenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: isDark ? Colors.black : Colors.white,
-      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarColor: Colors.black,
+      statusBarBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
     ));
 
     FlutterStatusbarcolor.setStatusBarColor(Colors.transparent);
@@ -163,7 +164,7 @@ class MainMenuPageState extends State<MainMenuPage> {
       MarketsView(
         controller: _controller,
       ),
-      ExchangePage(),
+      ExchangePage(key: exchangePageKey, controller: _controller),
       // PERSONAL INFO
       const UserInfoPage()
     ];
@@ -172,6 +173,7 @@ class MainMenuPageState extends State<MainMenuPage> {
       return const Center(child: CircularProgressIndicator());
     } else {
       return Scaffold(
+        extendBody: true,
         body: Stack(children: [
           // Fondo
           Positioned.fill(
@@ -238,11 +240,11 @@ class MainMenuPageState extends State<MainMenuPage> {
                 valueListenable: _controller.selectedIndexNotifier,
                 builder: (context, index, _) {
                   return Container(
-                    height: 66, // Ajusta la altura aquí
+                    height: 60, // Ajusta la altura aquí
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black12.withValues(alpha: 0.5),
+                          color: Colors.transparent.withValues(alpha: 0.1),
                           spreadRadius: 10,
                           blurRadius: 10,
                           offset: Offset(0, 0),
@@ -250,8 +252,9 @@ class MainMenuPageState extends State<MainMenuPage> {
                       ],
                     ),
                     child: BottomNavigationBar(
-                      selectedItemColor: Colors.deepPurple,
-                      unselectedItemColor: Colors.grey,
+                      backgroundColor: Colors.transparent.withValues(alpha: 0.0),
+                      selectedItemColor: Colors.white,
+                      unselectedItemColor: Colors.white30,
                       showUnselectedLabels: false,
                       showSelectedLabels: true,
                       iconSize: 32,

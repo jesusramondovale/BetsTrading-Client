@@ -55,18 +55,14 @@ class FavoriteDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(52),
       ),
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? Colors.black
-          : Colors.grey,
+      backgroundColor: Colors.black,
       child: Container(
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
           color: Colors.white12.withValues(alpha:0.05),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withValues(alpha:1)
-                  : Colors.grey,
+              color: Colors.black,
               spreadRadius: 1,
               blurRadius: 2,
               offset: const Offset(0, 0),
@@ -83,9 +79,7 @@ class FavoriteDialog extends StatelessWidget {
                   top: 0,
                   right: -100,
                   child: Icon(Icons.star,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.withValues(alpha:0.1)
-                          : Colors.grey,
+                      color: Colors.grey.withValues(alpha:0.1),
                       size: 350),
                 ),
                 Padding(
@@ -315,9 +309,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                   top: 0,
                   right: -30,
                   child: Icon(Icons.star,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.withValues(alpha:0.1)
-                          : Colors.grey,
+                      color: Colors.grey.withValues(alpha:0.1),
                       size: 150),
                 ),
 
@@ -370,11 +362,8 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                             : '▼ ${(widget.favorite.dailyGain.abs()).toStringAsFixed(2)}%',
                         style: GoogleFonts.montserrat(
                           fontSize: 16,
-                          fontWeight:
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? FontWeight.w200
-                                  : FontWeight.w500,
-                          color: widget.favorite.dailyGain > 0.0
+                          fontWeight:FontWeight.w300,
+                          color: widget.favorite.dailyGain >= 0.0
                               ? Colors.green
                               : Colors.red,
                         ),

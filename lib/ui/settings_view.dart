@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:flutter/foundation.dart';
@@ -24,8 +26,6 @@ class SettingsView extends StatefulWidget {
 }
 
 class SettingsViewState extends State<SettingsView> {
-
-  bool isDark = true;
   bool enableVibration = false;
   @override
   void initState() {
@@ -34,10 +34,8 @@ class SettingsViewState extends State<SettingsView> {
   }
 
   Future<void> _loadThemePreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    bool darkTheme = prefs.getBool('darkTheme') ?? true;
     setState(() {
-      isDark = darkTheme;
+
     });
   }
 
@@ -62,9 +60,7 @@ class SettingsViewState extends State<SettingsView> {
             return false;
           },
           child: AlertDialog(
-            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black
-                : Colors.grey[200]!,
+            backgroundColor: Colors.black,
             title: Text(
               strings?.get('changePassword') ?? "Change Password",
               textAlign: TextAlign.center,
@@ -162,126 +158,193 @@ class SettingsViewState extends State<SettingsView> {
     final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? Colors.black
-          : Colors.white,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor : Colors.transparent,
+        backgroundColor : Colors.transparent.withValues(alpha: 0.0),
         title: Text(strings?.get('settings') ?? "Settings",
             style: GoogleFonts.montserrat(
               fontSize: 28,
               fontWeight: FontWeight.w400,
             )),
       ),
-      body: ListView(
-        children: ListTile.divideTiles(
-          context: context,
-          tiles: [
-            ListTile(
-              title: Text(strings?.get('personalInfo') ?? 'Personal info',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
-                ),),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: widget.onPersonalInfoTap
+      body: Stack(
+        children: [
+          // Fondo
+          Positioned.fill(
+            child: Image.asset(
+              'assets/android12splash.png',
+              fit: BoxFit.cover,
             ),
-            ListTile(
-              title: Text(strings?.get('changePassword') ?? 'Change password',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
-                ),),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () async => {
-                  Common().vibrate(40,40),
-                  showChangePasswordDialog(context, await _storage.read(key: "sessionToken") ?? "none")
-              }
+          ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.2),
+              ),
             ),
-            ListTile(
-              title: Text(strings?.get('notifications') ?? 'Notifications',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
-                ),),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: widget.onShowNotifications
+          ),
+          ListView(
+            children: ListTile.divideTiles(
+              context: context,
+              tiles: [
+                // Personal Info
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: widget.onPersonalInfoTap,
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('personalInfo') ?? 'Personal info',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
 
-            ),
-            ListTile(
-              title:  Text(strings?.get('paymentHistory') ?? 'Payment history',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
-                ),),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () =>
-              {
-                Common().vibrate(40,40),
-                Common().unimplementedAction(context, '(Payment history)'),
-              }
-            ),
-            ListTile(
-              title: Text(strings?.get('aboutUs') ?? 'About us',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
-                ),),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => {
-                  Common().vibrate(40,40),
-                 _openInAppBrowser("https://betstrading.online")
-            },
-            ),
-            SwitchListTile(
-              title: Text(strings?.get('enableVibration') ?? "Enable vibration",
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
-                ),),
-              value: enableVibration,
-              inactiveThumbColor: Colors.black,
-              inactiveTrackColor: Colors.grey,
-              onChanged: (bool value) async {
-                Common().vibrate(40,40);
-                await _saveThemePreference(value);
-                setState(() {
-                  enableVibration = value;
-                  Common().savePreference('enableVibration', value);
-                });
-              },
-            ),
-            SwitchListTile(
-              title: Text(strings?.get('darkMode') ?? "Dark mode",
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
-                ),),
-              value: isDark,
-              inactiveThumbColor: Colors.black,
-              inactiveTrackColor: Colors.grey,
-              onChanged: (bool value) async {
-                Common().vibrate(40,40);
-                await _saveThemePreference(value);
-                setState(() {
-                  isDark = value;
-                  Common().exitPopDialog(strings?.get('attention') ?? "Attention!" , strings?.get('needToRestart') ?? "App must restart", context);
-                });
-              },
-            ),
-            ListTile(
-              title: Text(strings?.get('advancedSettings') ?? 'Advanced app settings',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
-                ),),
-              trailing: const Icon(Icons.settings_suggest_outlined, size: 40),
-              onTap: () {
-                AppSettings.openAppSettings();
-              },
-            ),
-          ],
-        ).toList(),
+                // Notifications
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: widget.onShowNotifications,
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('notifications') ?? 'Notifications',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
+
+                // Payment History
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: () {
+                      Common().vibrate(40, 40);
+                      Common().unimplementedAction(context, '(Payment history)');
+                    },
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('paymentHistory') ?? 'Payment history',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
+
+                // Configure Withdrawal Methods (disabled)
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    onTap: () => {
+                      Common().vibrate(40, 40),
+                      Common().unimplementedAction(context, '(Payment history)'),
+                    },
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('configureWithdrawalOptions') ?? 'Configure withdrawal methods',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
+
+                // About Us
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: () {
+                      Common().vibrate(40, 40);
+                      _openInAppBrowser("https://betstrading.online");
+                    },
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('aboutUs') ?? 'About us',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
+
+                // Enable Vibration
+                SwitchListTile(
+                  title: Text(
+                    strings?.get('enableVibration') ?? "Enable vibration",
+                    style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                  ),
+                  value: enableVibration,
+                  inactiveThumbColor: Colors.black,
+                  inactiveTrackColor: Colors.grey,
+                  onChanged: (bool value) async {
+                    Common().vibrate(40, 40);
+                    await _saveThemePreference(value);
+                    setState(() {
+                      enableVibration = value;
+                      Common().savePreference('enableVibration', value);
+                    });
+                  },
+                ),
+
+                // Change Password
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: () async {
+                      Common().vibrate(40, 40);
+                      showChangePasswordDialog(context, await _storage.read(key: "sessionToken") ?? "none");
+                    },
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('changePassword') ?? 'Change password',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
+
+                // Advanced App Settings
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: () {
+                      AppSettings.openAppSettings();
+                    },
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('advancedSettings') ?? 'Advanced app settings',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.settings_suggest_outlined, size: 40),
+                    ),
+                  ),
+                ),
+              ],
+
+            ).toList(),
+          ),
+
+        ],
       ),
       bottomSheet: Container(
         padding: const EdgeInsets.all(16.0),

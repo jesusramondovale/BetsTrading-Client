@@ -286,10 +286,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                 style: GoogleFonts.openSans(
                                   fontSize: 26.0,
                                   fontWeight: FontWeight.w300,
-                                  color: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.white
-                                      : Colors.grey,
+                                  color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                                 maxLines: 1,
@@ -326,9 +323,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                         priceColumnWidth: PRICE_BAR_WIDTH,
                                         noBetsText: noBetsText,
                                         noIcon: widget.iconPath == "null",
-                                        darkTheme:
-                                            Theme.of(context).brightness ==
-                                                Brightness.dark),
+                                    ),
                                   ),
                                 ),
                                 PriceColumn(
@@ -657,8 +652,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   priceColumnWidth: PRICE_BAR_WIDTH,
                                   noBetsText: noBetsText,
                                   noIcon: widget.iconPath == "null",
-                                  darkTheme: Theme.of(context).brightness ==
-                                      Brightness.dark)
+                                  )
                               .hit(details.localPosition.dx,
                                   details.localPosition.dy, size);
 
@@ -704,9 +698,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             icon: Icon(
                               Icons.flash_on_sharp,
                               size: 35,
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.black,
+                              color: Colors.white,
                               shadows: [
                                 Shadow(
                                   blurRadius: 1.5,

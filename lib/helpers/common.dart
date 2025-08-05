@@ -29,8 +29,6 @@ class Common {
   final ThemeData themeDark = ThemeData(
     brightness: Brightness.dark,
     colorScheme: const ColorScheme.dark(
-      background: Colors.black,
-      onBackground: Colors.black54,
       surface: Colors.black,
       onSurface: Colors.white,
     ),
@@ -117,13 +115,13 @@ class Common {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
+          backgroundColor: Colors.black,
           title: Text(
               aTitle,
-              style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)),
+              style: TextStyle(color: Colors.white)),
           content: Text(
             aBody,
-            style: TextStyle(fontSize: 16.0, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+            style: TextStyle(fontSize: 16.0, color: Colors.white ),
           ),
           actions: [
             ElevatedButton(
@@ -148,7 +146,7 @@ class Common {
             return false;
           },
           child: AlertDialog(
-            backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
+            backgroundColor: Colors.black,
             title: Text(
               LocalizedStrings.of(context)!.get('confirmOperation') ?? "Confirm operation",
               textAlign: TextAlign.center,
@@ -181,13 +179,13 @@ class Common {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
+          backgroundColor: Colors.black,
           title: Text(
               aTitle,
-              style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)),
+              style: TextStyle(color: Colors.white)),
           content: Text(
             aBody,
-            style: TextStyle(fontSize: 16.0, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+            style: TextStyle(fontSize: 16.0, color: Colors.white),
           ),
           actions: [
             ElevatedButton(
@@ -206,7 +204,7 @@ class Common {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey[200]!,
+          backgroundColor:Colors.black,
           title: Text(
               "$aTitle , $aUser",
               style: const TextStyle(color: Colors.white)),
