@@ -134,7 +134,7 @@ class TrendDialog extends StatelessWidget {
                                       await _storage.read(key: "sessionToken") ?? "none",
                                       trend.ticker);
                                   if (ok) {
-                                    Common().newFavoriteCompleted(
+                                    Common().showFloatingSnack(
                                         context,
                                         LocalizedStrings.of(context)!.get('updatedFavs') ?? "Updated favs!");
                                     homeScreenKey.currentState?.refreshFavorites();

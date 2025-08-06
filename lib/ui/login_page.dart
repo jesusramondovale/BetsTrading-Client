@@ -1,11 +1,13 @@
 import 'dart:ui';
 
+import 'package:betrader/ui/FirstTimePage.dart';
 import 'package:flutter/material.dart';
 import 'package:betrader/services/AuthService.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/helpers/common.dart';
 import 'package:betrader/ui/signin_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../services/BetsService.dart';
 import 'layout_page.dart';
@@ -15,7 +17,6 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -37,7 +38,7 @@ class LoginPage extends StatelessWidget {
           Center(
             child: SingleChildScrollView(
               child: Container(
-                width: MediaQuery.of(context).size.width ,
+                width: MediaQuery.of(context).size.width,
                 padding: const EdgeInsets.all(16.0),
                 child: const LoginForm(),
               ),
@@ -75,15 +76,15 @@ class LoginFormState extends State<LoginForm> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
               child: Container(
-                color: Colors.black.withValues(alpha:0.0),
+                color: Colors.black.withValues(alpha: 0.0),
               ),
             ),
           ),
-
           SingleChildScrollView(
             child: Column(
               children: [
-                Image.asset('assets/new_icon.png', width: 200, fit: BoxFit.cover),
+                Image.asset('assets/new_icon.png',
+                    width: 200, fit: BoxFit.cover),
                 const Padding(padding: EdgeInsets.all(10.0)),
                 if (_showSocialSignIn) ...[
                   _buildGoogleSignInButton(strings!),
@@ -109,47 +110,109 @@ class LoginFormState extends State<LoginForm> {
     );
   }
 
+  Widget _buildUsernameField(LocalizedStrings strings) {
+    return TextFormField(
+      cursorColor: Colors.black,
+      controller: _usernameController,
+      decoration: InputDecoration(
+          border: OutlineInputBorder(borderSide: BorderSide.none),
+          labelText: "E-mail / " + (strings.get('username') ?? 'User name'),
+          labelStyle: GoogleFonts.syncopate(fontSize: 25),
+          errorStyle: GoogleFonts.montserrat(
+            color: Colors.red,
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
+          floatingLabelStyle: GoogleFonts.syncopate(
+            color: Colors.white, // cuando SÍ está enfocado
+            fontWeight: FontWeight.w500,
+          ),
+
+      ),
+      style: GoogleFonts.montserrat(fontSize: 25),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return strings.get('pleaseEnterUsername') ??
+              'Please enter your username';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPasswordField(LocalizedStrings strings) {
+    return TextFormField(
+      cursorColor: Colors.black,
+      controller: _passwordController,
+      obscureText: true,
+      decoration: InputDecoration(
+          border: OutlineInputBorder(borderSide: BorderSide.none),
+          labelText: (strings.get('password') ?? 'Password'),
+          labelStyle: GoogleFonts.syncopate(fontSize: 25),
+          errorStyle: GoogleFonts.montserrat(
+            color: Colors.red,
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
+          floatingLabelStyle: GoogleFonts.syncopate(
+            color: Colors.white, // cuando SÍ está enfocado
+              fontWeight: FontWeight.w500,
+          ),
+      ),
+      style: GoogleFonts.montserrat(fontSize: 25),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return strings.get('pleaseEnterPassword') ??
+              'Please enter your password';
+        }
+        return null;
+      },
+    );
+  }
+
   Widget _buildGoogleSignInButton(LocalizedStrings strings) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.black, backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.white,
         minimumSize: const Size(double.infinity, 50),
       ),
       onPressed: () async {
         int? result = await AuthService().googleSignIn();
-        if (result != null && result == 0 ) {
-
+        if (result != null && result == 0)
+        {
           // Validated
           String? id = await _storage.read(key: 'sessionToken');
           await BetsService().getUserInfo(id!);
           String? username = await _storage.read(key: 'username');
-          Common().actionDialog(context, "${strings.get('welcome') ?? "Welcome"}! $username" );
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("${strings.get('welcome') ?? "Welcome"}! $username"),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
-
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Ooops... error!"),
-              backgroundColor: Colors.red,
-            ),
-          );
-          print("Error al intentar iniciar sesión con Google.");
+          Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const MainMenuPage()));
+        }
+        // First Google login
+        else if (result != null && result == 2) {
+          // Validated
+          String? id = await _storage.read(key: 'sessionToken');
+          await BetsService().getUserInfo(id!);
+          String? username = await _storage.read(key: 'username');
+          Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const FirstTimePage()));
+        }
+        else {
+          Common().showFloatingSnack(context, "Ooops... error!", backgroundColor: Colors.red);
+          print("Error on Google LogIn.");
         }
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/google.png', height: 24.0),
+          Image.asset('assets/google.png', height: 30),
           Padding(
             padding: const EdgeInsets.only(left: 10),
-            child: Text(strings.get('googleSignIn') ?? 'Continue with Google', style: const TextStyle(fontSize: 16, color: Colors.black)),
+            child: Text(strings.get('googleSignIn') ?? 'Continue with Google',
+                style:
+                    GoogleFonts.montserrat(fontSize: 16, color: Colors.black)),
           ),
         ],
       ),
@@ -159,8 +222,11 @@ class LoginFormState extends State<LoginForm> {
   Widget _buildManualLogInButton(LocalizedStrings strings) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white, backgroundColor: Colors.blue,
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         minimumSize: const Size(double.infinity, 50),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
       ),
       onPressed: () {
         setState(() {
@@ -170,59 +236,52 @@ class LoginFormState extends State<LoginForm> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.email),
-          Padding(
-            padding: const EdgeInsets.only(left: 10),
-            child: Text(strings.get('commonSignIn') ?? 'Log In', style: const TextStyle(fontSize: 16, color: Colors.white)),
+          const Icon(Icons.email, color: Colors.white, size: 25),
+          const SizedBox(width: 10),
+          Text(
+            strings.get('commonSignIn') ?? 'Log In',
+            style: GoogleFonts.montserrat(fontSize: 16),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildUsernameField(LocalizedStrings strings) {
-    return TextFormField(
-      controller: _usernameController,
-      decoration: InputDecoration(labelText: "E-mail / " + (strings.get('username') ?? 'User name') ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return strings.get('pleaseEnterUsername') ?? 'Please enter your username';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildPasswordField(LocalizedStrings strings) {
-    return TextFormField(
-      controller: _passwordController,
-      obscureText: true,
-      decoration: InputDecoration(labelText: strings.get('password') ?? 'Password'),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return strings.get('pleaseEnterPassword') ?? 'Please enter your password';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildLoginAndRegisterButtons(BuildContext context, LocalizedStrings strings) {
+  Widget _buildLoginAndRegisterButtons(
+      BuildContext context, LocalizedStrings strings) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+          ),
           onPressed: () {
             if (_formKey.currentState!.validate()) {
+              FocusManager.instance.primaryFocus?.unfocus();
               logInHelper(strings);
             }
           },
           child: Text(strings.get('logIn') ?? 'Log In'),
         ),
-        const Padding(padding: EdgeInsets.all(2.0)),
+        const SizedBox(width: 12),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.grey[800],
+            foregroundColor: Colors.white,
+            textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+          ),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const SignIn()));
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const SignIn()));
           },
           child: Text(strings.get('signIn') ?? 'Register'),
         ),
@@ -232,13 +291,24 @@ class LoginFormState extends State<LoginForm> {
 
   Widget _buildToggleButton(LocalizedStrings strings) {
     return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.grey[850],
+        foregroundColor: Colors.white,
+        textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      ),
       onPressed: () {
         setState(() {
           _showSocialSignIn = !_showSocialSignIn;
         });
       },
-      child: Text(_showSocialSignIn ? (strings.get('commonSignIn') ?? "E-mail log-in") :
-            (strings.get('backToSocialsLogin') ?? "Back to Social Logins")),
+      child: Text(
+        _showSocialSignIn
+            ? (strings.get('commonSignIn') ?? "E-mail log-in")
+            : (strings.get('backToSocialsLogin') ?? "Back to Social Logins"),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 
@@ -247,7 +317,11 @@ class LoginFormState extends State<LoginForm> {
       onPressed: () {
         // Forgot password logic
       },
-      child: Text(strings.get('forgotPassword') ?? 'Forgot Password?'),
+      child: Text(strings.get('forgotPassword') ?? 'Forgot Password?',
+          style: GoogleFonts.montserrat(
+              fontSize: 20,
+              fontWeight: FontWeight.w400,
+              color: Colors.blueAccent)),
     );
   }
 
@@ -261,39 +335,26 @@ class LoginFormState extends State<LoginForm> {
       },
     );
 
-    
     final pass = _passwordController.text.trim();
 
     try {
-      final result = await AuthService().logIn(_usernameController.text.trim(), pass.toString());
+      final result = await AuthService()
+          .logIn(_usernameController.text.trim(), pass.toString());
       Navigator.of(context).pop(); // Close the progress dialog
 
       if (result['success']) {
         String? id = await _storage.read(key: 'sessionToken');
         await BetsService().getUserInfo(id!);
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainMenuPage()));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("${strings.get('welcome') ?? "Welcome"}!  ${_usernameController.text.trim()}"),
-            backgroundColor: Colors.green,
-          ),
-        );
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const MainMenuPage()));
+
+        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"}  ${_usernameController.text.trim()}!");
+
       } else {
         if ("null" == result['message'] || null == result['message']) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Oops... ${strings.get("serverUnavailable")}"),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Oops... ${strings.get(result['message'])}"),
-              backgroundColor: Colors.red,
-            ),
-          );
+          Common().showFloatingSnack(context,"Oops... ${strings.get("serverUnavailable")}", backgroundColor: Colors.red);
+        } else {
+          Common().showFloatingSnack(context,"Oops... ${strings.get(result['message'])}", backgroundColor: Colors.red);
         }
       }
     } catch (e) {

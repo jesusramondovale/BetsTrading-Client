@@ -34,8 +34,10 @@ class SettingsViewState extends State<SettingsView> {
   }
 
   Future<void> _loadThemePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storedValue = prefs.getBool('enableVibration');
     setState(() {
-
+      enableVibration = storedValue ?? false;
     });
   }
 
@@ -43,96 +45,187 @@ class SettingsViewState extends State<SettingsView> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('darkTheme', isDark);
   }
-  Future<bool?> showChangePasswordDialog(
-      BuildContext context, String token) async {
-    final strings = LocalizedStrings.of(context);
 
+  Future<bool?> showChangePasswordDialog(
+      BuildContext context,
+      String token,
+      ) async
+  {
+    bool _showNewPassword = false;
+    final strings = LocalizedStrings.of(context);
+    final TextEditingController currentPasswordController = TextEditingController();
     final TextEditingController newPasswordController = TextEditingController();
     final TextEditingController confirmPasswordController = TextEditingController();
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    final Color bgColor = Colors.grey[900]!;
+    final Color fieldColor = Colors.grey[850]!;
+    final Color textColor = Colors.white;
 
     return await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        // ignore: deprecated_member_use
-        return WillPopScope(
-          onWillPop: () async {
-            Navigator.of(dialogContext).pop(false);
-            return false;
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) Navigator.pop(dialogContext, false);
           },
           child: AlertDialog(
-            backgroundColor: Colors.black,
+            backgroundColor: bgColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Text(
               strings?.get('changePassword') ?? "Change Password",
               textAlign: TextAlign.center,
-              style: GoogleFonts.roboto(
-                fontSize: 24,
-                color: Colors.white,
-                fontWeight: FontWeight.w400,
+              style: GoogleFonts.montserrat(
+                fontSize: 22,
+                fontWeight: FontWeight.w300,
+                color: textColor,
               ),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: newPasswordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: strings?.get('newPassword') ?? "New Password",
-                    border: OutlineInputBorder(),
+            content: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    child: TextFormField(
+                      controller: currentPasswordController,
+                      obscureText: true,
+                      style: GoogleFonts.montserrat(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: strings?.get('currentPassword') ?? "Current Password",
+                        labelStyle: GoogleFonts.montserrat(color: textColor),
+                        filled: true,
+                        fillColor: fieldColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return strings?.get('thisFieldIsRequired') ?? "Required";
+                        }
+                        return null;
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: confirmPasswordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: strings?.get('confirmPassword') ?? "Confirm Password",
-                    border: OutlineInputBorder(),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    child: StatefulBuilder(
+                      builder: (context, setState) => TextFormField(
+                        controller: newPasswordController,
+                        obscureText: !_showNewPassword,
+                        style: GoogleFonts.montserrat(color: textColor),
+                        decoration: InputDecoration(
+                          labelText: strings?.get('newPassword') ?? "New Password",
+                          labelStyle: GoogleFonts.montserrat(color: textColor),
+                          filled: true,
+                          errorMaxLines: 3,
+                          fillColor: fieldColor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _showNewPassword ? Icons.visibility : Icons.visibility_off,
+                              color: Colors.white70,
+                            ),
+                            onPressed: () {
+                              setState(() => _showNewPassword = !_showNewPassword);
+                            },
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return strings?.get('thisFieldIsRequired') ?? "Field required";
+                          }
+                          final hasUppercase = value.contains(RegExp(r'[A-Z]'));
+                          final hasNumber = value.contains(RegExp(r'[0-9]'));
+                          final longEnough = value.length >= 12;
+
+                          if (!hasUppercase || !hasNumber || !longEnough) {
+                            return strings?.get('passwordRequirements') ??
+                                "Password must contain 12 characters, one uppercase and one number.";
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  Container(
+                    child: TextFormField(
+                      controller: confirmPasswordController,
+                      obscureText: true,
+                      style: GoogleFonts.montserrat(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: strings?.get('confirmPassword') ?? "Confirm Password",
+                        labelStyle: GoogleFonts.montserrat(color: textColor),
+                        filled: true,
+                        fillColor: fieldColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return strings?.get('thisFieldIsRequired') ?? "Field required";
+                        }
+                        if (value != newPasswordController.text) {
+                          return strings?.get('passwordMismatch') ?? "Passwords do not match";
+                        }
+                        if (value == newPasswordController.text && value == currentPasswordController.text) {
+                          Common().showFloatingSnack(context, "¿Desayunaste payaso 🤡?", backgroundColor: Colors.pink[300]!);
+                          return "";
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
+            actionsAlignment: MainAxisAlignment.center,
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(dialogContext).pop(false);
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey,
+                  textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w500),
+                ),
                 child: Text(strings?.get('cancel') ?? "Cancel"),
               ),
-              TextButton(
+              ElevatedButton(
                 onPressed: () async {
-                  if (newPasswordController.text == confirmPasswordController.text) {
-                    // Llamar al servicio para cambiar la contraseña
-                    int result = await AuthService().changePassword(
-                      token,
-                      newPasswordController.text,
-                    );
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  if (_formKey.currentState?.validate() != true) return;
 
-                    if (result == 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(strings?.get('success') ?? "Password changed successfully"),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                      Navigator.of(dialogContext).pop(true);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(strings?.get('errorChangingPassword') ?? "Error changing password"),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
+                  int result = await AuthService().changePassword(
+                    token,
+                    currentPasswordController.text,
+                    newPasswordController.text,
+                  );
+
+                  if (result == 0) {
+                    Common().showFloatingSnack(context, strings?.get('successPassword') ?? "Password changed successfully");
+                    Navigator.of(dialogContext).pop(true);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(strings?.get('passwordMismatch') ?? "Passwords do not match"),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    Common().showFloatingSnack(context, strings?.get('errorChangingPassword') ?? "Error changing password", backgroundColor: Colors.red);
                   }
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: textColor,
+                  textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 child: Text(strings?.get('confirm') ?? "Confirm"),
               ),
             ],
@@ -146,9 +239,9 @@ class SettingsViewState extends State<SettingsView> {
     final Uri uri = Uri.parse(url);
     if (!await launchUrl(
       uri,
-      mode: LaunchMode.inAppWebView,// navegador interno
+      mode: LaunchMode.inAppBrowserView,// navegador interno
     )) {
-      Common().actionDialog(context, "Error!");
+      Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
     }
   }
 
@@ -230,7 +323,7 @@ class SettingsViewState extends State<SettingsView> {
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () {
                       Common().vibrate(40, 40);
-                      Common().unimplementedAction(context, '(Payment history)');
+                      Common().showFloatingSnack(context, '(Payment history)', backgroundColor: Colors.white);
                     },
                     child: ListTile(
                       title: Text(
@@ -250,7 +343,7 @@ class SettingsViewState extends State<SettingsView> {
                     highlightColor: Colors.transparent,
                     onTap: () => {
                       Common().vibrate(40, 40),
-                      Common().unimplementedAction(context, '(Payment history)'),
+                      Common().showFloatingSnack(context, '(Payment history)', backgroundColor: Colors.white),
                     },
                     child: ListTile(
                       title: Text(
@@ -282,25 +375,6 @@ class SettingsViewState extends State<SettingsView> {
                   ),
                 ),
 
-                // Enable Vibration
-                SwitchListTile(
-                  title: Text(
-                    strings?.get('enableVibration') ?? "Enable vibration",
-                    style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
-                  ),
-                  value: enableVibration,
-                  inactiveThumbColor: Colors.black,
-                  inactiveTrackColor: Colors.grey,
-                  onChanged: (bool value) async {
-                    Common().vibrate(40, 40);
-                    await _saveThemePreference(value);
-                    setState(() {
-                      enableVibration = value;
-                      Common().savePreference('enableVibration', value);
-                    });
-                  },
-                ),
-
                 // Change Password
                 Material(
                   color: Colors.transparent,
@@ -319,6 +393,26 @@ class SettingsViewState extends State<SettingsView> {
                       trailing: const Icon(Icons.chevron_right),
                     ),
                   ),
+                ),
+
+                // Enable Vibration
+                SwitchListTile(
+                  title: Text(
+                    strings?.get('enableVibration') ?? "Enable vibration",
+                    style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                  ),
+                  value: enableVibration,
+                  inactiveThumbColor: Colors.black,
+                  inactiveTrackColor: Colors.grey,
+                  activeColor: Colors.greenAccent,
+                  onChanged: (bool value) async {
+                    Common().vibrate(40, 40);
+                    await _saveThemePreference(value);
+                    setState(() {
+                      enableVibration = value;
+                      Common().savePreference('enableVibration', value);
+                    });
+                  },
                 ),
 
                 // Advanced App Settings

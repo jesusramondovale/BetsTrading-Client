@@ -28,14 +28,14 @@ class HomeScreenState extends State<HomeScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   List<Bet> _bets = [];
   String _userId = "none";
-  String _userPoints = '0';
+  double _userPoints = 0;
   bool showFavorites = true;
   Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
     setState(() {
       _userId = userId;
-      _userPoints = userPoints;
+      _userPoints = double.tryParse(userPoints) ?? 0;
     });
     _loadBets(userId);
   }
@@ -88,7 +88,7 @@ class HomeScreenState extends State<HomeScreen> {
                   padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
                   icon: Icon(Icons.settings),
                   iconSize: 30,
-                  color: Colors.white,
+                  color: Colors.white70,
                   onPressed: () {
                     Common().vibrate(40,30);
 
@@ -138,7 +138,7 @@ class HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(builder: (_) => StorePage()),
                     );
-                    exchangePageKey.currentState?.loadPoints();
+                    exchangePageKey.currentState?.loadData();
                   },
                   icon: DecoratedBox(
                     decoration: BoxDecoration(
@@ -167,7 +167,7 @@ class HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            _userPoints,
+                            NumberFormat.compact().format(_userPoints),
                             style: GoogleFonts.montserrat(color: Colors.white),
                           ),
                         ],

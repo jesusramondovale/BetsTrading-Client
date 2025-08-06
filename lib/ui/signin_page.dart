@@ -1,4 +1,6 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings, use_build_context_synchronously, library_private_types_in_public_api
+import 'dart:ui';
+
 import 'package:betrader/services/FirebaseService.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -40,30 +42,55 @@ class _SignInState extends State<SignIn> {
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: Text(strings?.get('signIn') ?? 'Sign In'),
         elevation: 0,
       ),
-        body: Column(
-            children: [
-              Container(
-                height: 1.0,
-                color: Colors.black,
-               ),
-              Expanded(
-                 child: Padding(
-                 padding: const EdgeInsets.all(16.0),
-                 child: Stepper(
-                          currentStep: _currentStep,
-                          onStepContinue: _onStepContinue,
-                          onStepCancel: _onStepCancel,
-                          steps: _buildSteps(context),
-                          controlsBuilder: _buildControls,
-                        ),
-                 ),
+        body: Stack(
+          children: [
+            // Fondo
+            Positioned.fill(
+              child: Image.asset(
+                'assets/android12splash.png',
+                fit: BoxFit.cover,
               ),
-            ],
-          )
+            ),
+
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.2),
+                ),
+              ),
+            ),
+
+            Column(
+              children: [
+                Container(
+                  height: 1.0,
+                  color: Colors.black,
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Stepper(
+                      currentStep: _currentStep,
+                      onStepContinue: _onStepContinue,
+                      onStepCancel: _onStepCancel,
+                      steps: _buildSteps(context),
+                      controlsBuilder: _buildControls,
+                    ),
+                  ),
+                ),
+              ],
+            )
+
+
+          ],
+        )
     );
   }
 
@@ -118,12 +145,7 @@ class _SignInState extends State<SignIn> {
         if (result['success']) {
           Common().logInPopDialog("Registration successful!" , _username.trim(), context);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Oops... ${result['message']}"),
-              backgroundColor: Colors.red,
-            ),
-          );
+          Common().showFloatingSnack(context, "Oops... ${result['message']}", backgroundColor: Colors.red);
 
         }
       }
@@ -370,7 +392,7 @@ class _SignInState extends State<SignIn> {
                 ..onTap = ()
                 {
                   /// TO-DO TERMS&CONDITIONS VIEW
-                  Common().unimplementedAction(context , '(Terms & Conditions');
+                  Common().showFloatingSnack(context , '(Terms & Conditions');
                 },
             ),
           ],

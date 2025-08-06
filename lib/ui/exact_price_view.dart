@@ -227,7 +227,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           Navigator.pop(context);
                           Navigator.pop(context);
                           homeScreenKey.currentState?.loadUserIdAndData();
-                          exchangePageKey.currentState?.loadPoints();
+                          exchangePageKey.currentState?.loadData();
                         } else if (result == 410) {
                           Common().showLocalNotification(
                               "betting",
@@ -511,8 +511,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                           onPrimary: Colors.white,
                                           surface: Colors.black,
                                           onSurface: Colors.white,
-                                        ),
-                                        dialogBackgroundColor: Colors.grey[900],
+                                        ), dialogTheme: DialogThemeData(backgroundColor: Colors.grey[900]),
                                       ),
                                       child: child!,
                                     );

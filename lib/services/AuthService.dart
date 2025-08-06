@@ -108,8 +108,9 @@ class AuthService {
     }
   }
 
-  Future<int> changePassword(String token, String newPass) async {
-    final response = await Common().postRequestWrapper('Auth','ChangePassword', {'username': token, 'password' : newPass});
+  Future<int> changePassword(String token, String currentPassword, String newPass) async {
+    final response = await Common().postRequestWrapper('Auth','ChangePassword',
+                            {'username': token, 'password' : newPass, 'current': currentPassword});
     if (response['statusCode'] == 200) {
       return 0; // SUCCESS
     } else {
@@ -121,11 +122,11 @@ class AuthService {
     final Map<String, dynamic> data = {
       'id': user.id,
       'fcm': FirebaseService().firebaseToken!,
+      'birthday': birthday.toUtc().toIso8601String(),
+      'country': country,
       'displayName': user.displayName,
       'email': user.email,
-      'photoUrl': user.photoUrl,
-      'birthday': birthday.toUtc().toIso8601String(),
-      'country': country
+      'photoUrl': user.photoUrl
     };
 
     final response = await Common().postRequestWrapper('Auth','GoogleQuickRegister', data);
@@ -181,7 +182,8 @@ class AuthService {
               // NO USER REGISTER, NEED TO QUICK REGISTER IT
               bool successfullyRegistered = await _googleQuickRegister(user, country, DateTime(year, month, day));
               if (successfullyRegistered) {
-                return 0;
+                await _storage.write(key: 'sessionToken', value: user.id);
+                return 2;
               } else {
                 return 1;
               }

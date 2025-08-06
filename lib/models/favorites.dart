@@ -129,8 +129,10 @@ class FavoriteDialog extends StatelessWidget {
                                           "none",
                                       favorite.ticker);
                                   if (ok) {
-                                    Common().newFavoriteCompleted(context,
-                                        LocalizedStrings.of(context)!.get('updatedFavs') ?? "Updated favs!");
+                                    Common().showFloatingSnack(
+                                        context,
+                                        LocalizedStrings.of(context)!.get('updatedFavs') ?? "Updated favs!",
+                                        theDuration: 4);
                                     homeScreenKey.currentState?.refreshFavorites();
                                     Navigator.of(context).pop(true);
                                   }

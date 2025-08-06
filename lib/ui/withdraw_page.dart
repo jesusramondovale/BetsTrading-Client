@@ -4,8 +4,10 @@ import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../Services/BetsService.dart';
 import '../helpers/common.dart';
 import '../helpers/slider.dart';
 import 'layout_page.dart';
@@ -14,12 +16,12 @@ import 'package:intl/intl.dart';
 
 class WithdrawPage extends StatefulWidget {
   final int coins;
-  final int euros;
+  final int currencyAmount;
   final MainMenuPageController controller;
   const WithdrawPage({
     super.key,
     required this.coins,
-    required this.euros,
+    required this.currencyAmount,
     required this.controller
   });
 
@@ -30,25 +32,37 @@ class WithdrawPage extends StatefulWidget {
 class _WithdrawPageState extends State<WithdrawPage> {
   String? _coinIconBase64;
   String? _selectedMethod;
+  String _userId = 'none';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  final Map<String, String> _userAvailableMethods = {};
+  //final Map<String, String> _userAvailableMethods = {};
   // TODO Get current user methods -> details map from backend
+  final Map<String, String> _userAvailableMethods = {
+    'withdrawMethodBank': 'ES45 xxxx 9012',
+    'withdrawMethodPaypal': 'jesus.fabero@gmail.com',
+    'withdrawMethodBTC': 'r1qw...x7hf',
+    'withdrawMethodXRP': 'rU6K...FQjv',
+  };
 
 
   @override
   void initState() {
     super.initState();
-    _loadCoinImage();
+    _loadData();
 
     if (_userAvailableMethods.isNotEmpty) {
       _selectedMethod = _userAvailableMethods.keys.first;
     }
   }
 
-  Future<void> _loadCoinImage() async {
+  Future<void> _loadData() async {
+    String? id = await _storage.read(key: 'sessionToken');
     final bytes = await rootBundle.load('assets/coin.png');
     final base64 = base64Encode(bytes.buffer.asUint8List());
-    setState(() => _coinIconBase64 = base64);
+    setState(() {
+      _coinIconBase64 = base64;
+      _userId = id!;
+    } );
   }
 
   @override
@@ -93,7 +107,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                   ? const Center(child: CircularProgressIndicator())
                   : Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 20),
+                          horizontal: 24, vertical: 6),
                       child: Column(
                         children: [
                           // Header info
@@ -105,7 +119,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                   Text(
                                     NumberFormat.compact().format(widget.coins),
                                     style: GoogleFonts.montserrat(
-                                      fontSize: 50,
+                                      fontSize: 45,
                                       fontWeight: FontWeight.w200,
                                       color: Colors.white,
                                     ),
@@ -119,14 +133,35 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                   ),
                                 ],
                               ),
-                              Text(
-                                '${widget.euros} €',
-                                style: GoogleFonts.rajdhani(
-                                  fontSize: 35,
-                                  fontWeight: FontWeight.w300,
-                                  color: Colors.white70,
+                              Transform.rotate(
+                                angle: 1.5708,
+                                child: Icon(
+                                  Icons.double_arrow,
+                                  size: 40,
+                                  color: Colors.green[600],
                                 ),
                               ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '${widget.currencyAmount}',
+                                    style: GoogleFonts.rajdhani(
+                                      fontSize: 60,
+                                      fontWeight: FontWeight.w300,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Image.asset(
+                                    'assets/euro.png',
+                                    width: 50,
+                                    height: 50,
+                                  ),
+                                ],
+                              ),
+
                               const SizedBox(height: 14),
                               Text(
                                 LocalizedStrings.of(context)?.get('chooseMethod') ?? 'Choose your withdrawal method:',
@@ -174,7 +209,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                             child: InkWell(
                                               borderRadius: BorderRadius.circular(50),
                                               splashColor: Colors.white24,
-                                              highlightColor: Colors.white12, // <-- menos transparente al pulsar
+                                              highlightColor: Colors.white12,
                                               onTap: () {
                                                 Common().vibrate(40, 30);
                                                 Navigator.push(
@@ -234,7 +269,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       GestureDetector(
-                                        onTap: () => setState(() => _selectedMethod = method),
+                                        onTap: () => setState(() { _selectedMethod = method; Common().vibrate(30,30);  }),
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                                           decoration: BoxDecoration(
@@ -297,17 +332,54 @@ class _WithdrawPageState extends State<WithdrawPage> {
                               style: GoogleFonts.syncopate(
                                 fontSize: 16,
                                 color: Colors.white60,
-                                fontWeight: FontWeight.w200,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                             const SizedBox(height: 2),
                             SlideToConfirm(
                               icon: _coinIconBase64!,
                               betAmount: widget.coins.toDouble(),
-                              transformedAmount: widget.euros.toDouble(),
+                              transformedAmount: widget.currencyAmount.toDouble(),
                               transformThumb: true,
                               onSlideComplete: () {
-                                // TODO
+                                Common().vibrate(300, 300);
+                                Common().popPasswordDialog(
+                                    LocalizedStrings.of(context)!.get('confirm') ?? "Confirm Action",
+                                    LocalizedStrings.of(context)!.get('enterPasswordToContinue') ?? "Please enter your password to continue",
+                                    widget.coins.toDouble(),
+                                    widget.currencyAmount.toDouble(),
+                                    _userAvailableMethods[_selectedMethod]!,
+                                    context, (password) async {
+                                        final response = await Common().postRequestWrapper('Payments','RetireBalance',
+                                            { 'userId': _userId,
+                                              'password': password ,
+                                              'currencyAmount': widget.currencyAmount.toDouble(),
+                                              'currency': "eur", //TODO
+                                              'coins': widget.coins.toDouble()  }
+                                        );
+                                        if (response['statusCode'] == 200) {
+
+                                          Common().showFloatingSnack(
+                                            context,
+                                            Common().interpolate(
+                                              LocalizedStrings.of(context)!.get('withdrawCompleted') ??
+                                                  "Withdrawal of {coins} coins completed",
+                                              {'coins': widget.coins.toString()},
+                                            ),
+                                          );
+
+                                          await BetsService().getUserInfo(_userId);
+                                          homeScreenKey.currentState?.loadUserIdAndData();
+                                          exchangePageKey.currentState?.loadData();
+                                          Navigator.pop(context);
+
+                                        }
+
+                                        else {
+                                          Common().showFloatingSnack(context,  "Error!", backgroundColor: Colors.red);
+                                        }
+                                    },
+                                );
                               },
                             ),
                           ]

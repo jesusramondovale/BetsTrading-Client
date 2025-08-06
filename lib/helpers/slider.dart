@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'common.dart';
+import 'package:intl/intl.dart' as intl;
 
 class SlideToConfirm extends StatefulWidget {
   final double betAmount;
@@ -97,7 +98,6 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
     final double totalWidth = renderBox?.size.width ?? MediaQuery.of(context).size.width;
@@ -124,31 +124,42 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Align(
-                alignment: Alignment.topCenter,
+                alignment: Alignment.center,
                 child: AnimatedCrossFade(
                   firstChild: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        widget.betAmount.toStringAsFixed(2),
-                        style: GoogleFonts.montserrat(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
+                      if (widget.betAmount == -1) ...[
+                        Icon(Icons.double_arrow, size: 30)
+                      ]
+                      else ...[
+                        Text(
+                          (widget.transformThumb == true ?
+                          intl.NumberFormat.compact().format(widget.betAmount)
+                              :
+                          (widget.betAmount % 1 == 0
+                              ? widget.betAmount.toInt().toString()
+                              : widget.betAmount.toStringAsFixed(2)) ),
+                          style: GoogleFonts.montserrat(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 5),
-                      Image.asset(
-                        "assets/coin.png",
-                        width: 28,
-                        height: 28,
-                      ),
+                        const SizedBox(width: 5),
+                        Image.asset(
+                          "assets/coin.png",
+                          width: 28,
+                          height: 28,
+                        ),
+                      ]
+
                     ],
                   ),
                   secondChild: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        widget.transformedAmount?.toStringAsFixed(2) ?? '',
+                        widget.transformedAmount?.toStringAsFixed(0) ?? '',
                         style: GoogleFonts.montserrat(
                           fontSize: 24,
                           fontWeight: FontWeight.w500,
@@ -197,6 +208,9 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                   onChangeEnd: (value) {
                     if (value == 1.0) {
                       widget.onSlideComplete();
+                      Future.delayed(const Duration(milliseconds: 50), () {
+                        if (mounted) setState(() => _sliderValue = 0.0);
+                      });
                     } else {
                       Common().vibrate(40, 50);
                       setState(() => _sliderValue = 0.0);

@@ -418,7 +418,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         Navigator.pop(context);
         Navigator.pop(context);
         homeScreenKey.currentState?.loadUserIdAndData();
-        exchangePageKey.currentState?.loadPoints();
+        exchangePageKey.currentState?.loadData();
 
       } else {
         if (_bettingNotifications) {
@@ -451,9 +451,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
 
   Widget _buildActionButtons(BuildContext context) {
     final strings = LocalizedStrings.of(context);
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
+    return Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           ElevatedButton.icon(
@@ -492,7 +490,6 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             ),
           ),
         ],
-      ),
     );
   }
 }

@@ -539,10 +539,10 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                   final result = await BetsService()
                       .deleteRecentBet(widget.bet.id.toString());
                   if (result) {
-                    Common().actionDialog(context,"Borrado con éxito!");
+                    Common().showFloatingSnack(context,LocalizedStrings.of(context)!.get('deletedSuccessfully') ?? "Borrado con éxito!");
                     widget.onDelete();
                   } else {
-                    Common().actionDialog(context,  "Error!");
+                    Common().showFloatingSnack(context,  "Error!", backgroundColor: Colors.red);
                   }
                 },
                 backgroundColor: Colors.red,
@@ -641,7 +641,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                         : '▼ ${(widget.dailyGain.abs() * 100).toStringAsFixed(2)}%',
                     style: GoogleFonts.rajdhani(
                       fontSize: 16,
-                      fontWeight: FontWeight.w200,
+                      fontWeight: FontWeight.w400,
                       color: widget.dailyGain > 0.0 ? Colors.green : Colors.red,
                     ),
                   ),

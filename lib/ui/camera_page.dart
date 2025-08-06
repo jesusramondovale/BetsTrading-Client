@@ -56,11 +56,7 @@ class _CameraPageState extends State<CameraPage> {
       Navigator.pop(context, extractedId);
     } catch (e) {
       print('Error taking picture: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(strings?.get('cameraError') ??
-                'Error taking picture. Please try again.')),
-      );
+      Common().showFloatingSnack(context, strings?.get('cameraError') ?? 'Error taking picture. Please try again.');
       Navigator.pop(context, null);
     }
   }

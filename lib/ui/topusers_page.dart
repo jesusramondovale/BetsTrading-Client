@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../helpers/common.dart';
+import 'package:intl/intl.dart';
 
 class TopUsersPage extends StatefulWidget {
   @override
@@ -120,7 +121,6 @@ class _TopUsersPageState extends State<TopUsersPage>
             itemBuilder: (context, index) {
               User user = users[index];
               return InkWell(
-
                 onTap: () {
                   Common().vibrate(40,30);
                   popUserDialog(context, user);
@@ -175,9 +175,9 @@ class _TopUsersPageState extends State<TopUsersPage>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${user.points}',
+                          NumberFormat.compact().format(user.points),
                             style: GoogleFonts.roboto(
-                            fontSize: 16,
+                            fontSize: 20,
                             color: Colors.white,
                             fontWeight: FontWeight.w200),
                         ),
@@ -273,9 +273,9 @@ class _TopUsersPageState extends State<TopUsersPage>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${user.points}',
+                          NumberFormat.compact().format(user.points),
                           style: GoogleFonts.roboto(
-                              fontSize: 16,
+                              fontSize: 20,
                               color: Colors.white,
                               fontWeight: FontWeight.w200),
                         ),

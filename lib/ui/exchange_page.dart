@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/store_page.dart';
 import 'package:betrader/ui/withdraw_page.dart';
@@ -5,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-
 import '../helpers/common.dart';
 import 'layout_page.dart';
 
@@ -19,31 +19,39 @@ class ExchangePage extends StatefulWidget {
 class ExchangePageState extends State<ExchangePage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String _userPoints = '0';
-  //TODO Get actual pending balance from backend
-  double _pendingBalance = 2500;
-  //TODO: Get exchange current options from backend with a determined currency
-  final List<Map<String, dynamic>> _exchangeOptions = [
-    {'coins': 5000, 'euros': 50},
-    {'coins': 10000, 'euros': 100},
-    {'coins': 50000, 'euros': 500},
-    {'coins': 100000, 'euros': 1000},
-    {'coins': 200000, 'euros': 2000},
-    {'coins': 500000, 'euros': 5000},
-
-  ];
+  double _pendingBalance = 0.0;
+  List<Map<String, dynamic>> _exchangeOptions = [];
   bool _isUserPointsHighlighted = false;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
-    loadPoints();
+    loadData();
+
+    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      loadData();
+    });
+
   }
 
-  Future<void> loadPoints() async {
+  Future<void> loadData() async {
+    final userId = await _storage.read(key: 'sessionToken');
     final points = await _storage.read(key: 'points') ?? '0';
+    final pendingBalanceResponse = await Common().postRequestWrapper('Info', 'PendingBalance', {'id': userId});
+    final exchangeOptionsResponse = await Common().postRequestWrapper('Info', 'ExchangeOptions', {'id': 'eur'}); //TODO Currency
+
     setState(() {
-      _userPoints = points;
-    });
+        _userPoints = points;
+        _pendingBalance = pendingBalanceResponse['body']['balance']?.toDouble() ?? 0.0;
+        _exchangeOptions = List<Map<String, dynamic>>.from(exchangeOptionsResponse['body'] as Iterable);
+  });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -111,12 +119,12 @@ class ExchangePageState extends State<ExchangePage> {
                         MaterialPageRoute(builder: (_) => StorePage()),
                       );
 
-                      loadPoints();
+                      loadData();
                     },
                     child: Text(
                       strings?.get('buyMoreCoins') ?? 'Buy more coins',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 16,
+                      style: GoogleFonts.syncopate(
+                        fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -155,16 +163,25 @@ class ExchangePageState extends State<ExchangePage> {
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(16),
-                        onTapDown: (TapDownDetails details) {
+                        onTapDown: (TapDownDetails details) async {
                           if (canExchange) {
                             Common().vibrate(40, 30);
-                            Navigator.of(context).push(
-                              PageRouteBuilder(
-                                opaque: false,
-                                pageBuilder: (_, __, ___) => WithdrawPage(coins: requiredCoins , euros: option['euros'], controller: widget.controller),
+
+
+                            final result = await Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => WithdrawPage(
+                                  coins: requiredCoins,
+                                  currencyAmount: option['euros'],
+                                  controller: widget.controller,
+                                ),
                               ),
                             );
 
+                            if (mounted && result == true) {
+                              loadData();
+                            }
 
                           } else {
                             Common().vibrate(300, 200);
@@ -200,13 +217,19 @@ class ExchangePageState extends State<ExchangePage> {
                               ],
                             ),
                             const Spacer(),
-                            const Text('➤',
-                                style: TextStyle(fontSize: 20, color: Colors.white)),
-                            const Text('➤',
-                                style: TextStyle(fontSize: 20, color: Colors.white)),
-                            const Text('➤',
-                                style: TextStyle(fontSize: 20, color: Colors.white)),
-                            const Spacer(),
+
+                              const Text('➤',
+                                  style: TextStyle(
+                                      fontSize: 20, color: Colors.white)),
+                              const Text('➤',
+                                  style: TextStyle(
+                                      fontSize: 20, color: Colors.white)),
+                              const Text('➤',
+                                  style: TextStyle(
+                                      fontSize: 20, color: Colors.white)),
+
+                              const Spacer(),
+
                             Text(
                               '${option['euros']} EUR',
                               style: GoogleFonts.montserrat(
@@ -220,54 +243,42 @@ class ExchangePageState extends State<ExchangePage> {
                       ),
                     ),
                   );
-
                 },
               ),
             ),
-            Card(
-              color: Colors.transparent,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              margin: const EdgeInsets.only(bottom: 20, top: 5),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () {
-                  Common().vibrate(40, 30);
-                  Common().unimplementedAction(
-                    context,
-                    'Pending points pressed',
-                  );
-                },
-                child: Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
-                  child: Row(
-                    children: [
-                      Text(
-                        strings?.get('pendingBalance') ??
-                            'Pending points to send',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.white,
-                        ),
+            Center(
+              child: Container(
+                margin: const EdgeInsetsGeometry.fromLTRB(0, 10, 0, 10),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(20),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white24, width: 1),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      strings?.get('pendingBalance') ?? 'Pending points to send',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.white,
                       ),
-                      const Spacer(),
-                      Text(
-                        NumberFormat('#,###', 'es_ES').format(_pendingBalance) + 'EUR',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.amber,
-                        ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      NumberFormat('#,###', 'es_ES').format(_pendingBalance) + ' EUR',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.amber,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),
