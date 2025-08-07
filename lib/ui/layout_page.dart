@@ -23,6 +23,7 @@ import 'notifications_page.dart';
 
 final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 final GlobalKey<ExchangePageState> exchangePageKey= GlobalKey<ExchangePageState>();
+
 bool _showTutorial = false;
 
 class MyApp extends StatelessWidget {

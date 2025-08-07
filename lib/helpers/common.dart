@@ -45,7 +45,7 @@ class Common {
   );
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   Future<void> showLocalNotification(String type, String title, String body,
       Map<String, dynamic> payload) async {
     final prefs = await SharedPreferences.getInstance();
@@ -64,7 +64,6 @@ class Common {
                 importance: Importance.max, priority: Priority.high);
         NotificationDetails platformChannelSpecifics =
             NotificationDetails(android: androidPlatformChannelSpecifics);
-        print("showLocalNotification! $body");
         await flutterLocalNotificationsPlugin.show(
             Random().nextInt(64), title, body, platformChannelSpecifics,
             payload: payload.toString());
@@ -1236,9 +1235,9 @@ class Common {
     return lengthOK && hasUppercase && hasNumber;
   }
 
-  void showFloatingSnack(BuildContext context, String text, {Color backgroundColor = Colors.green , int theDuration = 4}) {
+  void showFloatingSnack(BuildContext context, String text, {Color backgroundColor = Colors.green , int theDuration = 4, bool showIcon = false}) {
     final overlay = Overlay.of(context);
-    final overlayEntry = OverlayEntry(builder: (_) => _FloatingSnack(text: text, bg: backgroundColor, duration: theDuration,));
+    final overlayEntry = OverlayEntry(builder: (_) => _FloatingSnack(text: text, bg: backgroundColor, duration: theDuration, mustShowIcon : showIcon));
 
     overlay.insert(overlayEntry);
 
@@ -1255,8 +1254,9 @@ class _FloatingSnack extends StatefulWidget {
   final String text;
   final Color bg;
   final int duration;
+  final bool mustShowIcon;
 
-  const _FloatingSnack({required this.text, required this.bg, required this.duration});
+  const _FloatingSnack({required this.text, required this.bg, required this.duration, required this.mustShowIcon});
 
   @override
   State<_FloatingSnack> createState() => _FloatingSnackState();
@@ -1271,7 +1271,6 @@ class _FloatingSnackState extends State<_FloatingSnack> with SingleTickerProvide
     super.initState();
     _controller = AnimationController(vsync: this, duration: Duration(milliseconds: 300 ));
     _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-
     _controller.forward(); // Empieza fade in
     Future.delayed(Duration(seconds: widget.duration), () {
       _controller.reverse(); // Comienza fade out justo antes de eliminarse
@@ -1300,11 +1299,22 @@ class _FloatingSnackState extends State<_FloatingSnack> with SingleTickerProvide
               color: widget.bg,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              widget.text,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.montserrat(color: Colors.white),
-            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  widget.text,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(color: Colors.white),
+                ),
+
+                ...[
+                  if (widget.mustShowIcon)
+                    Image.asset('assets/coin.png', width: 20)
+                ],
+
+              ],
+            )
           ),
         ),
       ),

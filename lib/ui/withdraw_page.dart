@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../Services/BetsService.dart';
 import '../helpers/common.dart';
 import '../helpers/slider.dart';
+import '../services/FirebaseService.dart';
 import 'layout_page.dart';
 import 'notifications_page.dart'; // Tu slider custom
 import 'package:intl/intl.dart';
@@ -343,6 +344,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                               transformThumb: true,
                               onSlideComplete: () {
                                 Common().vibrate(300, 300);
+                                String fcm = FirebaseService().firebaseToken ?? "null";
                                 Common().popPasswordDialog(
                                     LocalizedStrings.of(context)!.get('confirm') ?? "Confirm Action",
                                     LocalizedStrings.of(context)!.get('enterPasswordToContinue') ?? "Please enter your password to continue",
@@ -352,6 +354,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                     context, (password) async {
                                         final response = await Common().postRequestWrapper('Payments','RetireBalance',
                                             { 'userId': _userId,
+                                              'fcm': fcm,
                                               'password': password ,
                                               'currencyAmount': widget.currencyAmount.toDouble(),
                                               'currency': "eur", //TODO

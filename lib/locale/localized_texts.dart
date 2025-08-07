@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'sessionStartedElsewhere': 'Session started on another device',
       'withdrawCompleted': 'Withdrawal of {coins} coins completed',
       'createPasswordTitle': 'Create a password',
       'createPasswordInfo': 'To proceed with withdrawals, you must first create a secure password.',
@@ -35,7 +36,7 @@ class LocalizedStrings {
       'buyMoreCoins': 'Buy more coins',
       'exchangeCoinsTitle': 'Retire coins',
       'exchangeOption': '{coins}  ->  {euros} EUR',
-      'youEarnedCoins': 'You earned {coins}🪙!!',
+      'youEarnedCoins': 'You earned {coins} coins!',
       'paymentOptionsTitle': 'How do you want to pay?',
       'payWithCard': 'Credit or Debit Card',
       'payWithGooglePay': 'Google Pay',
@@ -71,7 +72,7 @@ class LocalizedStrings {
       'data_storage_details': 'Cookies and device data usage.',
       'withdraw_consent': 'By accepting, you agree to the terms of data processing. You can withdraw your consent anytime.',
       'i_consent': 'I Consent',
-      'youWonCoins': 'You won {coins}🪙!',
+      'youWonCoins': 'You won {coins}',
       'store': 'Store',
       'getCoins': 'Get Coins',
       'buyCoins': 'Buy {coins}',
@@ -215,6 +216,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'sessionStartedElsewhere': 'Sesión iniciada en otro dispositivo',
       'withdrawCompleted': 'Retiro de {coins} monedas completado',
       'createPasswordTitle': 'Crea una contraseña',
       'createPasswordInfo': 'Para realizar retiradas y otras operaciones, primero debes crear una contraseña segura.',
@@ -238,7 +240,7 @@ class LocalizedStrings {
       'buyMoreCoins': 'Obtener más monedas',
       'exchangeCoinsTitle': 'Retirar monedas',
       'exchangeOption': '{coins}  ->  {euros} EUR',
-      'youEarnedCoins': 'Has conseguido {coins}🪙! ',
+      'youEarnedCoins': '¡Has conseguido {coins} monedas! ',
       'paymentOptionsTitle': '¿Cómo quieres pagar?',
       'payWithCard': 'Tarjeta de crédito o débito',
       'payWithGooglePay': 'Google Pay',
@@ -418,6 +420,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'sessionStartedElsewhere': 'Session ouverte sur un autre appareil',
       'withdrawCompleted': 'Retrait de {coins} pièces effectué',
       'createPasswordTitle': 'Créer un mot de passe',
       'createPasswordInfo': 'Pour effectuer des retraits, vous devez d’abord créer un mot de passe sécurisé.',
@@ -442,7 +445,7 @@ class LocalizedStrings {
       'buyMoreCoins': 'Acheter plus de pièces',
       'exchangeCoinsTitle': 'Échanger des pièces',
       'exchangeOption': '{coins}  ->  {euros} EUR',
-      'youEarnedCoins': 'Vous avez gagné {coins}🪙!',
+      'youEarnedCoins': 'Vous avez gagné {coins} pièces!',
       'paymentOptionsTitle': 'Comment souhaitez-vous payer ?',
       'payWithCard': 'Carte de crédit ou de débit',
       'payWithGooglePay': 'Google Pay',
@@ -478,7 +481,7 @@ class LocalizedStrings {
       'data_storage_details': 'Utilisation des cookies et des données de l\'appareil.',
       'withdraw_consent': 'En acceptant, vous acceptez les termes du traitement des données. Vous pouvez retirer votre consentement à tout moment.',
       'i_consent': 'Je consens',
-      'youWonCoins': 'Vous avez gagné {coins}🪙 !',
+      'youWonCoins': 'Vous avez gagné {coins}',
       'store': 'Magasin',
       'getCoins': 'Obtenez des Pièces',
       'buyCoins': 'Achetez {coins}',
@@ -623,6 +626,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'sessionStartedElsewhere': 'Sessione avviata su un altro dispositivo',
       'withdrawCompleted': 'Ritiro di {coins} monete completato',
       'createPasswordTitle': 'Crea una password',
       'createPasswordInfo': 'Per procedere ai prelievi, devi prima creare una password sicura.',
@@ -646,7 +650,7 @@ class LocalizedStrings {
       'buyMoreCoins': 'Compra altre monete',
       'exchangeCoinsTitle': 'Scambia monete',
       'exchangeOption': '{coins}  ->  {euros} EUR',
-      'youEarnedCoins': 'Hai guadagnato {coins}🪙',
+      'youEarnedCoins': 'Hai guadagnato {coins} monete',
       'paymentOptionsTitle': 'Come vuoi pagare?',
       'payWithCard': 'Carta di credito o debito',
       'payWithGooglePay': 'Google Pay',
@@ -682,7 +686,7 @@ class LocalizedStrings {
       'data_storage_details': 'Uso di cookie e dati del dispositivo.',
       'withdraw_consent': 'Accettando, acconsenti ai termini del trattamento dei dati. Puoi ritirare il tuo consenso in qualsiasi momento.',
       'i_consent': 'Acconsento',
-      'youWonCoins': 'Hai vinto {coins}🪙!',
+      'youWonCoins': 'Hai vinto {coins}',
       'store': 'Negozio',
       'getCoins': 'Ottieni Monete',
       'buyCoins': 'Acquista {coins}',
@@ -828,6 +832,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'sessionStartedElsewhere': 'Sitzung auf einem anderen Gerät gestartet',
       'withdrawCompleted': 'Auszahlung von {coins} Münzen abgeschlossen',
       'createPasswordTitle': 'Passwort erstellen',
       'createPasswordInfo': 'Um Auszahlungen durchzuführen, musst du zuerst ein sicheres Passwort erstellen.',
@@ -851,7 +856,7 @@ class LocalizedStrings {
       'buyMoreCoins': 'Mehr Münzen kaufen',
       'exchangeCoinsTitle': 'Münzen umtauschen',
       'exchangeOption': '{coins}  ->  {euros} EUR',
-      'youEarnedCoins': 'Du hast verdient {coins}🪙',
+      'youEarnedCoins': 'Du hast verdient {coins} Münzen',
       'paymentOptionsTitle': 'Wie möchtest du bezahlen?',
       'payWithCard': 'Kredit- oder Debitkarte',
       'payWithGooglePay': 'Google Pay',
@@ -887,7 +892,7 @@ class LocalizedStrings {
       'data_storage_details': 'Verwendung von Cookies und Gerätedaten.',
       'withdraw_consent': 'Indem Sie zustimmen, akzeptieren Sie die Bedingungen der Datenverarbeitung. Sie können Ihre Zustimmung jederzeit widerrufen.',
       'i_consent': 'Ich stimme zu',
-      'youWonCoins': 'Du hast {coins}🪙 gewonnen!',
+      'youWonCoins': 'Du hast {coins} gewonnen!',
       'store': 'Geschäft',
       'getCoins': 'Münzen erhalten',
       'buyCoins': 'Kaufe {coins}',

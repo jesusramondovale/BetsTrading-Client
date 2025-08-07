@@ -57,6 +57,8 @@ class ExchangePageState extends State<ExchangePage> {
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
+    double value = double.tryParse(_userPoints) ?? 0;
+    String userPoints = (value % 1 == 0) ? value.toStringAsFixed(0) : value.toStringAsFixed(2);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -86,7 +88,7 @@ class ExchangePageState extends State<ExchangePage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        _userPoints,
+                        userPoints,
                         style: GoogleFonts.roboto(
                           fontSize: 42,
                           fontWeight: FontWeight.w200,

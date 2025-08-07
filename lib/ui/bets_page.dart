@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../models/rectangle_zone.dart';
 import '../locale/localized_texts.dart';
+import '../services/FirebaseService.dart';
 import 'layout_page.dart';
 
 class BetConfirmationPage extends StatefulWidget {
@@ -399,18 +400,16 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     bool? confirmed = await Common().popConfirmOperationDialog(context, _betAmount, widget.iconPath);
     if (confirmed == true) {
       String? userId = await _storage.read(key: 'sessionToken');
-      bool result = await BetsService().postNewBet(userId!, widget.zone.ticker,
-          _betAmount, widget.currentValue, betZone);
+      String fcm = FirebaseService().firebaseToken ?? "null";
+      bool result = await BetsService().postNewBet(userId!, fcm, widget.zone.ticker, _betAmount, widget.currentValue, betZone);
 
       if (result) {
         if (_bettingNotifications) {
-          Common().showLocalNotification(
-              "betting",
-              "Betrader",
-              (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null
-                  ? "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} (${_betAmount.toStringAsFixed(2)} 🪙)"
-                  : "Bet placed successfully! (${_betAmount} 🪙)"),
-              {"TICKER": widget.zone.ticker, "BET_AMOUNT": _betAmount});
+          Common().showFloatingSnack(
+              context,
+              (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null ?
+              "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} (${_betAmount.toStringAsFixed(2)} " : "Bet placed successfully! (${_betAmount} "),
+              showIcon: true);
         }
 
         await BetsService().getUserInfo(userId);
@@ -422,14 +421,12 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
 
       } else {
         if (_bettingNotifications) {
-          Common().showLocalNotification(
-            "betting",
-              "Error",
-              (LocalizedStrings.of(context)!.get('errorMakingBet') ??
-                  "Error creating bet!"),
-              {"ERROR_CODE": "BET-ERR-001"});
+          Common().showFloatingSnack(
+              context,
+              (LocalizedStrings.of(context)!.get('errorMakingBet') ?? "Error creating bet!"),
+              backgroundColor: Colors.red
+          );
         }
-
         Navigator.pop(context);
         Navigator.pop(context);
       }

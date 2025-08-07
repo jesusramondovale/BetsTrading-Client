@@ -37,8 +37,11 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> logOut(String id) async {
-    final response = await Common().postRequestWrapper('Auth', 'LogOut', {'id': id});
+
+
+  Future<Map<String, dynamic>> logOut() async {
+    String userId = await _storage.read(key: 'sessionToken') ?? "none";
+    final response = await Common().postRequestWrapper('Auth', 'LogOut', {'id': userId});
 
     if (response['statusCode'] == 200) {
       await _storage.write(key: 'sessionToken', value: "empty");

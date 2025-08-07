@@ -234,8 +234,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
               leading: const Icon(Icons.logout),
               title: Text(strings?.get('logOut') ?? 'Log Out'),
               onTap: () async {
-                String id = await _storage.read(key: 'sessionToken') ?? "None";
-                final response = await AuthService().logOut(id.toString());
+                final response = await AuthService().logOut();
                 if (response['success']) {
                   await _storage.deleteAll();
                   setState(() {

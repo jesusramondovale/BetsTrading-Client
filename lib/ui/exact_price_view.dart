@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/BetsService.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
+import '../services/FirebaseService.dart';
 import 'layout_page.dart';
 
 class ExactPricePage extends StatefulWidget {
@@ -199,8 +200,10 @@ class _ExactPricePageState extends State<ExactPricePage> {
                         _selectedPrice = double.tryParse(
                                 _priceController.text.replaceAll(',', '.')) ??
                             _selectedPrice;
+                        String fcm = FirebaseService().firebaseToken ?? "null";
                         int result = await BetsService().postNewExactPriceBet(
                             userId!,
+                            fcm,
                             widget.ticker,
                             _selectedPrice,
                             _getMarginAsDouble(_selectedMargin),
@@ -208,19 +211,12 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
                         if (result == 200) {
                           if (_bettingNotifications) {
-                            Common().showLocalNotification(
-                                "betting",
-                                "Betrader",
+                            Common().showFloatingSnack(context,
                                 (LocalizedStrings.of(context)!
-                                            .get('betPlacedSuccessfully') !=
-                                        null
-                                    ? "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} (${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}🪙)"
-                                    : "Bet placed successfully! (${_getBetAmountFromMargin(_selectedMargin)}🪙)"),
-                                {
-                                  "TICKER": widget.ticker,
-                                  "BET_AMOUNT":
-                                      _getBetAmountFromMargin(_selectedMargin)
-                                });
+                                    .get('betPlacedSuccessfully') != null ? "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} (${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}"
+                                    : "Bet placed successfully! (${_getBetAmountFromMargin(_selectedMargin)}"),
+                                showIcon: true);
+
                           }
 
                           await BetsService().getUserInfo(userId);
@@ -229,41 +225,15 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           homeScreenKey.currentState?.loadUserIdAndData();
                           exchangePageKey.currentState?.loadData();
                         } else if (result == 410) {
-                          Common().showLocalNotification(
-                              "betting",
-                              "Error!",
-                              (LocalizedStrings.of(context)!
-                                          .get('errorMakingBet') ??
-                                      "Error creating price bet!") +
-                                  " (NO TIME)",
-                              {"ERROR_CODE": "BET-ERR-NOT-ENOUGH-TIME"});
+                          Common().showFloatingSnack(context, (LocalizedStrings.of(context)!.get('errorMakingBet') ?? "Error creating price bet!") + "(NO TIME)", backgroundColor: Colors.red);
                         } else if (result == 420) {
-                          Common().showLocalNotification(
-                              "betting",
-                              "Error!",
-                              (LocalizedStrings.of(context)!
-                                      .get('betErrorPoints') ??
-                                  "Not enough points!"),
-                              {"ERROR_CODE": "BET-ERR-NOT-ENOUGH-POINTS"});
+                          Common().showFloatingSnack(context, (LocalizedStrings.of(context)!.get('betErrorPoints') ?? "Not enough points!"), backgroundColor: Colors.red);
                         } else if (result == 430) {
-                          Common().showLocalNotification(
-                              "betting",
-                              "Error!",
-                              (LocalizedStrings.of(context)!
-                                      .get('betAlreadyExists') ??
-                                  "Bet already exists!"),
-                              {"ERROR_CODE": "BET-ERR-EXISTING-EXACT-BET"});
+                          Common().showFloatingSnack(context, (LocalizedStrings.of(context)!.get('betAlreadyExists') ?? "Bet already exists!"), backgroundColor: Colors.red);
                         } else {
                           if (_bettingNotifications) {
-                            Common().showLocalNotification(
-                                "betting",
-                                "Error!",
-                                (LocalizedStrings.of(context)!
-                                        .get('errorMakingBet') ??
-                                    "Error creating price bet!"),
-                                {"ERROR_CODE": "BET-ERR-UNKNOWN"});
+                            Common().showFloatingSnack(context, (LocalizedStrings.of(context)!.get('errorMakingBet') ?? "Error creating price bet!"), backgroundColor: Colors.red);
                           }
-
                           Navigator.pop(context);
                           Navigator.pop(context);
                         }

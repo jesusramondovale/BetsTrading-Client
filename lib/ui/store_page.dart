@@ -86,12 +86,8 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
       final reward = await NativeRewarded.showRewarded();
       await AuthService().addCoins(userId, coins);
       if (reward != null && reward > 0) {
-        Common().showLocalNotification(
-          "other",
-          "Betrader",
-          localizedWarning,
-          {"REWARD": reward},
-        );
+        Common().showFloatingSnack(context, localizedWarning, backgroundColor: Colors.red, showIcon: true);
+
         await BetsService().getUserInfo(userId);
         Navigator.pop(context);
         homeScreenKey.currentState?.loadUserIdAndData();
@@ -223,20 +219,15 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
       await BetsService().getUserInfo(userId);
       Navigator.pop(context);
       homeScreenKey.currentState?.loadUserIdAndData();
-      Common().showLocalNotification(
-        "other",
-        "Betrader",
-        Common().interpolate(
-          LocalizedStrings.of(context)!.get('youEarnedCoins') ??
-              'You earned {coins}🪙!',
-          {'coins': coins.toString()},
-        ),
-        {"REWARD": coins},
-      );
+      Common().showFloatingSnack(
+          context,
+          Common().interpolate(LocalizedStrings.of(context)!.get('youEarnedCoins') ?? 'You earned {coins} coins!',
+                                 {'coins': coins.toString()},));
+
     } on stripe.StripeException catch (e) {
       if (e.error.code != stripe.FailureCode.Canceled) {
         Navigator.pop(context);
-        Common().showFloatingSnack(context, LocalizedStrings.of(context)!.get('transactionError') ?? "Error during transaction process!");
+        Common().showFloatingSnack(context, LocalizedStrings.of(context)!.get('transactionError') ?? "Error during transaction process!", backgroundColor: Colors.red);
       }
     }
   }
@@ -351,7 +342,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                           50,
                           Common().interpolate(
                             strings.get('youWonCoins') ?? 'You won 50',
-                            {'coins': '50🪙'},
+                            {'coins': '50'},
                           ),
                         );
                       }
