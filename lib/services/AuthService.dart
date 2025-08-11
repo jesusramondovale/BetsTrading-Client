@@ -122,10 +122,14 @@ class AuthService {
   }
 
   Future<bool> _googleQuickRegister(GoogleSignInAccount user, String country,DateTime birthday) async {
+    final bdayStr = "${birthday.year.toString().padLeft(4,'0')}-"
+        "${birthday.month.toString().padLeft(2,'0')}-"
+        "${birthday.day.toString().padLeft(2,'0')}";
+
     final Map<String, dynamic> data = {
       'id': user.id,
       'fcm': FirebaseService().firebaseToken!,
-      'birthday': birthday.toUtc().toIso8601String(),
+      'birthday': bdayStr,
       'country': country,
       'displayName': user.displayName,
       'email': user.email,
