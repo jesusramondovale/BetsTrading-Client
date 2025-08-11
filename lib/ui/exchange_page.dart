@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../helpers/common.dart';
+import 'fist_time_page.dart';
 import 'layout_page.dart';
 
 class ExchangePage extends StatefulWidget {
@@ -44,6 +45,11 @@ class ExchangePageState extends State<ExchangePage> {
     setState(() {
         _userPoints = points;
         _pendingBalance = pendingBalanceResponse['body']['balance']?.toDouble() ?? 0.0;
+        if (pendingBalanceResponse['statusCode'] == 201){ // PASSWORD NOT SET
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const FirstTimePage()));
+
+        }
         _exchangeOptions = List<Map<String, dynamic>>.from(exchangeOptionsResponse['body'] as Iterable);
   });
   }

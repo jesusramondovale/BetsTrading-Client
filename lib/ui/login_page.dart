@@ -1,6 +1,4 @@
 import 'dart:ui';
-
-import 'package:betrader/ui/FirstTimePage.dart';
 import 'package:flutter/material.dart';
 import 'package:betrader/services/AuthService.dart';
 import 'package:betrader/locale/localized_texts.dart';
@@ -8,8 +6,8 @@ import 'package:betrader/helpers/common.dart';
 import 'package:betrader/ui/signin_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../services/BetsService.dart';
+import 'fist_time_page.dart';
 import 'layout_page.dart';
 
 class LoginPage extends StatelessWidget {
@@ -188,6 +186,10 @@ class LoginFormState extends State<LoginForm> {
           Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => const MainMenuPage()));
+        }
+        else if (result != null && result == 3) {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const FirstTimePage()));
         }
         // First Google login
         else if (result != null && result == 2) {

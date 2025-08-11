@@ -106,7 +106,10 @@ class AuthService {
       return 0; // VALID TOKEN
     } else if (response['statusCode'] == 400) {
       return 2; // VALID TOKEN BUT EXPIRED SESSION
-    } else {
+    } else if (response['statusCode'] == 201) {
+      return 3; // VALID TOKEN BUT PASSWORD NOT SET
+    }
+    else {
       return 1; // INVALID TOKEN
     }
   }
@@ -185,7 +188,13 @@ class AuthService {
               // USER REGISTERED BUT SESSION EXPIRED OR NOT ACTIVE -> FORCE GOOGLE LOG IN
               await googleLogIn(user.id);
               return 0;
-            } else {
+            }
+
+            if (response == 3) {
+              // USER REGISTERED BUT PASSWORD NOT SET -> FORCE SET PASS VIEW
+              return 3;
+            }
+            else {
               // NO USER REGISTER, NEED TO QUICK REGISTER IT
               bool successfullyRegistered = await _googleQuickRegister(user, country, DateTime(year, month, day));
               if (successfullyRegistered) {
