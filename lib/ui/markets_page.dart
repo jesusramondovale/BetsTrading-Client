@@ -1,12 +1,17 @@
 import 'dart:convert';
 import 'package:betrader/services/AssetsService.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../Services/BetsService.dart';
+import '../candlesticks/src/models/candle.dart';
 import '../enums/financial_assets.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
+import '../models/favorites.dart';
 import 'candlesticks_view.dart';
+import 'exact_price_view.dart';
 import 'layout_page.dart';
 
 class MarketsView extends StatefulWidget {
@@ -19,17 +24,21 @@ class MarketsView extends StatefulWidget {
 }
 
 class MarketsViewState extends State<MarketsView>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
   List<String> groups = [];
-  Map<int, List<FinancialAsset>> assetsPerTab = {}; // Mapa con los activos por pestaña
-  bool _isLoading = true; // Se inicializa en true hasta que se carguen todos los datos
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  Map<int, List<FinancialAsset>> assetsPerTab = {};
+  bool _isLoading = true;
+  Set<String> _favTickers = {};
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-
   }
 
   @override
@@ -42,7 +51,7 @@ class MarketsViewState extends State<MarketsView>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _initGroups();
-    _loadAllAssets();
+    _loadData();
   }
 
   void _initGroups() {
@@ -55,7 +64,13 @@ class MarketsViewState extends State<MarketsView>
     ];
   }
 
-  void _loadAllAssets() async {
+  Future<void> _loadData() async {
+    await _loadAllAssets();
+    await _loadFavorites();
+    setState(() => _isLoading = false);
+  }
+
+  Future<void> _loadAllAssets() async {
     Map<int, String> groupMapping = {
       0: 'Shares',
       1: 'Cryptos',
@@ -66,23 +81,94 @@ class MarketsViewState extends State<MarketsView>
     for (int id = 0; id < groups.length; id++) {
       String? theGroup = groupMapping[id];
       if (theGroup != null) {
-        final newAssets = await AssetsService().getFinancialAssetsByGroup(theGroup);
+        final newAssets =
+        await AssetsService().getFinancialAssetsByGroup(theGroup);
         assetsPerTab[id] = newAssets ?? [];
       }
     }
+  }
 
+  Future<void> _loadFavorites() async {
+    final token = await _storage.read(key: "sessionToken") ?? "";
+    final Favorites favs = await BetsService().fetchFavouritesData(token);
+    final tickers = favs.favorites
+        .map((f) => f.ticker.toUpperCase().trim())
+        .where((t) => t.isNotEmpty)
+        .toSet();
     setState(() {
-      _isLoading = false; // Desactivar loading después de cargar todo
+      _favTickers = tickers;
     });
+  }
+
+  void toggleFavorite(String ticker, {bool onlyLocal = false}) async {
+    final key = ticker.toUpperCase().trim();
+
+    if (onlyLocal) {
+      if (!mounted) return;
+      setState(() {
+        if (_favTickers.contains(key)) {
+          _favTickers.remove(key);
+        } else {
+          _favTickers.add(key);
+        }
+      });
+
+      homeScreenKey.currentState?.refreshFavorites();
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        if (_favTickers.contains(key)) {
+          _favTickers.remove(key);
+        } else {
+          _favTickers.add(key);
+        }
+      });
+    }
+
+    final token = await _storage.read(key: "sessionToken") ?? "none";
+    final ok = await BetsService().postNewFavorite(token, ticker);
+
+    if (!ok && mounted) {
+      setState(() {
+        if (_favTickers.contains(key)) {
+          _favTickers.remove(key);
+        } else {
+          _favTickers.add(key);
+        }
+      });
+      Common().showFloatingSnack(context, "Error updating favorites", backgroundColor: Colors.red);
+    } else {
+      Common().showFloatingSnack(
+          context,
+          LocalizedStrings.of(context)?.get('updatedFavs') ?? "Updated favs!"
+      );
+      await _loadFavorites();
+    }
+
+    homeScreenKey.currentState?.refreshFavorites();
+  }
+
+  Widget _buildFavBadge() {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        shape: BoxShape.circle,
+      ),
+      child: const Padding(
+        padding: EdgeInsets.all(3),
+        child: Icon(Icons.star_rounded, size: 40, color: Colors.yellow),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Column(
       verticalDirection: VerticalDirection.up,
       children: [
-
-
         TabBar(
           indicatorColor: Colors.purple,
           labelColor: Colors.white,
@@ -102,7 +188,7 @@ class MarketsViewState extends State<MarketsView>
           tabs: groups.map((String group) => Tab(text: group)).toList(),
         ),
         const Divider(
-          color: Colors.white30, // o el color que quieras
+          color: Colors.white30,
           thickness: 2,
           height: 1,
         ),
@@ -113,8 +199,8 @@ class MarketsViewState extends State<MarketsView>
             controller: _tabController,
             children: List.generate(groups.length, (index) {
               final List<FinancialAsset> assets = assetsPerTab[index] ?? [];
-
               return GridView.builder(
+                padding: const EdgeInsets.all(6), // margen del grid
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   crossAxisSpacing: 5.0,
@@ -123,105 +209,217 @@ class MarketsViewState extends State<MarketsView>
                 ),
                 itemCount: assets.length,
                 itemBuilder: (context, assetIndex) {
-                  final FinancialAsset asset = assets[assetIndex];
-                  return GestureDetector(
-                    onTap: () {
-                      Common().vibrate(40,30);
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (BuildContext context) {
-                          return ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(25.0),
-                            ),
-                            child: Container(
-                              height: MediaQuery.of(context).size.height * 0.55,
-                              child: OverflowBox(
-                                alignment: Alignment.topCenter,
-                                maxHeight: MediaQuery.of(context).size.height,
-                                child: Column(
-                                  children: [
-                                    Expanded(
-                                      child: CandlesticksView(
-                                        ticker: asset.ticker,
-                                        name: asset.name,
-                                        controller: widget.controller,
-                                        iconPath: asset.icon,
+                  final asset = assets[assetIndex];
+                  final isFav = _favTickers.contains(asset.ticker.toUpperCase().trim());
+
+                  return Padding(
+                    padding: const EdgeInsets.all(2.0),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Material(
+                          clipBehavior: Clip.antiAlias,
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            highlightColor: Colors.white.withValues(alpha: .18),
+                            splashColor: Colors.white.withValues(alpha: .10),
+                            onTap: () {
+                              Common().vibrate(40, 30);
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (BuildContext context) {
+                                  return ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
+                                    child: Container(
+                                      height: MediaQuery.of(context).size.height * 0.55,
+                                      child: OverflowBox(
+
+                                        alignment: Alignment.topCenter,
+                                        maxHeight: MediaQuery.of(context).size.height,
+                                        child: Column(
+                                          children: [
+                                            Expanded(
+                                              child: CandlesticksView(
+                                                ticker: asset.ticker,
+                                                name: asset.name,
+                                                controller: widget.controller,
+                                                iconPath: asset.icon,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ],
+                                  );
+                                },
+                              );
+                            },
+                            onLongPress: () {
+                              Common().vibrate(40, 30);
+                              showModalBottomSheet(
+                                context: context,
+                                backgroundColor: Colors.black.withValues(alpha: 0.75),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                ),
+                                builder: (BuildContext context) {
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ListTile(
+                                        leading: Icon(
+                                          isFav ? Icons.star : Icons.star_border,
+                                          color: Colors.yellow.shade600,
+                                        ),
+                                        title: Text(
+                                          (isFav
+                                              ? LocalizedStrings.of(context)!.get('removeFromFavorites')!
+                                              : LocalizedStrings.of(context)!.get('addToFavorites')!),
+                                          style: GoogleFonts.montserrat(),
+                                        ),
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          toggleFavorite(asset.ticker);
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: const Icon(Icons.flash_on_sharp),
+                                        title: Text(
+                                          LocalizedStrings.of(context)!.get('exactPriceBets') ?? "Exact price bets",
+                                          style: GoogleFonts.montserrat(),
+                                        ),
+                                        onTap: () async {
+                                          List<Candle> candles = await BetsService().fetchCandles(asset.ticker);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ExactPricePage(
+                                                name: asset.name,
+                                                ticker: asset.ticker,
+                                                currentValue: candles.first.close,
+                                                iconPath: asset.icon,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: const Icon(Icons.notifications_none),
+                                        title: Text(
+                                          LocalizedStrings.of(context)!.get('createAlert') ?? "Create alert",
+                                          style: GoogleFonts.montserrat(),
+                                        ),
+                                        onTap: () {
+                                          Common().showFloatingSnack(context, "Unimplemented action!" , backgroundColor: Colors.black54);
+                                          Navigator.pop(context);
+
+                                        }
+                                      ),
+                                      ListTile(
+                                        leading: const Icon(Icons.info_outline),
+                                        title: Text("Ver detalles", style: GoogleFonts.montserrat()),
+                                        onTap: () {
+                                          Common().showFloatingSnack(context, "Unimplemented action!" , backgroundColor:  Colors.black54);
+                                          Navigator.pop(context);
+                                        }
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: Ink(
+                              decoration: BoxDecoration(
+                                color: Colors.transparent.withValues(alpha: .3),
+                                borderRadius: BorderRadius.circular(20.0),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.white10,
+                                    blurRadius: 5.0,
+                                    spreadRadius: 2.0,
+                                    offset: Offset(0, 0),
+                                  ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      if (asset.icon.isNotEmpty &&
+                                          asset.icon != "null" &&
+                                          !asset.icon.contains("http")) ...[
+                                        Image.memory(
+                                          base64Decode(asset.icon),
+                                          height: 55,
+                                          alignment: Alignment.center,
+                                          errorBuilder: (_, __, ___) => Text(
+                                            asset.name,
+                                            maxLines: 1,
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.roboto(
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.w100,
+                                            ),
+                                          ),
+                                        ),
+                                      ] else if (asset.icon.isNotEmpty &&
+                                          asset.icon.contains("http")) ...[
+                                        Image.network(
+                                          asset.icon,
+                                          height: 55,
+                                          alignment: Alignment.center,
+                                          errorBuilder: (_, __, ___) => Text(
+                                            Common().createTrendViewNameFromName(asset.name),
+                                            maxLines: 1,
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.roboto(
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.w100,
+                                            ),
+                                          ),
+                                        ),
+                                      ] else ...[
+                                        Text(
+                                          Common().createTrendViewNameFromName(asset.name),
+                                          maxLines: 1,
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.roboto(
+                                            fontSize: 36,
+                                            fontWeight: FontWeight.w100,
+                                          ),
+                                        ),
+                                      ],
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        asset.name,
+                                        maxLines: 1,
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          );
-                        },
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        color: Colors.transparent.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(20.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.white10,
-                            blurRadius: 5.0,
-                            spreadRadius: 2.0,
-                            offset: const Offset(0, 0),
                           ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(10.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (asset.icon.isNotEmpty &&
-                              asset.icon != "null" &&
-                              !asset.icon.contains("http")) ...[
-                            Image.memory(base64Decode(asset.icon), height: 55,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Text(
-                                    asset.name,
-                                    maxLines: 1,
-                                    style: GoogleFonts.roboto(
-                                        fontSize: 36, fontWeight: FontWeight.w100),
-                                    textAlign: TextAlign.center,
-                                  ),),
-                          ] else if (asset.icon.isNotEmpty &&
-                              asset.icon.contains("http")) ...[
-                            Image.network(
-                                asset.icon,
-                                height: 55,
-                                errorBuilder: (context, error, StackTrace) =>
-                                    Text(
-                                      Common().createTrendViewNameFromName(asset.name),
-                                      maxLines: 1,
-                                      style: GoogleFonts.roboto(
-                                          fontSize: 36, fontWeight: FontWeight.w100),
-                                      textAlign: TextAlign.center,
-                                    ),
-                            ),
-                          ] else ...[
-                            Text(
-                              Common().createTrendViewNameFromName(asset.name),
-                              maxLines: 1,
-                              style: GoogleFonts.roboto(
-                                  fontSize: 36, fontWeight: FontWeight.w100),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                          const SizedBox(height: 10),
-                          Text(
-                            asset.name,
-                            maxLines: 1,
-                            style: GoogleFonts.montserrat(
-                                fontSize: 14, fontWeight: FontWeight.w400),
-                            textAlign: TextAlign.center,
+                        ),
+                        if (isFav)
+                          Positioned(
+                            top: -12,
+                            left: -12,
+                            child: _buildFavBadge(),
                           ),
-                        ],
-                      ),
+                      ],
                     ),
                   );
                 },
@@ -232,4 +430,6 @@ class MarketsViewState extends State<MarketsView>
       ],
     );
   }
+
+
 }

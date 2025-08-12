@@ -12,6 +12,11 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'exactPriceBets': 'Exact price bets',
+      'removeFromFavorites': 'Remove from favorites',
+      'addToFavorites': 'Add to favorites',
+      'createAlert': 'Create alert',
+      'viewDetails': 'View details',
       'sessionStartedElsewhere': 'Session started on another device',
       'withdrawCompleted': 'Withdrawal of {coins} coins completed',
       'createPasswordTitle': 'Create a password',
@@ -78,7 +83,7 @@ class LocalizedStrings {
       'buyCoins': 'Buy {coins}',
       'earnCoins': 'Watch an Ad to Earn {coins}',
       'priceInEuros': '{price}€',
-      'userOrEmailNotFound': 'User or email not found',
+      'userOrEmailNotFound': 'User not found',
       'serverUnavailable': 'Server unavailable',
       'incorrectPassword': 'Incorrect password. Try again',
       'errorChangingPassword': 'Error changing password',
@@ -216,6 +221,11 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'exactPriceBets': 'Apuestas de precio exacto',
+      'removeFromFavorites': 'Eliminar de favoritos',
+      'addToFavorites': 'Añadir a favoritos',
+      'createAlert': 'Crear alerta',
+      'viewDetails': 'Ver detalles',
       'sessionStartedElsewhere': 'Sesión iniciada en otro dispositivo',
       'withdrawCompleted': 'Retiro de {coins} monedas completado',
       'createPasswordTitle': 'Crea una contraseña',
@@ -282,7 +292,7 @@ class LocalizedStrings {
       'buyCoins': 'Comprar {coins}',
       'earnCoins': 'Vea un anuncio y gane {coins}',
       'priceInEuros': '{price}€',
-      'userOrEmailNotFound': 'Usuario o correo electrónico no encontrado',
+      'userOrEmailNotFound': 'Usuario no encontrado',
       'serverUnavailable': 'Servidor no disponible',
       'incorrectPassword': 'Contraseña incorrecta. Inténtelo de nuevo',
       'errorChangingPassword': 'Error al cambiar la contraseña',
@@ -420,6 +430,11 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'exactPriceBets': 'Paris sur prix exact',
+      'removeFromFavorites': 'Retirer des favoris',
+      'addToFavorites': 'Ajouter aux favoris',
+      'createAlert': 'Créer une alerte',
+      'viewDetails': 'Voir les détails',
       'sessionStartedElsewhere': 'Session ouverte sur un autre appareil',
       'withdrawCompleted': 'Retrait de {coins} pièces effectué',
       'createPasswordTitle': 'Créer un mot de passe',
@@ -487,7 +502,7 @@ class LocalizedStrings {
       'buyCoins': 'Achetez {coins}',
       'earnCoins': 'Regardez une annonce pour gagner {coins}',
       'priceInEuros': '{price}€',
-      'userOrEmailNotFound': "Utilisateur ou e-mail introuvable",
+      'userOrEmailNotFound': "Utilisateur introuvable",
       'serverUnavailable': 'Serveur indisponible',
       'incorrectPassword': 'Mot de passe incorrect. Réessayez',
       'errorChangingPassword': 'Erreur lors du changement de mot de passe',
@@ -626,6 +641,11 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'exactPriceBets': 'Scommesse sul prezzo esatto',
+      'removeFromFavorites': 'Rimuovi dai preferiti',
+      'addToFavorites': 'Aggiungi ai preferiti',
+      'createAlert': 'Crea avviso',
+      'viewDetails': 'Visualizza dettagli',
       'sessionStartedElsewhere': 'Sessione avviata su un altro dispositivo',
       'withdrawCompleted': 'Ritiro di {coins} monete completato',
       'createPasswordTitle': 'Crea una password',
@@ -692,7 +712,7 @@ class LocalizedStrings {
       'buyCoins': 'Acquista {coins}',
       'earnCoins': 'Guarda un annuncio per guadagnare {coins}',
       'priceInEuros': '{price}€',
-      'userOrEmailNotFound': 'Utente o email non trovato',
+      'userOrEmailNotFound': 'Utente non trovato',
       'serverUnavailable': 'Server non disponibile',
       'incorrectPassword': 'Password errata. Riprova',
       'errorChangingPassword': 'Errore durante il cambio della password',
@@ -832,6 +852,11 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'exactPriceBets': 'Wetten auf exakten Preis',
+      'removeFromFavorites': 'Aus Favoriten entfernen',
+      'addToFavorites': 'Zu Favoriten hinzufügen',
+      'createAlert': 'Alarm erstellen',
+      'viewDetails': 'Details anzeigen',
       'sessionStartedElsewhere': 'Sitzung auf einem anderen Gerät gestartet',
       'withdrawCompleted': 'Auszahlung von {coins} Münzen abgeschlossen',
       'createPasswordTitle': 'Passwort erstellen',
@@ -898,7 +923,7 @@ class LocalizedStrings {
       'buyCoins': 'Kaufe {coins}',
       'earnCoins': 'Sehen Sie sich eine Anzeige an, um {coins}',
       'priceInEuros': '{price}€',
-      'userOrEmailNotFound': 'Benutzer oder E-Mail nicht gefunden',
+      'userOrEmailNotFound': 'Benutzer nicht gefunden',
       'serverUnavailable': 'Server nicht verfügbar',
       'incorrectPassword': 'Falsches Passwort. Versuchen Sie es erneut',
       'errorChangingPassword': 'Fehler beim Ändern des Passworts',

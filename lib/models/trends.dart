@@ -138,6 +138,7 @@ class TrendDialog extends StatelessWidget {
                                         context,
                                         LocalizedStrings.of(context)!.get('updatedFavs') ?? "Updated favs!");
                                     homeScreenKey.currentState?.refreshFavorites();
+                                    marketsPageKey.currentState?.toggleFavorite(trend.ticker, onlyLocal: true);
                                     Navigator.of(context).pop(true);
                                   }
                                 },

@@ -40,6 +40,11 @@ class Favorites {
   final int length;
 
   Favorites(this.favorites, this.length);
+
+  bool containsTicker(String ticker){
+    if (favorites.length == 0) return false;
+    return favorites.contains(ticker);
+  }
 }
 
 class FavoriteDialog extends StatelessWidget {
@@ -134,6 +139,7 @@ class FavoriteDialog extends StatelessWidget {
                                         LocalizedStrings.of(context)!.get('updatedFavs') ?? "Updated favs!",
                                         theDuration: 4);
                                     homeScreenKey.currentState?.refreshFavorites();
+                                    marketsPageKey.currentState?.toggleFavorite(favorite.ticker, onlyLocal: true);
                                     Navigator.of(context).pop(true);
                                   }
                                 },
