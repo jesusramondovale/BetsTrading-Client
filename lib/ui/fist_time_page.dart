@@ -26,7 +26,7 @@ class _FirstTimePageState extends State<FirstTimePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _passwordError;
   String? _confirmPasswordError;
-  String _userId = "none";
+  String? _userId;
 
   Future<void> _loadCoinImage() async {
     final bytes = await rootBundle.load('assets/new_icon.png');
@@ -65,6 +65,24 @@ class _FirstTimePageState extends State<FirstTimePage> {
       } else if (password != confirmPassword) {
         _confirmPasswordError = LocalizedStrings.of(context)?.get('passwordMismatch') ?? "Passwords do not match";
       }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    final bytes = await rootBundle.load('assets/new_icon.png');
+    final base64 = base64Encode(bytes.buffer.asUint8List());
+
+    final userId = await _storage.read(key: 'sessionToken');
+
+    setState(() {
+      _coinIconBase64 = base64;
+      _userId = userId;
     });
   }
 

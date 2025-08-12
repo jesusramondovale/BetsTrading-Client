@@ -192,6 +192,7 @@ class AuthService {
 
             if (response == 3) {
               // USER REGISTERED BUT PASSWORD NOT SET -> FORCE SET PASS VIEW
+              await _storage.write(key: 'sessionToken', value: user.id);
               return 3;
             }
             else {
