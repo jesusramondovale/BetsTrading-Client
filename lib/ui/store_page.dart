@@ -9,7 +9,6 @@ import '../Services/BetsService.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
-import '../native_rewarded.dart';
 import '../services/AuthService.dart';
 import 'layout_page.dart';
 
@@ -61,7 +60,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
 
   void _loadRewardedAd() {
     RewardedAd.load(
-      adUnitId: Config.ADMOB_AD_TOKEN_TEST,
+      adUnitId: Config.ADMOB_AD_TOKEN_TEST, //TODO
       request: AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
@@ -79,23 +78,58 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   }
 
   Future<void> _showRewardedAd(double coins, String localizedWarning) async {
-    String? userId = await _storage.read(key: 'sessionToken');
+    final userId = await _storage.read(key: 'sessionToken');
     if (userId == null) return;
-    try {
-      await NativeRewarded.loadRewarded(Config.ADMOB_AD_TOKEN_TEST, userId);
-      final reward = await NativeRewarded.showRewarded();
-      await AuthService().addCoins(userId, coins);
-      if (reward != null && reward > 0) {
-        Common().showFloatingSnack(context, localizedWarning, backgroundColor: Colors.red, showIcon: true);
 
-        await BetsService().getUserInfo(userId);
-        Navigator.pop(context);
-        homeScreenKey.currentState?.loadUserIdAndData();
-      }
+    try {
+      await RewardedAd.load(
+        adUnitId: Config.ADMOB_AD_TOKEN_TEST, //TODO
+        request: const AdRequest(),
+        rewardedAdLoadCallback: RewardedAdLoadCallback(
+          onAdLoaded: (RewardedAd ad) async {
+            final dismissed = Completer<void>();
+            num earned = 0;
+
+            ad.fullScreenContentCallback = FullScreenContentCallback(
+              onAdDismissedFullScreenContent: (ad) {
+                ad.dispose();
+                if (!dismissed.isCompleted) dismissed.complete(); // <- CERRADO
+              },
+              onAdFailedToShowFullScreenContent: (ad, err) {
+                ad.dispose();
+                if (!dismissed.isCompleted) dismissed.complete();
+              },
+            );
+
+            // Muestra el anuncio (esto NO espera al cierre)
+            await ad.show(onUserEarnedReward: (ad, reward) {
+              earned = reward.amount;
+            });
+
+            // Aquí sí esperamos a que el usuario lo cierre
+            await dismissed.future;
+
+            if (earned > 0) {
+              await AuthService().addCoins(userId, coins); // TODO: quita cuando toque
+              await BetsService().getUserInfo(userId);
+              if (!mounted) return;
+              Navigator.pop(context);
+              Common().showFloatingSnack(context, localizedWarning, showIcon: true); // <- tras cierre
+              homeScreenKey.currentState?.loadUserIdAndData();
+            }
+          },
+          onAdFailedToLoad: (LoadAdError e) {
+            print('Error mostrando anuncio recompensado: $e');
+          },
+        ),
+      );
     } catch (e) {
       print('Error mostrando anuncio recompensado: $e');
     }
   }
+
+
+
 
   Widget _buildStoreButton(
       BuildContext context,
@@ -221,8 +255,8 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
       homeScreenKey.currentState?.loadUserIdAndData();
       Common().showFloatingSnack(
           context,
-          Common().interpolate(LocalizedStrings.of(context)!.get('youEarnedCoins') ?? 'You earned {coins} coins!',
-                                 {'coins': coins.toString()},));
+          Common().interpolate(LocalizedStrings.of(context)!.get('youEarnedCoins') ?? 'You earned {coins}',
+                                 {'coins': coins.toStringAsFixed(0)},), showIcon: true);
 
     } on stripe.StripeException catch (e) {
       if (e.error.code != stripe.FailureCode.Canceled) {
@@ -341,8 +375,8 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                         _showRewardedAd(
                           50,
                           Common().interpolate(
-                            strings.get('youWonCoins') ?? 'You won 50',
-                            {'coins': '50'},
+                            strings.get('youWonCoins') ?? 'You won {coins}',
+                            {'coins': '50'}, //TODO
                           ),
                         );
                       }

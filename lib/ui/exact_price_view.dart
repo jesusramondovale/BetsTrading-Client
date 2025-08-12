@@ -212,9 +212,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                         if (result == 200) {
                           if (_bettingNotifications) {
                             Common().showFloatingSnack(context,
-                                (LocalizedStrings.of(context)!
-                                    .get('betPlacedSuccessfully') != null ? "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} (${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}"
-                                    : "Bet placed successfully! (${_getBetAmountFromMargin(_selectedMargin)}"),
+                                (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null ? "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} ► ${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}"
+                                    : "Bet placed successfully! ► ${_getBetAmountFromMargin(_selectedMargin)}"),
                                 showIcon: true);
 
                           }

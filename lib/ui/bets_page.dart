@@ -408,7 +408,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           Common().showFloatingSnack(
               context,
               (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null ?
-              "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} (${_betAmount.toStringAsFixed(2)} " : "Bet placed successfully! (${_betAmount} "),
+              "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} ► ${_betAmount.toStringAsFixed(2)} " : "Bet placed successfully! ► ${_betAmount} "),
               showIcon: true);
         }
 
