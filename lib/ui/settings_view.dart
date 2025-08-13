@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:betrader/locale/localized_texts.dart';
+import 'package:betrader/ui/retire_methods.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -341,9 +342,14 @@ class SettingsViewState extends State<SettingsView> {
                   child: InkWell(
                     splashColor: Colors.transparent,
                     highlightColor: Colors.transparent,
-                    onTap: () => {
-                      Common().vibrate(40, 40),
-                      Common().showFloatingSnack(context, '(Payment history)', backgroundColor: Colors.white),
+                    onTap: () async {
+                      final changed = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(builder: (_) => const RetireMethodsPage()),
+                      );
+                      if (changed == true) {
+                        Navigator.pop(context, true);
+                      }
                     },
                     child: ListTile(
                       title: Text(

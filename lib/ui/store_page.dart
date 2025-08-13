@@ -101,16 +101,14 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
               },
             );
 
-            // Muestra el anuncio (esto NO espera al cierre)
             await ad.show(onUserEarnedReward: (ad, reward) {
               earned = reward.amount;
             });
 
-            // Aquí sí esperamos a que el usuario lo cierre
             await dismissed.future;
 
             if (earned > 0) {
-              await AuthService().addCoins(userId, coins); // TODO: quita cuando toque
+              await AuthService().addCoins(userId, coins); // TODO: remove addCoins call
               await BetsService().getUserInfo(userId);
               if (!mounted) return;
               Navigator.pop(context);

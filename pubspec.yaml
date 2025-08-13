@@ -17,7 +17,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
 
-version: 25.223.1+252231
+version: 25.225.1+252251
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -69,6 +69,9 @@ dependencies:
   stripe_platform_interface: ^10.1.0
   in_app_purchase: ^3.1.13
   url_launcher: ^6.2.5
+  bech32: ^0.2.2
+  base_x: ^2.0.0
+  web3dart: ^2.7.1
 
 
 flutter_launcher_icons:

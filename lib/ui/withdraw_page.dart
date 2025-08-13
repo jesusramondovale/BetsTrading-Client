@@ -1,30 +1,27 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:betrader/locale/localized_texts.dart';
-import 'package:betrader/ui/settings_view.dart';
+import 'package:betrader/ui/retire_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../Services/BetsService.dart';
 import '../helpers/common.dart';
 import '../helpers/slider.dart';
 import '../services/FirebaseService.dart';
 import 'layout_page.dart';
-import 'notifications_page.dart'; // Tu slider custom
 import 'package:intl/intl.dart';
 
 class WithdrawPage extends StatefulWidget {
   final int coins;
   final int currencyAmount;
   final MainMenuPageController controller;
-  const WithdrawPage({
-    super.key,
-    required this.coins,
-    required this.currencyAmount,
-    required this.controller
-  });
+  const WithdrawPage(
+      {super.key,
+      required this.coins,
+      required this.currencyAmount,
+      required this.controller});
 
   @override
   State<WithdrawPage> createState() => _WithdrawPageState();
@@ -35,16 +32,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
   String? _selectedMethod;
   String _userId = 'none';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-
-  //final Map<String, String> _userAvailableMethods = {};
-  // TODO Get current user methods -> details map from backend
-  final Map<String, String> _userAvailableMethods = {
-    'withdrawMethodBank': 'ES45 xxxx 9012',
-    'withdrawMethodPaypal': 'jesus.fabero@gmail.com',
-    'withdrawMethodBTC': 'r1qw...x7hf',
-    'withdrawMethodXRP': 'rU6K...FQjv',
-  };
-
+  final Map<String, Map<String, String>> _userAvailableMethods = {};
 
   @override
   void initState() {
@@ -56,14 +44,86 @@ class _WithdrawPageState extends State<WithdrawPage> {
     }
   }
 
+  String _mask(String v, {int keep = 4}) {
+    if (v.isEmpty) return '—';
+    if (v.length <= keep) return v;
+    final tail = v.substring(v.length - keep);
+    return '•••• $tail';
+  }
+
   Future<void> _loadData() async {
-    String? id = await _storage.read(key: 'sessionToken');
+    final id = await _storage.read(key: 'sessionToken');
+    if (id == null) return;
+
+    final resp =
+    await Common().postRequestWrapper('Info', 'RetireOptions', {'id': id});
+
+    final map = <String, Map<String, String>>{};
+
+    if (resp['statusCode'] == 200 && resp['body'] is List) {
+      for (final it in resp['body'] as List) {
+        final type = (it['type'] ?? '').toString().toLowerCase();
+        final data = (it['data'] ?? {}) as Map<String, dynamic>;
+        final methodId = (it['id'] ?? '').toString();
+        final label = (it['label'] ?? '').toString();
+
+        if (type == 'bank') {
+          final iban = (data['iban'] ?? '').toString();
+          if (iban.isNotEmpty) {
+            map['withdrawMethodBank#$methodId'] = {
+              'text': 'IBAN • ${_mask(iban)}',
+              'label': label,
+            };
+          }
+        } else if (type == 'paypal') {
+          final email = (data['email'] ?? '').toString();
+          if (email.isNotEmpty) {
+            map['withdrawMethodPaypal#$methodId'] = {
+              'text': email,
+              'label': label,
+            };
+          }
+        } else if (type == 'crypto') {
+          final net = (data['network'] ?? '').toString().toUpperCase();
+          final addr = (data['address'] ?? '').toString();
+          if (addr.isEmpty) continue;
+
+          if (net.contains('BTC')) {
+            map['withdrawMethodBTC#$methodId'] = {
+              'text': _mask(addr, keep: 6),
+              'label': label,
+            };
+          } else if (net.contains('XRP')) {
+            map['withdrawMethodXRP#$methodId'] = {
+              'text': _mask(addr, keep: 6),
+              'label': label,
+            };
+          } else {
+            map['withdrawMethodCrypto#$methodId'] = {
+              'text': '${net.isEmpty ? "CRYPTO" : net} • ${_mask(addr, keep: 6)}',
+              'label': label,
+            };
+          }
+        }
+      }
+    }
+
     final bytes = await rootBundle.load('assets/coin.png');
     final base64 = base64Encode(bytes.buffer.asUint8List());
+
+    if (!mounted) return;
     setState(() {
+      _userId = id;
       _coinIconBase64 = base64;
-      _userId = id!;
-    } );
+
+      _userAvailableMethods
+        ..clear()
+        ..addAll(map);
+
+      _selectedMethod = _userAvailableMethods.isEmpty
+          ? null
+          : _userAvailableMethods.keys.first;
+    });
   }
 
   @override
@@ -75,7 +135,8 @@ class _WithdrawPageState extends State<WithdrawPage> {
         backgroundColor: Colors.transparent.withValues(alpha: 0.0),
         elevation: 0,
         title: Text(
-          LocalizedStrings.of(context)?.get("withdrawTitle") ?? "Withdrawal money",
+          LocalizedStrings.of(context)?.get("withdrawTitle") ??
+              "Withdrawal money",
           style: GoogleFonts.montserrat(
             fontSize: 25,
             fontWeight: FontWeight.w400,
@@ -125,7 +186,6 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                       color: Colors.white,
                                     ),
                                   ),
-
                                   const SizedBox(width: 6),
                                   Image.asset(
                                     'assets/coin.png',
@@ -162,10 +222,11 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                   ),
                                 ],
                               ),
-
                               const SizedBox(height: 14),
                               Text(
-                                LocalizedStrings.of(context)?.get('chooseMethod') ?? 'Choose your withdrawal method:',
+                                LocalizedStrings.of(context)
+                                        ?.get('chooseMethod') ??
+                                    'Choose your withdrawal method:',
                                 style: GoogleFonts.rajdhani(
                                   fontSize: 22,
                                   color: Colors.white,
@@ -182,7 +243,8 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 20, horizontal: 16),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.05),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.05),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                           color: Colors.white24, width: 1),
@@ -190,12 +252,12 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                     child: Column(
                                       children: [
                                         const Icon(Icons.warning_amber_rounded,
-                                            color: Colors.yellow,
-                                            size: 60),
+                                            color: Colors.yellow, size: 60),
                                         const SizedBox(height: 20),
                                         Text(
                                           textAlign: TextAlign.center,
-                                          LocalizedStrings.of(context)?.get('noMethods') ??
+                                          LocalizedStrings.of(context)
+                                                  ?.get('noMethods') ??
                                               "You don't have any withdrawal methods configured. Please add one in your profile settings.",
                                           style: GoogleFonts.rajdhani(
                                             fontSize: 26,
@@ -203,51 +265,53 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                           ),
                                         ),
                                         const SizedBox(height: 20),
-
                                         Center(
                                           child: Material(
                                             color: Colors.transparent,
                                             child: InkWell(
-                                              borderRadius: BorderRadius.circular(50),
+                                              borderRadius:
+                                                  BorderRadius.circular(50),
                                               splashColor: Colors.white24,
                                               highlightColor: Colors.white12,
-                                              onTap: () {
+                                              onTap: () async {
                                                 Common().vibrate(40, 30);
-                                                Navigator.push(
+                                                final changed = await Navigator.push<bool>(
                                                   context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) => SettingsView(
-                                                      onPersonalInfoTap: () {
-                                                        Navigator.pop(context);
-                                                        Navigator.pop(context);
-                                                        widget.controller.updateIndex(4);
-                                                      },
-                                                      onShowNotifications: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (_) => NotificationsPage(
-                                                              onBack: () => Navigator.pop(context),
-                                                            ),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                  ),
+                                                  MaterialPageRoute(builder: (_) => const RetireMethodsPage()),
                                                 );
+                                                if (changed == true) {
+                                                  Navigator.pop(context, true);
+                                                }
+
+                                                if (changed == true) {
+                                                  await _loadData(); // <-- tu método del WithdrawPage
+                                                  setState(() {});
+                                                }
                                               },
                                               child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 10),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white.withValues(alpha: 0.1),
-                                                  borderRadius: BorderRadius.circular(50),
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(50),
                                                 ),
                                                 child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: const [
-                                                    Icon(Icons.arrow_forward_ios_rounded, size: 25, color: Colors.white),
+                                                    Icon(
+                                                        Icons
+                                                            .add,
+                                                        size: 25,
+                                                        color: Colors.white),
                                                     SizedBox(width: 12),
-                                                    Icon(Icons.settings, size: 45, color: Colors.white),
+                                                    Icon(Icons.wallet,
+                                                        size: 45,
+                                                        color: Colors.white),
                                                   ],
                                                 ),
                                               ),
@@ -261,64 +325,91 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                     itemCount: _userAvailableMethods.length,
                                     separatorBuilder: (_, __) =>
                                         const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final method = _userAvailableMethods.keys.elementAt(index);
-                                  final detail = _userAvailableMethods[method]!;
-                                  final isSelected = _selectedMethod == method;
+                                    itemBuilder: (context, index) {
+                                      final methodKey = _userAvailableMethods
+                                          .keys
+                                          .elementAt(index);
+                                      final baseKey = methodKey
+                                          .split('#')
+                                          .first;
+                                      final detail = _userAvailableMethods[methodKey]?['text']!;
+                                      final label = _userAvailableMethods[methodKey]?['label']!;
+                                      final isSelected =
+                                          _selectedMethod == methodKey;
 
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () => setState(() { _selectedMethod = method; Common().vibrate(30,30);  }),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? Colors.deepPurple.withValues(alpha: 0.8)
-                                                : Colors.white.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: isSelected ? Colors.deepPurpleAccent : Colors.white24,
-                                              width: 1.2,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                isSelected
-                                                    ? Icons.radio_button_checked
-                                                    : Icons.radio_button_off,
-                                                color: isSelected ? Colors.white : Colors.white54,
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Text(
-                                                LocalizedStrings.of(context)?.get(method) ?? LocalizedStrings.localizedValues['en']![method]!,
-                                                style: GoogleFonts.montserrat(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w400,
-                                                  color: Colors.white,
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () => setState(() {
+                                              _selectedMethod = methodKey;
+                                              Common().vibrate(30, 30);
+                                            }),
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12,
+                                                      horizontal: 16),
+                                              decoration: BoxDecoration(
+                                                color: isSelected
+                                                    ? Colors.deepPurple
+                                                        .withValues(alpha: 0.8)
+                                                    : Colors.white
+                                                        .withValues(alpha: 0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: isSelected
+                                                      ? Colors.deepPurpleAccent
+                                                      : Colors.white24,
+                                                  width: 1.2,
                                                 ),
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      if (isSelected)
-                                        Padding(
-                                          padding: const EdgeInsets.only(left: 48.0, top: 6.0, bottom: 6.0),
-                                          child: Text(
-                                            detail,
-                                            style: GoogleFonts.rajdhani(
-                                              fontSize: 20,
-                                              color: Colors.white70,
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    isSelected
+                                                        ? Icons
+                                                            .radio_button_checked
+                                                        : Icons
+                                                            .radio_button_off,
+                                                    color: isSelected
+                                                        ? Colors.white
+                                                        : Colors.white54,
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  Text(
+                                                    label ?? LocalizedStrings.of(context)!.get(baseKey) ?? "-",
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                    ],
-                                  );
-                                }
-                                  ),
+                                          if (isSelected)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 48.0,
+                                                  top: 6.0,
+                                                  bottom: 6.0),
+                                              child: Text(
+                                                detail!,
+                                                style: GoogleFonts.rajdhani(
+                                                  fontSize: 20,
+                                                  color: Colors.white70,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      );
+                                    }),
                           ),
 
                           const SizedBox(height: 20),
@@ -327,66 +418,85 @@ class _WithdrawPageState extends State<WithdrawPage> {
 
                           ...(_userAvailableMethods.isNotEmpty
                               ? [
-                            Text(
-                              LocalizedStrings.of(context)?.get('slideToConfirm') ?? 'Slide to Confirm',
-                              maxLines: 1,
-                              style: GoogleFonts.syncopate(
-                                fontSize: 16,
-                                color: Colors.white60,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            SlideToConfirm(
-                              icon: _coinIconBase64!,
-                              betAmount: widget.coins.toDouble(),
-                              transformedAmount: widget.currencyAmount.toDouble(),
-                              transformThumb: true,
-                              onSlideComplete: () {
-                                Common().vibrate(300, 300);
-                                String fcm = FirebaseService().firebaseToken ?? "null";
-                                Common().popPasswordDialog(
-                                    LocalizedStrings.of(context)!.get('confirm') ?? "Confirm Action",
-                                    LocalizedStrings.of(context)!.get('enterPasswordToContinue') ?? "Please enter your password to continue",
-                                    widget.coins.toDouble(),
-                                    widget.currencyAmount.toDouble(),
-                                    _userAvailableMethods[_selectedMethod]!,
-                                    context, (password) async {
-                                        final response = await Common().postRequestWrapper('Payments','RetireBalance',
-                                            { 'userId': _userId,
-                                              'fcm': fcm,
-                                              'password': password ,
-                                              'currencyAmount': widget.currencyAmount.toDouble(),
-                                              'currency': "eur", //TODO
-                                              'coins': widget.coins.toDouble()  }
-                                        );
-                                        if (response['statusCode'] == 200) {
+                                  Text(
+                                    LocalizedStrings.of(context)
+                                            ?.get('slideToConfirm') ??
+                                        'Slide to Confirm',
+                                    maxLines: 1,
+                                    style: GoogleFonts.syncopate(
+                                      fontSize: 16,
+                                      color: Colors.white60,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  SlideToConfirm(
+                                    icon: _coinIconBase64!,
+                                    betAmount: widget.coins.toDouble(),
+                                    transformedAmount:
+                                        widget.currencyAmount.toDouble(),
+                                    transformThumb: true,
+                                    onSlideComplete: () {
+                                      Common().vibrate(300, 300);
+                                      String fcm =
+                                          FirebaseService().firebaseToken ??
+                                              "null";
+                                      Common().popPasswordDialog(
+                                        LocalizedStrings.of(context)!
+                                                .get('confirm') ??
+                                            "Confirm Action",
+                                        LocalizedStrings.of(context)!.get(
+                                                'enterPasswordToContinue') ??
+                                            "Please enter your password to continue",
+                                        widget.coins.toDouble(),
+                                        widget.currencyAmount.toDouble(),
+                                        _userAvailableMethods[_selectedMethod]!['text']!,
+                                        context,
+                                        (password) async {
+                                          final response = await Common()
+                                              .postRequestWrapper(
+                                                  'Payments', 'RetireBalance', {
+                                            'userId': _userId,
+                                            'fcm': fcm,
+                                            'password': password,
+                                            'currencyAmount': widget
+                                                .currencyAmount
+                                                .toDouble(),
+                                            'currency': "eur", //TODO
+                                            'coins': widget.coins.toDouble()
+                                          });
+                                          if (response['statusCode'] == 200) {
+                                            Common().showFloatingSnack(
+                                              context,
+                                              Common().interpolate(
+                                                LocalizedStrings.of(context)!.get(
+                                                        'withdrawCompleted') ??
+                                                    "Withdrawal of {coins} coins completed",
+                                                {
+                                                  'coins':
+                                                      widget.coins.toString()
+                                                },
+                                              ),
+                                            );
 
-                                          Common().showFloatingSnack(
-                                            context,
-                                            Common().interpolate(
-                                              LocalizedStrings.of(context)!.get('withdrawCompleted') ??
-                                                  "Withdrawal of {coins} coins completed",
-                                              {'coins': widget.coins.toString()},
-                                            ),
-                                          );
-
-                                          await BetsService().getUserInfo(_userId);
-                                          homeScreenKey.currentState?.loadUserIdAndData();
-                                          exchangePageKey.currentState?.loadData();
-                                          Navigator.pop(context);
-
-                                        }
-
-                                        else {
-                                          Common().showFloatingSnack(context,  "Error!", backgroundColor: Colors.red);
-                                        }
+                                            await BetsService()
+                                                .getUserInfo(_userId);
+                                            homeScreenKey.currentState
+                                                ?.loadUserIdAndData();
+                                            exchangePageKey.currentState
+                                                ?.loadData();
+                                            Navigator.pop(context);
+                                          } else {
+                                            Common().showFloatingSnack(
+                                                context, "Error!",
+                                                backgroundColor: Colors.red);
+                                          }
+                                        },
+                                      );
                                     },
-                                );
-                              },
-                            ),
-                          ]
-                              : [ const SizedBox(height: 80)]),
+                                  ),
+                                ]
+                              : [const SizedBox(height: 80)]),
                         ],
                       ),
                     ),
