@@ -17,12 +17,6 @@ class _CameraPageState extends State<CameraPage> {
   List<CameraDescription>? _cameras;
   bool _isCameraInitialized = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeCamera();
-  }
-
   Future<void> _initializeCamera() async {
     _cameras = await availableCameras();
     _cameraController = CameraController(_cameras![0], ResolutionPreset.high);
@@ -33,12 +27,6 @@ class _CameraPageState extends State<CameraPage> {
     setState(() {
       _isCameraInitialized = true;
     });
-  }
-
-  @override
-  void dispose() {
-    _cameraController?.dispose();
-    super.dispose();
   }
 
   Future<void> _captureAndProcessImage() async {
@@ -68,6 +56,54 @@ class _CameraPageState extends State<CameraPage> {
       return match.group(0) ?? "";
     }
     return "";
+  }
+
+  Widget _buildOverlay(LocalizedStrings? strings) {
+    return Stack(
+      children: [
+        Container(
+          color: Colors.black.withValues(alpha:0.2),
+        ),
+        Center(
+          child: Container(
+            width: 300,
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              border: Border.all(color: Colors.white, width: 2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                strings?.get('alignText') ?? 'Align your ID here',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ),
+          ),
+        ),
+
+        Center(
+          child: ClipPath(
+            clipper: InvertedClipper(),
+            child: Container(
+              color: Colors.black.withValues(alpha:0.75),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -130,41 +166,6 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
-  Widget _buildOverlay(LocalizedStrings? strings) {
-    return Stack(
-      children: [
-        Container(
-          color: Colors.black.withValues(alpha:0.2),
-        ),
-        Center(
-          child: Container(
-            width: 300,
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              border: Border.all(color: Colors.white, width: 2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                strings?.get('alignText') ?? 'Align your ID here',
-                style: TextStyle(color: Colors.white, fontSize: 18),
-              ),
-            ),
-          ),
-        ),
-        
-        Center(
-          child: ClipPath(
-            clipper: InvertedClipper(),
-            child: Container(
-              color: Colors.black.withValues(alpha:0.75),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class InvertedClipper extends CustomClipper<Path> {

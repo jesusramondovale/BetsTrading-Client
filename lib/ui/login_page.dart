@@ -62,50 +62,42 @@ class LoginFormState extends State<LoginForm> {
   bool _showSocialSignIn = true;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  @override
-  Widget build(BuildContext context) {
-    final strings = LocalizedStrings.of(context);
-
-    return Form(
-      key: _formKey,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.0),
-              ),
-            ),
-          ),
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                Image.asset('assets/new_icon.png',
-                    width: 200, fit: BoxFit.cover),
-                const Padding(padding: EdgeInsets.all(10.0)),
-                if (_showSocialSignIn) ...[
-                  _buildGoogleSignInButton(strings!),
-                  const SizedBox(height: 8),
-                  _buildManualLogInButton(strings),
-                  const SizedBox(height: 10),
-                ] else ...[
-                  _buildUsernameField(strings!),
-                  const SizedBox(height: 16),
-                  _buildPasswordField(strings),
-                  const SizedBox(height: 20),
-                  _buildLoginAndRegisterButtons(context, strings),
-                  const SizedBox(height: 16),
-                  _buildForgotPasswordButton(strings),
-                  const SizedBox(height: 16),
-                  _buildToggleButton(strings),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
+  void logInHelper(LocalizedStrings strings) async {
+    showDialog(
+      barrierColor: Colors.black.withAlpha(220),
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(child: CircularProgressIndicator());
+      },
     );
+
+    final pass = _passwordController.text.trim();
+
+    try {
+      final result = await AuthService()
+          .logIn(_usernameController.text.trim(), pass.toString());
+      Navigator.of(context).pop(); // Close the progress dialog
+
+      if (result['success']) {
+        String? id = await _storage.read(key: 'sessionToken');
+        await BetsService().getUserInfo(id!);
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const MainMenuPage()));
+
+        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"}  ${_usernameController.text.trim()}!");
+
+      } else {
+        if ("null" == result['message'] || null == result['message']) {
+          Common().showFloatingSnack(context,"Oops... ${strings.get("serverUnavailable")}", backgroundColor: Colors.red);
+        } else {
+          Common().showFloatingSnack(context,"Oops... ${strings.get(result['message'])}", backgroundColor: Colors.red);
+        }
+      }
+    } catch (e) {
+      Navigator.of(context).pop();
+      Common().popDialog("Error", "An unexpected error occurred.", context);
+    }
   }
 
   Widget _buildUsernameField(LocalizedStrings strings) {
@@ -327,41 +319,49 @@ class LoginFormState extends State<LoginForm> {
     );
   }
 
-  void logInHelper(LocalizedStrings strings) async {
-    showDialog(
-      barrierColor: Colors.black.withAlpha(220),
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const Center(child: CircularProgressIndicator());
-      },
+  @override
+  Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
+
+    return Form(
+      key: _formKey,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.0),
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                Image.asset('assets/new_icon.png',
+                    width: 200, fit: BoxFit.cover),
+                const Padding(padding: EdgeInsets.all(10.0)),
+                if (_showSocialSignIn) ...[
+                  _buildGoogleSignInButton(strings!),
+                  const SizedBox(height: 8),
+                  _buildManualLogInButton(strings),
+                  const SizedBox(height: 10),
+                ] else ...[
+                  _buildUsernameField(strings!),
+                  const SizedBox(height: 16),
+                  _buildPasswordField(strings),
+                  const SizedBox(height: 20),
+                  _buildLoginAndRegisterButtons(context, strings),
+                  const SizedBox(height: 16),
+                  _buildForgotPasswordButton(strings),
+                  const SizedBox(height: 16),
+                  _buildToggleButton(strings),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
-
-    final pass = _passwordController.text.trim();
-
-    try {
-      final result = await AuthService()
-          .logIn(_usernameController.text.trim(), pass.toString());
-      Navigator.of(context).pop(); // Close the progress dialog
-
-      if (result['success']) {
-        String? id = await _storage.read(key: 'sessionToken');
-        await BetsService().getUserInfo(id!);
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const MainMenuPage()));
-
-        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"}  ${_usernameController.text.trim()}!");
-
-      } else {
-        if ("null" == result['message'] || null == result['message']) {
-          Common().showFloatingSnack(context,"Oops... ${strings.get("serverUnavailable")}", backgroundColor: Colors.red);
-        } else {
-          Common().showFloatingSnack(context,"Oops... ${strings.get(result['message'])}", backgroundColor: Colors.red);
-        }
-      }
-    } catch (e) {
-      Navigator.of(context).pop();
-      Common().popDialog("Error", "An unexpected error occurred.", context);
-    }
   }
 }

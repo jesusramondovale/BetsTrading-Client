@@ -328,7 +328,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (widget.favorite.icon != "null") ... [
+                      if (widget.favorite.icon != "null" && !widget.favorite.icon.startsWith("http")) ... [
                         Image.memory(
                           base64Decode(widget.favorite.icon),
                           height: 40,
@@ -342,6 +342,23 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                                 textAlign: TextAlign.center,
                               ),
                         )
+                      ]
+                      else if (widget.favorite.icon.startsWith("http")) ... [
+                        Image.network(
+                          widget.favorite.icon,
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Text(
+                                widget.favorite.name,
+                                maxLines: 1,
+                                style: GoogleFonts.roboto(
+                                    fontSize: 36, fontWeight: FontWeight.w100),
+                                textAlign: TextAlign.center,
+                              ),
+                        )
+
                       ]
                       else ... [
                         AutoSizeText(

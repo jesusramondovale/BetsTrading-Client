@@ -25,17 +25,6 @@ class ExchangePageState extends State<ExchangePage> {
   bool _isUserPointsHighlighted = false;
   Timer? _refreshTimer;
 
-  @override
-  void initState() {
-    super.initState();
-    loadData();
-
-    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      loadData();
-    });
-
-  }
-
   Future<void> loadData() async {
     final userId = await _storage.read(key: 'sessionToken');
     final points = await _storage.read(key: 'points') ?? '0';
@@ -52,6 +41,17 @@ class ExchangePageState extends State<ExchangePage> {
         }
         _exchangeOptions = List<Map<String, dynamic>>.from(exchangeOptionsResponse['body'] as Iterable);
   });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+
+    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      loadData();
+    });
+
   }
 
   @override

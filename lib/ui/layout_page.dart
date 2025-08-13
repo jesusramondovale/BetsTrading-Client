@@ -96,6 +96,14 @@ class MainMenuPageState extends State<MainMenuPage> {
     }
   }
 
+  Future<void> _initializeData() async {
+    await _loadUserInfo();
+    await _loadProfilePic();
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   Future<void> _checkFirstRun() async {
     final prefs = await SharedPreferences.getInstance();
     final isFirstRun = prefs.getBool('first_run') ?? true;
@@ -109,7 +117,6 @@ class MainMenuPageState extends State<MainMenuPage> {
     }
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -122,14 +129,6 @@ class MainMenuPageState extends State<MainMenuPage> {
           message.notification!.title!,
           message.notification!.body!,
           message.data);
-    });
-  }
-
-  Future<void> _initializeData() async {
-    await _loadUserInfo();
-    await _loadProfilePic();
-    setState(() {
-      _isLoading = false;
     });
   }
 

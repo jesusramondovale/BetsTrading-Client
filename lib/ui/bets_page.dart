@@ -42,31 +42,66 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _betAmountFocusNode = FocusNode();
 
-  @override
-  void initState() {
-    super.initState();
-
-    _betAmountFocusNode.addListener(() {
-      if (_betAmountFocusNode.hasFocus) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
-    _loadPoints();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _betAmountFocusNode.dispose();
-    super.dispose();
-  }
-
   Future<void> _loadPoints() async {
     _points = await _storage.read(key: 'points');
+  }
+
+  Future<void> _onAccept(int betZone) async {
+    Common().vibrate(40, 30);
+    FocusScope.of(context).requestFocus(FocusNode());
+    await Future.delayed(Duration(milliseconds: 100));
+    final prefs = await SharedPreferences.getInstance();
+    bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
+
+    FocusScope.of(context).unfocus();
+
+    bool? confirmed = await Common().popConfirmOperationDialog(context, _betAmount, widget.iconPath);
+    if (confirmed == true) {
+      String? userId = await _storage.read(key: 'sessionToken');
+      String fcm = FirebaseService().firebaseToken ?? "null";
+      bool result = await BetsService().postNewBet(userId!, fcm, widget.zone.ticker, _betAmount, widget.currentValue, betZone);
+
+      if (result) {
+        if (_bettingNotifications) {
+          Common().showFloatingSnack(
+              context,
+              (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null ?
+              "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} ► ${_betAmount.toStringAsFixed(2)} " : "Bet placed successfully! ► ${_betAmount} "),
+              showIcon: true);
+        }
+
+        await BetsService().getUserInfo(userId);
+
+        Navigator.pop(context);
+        Navigator.pop(context);
+        homeScreenKey.currentState?.loadUserIdAndData();
+        exchangePageKey.currentState?.loadData();
+
+      } else {
+        if (_bettingNotifications) {
+          Common().showFloatingSnack(
+              context,
+              (LocalizedStrings.of(context)!.get('errorMakingBet') ?? "Error creating bet!"),
+              backgroundColor: Colors.red
+          );
+        }
+        Navigator.pop(context);
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  void _handleAcceptPressed(int betZone) {
+    Common().vibrate(200, 70);
+    if (!_isAcceptButtonEnabled) {
+      _betAmountFocusNode.requestFocus();
+      setState(() {});
+      Future.delayed(Duration(milliseconds: 500), () {
+        setState(() {});
+      });
+    } else {
+      _onAccept(betZone);
+    }
   }
 
   void _calculatePotentialPrize(String value) {
@@ -76,100 +111,6 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
       _isAcceptButtonEnabled =
           _betAmount > 0.00999 && _betAmount <= double.parse(_points!);
     });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final strings = LocalizedStrings.of(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        surfaceTintColor: Colors.black,
-        title: Text(
-          strings?.get('confirmOperation') ?? 'Confirm Order',
-          style: GoogleFonts.roboto(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          // Imagen de fondo
-          Positioned.fill(
-            child:
-            (widget.iconPath == "null")
-                ?
-              Image.asset(
-                'assets/new_icon.png',
-                fit: BoxFit.cover,)
-                  :
-              ((widget.iconPath.startsWith("http")
-                  ?
-                Image.network(
-                  widget.iconPath,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, StackTrace) =>
-                      Image.asset(
-                        "assets/new_icon.png",
-                        fit: BoxFit.cover,
-                      ),
-                )
-                    :
-                Image.memory(
-                  base64Decode(widget.iconPath),
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      Text(
-                        widget.name,
-                        maxLines: 1,
-                        style: GoogleFonts.roboto(
-                            fontSize: 36, fontWeight: FontWeight.w100),
-                        textAlign: TextAlign.center,
-                      ),
-                )
-                )
-              )
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter:
-                  ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Desenfoque
-              child: Container(
-                color: Colors.black.withValues(alpha:0.7),
-              ),
-            ),
-          ),
-          // Contenido de la página
-          Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(6.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _buildBetHeader(context),
-                      const SizedBox(height: 2),
-                      _buildBetDetails(context),
-                      _buildBetMultiplier(context),
-                    ],
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  _buildPotentialPrize(context),
-                ],
-              ),
-              _buildActionButtons(context),
-            ],
-          ),
-        ],
-      ),
-      resizeToAvoidBottomInset: true,
-    );
   }
 
   Widget _buildBetHeader(BuildContext context) {
@@ -388,64 +329,6 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     );
   }
 
-  Future<void> _onAccept(int betZone) async {
-    Common().vibrate(40, 30);
-    FocusScope.of(context).requestFocus(FocusNode());
-    await Future.delayed(Duration(milliseconds: 100));
-    final prefs = await SharedPreferences.getInstance();
-    bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
-
-    FocusScope.of(context).unfocus();
-
-    bool? confirmed = await Common().popConfirmOperationDialog(context, _betAmount, widget.iconPath);
-    if (confirmed == true) {
-      String? userId = await _storage.read(key: 'sessionToken');
-      String fcm = FirebaseService().firebaseToken ?? "null";
-      bool result = await BetsService().postNewBet(userId!, fcm, widget.zone.ticker, _betAmount, widget.currentValue, betZone);
-
-      if (result) {
-        if (_bettingNotifications) {
-          Common().showFloatingSnack(
-              context,
-              (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null ?
-              "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} ► ${_betAmount.toStringAsFixed(2)} " : "Bet placed successfully! ► ${_betAmount} "),
-              showIcon: true);
-        }
-
-        await BetsService().getUserInfo(userId);
-
-        Navigator.pop(context);
-        Navigator.pop(context);
-        homeScreenKey.currentState?.loadUserIdAndData();
-        exchangePageKey.currentState?.loadData();
-
-      } else {
-        if (_bettingNotifications) {
-          Common().showFloatingSnack(
-              context,
-              (LocalizedStrings.of(context)!.get('errorMakingBet') ?? "Error creating bet!"),
-              backgroundColor: Colors.red
-          );
-        }
-        Navigator.pop(context);
-        Navigator.pop(context);
-      }
-    }
-  }
-
-  void _handleAcceptPressed(int betZone) {
-    Common().vibrate(200, 70);
-    if (!_isAcceptButtonEnabled) {
-      _betAmountFocusNode.requestFocus();
-      setState(() {});
-      Future.delayed(Duration(milliseconds: 500), () {
-        setState(() {});
-      });
-    } else {
-      _onAccept(betZone);
-    }
-  }
-
   Widget _buildActionButtons(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return Row(
@@ -487,6 +370,123 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
             ),
           ),
         ],
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _betAmountFocusNode.addListener(() {
+      if (_betAmountFocusNode.hasFocus) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+    _loadPoints();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _betAmountFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        surfaceTintColor: Colors.black,
+        title: Text(
+          strings?.get('confirmOperation') ?? 'Confirm Order',
+          style: GoogleFonts.roboto(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      body: Stack(
+        children: [
+          // Imagen de fondo
+          Positioned.fill(
+              child:
+              (widget.iconPath == "null")
+                  ?
+              Image.asset(
+                'assets/new_icon.png',
+                fit: BoxFit.cover,)
+                  :
+              ((widget.iconPath.startsWith("http")
+                  ?
+              Image.network(
+                widget.iconPath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, StackTrace) =>
+                    Image.asset(
+                      "assets/new_icon.png",
+                      fit: BoxFit.cover,
+                    ),
+              )
+                  :
+              Image.memory(
+                base64Decode(widget.iconPath),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    Text(
+                      widget.name,
+                      maxLines: 1,
+                      style: GoogleFonts.roboto(
+                          fontSize: 36, fontWeight: FontWeight.w100),
+                      textAlign: TextAlign.center,
+                    ),
+              )
+              )
+              )
+          ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter:
+              ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Desenfoque
+              child: Container(
+                color: Colors.black.withValues(alpha:0.7),
+              ),
+            ),
+          ),
+          // Contenido de la página
+          Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(6.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _buildBetHeader(context),
+                      const SizedBox(height: 2),
+                      _buildBetDetails(context),
+                      _buildBetMultiplier(context),
+                    ],
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _buildPotentialPrize(context),
+                ],
+              ),
+              _buildActionButtons(context),
+            ],
+          ),
+        ],
+      ),
+      resizeToAvoidBottomInset: true,
     );
   }
 }

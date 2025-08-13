@@ -28,11 +28,6 @@ class SettingsView extends StatefulWidget {
 
 class SettingsViewState extends State<SettingsView> {
   bool enableVibration = false;
-  @override
-  void initState() {
-    super.initState();
-    _loadThemePreference();
-  }
 
   Future<void> _loadThemePreference() async {
     final prefs = await SharedPreferences.getInstance();
@@ -47,11 +42,20 @@ class SettingsViewState extends State<SettingsView> {
     await prefs.setBool('darkTheme', isDark);
   }
 
+  Future<void> _openInAppBrowser(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(
+      uri,
+      mode: LaunchMode.inAppBrowserView,// navegador interno
+    )) {
+      Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+    }
+  }
+
   Future<bool?> showChangePasswordDialog(
       BuildContext context,
       String token,
-      ) async
-  {
+      ) async  {
     bool _showNewPassword = false;
     final strings = LocalizedStrings.of(context);
     final TextEditingController currentPasswordController = TextEditingController();
@@ -236,14 +240,10 @@ class SettingsViewState extends State<SettingsView> {
     );
   }
 
-  Future<void> _openInAppBrowser(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(
-      uri,
-      mode: LaunchMode.inAppBrowserView,// navegador interno
-    )) {
-      Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
-    }
+  @override
+  void initState() {
+    super.initState();
+    _loadThemePreference();
   }
 
   @override

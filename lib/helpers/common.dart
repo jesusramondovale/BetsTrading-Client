@@ -810,6 +810,8 @@ class Common {
   }
 
   String getCountryCode(String countryName) {
+    if (countryName == 'US' || countryName == 'EEUU') return 'US';
+    if (countryName == 'UK') return 'UK';
     var countries = getTopCountries();
     for (var country in countries) {
       if (country['name'] == countryName) {

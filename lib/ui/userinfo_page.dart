@@ -26,10 +26,25 @@ class _UserInfoPageState extends State<UserInfoPage> {
   Uint8List? _profilePicBytes;
   bool isDark = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadProfilePic();
+  Future<void> _loadProfilePic() async {
+    String? profilePicString = await _storage.read(key: 'profilepic');
+    if (profilePicString != null && profilePicString.isNotEmpty) {
+      Uint8List imageBytes;
+      if (profilePicString.startsWith('http')) {
+        final response = await http.get(Uri.parse(profilePicString));
+        if (response.statusCode == 200) {
+          imageBytes = response.bodyBytes;
+        } else {
+          print('Error loading image from web');
+          return;
+        }
+      } else {
+        imageBytes = base64Decode(profilePicString);
+      }
+      setState(() {
+        _profilePicBytes = imageBytes;
+      });
+    }
   }
 
   Future<Map<String, String>> _readUserInfo(context) async {
@@ -65,25 +80,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
     return userInfo;
   }
 
-  Future<void> _loadProfilePic() async {
-    String? profilePicString = await _storage.read(key: 'profilepic');
-    if (profilePicString != null && profilePicString.isNotEmpty) {
-      Uint8List imageBytes;
-      if (profilePicString.startsWith('http')) {
-        final response = await http.get(Uri.parse(profilePicString));
-        if (response.statusCode == 200) {
-          imageBytes = response.bodyBytes;
-        } else {
-          print('Error loading image from web');
-          return;
-        }
-      } else {
-        imageBytes = base64Decode(profilePicString);
-      }
-      setState(() {
-        _profilePicBytes = imageBytes;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _loadProfilePic();
   }
 
   @override

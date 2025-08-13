@@ -25,22 +25,6 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   List<Map<String, dynamic>> _buyOptions = [];
   Timer? _refreshTimer;
 
-  @override
-  void initState() {
-    super.initState();
-    _progressController = AnimationController(
-      upperBound: 0.9,
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..forward();
-    _loadRewardedAd();
-    loadData();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      loadData();
-      _loadRewardedAd();
-    });
-  }
-
   Future<void> loadData() async {
     final currency = await _storage.read(key: 'currency') ?? 'eur';
     final buyOptionsResponse = await Common().postRequestWrapper('Info', 'BuyOptions', {'id': currency});
@@ -48,14 +32,6 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     setState(() {
       _buyOptions = List<Map<String, dynamic>>.from(buyOptionsResponse['body'] as Iterable);
     });
-  }
-
-  @override
-  void dispose() {
-    _rewardedAd?.dispose();
-    _progressController.dispose();
-    _refreshTimer?.cancel();
-    super.dispose();
   }
 
   void _loadRewardedAd() {
@@ -75,6 +51,51 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
         },
       ),
     );
+  }
+
+  Future<void> _cardPayment(double coins, double price) async {
+    try {
+      String? userId = await _storage.read(key: 'sessionToken');
+      final billingDetails = stripe.BillingDetails(
+        email: 'betsontrading@gmail.com',
+        phone: '',
+        address: stripe.Address(
+          city: 'Carreño',
+          country: 'ES',
+          line1: '',
+          line2: '',
+          postalCode: '33430',
+          state: 'Asturias',
+        ),
+      );
+      final clientSecret = await _getClientSecret(price, userId!, coins);
+      await stripe.Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: stripe.SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret,
+          style: ThemeMode.dark,
+          merchantDisplayName: 'Betrader',
+          billingDetails: billingDetails,
+          googlePay: stripe.PaymentSheetGooglePay(
+            merchantCountryCode: 'ES',
+            currencyCode: 'EUR',
+          ),
+        ),
+      );
+      await stripe.Stripe.instance.presentPaymentSheet();
+      await BetsService().getUserInfo(userId);
+      Navigator.pop(context);
+      homeScreenKey.currentState?.loadUserIdAndData();
+      Common().showFloatingSnack(
+          context,
+          Common().interpolate(LocalizedStrings.of(context)!.get('youEarnedCoins') ?? 'You earned {coins}',
+            {'coins': coins.toStringAsFixed(0)},), showIcon: true);
+
+    } on stripe.StripeException catch (e) {
+      if (e.error.code != stripe.FailureCode.Canceled) {
+        Navigator.pop(context);
+        Common().showFloatingSnack(context, LocalizedStrings.of(context)!.get('transactionError') ?? "Error during transaction process!", backgroundColor: Colors.red);
+      }
+    }
   }
 
   Future<void> _showRewardedAd(double coins, String localizedWarning) async {
@@ -126,8 +147,22 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     }
   }
 
-
-
+  Future<String> _getClientSecret(double price, String userId, double coins) async {
+    final requestData = {
+      'amount': (price * 100).toInt(),
+      'currency': "eur",
+      'userId': userId,
+      'coins': coins,
+    };
+    final response = await Common().postRequestWrapper('Payments', 'CreatePaymentIntent', requestData);
+    if (response['statusCode'] == 200 &&
+        response['body'] != null &&
+        response['body']['client_secret'] != null) {
+      return response['body']['client_secret'];
+    } else {
+      throw Exception('Error al obtener client_secret desde el backend');
+    }
+  }
 
   Widget _buildStoreButton(
       BuildContext context,
@@ -219,66 +254,28 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> _cardPayment(double coins, double price) async {
-    try {
-      String? userId = await _storage.read(key: 'sessionToken');
-      final billingDetails = stripe.BillingDetails(
-        email: 'betsontrading@gmail.com',
-        phone: '',
-        address: stripe.Address(
-          city: 'Carreño',
-          country: 'ES',
-          line1: '',
-          line2: '',
-          postalCode: '33430',
-          state: 'Asturias',
-        ),
-      );
-      final clientSecret = await _getClientSecret(price, userId!, coins);
-      await stripe.Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: stripe.SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
-          style: ThemeMode.dark,
-          merchantDisplayName: 'Betrader',
-          billingDetails: billingDetails,
-          googlePay: stripe.PaymentSheetGooglePay(
-            merchantCountryCode: 'ES',
-            currencyCode: 'EUR',
-          ),
-        ),
-      );
-      await stripe.Stripe.instance.presentPaymentSheet();
-      await BetsService().getUserInfo(userId);
-      Navigator.pop(context);
-      homeScreenKey.currentState?.loadUserIdAndData();
-      Common().showFloatingSnack(
-          context,
-          Common().interpolate(LocalizedStrings.of(context)!.get('youEarnedCoins') ?? 'You earned {coins}',
-                                 {'coins': coins.toStringAsFixed(0)},), showIcon: true);
-
-    } on stripe.StripeException catch (e) {
-      if (e.error.code != stripe.FailureCode.Canceled) {
-        Navigator.pop(context);
-        Common().showFloatingSnack(context, LocalizedStrings.of(context)!.get('transactionError') ?? "Error during transaction process!", backgroundColor: Colors.red);
-      }
-    }
+  @override
+  void initState() {
+    super.initState();
+    _progressController = AnimationController(
+      upperBound: 0.9,
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..forward();
+    _loadRewardedAd();
+    loadData();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      loadData();
+      _loadRewardedAd();
+    });
   }
 
-  Future<String> _getClientSecret(double price, String userId, double coins) async {
-    final requestData = {
-      'amount': (price * 100).toInt(),
-      'currency': "eur",
-      'userId': userId,
-      'coins': coins,
-    };
-    final response = await Common().postRequestWrapper('Payments', 'CreatePaymentIntent', requestData);
-    if (response['statusCode'] == 200 &&
-        response['body'] != null &&
-        response['body']['client_secret'] != null) {
-      return response['body']['client_secret'];
-    } else {
-      throw Exception('Error al obtener client_secret desde el backend');
-    }
+  @override
+  void dispose() {
+    _rewardedAd?.dispose();
+    _progressController.dispose();
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override

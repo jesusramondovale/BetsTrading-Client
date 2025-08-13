@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'name': 'Name',
       'type': 'Type',
       'editMethod': 'Edit method',
       'deleteMethod': 'Delete method',
@@ -267,6 +268,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'name': 'Nombre',
       'type': 'Tipo',
       'editMethod': 'Editar método',
       'deleteMethod': 'Eliminar método',
@@ -523,6 +525,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'name': 'Nom',
       'type': 'Type',
       'editMethod': 'Modifier la méthode',
       'deleteMethod': 'Supprimer la méthode',
@@ -782,6 +785,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'name': 'Nome',
       'type': 'Tipo',
       'editMethod': 'Modifica metodo',
       'deleteMethod': 'Elimina metodo',
@@ -1039,6 +1043,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'name': 'Name',
       'type': 'Typ',
       'editMethod': 'Methode bearbeiten',
       'deleteMethod': 'Methode löschen',

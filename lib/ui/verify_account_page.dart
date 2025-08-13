@@ -57,6 +57,40 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
     );
   }
 
+  void verifyExitPopDialog(String aTitle, String aBody, BuildContext aContext) {
+    showDialog(
+      barrierColor: Colors.black.withAlpha(220),
+      context: aContext,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black ,
+          title: Text(
+              aTitle,
+              style: const TextStyle(color: Colors.white)),
+          content: Text(
+            aBody,
+            style: const TextStyle(fontSize: 16.0, color: Colors.white),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (context) => const LoginPage()),
+                        (Route<dynamic> route) => false,
+                  );
+                });
+
+              },
+              child: const Text("Ok"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<int?> _validateIDButtonPressed(String anID) {
     //TO-DO: Send ID to controller
     //Common().unimplementedAction(context);
@@ -170,41 +204,6 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
                 tooltip: 'ID Verified',
               ))
           : null,
-    );
-  }
-
-
-  void verifyExitPopDialog(String aTitle, String aBody, BuildContext aContext) {
-    showDialog(
-      barrierColor: Colors.black.withAlpha(220),
-      context: aContext,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.black ,
-          title: Text(
-              aTitle,
-              style: const TextStyle(color: Colors.white)),
-          content: Text(
-            aBody,
-            style: const TextStyle(fontSize: 16.0, color: Colors.white),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                        builder: (context) => const LoginPage()),
-                        (Route<dynamic> route) => false,
-                  );
-                });
-
-              },
-              child: const Text("Ok"),
-            ),
-          ],
-        );
-      },
     );
   }
 }

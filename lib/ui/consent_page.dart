@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../locale/localized_texts.dart'; // Asegúrate de importar la clase LocalizedStrings
+import '../locale/localized_texts.dart';
 
 class ConsentPage {
   static Future<void> showConsentDialog(BuildContext context) async {

@@ -11,7 +11,6 @@ import 'package:bech32/bech32.dart';
 import 'package:base_x/base_x.dart';
 import 'package:web3dart/web3dart.dart';
 
-
 class RetireMethodsPage extends StatefulWidget {
   const RetireMethodsPage({super.key});
 
@@ -25,20 +24,6 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
   bool _loading = true;
   bool _changed = false;
   Timer? _reloadTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMethods();
-    _reloadTimer =
-        Timer.periodic(const Duration(seconds: 6), (_) => _loadMethods());
-  }
-
-  @override
-  void dispose() {
-    _reloadTimer?.cancel();
-    super.dispose();
-  }
 
   Future<void> _loadMethods() async {
     final userId = await _storage.read(key: 'sessionToken');
@@ -142,30 +127,68 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
     }
   }
 
-  IconData _iconForType(String type) {
-    switch (type.toLowerCase()) {
-      case 'bank':
-        return Icons.account_balance;
-      case 'paypal':
-        return Icons.paypal_rounded;
-      case 'crypto':
-        return Icons.currency_bitcoin;
-      default:
-        return Icons.account_balance;
-    }
-  }
+  Future<void> _showMethodDetails(BuildContext context, Map<String, dynamic> m) async {
+    final strings = LocalizedStrings.of(context);
+    final Color bgColor = Colors.grey[900]!;
+    final Color textColor = Colors.white;
 
-  String _prettyType(String type, LocalizedStrings? strings) {
-    switch (type.toLowerCase()) {
-      case 'bank':
-        return strings?.get('bankAccount') ?? 'Bank account';
-      case 'paypal':
-        return 'PayPal';
-      case 'crypto':
-        return strings?.get('blockchainNetwork') ?? 'Blockchain';
-      default:
-        return strings?.get('method') ?? 'Method';
+    final type = (m['type'] ?? '').toString();
+    final label = (m['label'] ?? '').toString();
+    final verified = (m['verified'] ?? false) == true;
+    final data = (m['data'] ?? {}) as Map<String, dynamic>;
+
+    // Construye campos según tipo
+    final List<Widget> rows = [
+      _kvRow(strings?.get('label') ?? 'Label', label, textColor),
+      Divider(thickness: 0.1),
+      _kvRow(strings?.get('type') ?? 'Type', _prettyType(type, strings), textColor),
+      Divider(thickness: 0.1),
+      _kvRow(strings?.get('verified') ?? 'Verified', verified ? (strings?.get('yes') ?? 'Yes') : (strings?.get('no') ?? 'No'), textColor),
+      Divider(thickness: 0.1),
+    ];
+
+    if (type.toLowerCase() == 'bank') {
+      final iban = (data['iban'] ?? '').toString();
+      final holder = (data['holder'] ?? '').toString();
+      final bic = (data['bic'] ?? '').toString();
+      rows.addAll([
+        _kvRow(strings?.get('iban') ?? 'IBAN', _mask(iban, keepTail: 4), textColor),
+        if (holder.isNotEmpty) _kvRow(strings?.get('accountHolder') ?? 'Account holder', holder, textColor),
+        if (bic.isNotEmpty) _kvRow(strings?.get('bicSwiftOptional') ?? 'BIC/SWIFT', bic, textColor),
+      ]);
+    } else if (type.toLowerCase() == 'paypal') {
+      final email = (data['email'] ?? '').toString();
+      rows.add(_kvRow(strings?.get('paypalEmail') ?? 'PayPal email', email, textColor));
+    } else if (type.toLowerCase() == 'crypto') {
+      final net = (data['network'] ?? '').toString();
+      final addr = (data['address'] ?? '').toString();
+      final memo = (data['memo'] ?? '').toString();
+      rows.addAll([
+        if (net.isNotEmpty) _kvRow(strings?.get('blockchainNetwork') ?? 'Network', net, textColor),
+        if (addr.isNotEmpty) _kvRow(strings?.get('address') ?? 'Address', _mask(addr, keepTail: 6), textColor),
+        if (memo.isNotEmpty) _kvRow(strings?.get('memoTagOptional') ?? 'Memo/Tag', memo, textColor),
+      ]);
     }
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: bgColor,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: rows,
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+        );
+      },
+    );
   }
 
   Future<void> _onMethodTap(BuildContext context, Map<String, dynamic> method) async {
@@ -292,75 +315,37 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
     return result ?? false;
   }
 
+  IconData _iconForType(String type) {
+    switch (type.toLowerCase()) {
+      case 'bank':
+        return Icons.account_balance;
+      case 'paypal':
+        return Icons.paypal_rounded;
+      case 'crypto':
+        return Icons.currency_bitcoin;
+      default:
+        return Icons.account_balance;
+    }
+  }
+
+  String _prettyType(String type, LocalizedStrings? strings) {
+    switch (type.toLowerCase()) {
+      case 'bank':
+        return strings?.get('bankAccount') ?? 'Bank account';
+      case 'paypal':
+        return 'PayPal';
+      case 'crypto':
+        return strings?.get('blockchainNetwork') ?? 'Blockchain';
+      default:
+        return strings?.get('method') ?? 'Method';
+    }
+  }
+
   String _mask(String value, {int keepTail = 4}) {
     if (value.isEmpty) return '—';
     if (value.length <= keepTail) return value;
     final tail = value.substring(value.length - keepTail);
     return '•••• $tail';
-  }
-
-  Future<void> _showMethodDetails(BuildContext context, Map<String, dynamic> m) async {
-    final strings = LocalizedStrings.of(context);
-    final Color bgColor = Colors.grey[900]!;
-    final Color textColor = Colors.white;
-
-    final type = (m['type'] ?? '').toString();
-    final label = (m['label'] ?? '').toString();
-    final verified = (m['verified'] ?? false) == true;
-    final data = (m['data'] ?? {}) as Map<String, dynamic>;
-
-    // Construye campos según tipo
-    final List<Widget> rows = [
-      _kvRow(strings?.get('label') ?? 'Label', label, textColor),
-      Divider(thickness: 0.1),
-      _kvRow(strings?.get('type') ?? 'Type', _prettyType(type, strings), textColor),
-      Divider(thickness: 0.1),
-      _kvRow(strings?.get('verified') ?? 'Verified', verified ? (strings?.get('yes') ?? 'Yes') : (strings?.get('no') ?? 'No'), textColor),
-      Divider(thickness: 0.1),
-    ];
-
-    if (type.toLowerCase() == 'bank') {
-      final iban = (data['iban'] ?? '').toString();
-      final holder = (data['holder'] ?? '').toString();
-      final bic = (data['bic'] ?? '').toString();
-      rows.addAll([
-        _kvRow(strings?.get('iban') ?? 'IBAN', _mask(iban, keepTail: 4), textColor),
-        if (holder.isNotEmpty) _kvRow(strings?.get('accountHolder') ?? 'Account holder', holder, textColor),
-        if (bic.isNotEmpty) _kvRow(strings?.get('bicSwiftOptional') ?? 'BIC/SWIFT', bic, textColor),
-      ]);
-    } else if (type.toLowerCase() == 'paypal') {
-      final email = (data['email'] ?? '').toString();
-      rows.add(_kvRow(strings?.get('paypalEmail') ?? 'PayPal email', email, textColor));
-    } else if (type.toLowerCase() == 'crypto') {
-      final net = (data['network'] ?? '').toString();
-      final addr = (data['address'] ?? '').toString();
-      final memo = (data['memo'] ?? '').toString();
-      rows.addAll([
-        if (net.isNotEmpty) _kvRow(strings?.get('blockchainNetwork') ?? 'Network', net, textColor),
-        if (addr.isNotEmpty) _kvRow(strings?.get('address') ?? 'Address', _mask(addr, keepTail: 6), textColor),
-        if (memo.isNotEmpty) _kvRow(strings?.get('memoTagOptional') ?? 'Memo/Tag', memo, textColor),
-      ]);
-    }
-
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          backgroundColor: bgColor,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: rows,
-              ),
-            ),
-          actionsAlignment: MainAxisAlignment.center,
-        );
-      },
-    );
   }
 
   Widget _kvRow(String k, String v, Color textColor) {
@@ -396,6 +381,20 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMethods();
+    _reloadTimer =
+        Timer.periodic(const Duration(seconds: 6), (_) => _loadMethods());
+  }
+
+  @override
+  void dispose() {
+    _reloadTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -580,10 +579,9 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
       ),
     );
   }
-
 }
 
-/// --------- NEW RETIRE METHOD SHEET  ---------
+/// --------- NEW RETIRE METHOD SHEET CLASSES ------------
 
 class _NewMethodSheet extends StatefulWidget {
   const _NewMethodSheet();
@@ -1203,6 +1201,3 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
-
-
-/// --------- NEW RETIRE METHOD SHEET  ---------

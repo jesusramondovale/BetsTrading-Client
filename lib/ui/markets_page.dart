@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:betrader/services/AssetsService.dart';
+import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../Services/BetsService.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../enums/financial_assets.dart';
@@ -16,43 +16,21 @@ import 'layout_page.dart';
 
 class MarketsView extends StatefulWidget {
   final MainMenuPageController controller;
-
   const MarketsView({super.key, required this.controller});
 
   @override
   MarketsViewState createState() => MarketsViewState();
 }
 
-class MarketsViewState extends State<MarketsView>
-    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+class MarketsViewState extends State<MarketsView> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
   List<String> groups = [];
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Map<int, List<FinancialAsset>> assetsPerTab = {};
   bool _isLoading = true;
   Set<String> _favTickers = {};
+  bool _isFavTicker(String t) => _favTickers.contains(t.toUpperCase().trim());
 
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _initGroups();
-    _loadData();
-  }
 
   void _initGroups() {
     final strings = LocalizedStrings.of(context);
@@ -98,6 +76,51 @@ class MarketsViewState extends State<MarketsView>
     setState(() {
       _favTickers = tickers;
     });
+  }
+
+  Future<void> _showAssetDetails(BuildContext context, FinancialAsset a) async {
+    final strings = LocalizedStrings.of(context);
+    final Color bgColor = Colors.grey[900]!;
+    final Color textColor = Colors.white;
+
+    // Mapeo de grupos a textos localizados (ajusta si tus claves son otras)
+    final groupPretty = _prettyGroup(a.group, strings);
+
+    // Filas clave-valor
+    final rows = <Widget>[
+      _kvRow(strings?.get('name') ?? 'Name', a.name.length > 10 ? a.name.substring(0,10) : a.name, textColor),
+      const Divider(),
+      _kvRow('Ticker', a.ticker, textColor),
+      const Divider(),
+      _kvRow(strings?.get('type') ?? 'Type', groupPretty, textColor),
+      const Divider(),
+      _kvRow(strings?.get('country') ?? 'Country', a.country.isEmpty ? '—' : a.country, textColor, showCountryFlag: true),
+    ];
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: bgColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (a.icon.isNotEmpty) ...[
+                  Center(child: _assetIcon(a, size: 120)),
+                  const SizedBox(height: 12),
+                ],
+                ...rows,
+              ],
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+        );
+      },
+    );
   }
 
   void toggleFavorite(String ticker, {bool onlyLocal = false}) async {
@@ -156,11 +179,148 @@ class MarketsViewState extends State<MarketsView>
         color: Colors.transparent,
         shape: BoxShape.circle,
       ),
-      child: const Padding(
+      child: Padding(
         padding: EdgeInsets.all(3),
-        child: Icon(Icons.star_rounded, size: 40, color: Colors.yellow),
+        child: Icon(Icons.favorite, size: 25, color: Colors.red.withValues(alpha: 0.7)),
       ),
     );
+  }
+
+  Widget _kvRow(String k, String v, Color textColor, {showCountryFlag = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 4,
+            child: Text(
+              k,
+              style: GoogleFonts.montserrat(
+                color: textColor.withValues(alpha: .85),
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 6,
+            child: Row(
+              children: [
+                Text(
+                  (v.isEmpty ? '—' : v),
+                  textAlign: TextAlign.right,
+                  style: GoogleFonts.roboto(
+                    color: textColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                if (showCountryFlag && v != "World") ... [
+                  SizedBox(width: 8),
+                  CountryFlag.fromCountryCode(
+                    Common().getCountryCode(v),
+                    height: 18,
+                    width: 25,
+                  ),
+                ]
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _assetIcon(FinancialAsset a, {double size = 40}) {
+    try {
+      if (a.icon.isNotEmpty && !a.icon.startsWith('http')) {
+        // Base64
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(size / 4),
+          child: Image.memory(
+            base64Decode(a.icon),
+            width: size,
+            height: size,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => _assetFallbackBadge(a, size),
+          ),
+        );
+      } else if (a.icon.startsWith('http')) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(size / 4),
+          child: Image.network(
+            a.icon,
+            width: size,
+            height: size,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => _assetFallbackBadge(a, size),
+          ),
+        );
+      }
+    } catch (_) {
+    }
+    return _assetFallbackBadge(a, size);
+  }
+
+  Widget _assetFallbackBadge(FinancialAsset a, double size) {
+    final text = (a.ticker.isNotEmpty ? a.ticker : a.name).toUpperCase();
+    final short = text.length <= 4 ? text : text.substring(0, 4);
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .1),
+        borderRadius: BorderRadius.circular(size / 4),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Text(
+        short,
+        style: GoogleFonts.montserrat(
+          fontSize: size * 0.32,
+          fontWeight: FontWeight.w300,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  String _prettyGroup(String group, LocalizedStrings? strings) {
+    final g = group.toLowerCase();
+    if (g.contains('crypto')) {
+      return 'Crypto';
+    } else if (g.contains('share') || g.contains('stock') || g == 'shares') {
+      return strings?.get('shares') ?? 'Shares';
+    } else if (g.contains('index') || g == 'indexes') {
+      return strings?.get('indexes') ?? 'Indexes';
+    } else if (g.contains('commod') || g == 'commodities') {
+      return strings?.get('commodities') ?? 'Commodities';
+    }
+    return group; // fallback tal cual viene del backend
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initGroups();
+    _loadData();
   }
 
   @override
@@ -199,6 +359,16 @@ class MarketsViewState extends State<MarketsView>
             controller: _tabController,
             children: List.generate(groups.length, (index) {
               final List<FinancialAsset> assets = assetsPerTab[index] ?? [];
+
+              assets.sort((a, b) {
+                final af = _isFavTicker(a.ticker);
+                final bf = _isFavTicker(b.ticker);
+                if (af != bf) return af ? -1 : 1;
+                final byName = a.name.compareTo(b.name);
+                if (byName != 0) return byName;
+                return a.ticker.compareTo(b.ticker);
+              });
+
               return GridView.builder(
                 padding: const EdgeInsets.all(6), // margen del grid
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -272,8 +442,8 @@ class MarketsViewState extends State<MarketsView>
                                     children: [
                                       ListTile(
                                         leading: Icon(
-                                          isFav ? Icons.star : Icons.star_border,
-                                          color: Colors.yellow.shade600,
+                                          isFav ? Icons.favorite_sharp : Icons.favorite_border_outlined,
+                                          color: Colors.red.shade600,
                                         ),
                                         title: Text(
                                           (isFav
@@ -321,10 +491,12 @@ class MarketsViewState extends State<MarketsView>
                                       ),
                                       ListTile(
                                         leading: const Icon(Icons.info_outline),
-                                        title: Text("Ver detalles", style: GoogleFonts.montserrat()),
+                                        title: Text(
+                                            LocalizedStrings.of(context)!.get('viewDetails') ?? "View details",
+                                            style: GoogleFonts.montserrat()),
                                         onTap: () {
-                                          Common().showFloatingSnack(context, "Unimplemented action!" , backgroundColor:  Colors.black54);
                                           Navigator.pop(context);
+                                          _showAssetDetails(context, asset);
                                         }
                                       ),
                                     ],
@@ -415,8 +587,9 @@ class MarketsViewState extends State<MarketsView>
                         ),
                         if (isFav)
                           Positioned(
-                            top: -12,
-                            left: -12,
+                            //TODO
+                            top: -7,
+                            left: -10,
                             child: _buildFavBadge(),
                           ),
                       ],
@@ -430,6 +603,5 @@ class MarketsViewState extends State<MarketsView>
       ],
     );
   }
-
 
 }

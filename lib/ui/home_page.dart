@@ -24,12 +24,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   List<Bet> _bets = [];
   String _userId = "none";
   double _userPoints = 0;
   bool showFavorites = true;
+
   Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
@@ -53,16 +53,16 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    loadUserIdAndData();
-  }
-
   void refreshFavorites() {
     setState(() {
       showFavorites = true;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserIdAndData();
   }
 
   @override

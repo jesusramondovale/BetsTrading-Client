@@ -21,9 +21,11 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
+  final _cardNumberController = TextEditingController();
+  final _expiryDateController = TextEditingController();
+  final _cardHolderNameController = TextEditingController();
+  final _cvvCodeController = TextEditingController();
   final _formKeys = List.generate(3, (_) => GlobalKey<FormBuilderState>());
-
-
   String _idCard = '';
   bool _idCardSet = false;
   String _fullName = '';
@@ -35,65 +37,67 @@ class _SignInState extends State<SignIn> {
   DateTime _birthday = DateTime.now();
   String _username = '';
   String _profilePic = '';
-
   int _currentStep = 0;
 
-  @override
-  Widget build(BuildContext context) {
-    final strings = LocalizedStrings.of(context);
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: Text(strings?.get('signIn') ?? 'Sign In'),
-        elevation: 0,
-      ),
-        body: Stack(
-          children: [
-            // Fondo
-            Positioned.fill(
-              child: Image.asset(
-                'assets/android12splash.png',
-                fit: BoxFit.cover,
-              ),
-            ),
+  Future<void> _onStepContinue() async {
 
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.2),
-                ),
-              ),
-            ),
+    if (_validateAndSaveCurrentStep()) {
+      _updateFormData(context);
+      if (_currentStep == 2) {
 
-            Column(
-              children: [
-                Container(
-                  height: 1.0,
-                  color: Colors.black,
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Stepper(
-                      currentStep: _currentStep,
-                      onStepContinue: _onStepContinue,
-                      onStepCancel: _onStepCancel,
-                      steps: _buildSteps(context),
-                      controlsBuilder: _buildControls,
-                    ),
-                  ),
-                ),
-              ],
-            )
+        String _countryCode = Common().getCountryCode(_country);
+        final result = await AuthService().register(
+            _idCard,
+            FirebaseService().firebaseToken!,
+            _fullName,
+            _password,
+            _address,
+            _countryCode,
+            _gender,
+            _email,
+            _birthday,
+            _cardNumberController.text,
+            _username,
+            _profilePic
+        );
 
+        if (result['success']) {
+          Common().logInPopDialog("Registration successful!" , _username.trim(), context);
+        } else {
+          Common().showFloatingSnack(context, "Oops... ${result['message']}", backgroundColor: Colors.red);
 
-          ],
-        )
-    );
+        }
+      }
+
+      if (_currentStep < 2){
+        setState(() {
+          _currentStep++;
+        });
+      }
+
+    }
+
   }
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime today = DateTime.now();
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(today.year - 18, today.month, today.day),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(today.year - 18, today.month, today.day),
+    );
 
+    if (picked != null) {
+      _formKeys[0].currentState?.fields['birthday']?.didChange(picked.day.toString()+"-"+picked.month.toString()+"-"+picked.year.toString());
+    }
+  }
+  void _onStepCancel() {
+    setState(() {
+      if (_currentStep > 0) {
+        _currentStep--;
+      }
+    });
+  }
   void _updateFormData(context) {
     final basicInfoForm = _formKeys[0].currentState!;
     final addressInfoForm = _formKeys[1].currentState!;
@@ -120,51 +124,22 @@ class _SignInState extends State<SignIn> {
       _birthday = DateTime.now();
     }
   }
-  Future<void> _onStepContinue() async {
+  void _navigateToCameraPage() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => CameraPage(countryCode: Common().getCountryCode(_country))),
+    );
 
-    if (_validateAndSaveCurrentStep()) {
-      _updateFormData(context);
-      if (_currentStep == 2) {
+    if (result != null) {
+      setState(() {
+        _idCard = result;
+        _idCardSet = true;
+        _formKeys[2].currentState?.fields['idCard']?.didChange(result);
 
-        String _countryCode = Common().getCountryCode(_country);
-        final result = await AuthService().register(
-          _idCard,
-          FirebaseService().firebaseToken!,
-          _fullName,
-          _password,
-          _address,
-          _countryCode,
-          _gender,
-          _email,
-          _birthday,
-          _cardNumberController.text,
-          _username,
-          _profilePic
-        );
-
-        if (result['success']) {
-          Common().logInPopDialog("Registration successful!" , _username.trim(), context);
-        } else {
-          Common().showFloatingSnack(context, "Oops... ${result['message']}", backgroundColor: Colors.red);
-
-        }
-      }
-
-      if (_currentStep < 2){
-        setState(() {
-          _currentStep++;
-        });
-      }
+      });
 
     }
-
-  }
-  void _onStepCancel() {
-    setState(() {
-      if (_currentStep > 0) {
-        _currentStep--;
-      }
-    });
   }
   List<Step> _buildSteps(context) {
     final strings = LocalizedStrings.of(context);
@@ -186,28 +161,6 @@ class _SignInState extends State<SignIn> {
       ),
     ];
   }
-  Widget _buildControls(BuildContext context, ControlsDetails details) {
-    final strings = LocalizedStrings.of(context);
-    return Row(
-      children: [
-        if (_currentStep > 0)
-          TextButton(
-            onPressed: details.onStepCancel,
-            child: Text(strings?.get('back') ?? 'Back'),
-          ),
-        const SizedBox(width: 8),
-        TextButton(
-          onPressed: () {
-            if (_validateAndSaveCurrentStep()) {
-              details.onStepContinue?.call();
-            }
-          },
-          child: Text(_currentStep == _formKeys.length - 1 ? strings?.get('signIn') ?? 'Sign In' :
-                                                             strings?.get('continueText') ?? 'Continue'),
-        ),
-      ],
-    );
-  }
   bool _validateAndSaveCurrentStep() {
     final currentForm = _formKeys[_currentStep].currentState;
 
@@ -217,19 +170,6 @@ class _SignInState extends State<SignIn> {
     }
 
     return false;
-  }
-  Future<void> _selectDate(BuildContext context) async {
-    DateTime today = DateTime.now();
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime(today.year - 18, today.month, today.day),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(today.year - 18, today.month, today.day),
-    );
-
-    if (picked != null) {
-      _formKeys[0].currentState?.fields['birthday']?.didChange(picked.day.toString()+"-"+picked.month.toString()+"-"+picked.year.toString());
-    }
   }
   Widget _buildBasicInfoStep(context) {
     final strings = LocalizedStrings.of(context);
@@ -313,7 +253,28 @@ class _SignInState extends State<SignIn> {
       }).toList(),
     );
   }
-
+  Widget _buildControls(BuildContext context, ControlsDetails details) {
+    final strings = LocalizedStrings.of(context);
+    return Row(
+      children: [
+        if (_currentStep > 0)
+          TextButton(
+            onPressed: details.onStepCancel,
+            child: Text(strings?.get('back') ?? 'Back'),
+          ),
+        const SizedBox(width: 8),
+        TextButton(
+          onPressed: () {
+            if (_validateAndSaveCurrentStep()) {
+              details.onStepContinue?.call();
+            }
+          },
+          child: Text(_currentStep == _formKeys.length - 1 ? strings?.get('signIn') ?? 'Sign In' :
+          strings?.get('continueText') ?? 'Continue'),
+        ),
+      ],
+    );
+  }
   Widget _buildCredentialsStep(context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilder(
@@ -440,24 +401,6 @@ class _SignInState extends State<SignIn> {
       ),
     );
   }
-
-  void _navigateToCameraPage() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => CameraPage(countryCode: Common().getCountryCode(_country))),
-    );
-
-    if (result != null) {
-      setState(() {
-        _idCard = result;
-        _idCardSet = true;
-        _formKeys[2].currentState?.fields['idCard']?.didChange(result);
-
-      });
-
-    }
-  }
   Widget _buildPasswordField(context , String label, String name, IconData icon, bool readonly, GlobalKey<FormBuilderState> formKey, {bool obscureText = true, void Function()? onTap}) {
     final strings = LocalizedStrings.of(context);
     return FormBuilderTextField(
@@ -508,30 +451,6 @@ class _SignInState extends State<SignIn> {
     );
   }
 
-  /* Unused
-  Widget _buildNumericField(String label, String name, IconData icon, bool readonly, {bool obscureText = false, void Function()? onTap, bool isIconEnabled = true}) {
-    return FormBuilderTextField(
-      readOnly: readonly,
-      name: name,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: isIconEnabled ? Icon(icon) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-      ),
-      obscureText: obscureText,
-      onTap: onTap,
-      keyboardType: TextInputType.number,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      validator: FormBuilderValidators.compose([
-        FormBuilderValidators.required(errorText: 'This field is required'),
-        FormBuilderValidators.numeric(errorText: 'Please enter a valid number'),
-      ]),
-    );
-  } */
-
   @override
   void dispose() {
     _cardNumberController.dispose();
@@ -541,8 +460,59 @@ class _SignInState extends State<SignIn> {
     super.dispose();
   }
 
-  final _cardNumberController = TextEditingController();
-  final _expiryDateController = TextEditingController();
-  final _cardHolderNameController = TextEditingController();
-  final _cvvCodeController = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
+    return Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          title: Text(strings?.get('signIn') ?? 'Sign In'),
+          elevation: 0,
+        ),
+        body: Stack(
+          children: [
+            // Fondo
+            Positioned.fill(
+              child: Image.asset(
+                'assets/android12splash.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.2),
+                ),
+              ),
+            ),
+
+            Column(
+              children: [
+                Container(
+                  height: 1.0,
+                  color: Colors.black,
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Stepper(
+                      currentStep: _currentStep,
+                      onStepContinue: _onStepContinue,
+                      onStepCancel: _onStepCancel,
+                      steps: _buildSteps(context),
+                      controlsBuilder: _buildControls,
+                    ),
+                  ),
+                ),
+              ],
+            )
+
+
+          ],
+        )
+    );
+  }
 }

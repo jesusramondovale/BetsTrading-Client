@@ -42,14 +42,6 @@ class _ExactPricePageState extends State<ExactPricePage> {
   bool _isAcceptEnabled = false;
   final TextEditingController _priceController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedPrice = widget.currentValue;
-    _priceController.text = _selectedPrice.toStringAsFixed(2);
-    _loadUserPoints();
-  }
-
   Future<void> _loadUserPoints() async {
     final String? pointsStr = await _storage.read(key: 'points');
     setState(() {
@@ -261,6 +253,14 @@ class _ExactPricePageState extends State<ExactPricePage> {
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPrice = widget.currentValue;
+    _priceController.text = _selectedPrice.toStringAsFixed(2);
+    _loadUserPoints();
   }
 
   @override

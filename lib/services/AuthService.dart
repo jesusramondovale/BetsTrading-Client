@@ -233,7 +233,7 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> refreshFCM(String userId, String token) async {
-    final response = await Common().postRequestWrapper('Auth','RefreshFCM', {'user_id':userId ,'fcm_token': token});
+    final response = await Common().postRequestWrapper('Auth','RefreshFCM', {'user_id':userId ,'token': token});
 
     if (response['statusCode'] == 200) {
       await _storage.write(key: 'fcmToken', value: token);

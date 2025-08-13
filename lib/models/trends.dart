@@ -360,7 +360,7 @@ class TrendContainerState extends State<TrendContainer> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // icono o letras
-                          if (widget.trend.icon != "null") ...[
+                          if (widget.trend.icon != "null" && !widget.trend.icon.startsWith("http")) ...[
                             Image.memory(
                               base64Decode(widget.trend.icon),
                               height: 42,
@@ -374,7 +374,25 @@ class TrendContainerState extends State<TrendContainer> {
                                     textAlign: TextAlign.center,
                                   ),
                             )
-                          ] else ...[
+                          ]
+                          else if (widget.trend.icon.startsWith("http")) ... [
+                            Image.network(
+                              widget.trend.icon,
+                              width: 42,
+                              height: 42,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Text(
+                                    widget.trend.name,
+                                    maxLines: 1,
+                                    style: GoogleFonts.roboto(
+                                        fontSize: 36, fontWeight: FontWeight.w100),
+                                    textAlign: TextAlign.center,
+                                  ),
+                            )
+
+                          ]
+                          else ...[
                             AutoSizeText(
                               Common().createTrendViewName(widget.trend),
                               maxLines: 1,

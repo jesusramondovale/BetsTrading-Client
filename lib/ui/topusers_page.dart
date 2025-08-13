@@ -30,80 +30,6 @@ class _TopUsersPageState extends State<TopUsersPage>
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadUserIdAndData();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  void popUserDialog(BuildContext context, User user) {
-    showGeneralDialog(
-      context: context,
-      pageBuilder: (BuildContext buildContext, Animation<double> animation,
-          Animation<double> secondaryAnimation) {
-        return UserDialog(user: user);
-      },
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black.withValues(alpha:0.5),
-      transitionDuration: const Duration(milliseconds: 300),
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.8, end: 1.0).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutBack,
-            )),
-            child: child,
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final strings = LocalizedStrings.of(context);
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        title: Text('Rankings',
-            style: GoogleFonts.montserrat(
-              fontSize: 28,
-              fontWeight: FontWeight.w400,
-            )),
-        bottom: TabBar(
-          labelStyle: GoogleFonts.comfortaa(
-            fontSize: 22,
-            fontWeight: FontWeight.w400,
-          ),
-          controller: _tabController,
-          tabs: [
-            Tab(text: strings?.get('worldwide') ?? 'Worldide',),
-            Tab(text: strings?.get('yourCountry') ?? 'Your Country'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildTopUsersView(),
-          _buildTopUsersByCountryView(),
-        ],
-      ),
-    );
-  }
-
   Widget _buildTopUsersView() {
     return FutureBuilder<List<User>>(
       future: TopService().fetchTopUsers(_userId),
@@ -153,15 +79,15 @@ class _TopUsersPageState extends State<TopUsersPage>
                             top: 0,
                             left: 0,
                             child:
-                                _buildTopBadge(Icons.emoji_events, Colors.grey),
+                            _buildTopBadge(Icons.emoji_events, Colors.grey),
                           )
                         else if (index == 2)
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            child: _buildTopBadge(
-                                Icons.emoji_events, Colors.brown),
-                          ),
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              child: _buildTopBadge(
+                                  Icons.emoji_events, Colors.brown),
+                            ),
                       ],
                     ),
                     title: Text(
@@ -176,10 +102,10 @@ class _TopUsersPageState extends State<TopUsersPage>
                       children: [
                         Text(
                           NumberFormat.compact().format(user.points),
-                            style: GoogleFonts.roboto(
-                            fontSize: 20,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w200),
+                          style: GoogleFonts.roboto(
+                              fontSize: 20,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w200),
                         ),
                         SizedBox(width: 4),
                         Container(
@@ -301,17 +227,92 @@ class _TopUsersPageState extends State<TopUsersPage>
   }
 
   Widget _buildTopBadge(IconData icon, Color color) {
-      return Container(
-        padding: EdgeInsets.all(4.0),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 1),
-          shape: BoxShape.circle,
+    return Container(
+      padding: EdgeInsets.all(4.0),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        icon,
+        color: Colors.white,
+        size: 16.0,
+      ),
+    );
+  }
+
+  void popUserDialog(BuildContext context, User user) {
+    showGeneralDialog(
+      context: context,
+      pageBuilder: (BuildContext buildContext, Animation<double> animation,
+          Animation<double> secondaryAnimation) {
+        return UserDialog(user: user);
+      },
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withValues(alpha:0.5),
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.8, end: 1.0).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutBack,
+            )),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserIdAndData();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        title: Text('Rankings',
+            style: GoogleFonts.montserrat(
+              fontSize: 28,
+              fontWeight: FontWeight.w400,
+            )),
+        bottom: TabBar(
+          labelStyle: GoogleFonts.comfortaa(
+            fontSize: 22,
+            fontWeight: FontWeight.w400,
+          ),
+          controller: _tabController,
+          tabs: [
+            Tab(text: strings?.get('worldwide') ?? 'Worldide',),
+            Tab(text: strings?.get('yourCountry') ?? 'Your Country'),
+          ],
         ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 16.0,
-        ),
-      );
-    }
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildTopUsersView(),
+          _buildTopUsersByCountryView(),
+        ],
+      ),
+    );
+  }
+
 }

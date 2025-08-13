@@ -34,23 +34,6 @@ class _WithdrawPageState extends State<WithdrawPage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final Map<String, Map<String, String>> _userAvailableMethods = {};
 
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-
-    if (_userAvailableMethods.isNotEmpty) {
-      _selectedMethod = _userAvailableMethods.keys.first;
-    }
-  }
-
-  String _mask(String v, {int keep = 4}) {
-    if (v.isEmpty) return '—';
-    if (v.length <= keep) return v;
-    final tail = v.substring(v.length - keep);
-    return '•••• $tail';
-  }
-
   Future<void> _loadData() async {
     final id = await _storage.read(key: 'sessionToken');
     if (id == null) return;
@@ -124,6 +107,23 @@ class _WithdrawPageState extends State<WithdrawPage> {
           ? null
           : _userAvailableMethods.keys.first;
     });
+  }
+
+  String _mask(String v, {int keep = 4}) {
+    if (v.isEmpty) return '—';
+    if (v.length <= keep) return v;
+    final tail = v.substring(v.length - keep);
+    return '•••• $tail';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+
+    if (_userAvailableMethods.isNotEmpty) {
+      _selectedMethod = _userAvailableMethods.keys.first;
+    }
   }
 
   @override

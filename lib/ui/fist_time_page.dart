@@ -28,6 +28,18 @@ class _FirstTimePageState extends State<FirstTimePage> {
   String? _confirmPasswordError;
   String? _userId;
 
+  Future<void> _init() async {
+    final bytes = await rootBundle.load('assets/new_icon.png');
+    final base64 = base64Encode(bytes.buffer.asUint8List());
+
+    final userId = await _storage.read(key: 'sessionToken');
+
+    setState(() {
+      _coinIconBase64 = base64;
+      _userId = userId;
+    });
+  }
+
   Future<void> _loadCoinImage() async {
     final bytes = await rootBundle.load('assets/new_icon.png');
     final base64 = base64Encode(bytes.buffer.asUint8List());
@@ -36,13 +48,6 @@ class _FirstTimePageState extends State<FirstTimePage> {
       _coinIconBase64 = base64;
       _userId = userId;
     } );
-  }
-
-  bool _isPasswordValid(String password) {
-    final hasUppercase = password.contains(RegExp(r'[A-Z]'));
-    final hasNumber = password.contains(RegExp(r'[0-9]'));
-    final longEnough = password.length >= 12;
-    return hasUppercase && hasNumber && longEnough;
   }
 
   void _validateForm() {
@@ -68,22 +73,17 @@ class _FirstTimePageState extends State<FirstTimePage> {
     });
   }
 
+  bool _isPasswordValid(String password) {
+    final hasUppercase = password.contains(RegExp(r'[A-Z]'));
+    final hasNumber = password.contains(RegExp(r'[0-9]'));
+    final longEnough = password.length >= 12;
+    return hasUppercase && hasNumber && longEnough;
+  }
+
   @override
   void initState() {
     super.initState();
     _init();
-  }
-
-  Future<void> _init() async {
-    final bytes = await rootBundle.load('assets/new_icon.png');
-    final base64 = base64Encode(bytes.buffer.asUint8List());
-
-    final userId = await _storage.read(key: 'sessionToken');
-
-    setState(() {
-      _coinIconBase64 = base64;
-      _userId = userId;
-    });
   }
 
   @override

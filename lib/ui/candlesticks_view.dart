@@ -36,13 +36,6 @@ class CandlesticksViewState extends State<CandlesticksView> {
   bool _isLoading = true;
   late bool _inactive_zone;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-    _inactive_zone = widget.betId != null;
-  }
-
   Future<void> _loadData() async {
     try {
       final List<Candle> candles;
@@ -70,6 +63,13 @@ class CandlesticksViewState extends State<CandlesticksView> {
         _isLoading = false;
       });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+    _inactive_zone = widget.betId != null;
   }
 
   @override
