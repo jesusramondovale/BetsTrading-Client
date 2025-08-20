@@ -3,6 +3,7 @@ import 'package:betrader/services/AssetsService.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../Services/BetsService.dart';
 import '../candlesticks/src/models/candle.dart';
@@ -181,7 +182,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       ),
       child: Padding(
         padding: EdgeInsets.all(3),
-        child: Icon(Icons.favorite, size: 25, color: Colors.red.withValues(alpha: 0.7)),
+        child: Icon(FontAwesomeIcons.solidBookmark, size: 25, color: Colors.white70.withValues(alpha: 0.7)),
       ),
     );
   }
@@ -442,8 +443,8 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                                     children: [
                                       ListTile(
                                         leading: Icon(
-                                          isFav ? Icons.favorite_sharp : Icons.favorite_border_outlined,
-                                          color: Colors.red.shade600,
+                                          isFav ? FontAwesomeIcons.solidBookmark : FontAwesomeIcons.bookmark,
+                                          color: Colors.white70,
                                         ),
                                         title: Text(
                                           (isFav
@@ -457,7 +458,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                                         },
                                       ),
                                       ListTile(
-                                        leading: const Icon(Icons.flash_on_sharp),
+                                        leading: const Icon(FontAwesomeIcons.crosshairs),
                                         title: Text(
                                           LocalizedStrings.of(context)!.get('exactPriceBets') ?? "Exact price bets",
                                           style: GoogleFonts.montserrat(),

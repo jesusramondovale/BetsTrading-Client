@@ -9,6 +9,7 @@ import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -923,9 +924,9 @@ class Common {
       case 'email':
         return const Icon(Icons.email);
       case 'birthday':
-        return const Icon(Icons.cake);
+        return const Icon(FontAwesomeIcons.cakeCandles);
       case 'country':
-        return const Icon(Icons.flag);
+        return const Icon(FontAwesomeIcons.flag);
       case 'lastsession':
         return const Icon(Icons.access_time);
       default:

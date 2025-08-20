@@ -6,6 +6,7 @@ import 'package:betrader/ui/settings_view.dart';
 import 'package:betrader/ui/store_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -86,8 +87,8 @@ class HomeScreenState extends State<HomeScreen> {
               children: [
                 IconButton(
                   padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                  icon: Icon(Icons.settings),
-                  iconSize: 30,
+                  icon: Icon(FontAwesomeIcons.gear),
+                  iconSize: 25,
                   color: Colors.white70,
                   onPressed: () {
                     Common().vibrate(40,30);
@@ -322,7 +323,7 @@ class HomeScreenState extends State<HomeScreen> {
                       fontSize: 20, fontWeight: FontWeight.w400),
                 ),
                 Spacer(),
-                IconButton(icon: Icon(Icons.auto_delete),
+                IconButton(icon: Icon(Icons.auto_delete), color: Colors.white70,
                     onPressed:  () async {
                         Common().vibrate(40,30);
                         bool result = await BetsService().deleteHistoricBets(_userId);
@@ -334,7 +335,7 @@ class HomeScreenState extends State<HomeScreen> {
                         }
                 }
                 ),
-                IconButton(icon: Icon(Icons.autorenew_rounded),
+                IconButton(icon: Icon(FontAwesomeIcons.rotate), color: Colors.white70,
                   onPressed: () async => {
                   Common().vibrate(40,30),
                   await BetsService().getUserInfo(_userId),

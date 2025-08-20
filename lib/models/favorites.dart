@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../helpers/common.dart';
@@ -160,17 +161,24 @@ class FavoriteDialog extends StatelessWidget {
                           color: Colors.white,
                         ),
                       ),
-                      Text(
-                        (favorite.dailyGain > 0.0)
-                            ? '▲ ${(favorite.dailyGain).toStringAsFixed(2)}%'
-                            : '▼ ${(favorite.dailyGain.abs()).toStringAsFixed(2)}%',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 25,
-                          fontWeight: FontWeight.w400,
-                          color: favorite.dailyGain > 0.0
-                              ? Colors.green
-                              : Colors.red,
-                        ),
+                      Row(
+                        children: [
+                          (favorite.dailyGain >= 0.0)
+                              ? Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.green, size: 20)
+                              : Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 20),
+                          Text(
+                            (favorite.dailyGain >= 0.0)
+                                ? ' ${(favorite.dailyGain).toStringAsFixed(2)}%'
+                                : ' ${(favorite.dailyGain.abs()).toStringAsFixed(2)}%',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 25,
+                              fontWeight: FontWeight.w400,
+                              color: favorite.dailyGain >= 0.0
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -197,7 +205,7 @@ class FavoriteDialog extends StatelessWidget {
                           IconButton(
                             icon: const Icon(
                                 size: 42,
-                                Icons.auto_graph_sharp,
+                                FontAwesomeIcons.chartLine,
                                 color: Colors.white),
                             onPressed: () {
                               Navigator.of(context).pop();
@@ -381,17 +389,25 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                           color: Colors.white,
                         ),
                       ),
-                      Text(
-                        (widget.favorite.dailyGain > 0.0)
-                            ? '▲ ${(widget.favorite.dailyGain).toStringAsFixed(2)}%'
-                            : '▼ ${(widget.favorite.dailyGain.abs()).toStringAsFixed(2)}%',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight:FontWeight.w300,
-                          color: widget.favorite.dailyGain >= 0.0
-                              ? Colors.green
-                              : Colors.red,
-                        ),
+
+                      Row(
+                        children: [
+                          (widget.favorite.dailyGain >= 0.0)
+                              ? Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.green, size: 12)
+                              : Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 12),
+                          Text(
+                            (widget.favorite.dailyGain >= 0.0)
+                                ? ' ${(widget.favorite.dailyGain).toStringAsFixed(2)}%'
+                                : ' ${(widget.favorite.dailyGain.abs()).toStringAsFixed(2)}%',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight:FontWeight.w300,
+                              color: widget.favorite.dailyGain >= 0.0
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

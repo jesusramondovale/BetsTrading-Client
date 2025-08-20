@@ -72,7 +72,7 @@ dependencies:
   bech32: ^0.2.2
   base_x: ^2.0.0
   web3dart: ^2.7.1
-
+  font_awesome_flutter: ^10.9.1
 
 flutter_launcher_icons:
   android: true

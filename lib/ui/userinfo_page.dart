@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:betrader/ui/verify_account_page.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/services/BetsService.dart';
@@ -166,7 +167,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 title: Text(title),
                 subtitle: subtitle,
                 trailing: IconButton(
-                      icon: const Icon(Icons.camera_alt),
+                      icon: const Icon(FontAwesomeIcons.camera),
                       onPressed: () async {
                         String? sessionToken =
                         await _storage.read(key: 'sessionToken');
@@ -231,7 +232,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
           listItems.add(
             ListTile(
-              leading: const Icon(Icons.logout),
+              leading: const Icon(FontAwesomeIcons.arrowRightFromBracket),
               title: Text(strings?.get('logOut') ?? 'Log Out'),
               onTap: () async {
                 final response = await AuthService().logOut();

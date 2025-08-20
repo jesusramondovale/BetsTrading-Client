@@ -3,12 +3,15 @@ import 'dart:convert';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../ui/candlesticks_view.dart';
+import '../ui/exact_price_view.dart';
 import '../ui/layout_page.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -95,20 +98,18 @@ class PriceBet {
   final DateTime endDate;
   final String iconPath;
 
-
-  PriceBet(
-      {
-        required this.id,
-        required this.name,
-        required this.ticker,
-        required this.priceBet,
-        required this.paid,
-        required this.margin,
-        required this.userId,
-        required this.betDate,
-        required this.endDate,
-        required this.iconPath,
-      });
+  PriceBet({
+    required this.id,
+    required this.name,
+    required this.ticker,
+    required this.priceBet,
+    required this.paid,
+    required this.margin,
+    required this.userId,
+    required this.betDate,
+    required this.endDate,
+    required this.iconPath,
+  });
 
   PriceBet.fromJson(Map<String, dynamic> json)
       : id = json['id'],
@@ -166,9 +167,8 @@ class RecentBetDialog extends StatelessWidget {
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Text(message,
-                style: GoogleFonts.josefinSans(
-                    fontSize: 12,
-                    color:Colors.white)),
+                style:
+                    GoogleFonts.josefinSans(fontSize: 12, color: Colors.white)),
           ),
         ),
       ),
@@ -206,33 +206,32 @@ class RecentBetDialog extends StatelessWidget {
             ),
             icon != Icons.casino
                 ? Text(
-              value,
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: color,
-              ),
-            )
+                    value,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: color,
+                    ),
+                  )
                 : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  value,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Image.asset(
-                  'assets/coin.png',
-                  width: 16,
-                  height: 16,
-                ),
-              ],
-            )
-
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        value,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: color,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Image.asset(
+                        'assets/coin.png',
+                        width: 16,
+                        height: 16,
+                      ),
+                    ],
+                  )
           ],
         ),
       ),
@@ -273,7 +272,8 @@ class RecentBetDialog extends StatelessWidget {
                   children: [
                     Row(
                       children: <Widget>[
-                        if (bet.iconPath != "null" && !bet.iconPath.contains("http")) ...[
+                        if (bet.iconPath != "null" &&
+                            !bet.iconPath.contains("http")) ...[
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8.0),
                             child: Image.memory(
@@ -282,46 +282,42 @@ class RecentBetDialog extends StatelessWidget {
                               width: 100,
                               errorBuilder: (context, error, stackTrace) =>
                                   Text(
-                                    bet.name,
-                                    maxLines: 1,
-                                    style: GoogleFonts.roboto(
-                                        fontSize: 36, fontWeight: FontWeight.w100),
-                                    textAlign: TextAlign.center,
-                                  ),
-                            ),
-                          ),
-                        ] else if (bet.iconPath != "null")...[
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Image.network(
-                              bet.iconPath,
-                              height: 100,
-                              width: 100,
-                              errorBuilder: (context,error,stackTrace) {
-                                return AutoSizeText(
-                                  bet.name,
-                                  maxLines: 1,
-                                  style: GoogleFonts.josefinSans(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                );
-                              }
-                            ),
-                          ),
-                        ]
-                        else ...[
-                            AutoSizeText(
-                              bet.name,
-                              maxLines: 1,
-                              style: GoogleFonts.josefinSans(
-                                fontSize: 30,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
+                                bet.name,
+                                maxLines: 1,
+                                style: GoogleFonts.roboto(
+                                    fontSize: 36, fontWeight: FontWeight.w100),
+                                textAlign: TextAlign.center,
                               ),
                             ),
-                          ],
+                          ),
+                        ] else if (bet.iconPath != "null") ...[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.network(bet.iconPath,
+                                height: 100, width: 100,
+                                errorBuilder: (context, error, stackTrace) {
+                              return AutoSizeText(
+                                bet.name,
+                                maxLines: 1,
+                                style: GoogleFonts.josefinSans(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              );
+                            }),
+                          ),
+                        ] else ...[
+                          AutoSizeText(
+                            bet.name,
+                            maxLines: 1,
+                            style: GoogleFonts.josefinSans(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                         const Spacer(),
                       ],
                     ),
@@ -400,7 +396,7 @@ class RecentBetDialog extends StatelessWidget {
                             strings?.get('targetDate') ?? "Target date"),
                         _buildGridItem(
                             context,
-                            Icons.data_object_sharp,
+                            FontAwesomeIcons.arrowsLeftRightToLine,
                             '${bet.targetMargin.toStringAsFixed(2)}%',
                             strings?.get('targetMargin') ?? "Target margin"),
                         _buildGridItem(
@@ -557,9 +553,6 @@ class RecentPriceBetDialog extends StatelessWidget {
     final marginText = '${priceBet.margin.toStringAsFixed(2)}%';
     final betDateStr = DateFormat('dd-MM-yyyy').format(priceBet.betDate);
     final endDateStr = DateFormat('dd-MM-yyyy').format(priceBet.endDate);
-    final statusStr = priceBet.paid == true
-        ? (strings?.get('paid') ?? 'Paid')
-        : (strings?.get('unpaid') ?? 'Unpaid');
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -596,14 +589,14 @@ class RecentPriceBetDialog extends StatelessWidget {
                               width: 100,
                               errorBuilder: (context, error, stackTrace) =>
                                   Text(
-                                    priceBet.name,
-                                    maxLines: 1,
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w100,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
+                                priceBet.name,
+                                maxLines: 1,
+                                style: GoogleFonts.roboto(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.w100,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ] else if (priceBet.iconPath != "null") ...[
@@ -666,7 +659,7 @@ class RecentPriceBetDialog extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Image.asset(
-                            'assets/coin.png',
+                            'assets/euro.png',
                             width: 24,
                             height: 24,
                             fit: BoxFit.contain,
@@ -679,7 +672,8 @@ class RecentPriceBetDialog extends StatelessWidget {
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 15.0,
                         mainAxisSpacing: 15.0,
@@ -694,7 +688,7 @@ class RecentPriceBetDialog extends StatelessWidget {
                         ),
                         _buildGridItem(
                           context,
-                          Icons.data_object_sharp,
+                          FontAwesomeIcons.arrowsLeftRightToLine,
                           marginText,
                           strings?.get('targetMargin') ?? 'Target margin',
                         ),
@@ -703,12 +697,6 @@ class RecentPriceBetDialog extends StatelessWidget {
                           Icons.label_outline,
                           priceBet.ticker,
                           'Ticker',
-                        ),
-                        _buildGridItem(
-                          context,
-                          Icons.person_outline,
-                          priceBet.userId,
-                          'User ID',
                         ),
                         _buildGridItem(
                           context,
@@ -724,15 +712,6 @@ class RecentPriceBetDialog extends StatelessWidget {
                         ),
                         _buildGridItem(
                           context,
-                          priceBet.paid == true
-                              ? Icons.check_circle
-                              : Icons.cancel,
-                          statusStr,
-                          strings?.get('status') ?? 'Status',
-                          color: priceBet.paid == true ? Colors.green : Colors.red,
-                        ),
-                        _buildGridItem(
-                          context,
                           Icons.numbers,
                           priceBet.id.toString(),
                           'ID',
@@ -745,46 +724,29 @@ class RecentPriceBetDialog extends StatelessWidget {
                       children: [
                         IconButton(
                           icon: const Icon(
-                            size: 42,
-                            Icons.remove_red_eye_outlined,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.transparent,
-                              builder: (BuildContext context) {
-                                return ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(25.0),
-                                  ),
-                                  child: Container(
-                                    color:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                    height:
-                                    MediaQuery.of(context).size.height * 0.6,
-                                    child: OverflowBox(
-                                      alignment: Alignment.topCenter,
-                                      maxHeight:
-                                      MediaQuery.of(context).size.height,
-                                      child: Column(
-                                        children: [
-                                          Expanded(
-                                            child: CandlesticksView(
-                                              ticker: priceBet.ticker,
-                                              betId: priceBet.id,
-                                              name: priceBet.name,
-                                              controller: controller,
-                                              iconPath: priceBet.iconPath,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
+                              size: 42,
+                              FontAwesomeIcons.crosshairs,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 1.5,
+                                  color: Colors.black45,
+                                  offset: Offset(8.0, 4.0),
+                                )
+                              ]),
+                          onPressed: () async {
+                            List<Candle> candles = await BetsService()
+                                .fetchCandles(priceBet.ticker);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ExactPricePage(
+                                  name: priceBet.name,
+                                  ticker: priceBet.ticker,
+                                  currentValue: candles.first.close,
+                                  iconPath: priceBet.iconPath,
+                                ),
+                              ),
                             );
                           },
                         ),
@@ -860,9 +822,9 @@ class RecentBetContainerState extends State<RecentBetContainer> {
     int daysUntilFinal = widget.bet.endDate.difference(DateTime.now()).inDays;
     final strings = LocalizedStrings.of(context);
     String? trailingText =
-    (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
-        ? (widget.bet.profitLoss)?.toStringAsFixed(2)
-        : '¿?';
+        (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
+            ? (widget.bet.profitLoss)?.toStringAsFixed(2)
+            : '¿?';
     //TODO
     //String currency = 'xd';
 
@@ -923,10 +885,15 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                   final result = await BetsService()
                       .deleteRecentBet(widget.bet.id.toString());
                   if (result) {
-                    Common().showFloatingSnack(context,LocalizedStrings.of(context)!.get('deletedSuccessfully') ?? "Borrado con éxito!");
+                    Common().showFloatingSnack(
+                        context,
+                        LocalizedStrings.of(context)!
+                                .get('deletedSuccessfully') ??
+                            "Borrado con éxito!");
                     widget.onDelete();
                   } else {
-                    Common().showFloatingSnack(context,  "Error!", backgroundColor: Colors.red);
+                    Common().showFloatingSnack(context, "Error!",
+                        backgroundColor: Colors.red);
                   }
                 },
                 backgroundColor: Colors.red,
@@ -937,7 +904,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
           ),
           child: ListTile(
               contentPadding:
-              const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
               onLongPress: _triggerBetButtons,
               onTap: () {
                 (_showEditButtons)
@@ -949,41 +916,45 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                 borderRadius: BorderRadius.circular(10.0),
                 child: (widget.bet.iconPath.contains("http")
                     ? Image.network(
-                  widget.bet.iconPath,
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return AutoSizeText(
-                        Common().createTrendViewNameFromName(widget.bet.name),
-                        maxLines: 1,
-                        style: GoogleFonts.josefinSans(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ));
-                  },
-                )
+                        widget.bet.iconPath,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return AutoSizeText(
+                              Common()
+                                  .createTrendViewNameFromName(widget.bet.name),
+                              maxLines: 1,
+                              style: GoogleFonts.josefinSans(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ));
+                        },
+                      )
                     : (widget.bet.iconPath != "null"
-                    ? Image.memory(base64Decode(widget.bet.iconPath),
-                    width: 50, height: 50, fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        Text(
-                          widget.bet.name,
-                          maxLines: 1,
-                          style: GoogleFonts.roboto(
-                              fontSize: 36, fontWeight: FontWeight.w100),
-                          textAlign: TextAlign.center,
-                        ))
-                    : AutoSizeText(
-                  Common().createTrendViewNameFromName(widget.bet.name),
-                  maxLines: 1,
-                  style: GoogleFonts.josefinSans(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ))),
+                        ? Image.memory(base64Decode(widget.bet.iconPath),
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Text(
+                                  widget.bet.name,
+                                  maxLines: 1,
+                                  style: GoogleFonts.roboto(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w100),
+                                  textAlign: TextAlign.center,
+                                ))
+                        : AutoSizeText(
+                            Common()
+                                .createTrendViewNameFromName(widget.bet.name),
+                            maxLines: 1,
+                            style: GoogleFonts.josefinSans(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ))),
               ),
               title: Text(
                 maxLines: 1,
@@ -996,98 +967,107 @@ class RecentBetContainerState extends State<RecentBetContainer> {
               ),
               subtitle: _showEditButtons
                   ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 6),
-                  Text(
-                    maxLines: 1,
-                    '(${widget.bet.betAmount.toStringAsFixed(2)}🪙 @ ${widget.bet.originValue})',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 14,
-                      color: Colors.grey,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 6),
+                        Text(
+                          maxLines: 1,
+                          '(${widget.bet.betAmount.toStringAsFixed(2)}🪙 @ ${widget.bet.originValue})',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          maxLines: 1,
+                          '${widget.bet.targetDate.year}-${widget.bet.targetDate.month}-${widget.bet.targetDate.day} @ ${widget.bet.targetValue} ± ${widget.bet.targetMargin}%',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.cyanAccent,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        (widget.dailyGain >= 0.0)
+                        ? Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.green, size: 12)
+                        : Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 12),
+                        Text(
+                          (widget.dailyGain >= 0.0)
+                              ? ' ${(widget.dailyGain * 100).toStringAsFixed(2)}%'
+                              : ' ${(widget.dailyGain.abs() * 100).toStringAsFixed(2)}%',
+                          style: GoogleFonts.rajdhani(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: widget.dailyGain >= 0.0
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                        )
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    maxLines: 1,
-                    '${widget.bet.targetDate.year}-${widget.bet.targetDate.month}-${widget.bet.targetDate.day} @ ${widget.bet.targetValue} ± ${widget.bet.targetMargin}%',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.cyanAccent,
-                    ),
-                  ),
-                ],
-              )
-                  : Text(
-                (widget.dailyGain > 0.0)
-                    ? '▲ ${(widget.dailyGain * 100).toStringAsFixed(2)}%'
-                    : '▼ ${(widget.dailyGain.abs() * 100).toStringAsFixed(2)}%',
-                style: GoogleFonts.rajdhani(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: widget.dailyGain > 0.0 ? Colors.green : Colors.red,
-                ),
-              ),
               trailing: _showEditButtons
                   ? null
                   : Column(
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        trailingText!,
-                        maxLines: 1,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w300,
-                          color: widget.bet.targetDate.isAfter(DateTime.now())
-                              ? Colors.grey
-                              : widget.bet.targetWon == true
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Image.asset(
-                        'assets/coin.png',
-                        width: 20,
-                        height: 20,
-                        fit: BoxFit.contain,
-                      ),
-                    ],
-                  ),
-                  Container(
-                    width: 61,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          (daysUntilTarget > 0
-                              ? "$daysUntilTarget ${strings?.get('day') ?? "day/s"}"
-                              : (daysUntilFinal >= 0
-                              ? strings?.get('onPlay') ?? "On play!"
-                              : strings?.get('finished') ?? "Finished")),
-                          style: GoogleFonts.rajdhani(
-                            fontSize: 12,
-                            color: Colors.white,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              trailingText!,
+                              maxLines: 1,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w300,
+                                color: widget.bet.targetDate
+                                        .isAfter(DateTime.now())
+                                    ? Colors.grey
+                                    : widget.bet.targetWon == true
+                                        ? Colors.green
+                                        : Colors.red,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Image.asset(
+                              'assets/coin.png', //TODO
+                              width: 20,
+                              height: 20,
+                              fit: BoxFit.contain,
+                            ),
+                          ],
+                        ),
+                        Container(
+                          width: 61,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                (daysUntilTarget > 0
+                                    ? "$daysUntilTarget ${strings?.get('day') ?? "day/s"}"
+                                    : (daysUntilFinal >= 0
+                                        ? strings?.get('onPlay') ?? "On play!"
+                                        : strings?.get('finished') ??
+                                            "Finished")),
+                                style: GoogleFonts.rajdhani(
+                                  fontSize: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Icon(
+                                (daysUntilTarget >= 0
+                                    ? FontAwesomeIcons.hourglassHalf
+                                    : Icons.timer_off_outlined),
+                                size: 16,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 5),
-                        Icon(
-                          (daysUntilTarget > 0
-                              ? Icons.watch_later
-                              : Icons.timer_off_outlined),
-                          size: 16,
-                        ),
                       ],
-                    ),
-                  ),
-                ],
-              )
-
-          ),
+                    )),
         ),
       ],
     );
@@ -1100,9 +1080,9 @@ class RecentPriceBetContainer extends StatefulWidget {
   final MainMenuPageController controller;
   const RecentPriceBetContainer(
       {super.key,
-        required this.priceBet,
-        required this.onDelete,
-        required this.controller});
+      required this.priceBet,
+      required this.onDelete,
+      required this.controller});
 
   @override
   RecentPriceBetContainerState createState() => RecentPriceBetContainerState();
@@ -1120,16 +1100,16 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
   Widget _buildTopBadge(IconData icon, Color color) {
     return Container(
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 1.0),
+        color: color.withValues(alpha: 0.5),
         shape: BoxShape.circle,
       ),
-      padding: const EdgeInsets.all(1),
-      child: Icon(icon, color: Colors.black, size: 20),
+      padding: const EdgeInsets.all(4),
+      child: Icon(icon, color: Colors.white70, size: 20),
     );
   }
 
-  void popPriceBetDialog(
-      BuildContext context, PriceBet priceBet, MainMenuPageController controller) {
+  void popPriceBetDialog(BuildContext context, PriceBet priceBet,
+      MainMenuPageController controller) {
     showGeneralDialog(
       context: context,
       pageBuilder: (BuildContext buildContext, Animation<double> animation,
@@ -1181,78 +1161,36 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
             motion: const ScrollMotion(),
             children: [
               SlidableAction(
-                onPressed: (context) {
+                onPressed: (_) async {
                   Common().vibrate(40, 30);
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (BuildContext context) {
-                      return ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(25.0),
-                        ),
-                        child: Container(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          height: MediaQuery.of(context).size.height * 0.6,
-                          child: OverflowBox(
-                            alignment: Alignment.topCenter,
-                            maxHeight: MediaQuery.of(context).size.height,
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  child: CandlesticksView(
-                                    ticker: widget.priceBet.ticker,
-                                    betId: widget.priceBet.id,
-                                    name: widget.priceBet.name,
-                                    controller: widget.controller,
-                                    iconPath: widget.priceBet.iconPath,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                  final candles = await BetsService().fetchCandles(widget.priceBet.ticker);
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ExactPricePage(
+                        name: widget.priceBet.name,
+                        ticker: widget.priceBet.ticker,
+                        currentValue: candles.first.close,
+                        iconPath: widget.priceBet.iconPath,
+                      ),
+                    ),
                   );
                 },
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
-                icon: Icons.remove_red_eye_outlined,
-              ),
-              SlidableAction(
-                onPressed: (context) async {
-                  Common().vibrate(40, 30);
-                  final result = await BetsService()
-                      .deleteRecentBet(widget.priceBet.id.toString());
-                  if (result) {
-                    Common().showFloatingSnack(
-                      context,
-                      LocalizedStrings.of(context)!.get('deletedSuccessfully') ??
-                          'Borrado con éxito!',
-                    );
-                    widget.onDelete();
-                  } else {
-                    Common().showFloatingSnack(
-                      context,
-                      'Error!',
-                      backgroundColor: Colors.red,
-                    );
-                  }
-                },
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-              ),
+                icon: FontAwesomeIcons.crosshairs
+
+              )
             ],
           ),
           child: ListTile(
             contentPadding:
-            const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+                const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
             onLongPress: _triggerBetButtons,
             onTap: () {
-              (_showEditButtons) ? _triggerBetButtons() : Common().vibrate(40, 30);
+              (_showEditButtons)
+                  ? _triggerBetButtons()
+                  : Common().vibrate(40, 30);
               popPriceBetDialog(context, widget.priceBet, widget.controller);
             },
             leading: SizedBox(
@@ -1265,52 +1203,56 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                     borderRadius: BorderRadius.circular(10.0),
                     child: (widget.priceBet.iconPath.contains("http")
                         ? Image.network(
-                      widget.priceBet.iconPath,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return AutoSizeText(
-                          Common().createTrendViewNameFromName(widget.priceBet.name),
-                          maxLines: 1,
-                          style: GoogleFonts.josefinSans(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        );
-                      },
-                    )
+                            widget.priceBet.iconPath,
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return AutoSizeText(
+                                Common().createTrendViewNameFromName(
+                                    widget.priceBet.name),
+                                maxLines: 1,
+                                style: GoogleFonts.josefinSans(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
+                          )
                         : (widget.priceBet.iconPath != "null"
-                        ? Image.memory(
-                      base64Decode(widget.priceBet.iconPath),
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Text(
-                        widget.priceBet.name,
-                        maxLines: 1,
-                        style: GoogleFonts.roboto(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w100,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                        : AutoSizeText(
-                      Common().createTrendViewNameFromName(widget.priceBet.name),
-                      maxLines: 1,
-                      style: GoogleFonts.josefinSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ))),
+                            ? Image.memory(
+                                base64Decode(widget.priceBet.iconPath),
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Text(
+                                  widget.priceBet.name,
+                                  maxLines: 1,
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.w100,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              )
+                            : AutoSizeText(
+                                Common().createTrendViewNameFromName(
+                                    widget.priceBet.name),
+                                maxLines: 1,
+                                style: GoogleFonts.josefinSans(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ))),
                   ),
                   Positioned(
                     top: -8,
                     left: -10,
-                    child: _buildTopBadge(Icons.flash_on_sharp, Colors.white),
+                    child: _buildTopBadge(
+                        FontAwesomeIcons.crosshairs, Colors.black),
                   ),
                 ],
               ),
@@ -1326,91 +1268,92 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
             ),
             subtitle: _showEditButtons
                 ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 6),
-                Text(
-                  '${widget.priceBet.ticker} • ${amountText}🪙 • ± $marginText',
-                  maxLines: 1,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${strings?.get('betDate') ?? "Bet date"}: $betDateStr  •  ${strings?.get('targetDate') ?? "Target date"}: $endDateStr  •  $paidStr',
-                  maxLines: 1,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.cyanAccent,
-                  ),
-                ),
-              ],
-            )
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 6),
+                      Text(
+                        '${widget.priceBet.ticker} • ${amountText}🪙 • ± $marginText',
+                        maxLines: 1,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${strings?.get('betDate') ?? "Bet date"}: $betDateStr  •  ${strings?.get('targetDate') ?? "Target date"}: $endDateStr  •  $paidStr',
+                        maxLines: 1,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.cyanAccent,
+                        ),
+                      ),
+                    ],
+                  )
                 : Text(
-              '${widget.priceBet.ticker} • ± $marginText',
-              maxLines: 1,
-              style: GoogleFonts.rajdhani(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: Colors.white70,
-              ),
-            ),
+                    '${widget.priceBet.ticker} • ± $marginText',
+                    maxLines: 1,
+                    style: GoogleFonts.rajdhani(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white70,
+                    ),
+                  ),
             trailing: _showEditButtons
                 ? null
                 : Column(
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      amountText,
-                      maxLines: 1,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w300,
-                        color: statusColor,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Image.asset(
-                      'assets/euro.png', //TODO
-                      width: 20,
-                      height: 20,
-                      fit: BoxFit.contain,
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  width: 61,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        (daysUntilFinal > 0
-                            ? "$daysUntilFinal ${strings?.get('day') ?? "day/s"}"
-                            : (daysUntilFinal >= 0
-                            ? strings?.get('onPlay') ?? "On play!"
-                            : strings?.get('finished') ?? "Finished")),
-                        style: GoogleFonts.rajdhani(
-                          fontSize: 12,
-                          color: Colors.white,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            amountText,
+                            maxLines: 1,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w300,
+                              color: statusColor,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Image.asset(
+                            'assets/euro.png', //TODO
+                            width: 20,
+                            height: 20,
+                            fit: BoxFit.contain,
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 5),
-                      Icon(
-                        (daysUntilFinal > 0
-                            ? Icons.watch_later
-                            : Icons.timer_off_outlined),
-                        size: 16,
+                      SizedBox(
+                        width: 61,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              (daysUntilFinal > 0
+                                  ? "$daysUntilFinal ${strings?.get('day') ?? "day/s"}"
+                                  : (daysUntilFinal >= 0
+                                      ? strings?.get('onPlay') ?? "On play!"
+                                      : strings?.get('finished') ??
+                                          "Finished")),
+                              style: GoogleFonts.rajdhani(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Icon(
+                              (daysUntilFinal > 0
+                                  ? FontAwesomeIcons.hourglassHalf
+                                  : Icons.timer_off_outlined),
+                              size: 16,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
           ),
         ),
       ],

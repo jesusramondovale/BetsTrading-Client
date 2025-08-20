@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:betrader/locale/localized_texts.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../Services/BetsService.dart';
 import '../../../helpers/common.dart';
@@ -696,7 +697,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           width: PRICE_BAR_WIDTH,
                           child: IconButton(
                             icon: Icon(
-                              Icons.flash_on_sharp,
+                              FontAwesomeIcons.crosshairs,
                               size: 35,
                               color: Colors.white,
                               shadows: [

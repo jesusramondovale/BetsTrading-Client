@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import 'exchange_page.dart';
@@ -267,8 +268,8 @@ class MainMenuPageState extends State<MainMenuPage> {
                           label: strings?.get('home') ?? "Home",
                         ),
                         BottomNavigationBarItem(
-                          icon: Icon(Icons.public),
-                          label: strings?.get('ranking') ?? "Ranking",
+                          icon: Icon(FontAwesomeIcons.peopleGroup),
+                          label: "Social",
                         ),
                         BottomNavigationBarItem(
                           icon: Container(
@@ -282,8 +283,7 @@ class MainMenuPageState extends State<MainMenuPage> {
                           label: strings?.get('liveMarkets') ?? 'Live Markets',
                         ),
                         BottomNavigationBarItem(
-                          icon: Icon(Icons.currency_exchange),
-                          activeIcon: Icon(Icons.currency_exchange_sharp),
+                          icon: Icon(FontAwesomeIcons.landmark),
                           label: 'Exchange',
                         ),
                         BottomNavigationBarItem(

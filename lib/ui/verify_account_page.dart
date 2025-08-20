@@ -1,5 +1,6 @@
 import 'package:betrader/services/AuthService.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import 'camera_page.dart';
@@ -145,7 +146,7 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
             Center(
               child: ElevatedButton.icon(
                 onPressed: _navigateToCameraPage,
-                icon: Icon(Icons.camera_alt, size: 40),
+                icon: Icon(FontAwesomeIcons.camera, size: 40),
                 label: Text(strings?.get('scanButton') ?? 'Scan Document',
                     style: TextStyle(fontSize: 20)),
               ),

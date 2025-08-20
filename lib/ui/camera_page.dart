@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../locale/localized_texts.dart';
 import '../helpers/common.dart';
@@ -150,7 +151,7 @@ class _CameraPageState extends State<CameraPage> {
 
                   children: [
                     SizedBox(width: 6),
-                    Icon(Icons.camera_alt),
+                    Icon(FontAwesomeIcons.camera),
                     SizedBox(width: 10),
                     Text(
                       " ${strings?.get('takePhoto') ?? "Take photo"}",

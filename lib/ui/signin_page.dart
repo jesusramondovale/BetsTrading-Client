@@ -5,6 +5,7 @@ import 'package:betrader/services/FirebaseService.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import '../locale/localized_texts.dart';
 import 'package:country_flags/country_flags.dart';
@@ -377,14 +378,14 @@ class _SignInState extends State<SignIn> {
         suffixIcon:
         name == 'fullName' ?
         IconButton(
-          icon: const Icon(Icons.camera_alt),
+          icon: const Icon(FontAwesomeIcons.camera),
           onPressed: () async {
             _profilePic = await Common().pickImageFromGallery();
           },
         ) :
         (name == 'idCard' ?
         IconButton(
-          icon: const Icon(Icons.camera_alt),
+          icon: const Icon(FontAwesomeIcons.camera),
           onPressed: () async {
              _navigateToCameraPage();
           },

@@ -288,7 +288,7 @@ class _TopUsersPageState extends State<TopUsersPage>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
-        title: Text('Rankings',
+        title: Text('Social',
             style: GoogleFonts.montserrat(
               fontSize: 28,
               fontWeight: FontWeight.w400,

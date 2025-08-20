@@ -4,6 +4,7 @@ import 'package:betrader/ui/store_page.dart';
 import 'package:betrader/ui/withdraw_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../helpers/common.dart';
@@ -225,19 +226,10 @@ class ExchangePageState extends State<ExchangePage> {
                               ],
                             ),
                             const Spacer(),
-
-                              const Text('➤',
-                                  style: TextStyle(
-                                      fontSize: 20, color: Colors.white)),
-                              const Text('➤',
-                                  style: TextStyle(
-                                      fontSize: 20, color: Colors.white)),
-                              const Text('➤',
-                                  style: TextStyle(
-                                      fontSize: 20, color: Colors.white)),
-
-                              const Spacer(),
-
+                            Icon(FontAwesomeIcons.anglesRight),
+                            Icon(FontAwesomeIcons.anglesRight),
+                            Icon(FontAwesomeIcons.anglesRight),
+                            const Spacer(),
                             Text(
                               '${option['euros']} EUR',
                               style: GoogleFonts.montserrat(

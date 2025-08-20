@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:betrader/Services/BetsService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
@@ -167,7 +168,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         ),
         _buildGridItem(
           context,
-          icon: Icons.crop_sharp,
+          icon: FontAwesomeIcons.crosshairs,
           value: '${widget.zone.targetPrice.toStringAsFixed(2)}€',
           label: strings?.get('targetValue') ?? "Target value",
         ),
@@ -179,7 +180,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         ),
         _buildGridItem(
           context,
-          icon: Icons.data_object_sharp,
+          icon: FontAwesomeIcons.arrowsLeftRightToLine,
           value:
               '${widget.zone.margin.toStringAsFixed(2)}% (±${(widget.zone.targetPrice * widget.zone.margin / 200).toStringAsFixed(1)}€)',
           label: strings?.get('targetMargin') ?? "Target margin",
