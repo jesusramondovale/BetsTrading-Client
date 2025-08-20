@@ -43,7 +43,7 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> _loadBets(String userId) async {
     final betsData = await BetsService().fetchInvestmentData(userId);
     setState(() {
-      _bets = betsData.investList;
+      _bets = betsData.bets.investList;
     });
   }
 
@@ -352,60 +352,66 @@ class HomeScreenState extends State<HomeScreen> {
                 height: 0.5),
             Expanded(
               flex: 12,
-              child: FutureBuilder<Bets>(
-                  future: BetsService().fetchInvestmentData(_userId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.grey),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (snapshot.hasData &&
-                        snapshot.data!.investList.isNotEmpty) {
-                      final data = snapshot.data!;
-                      _bets = data.investList;
-                      return ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        itemCount: _bets.length,
-                        itemBuilder: (context, index) {
-                          final reversedIndex = _bets.length - 1 - index;
-                          return RecentBetContainer(
-                            dailyGain: _bets[reversedIndex].dailyGain,
-                            bet: _bets[reversedIndex],
-                            onDelete: () => _deleteBet(_bets[reversedIndex].id),
-                            controller: widget.controller,
-                          );
-                        },
-                      );
-                    } else {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                strings!.get('noLiveBets')??
-                                    'You have no live bets at the moment, go to the markets tab to create a new one.',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.roboto(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.grey,
-                                ),
-                              ),
+              child: FutureBuilder<BetsAndPriceBets>(
+                future: BetsService().fetchInvestmentData(_userId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator(color: Colors.grey));
+                  }
+                  if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  }
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
 
-                              Container(
-                                  child:
-                                      Icon(Icons.arrow_downward_rounded , size: 50, color: Colors.grey,),
-                                  )
-                            ],
-                          ),
+                  final data = snapshot.data!;
+                  final bets = data.bets.investList;
+                  final priceBets = data.priceBets;
+
+                  if (bets.isEmpty && priceBets.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              strings!.get('noLiveBets') ??
+                                  'You have no live bets at the moment, go to the markets tab to create a new one.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.roboto(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Icon(Icons.arrow_downward_rounded, size: 50, color: Colors.grey),
+                          ],
                         ),
-                      );
-                    }
-                  }),
+                      ),
+                    );
+                  }
+
+                  _bets = bets;
+
+                  return ListView(
+                    children: [
+                      ...bets.reversed.map((b) => RecentBetContainer(
+                        dailyGain: b.dailyGain,
+                        bet: b,
+                        onDelete: () => _deleteBet(b.id),
+                        controller: widget.controller,
+                      )),
+                      ...priceBets.reversed.map((p) => RecentPriceBetContainer(
+                        priceBet: p,
+                        onDelete: () => setState(() {}),
+                        controller: widget.controller,
+                      )),
+                    ],
+                  );
+                },
+              ),
             ),
           ],
         ),

@@ -83,6 +83,60 @@ class Bets {
       {required this.investList});
 }
 
+class PriceBet {
+  final int id;
+  final String name;
+  final String ticker;
+  final double priceBet;
+  final bool? paid;
+  final double margin;
+  final String userId;
+  final DateTime betDate;
+  final DateTime endDate;
+  final String iconPath;
+
+
+  PriceBet(
+      {
+        required this.id,
+        required this.name,
+        required this.ticker,
+        required this.priceBet,
+        required this.paid,
+        required this.margin,
+        required this.userId,
+        required this.betDate,
+        required this.endDate,
+        required this.iconPath,
+      });
+
+  PriceBet.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        name = json['name'],
+        ticker = json['ticker'],
+        priceBet = json['price_bet'].toDouble(),
+        paid = json['paid'],
+        margin = json['margin'].toDouble(),
+        userId = json['user_id'],
+        betDate = DateTime.parse(json['bet_date']),
+        endDate = DateTime.parse(json['end_date']),
+        iconPath = json['icon_path'];
+}
+
+class BetsAndPriceBets {
+  final Bets bets;
+  final List<PriceBet> priceBets;
+  final double totalBetAmount;
+  final double totalProfit;
+
+  BetsAndPriceBets({
+    required this.bets,
+    required this.priceBets,
+    required this.totalBetAmount,
+    required this.totalProfit,
+  });
+}
+
 class RecentBetDialog extends StatelessWidget {
   final Bet bet;
   final MainMenuPageController controller;
@@ -417,6 +471,336 @@ class RecentBetDialog extends StatelessWidget {
   }
 }
 
+class RecentPriceBetDialog extends StatelessWidget {
+  final PriceBet priceBet;
+  final MainMenuPageController controller;
+  RecentPriceBetDialog({
+    super.key,
+    required this.priceBet,
+    required this.controller,
+  });
+
+  static get decodedBody => null;
+
+  void showPopup(BuildContext context, String message, Offset position) {
+    int xOffset;
+    (message.length < 10) ? xOffset = -18 : xOffset = message.length - 15;
+
+    OverlayEntry? overlayEntry;
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: position.dx - xOffset,
+        top: position.dy + 35,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 1),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Text(
+              message,
+              style: GoogleFonts.josefinSans(fontSize: 12, color: Colors.white),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(overlayEntry);
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      overlayEntry?.remove();
+    });
+  }
+
+  Widget _buildGridItem(
+      BuildContext context, IconData icon, String value, String infoText,
+      {Color color = Colors.white}) {
+    GlobalKey key = GlobalKey();
+    return GestureDetector(
+      key: key,
+      onTap: () {
+        Common().vibrate(40, 30);
+        final renderBox = key.currentContext?.findRenderObject() as RenderBox;
+        final position = renderBox.localToGlobal(Offset.zero);
+        showPopup(context, infoText, position);
+      },
+      child: Tooltip(
+        message: infoText,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(icon, size: 34, color: Colors.white70),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
+
+    final amountText = priceBet.priceBet.toStringAsFixed(2);
+    final marginText = '${priceBet.margin.toStringAsFixed(2)}%';
+    final betDateStr = DateFormat('dd-MM-yyyy').format(priceBet.betDate);
+    final endDateStr = DateFormat('dd-MM-yyyy').format(priceBet.endDate);
+    final statusStr = priceBet.paid == true
+        ? (strings?.get('paid') ?? 'Paid')
+        : (strings?.get('unpaid') ?? 'Unpaid');
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: Colors.black87,
+      child: SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.black, Colors.grey[900]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: <Widget>[
+                        if (priceBet.iconPath != "null" &&
+                            !priceBet.iconPath.contains("http")) ...[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.memory(
+                              base64Decode(priceBet.iconPath),
+                              height: 100,
+                              width: 100,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Text(
+                                    priceBet.name,
+                                    maxLines: 1,
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w100,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                            ),
+                          ),
+                        ] else if (priceBet.iconPath != "null") ...[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.network(
+                              priceBet.iconPath,
+                              height: 100,
+                              width: 100,
+                              errorBuilder: (context, error, stackTrace) {
+                                return AutoSizeText(
+                                  priceBet.name,
+                                  maxLines: 1,
+                                  style: GoogleFonts.josefinSans(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ] else ...[
+                          AutoSizeText(
+                            priceBet.name,
+                            maxLines: 1,
+                            style: GoogleFonts.josefinSans(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                        const Spacer(),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    AutoSizeText(
+                      priceBet.name,
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.robotoCondensed(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            amountText,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Image.asset(
+                            'assets/coin.png',
+                            width: 24,
+                            height: 24,
+                            fit: BoxFit.contain,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    GridView(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 15.0,
+                        mainAxisSpacing: 15.0,
+                        childAspectRatio: 2,
+                      ),
+                      children: [
+                        _buildGridItem(
+                          context,
+                          Icons.casino,
+                          amountText,
+                          strings?.get('betAmount') ?? 'Bet amount',
+                        ),
+                        _buildGridItem(
+                          context,
+                          Icons.data_object_sharp,
+                          marginText,
+                          strings?.get('targetMargin') ?? 'Target margin',
+                        ),
+                        _buildGridItem(
+                          context,
+                          Icons.label_outline,
+                          priceBet.ticker,
+                          'Ticker',
+                        ),
+                        _buildGridItem(
+                          context,
+                          Icons.person_outline,
+                          priceBet.userId,
+                          'User ID',
+                        ),
+                        _buildGridItem(
+                          context,
+                          Icons.event,
+                          betDateStr,
+                          strings?.get('betDate') ?? 'Bet date',
+                        ),
+                        _buildGridItem(
+                          context,
+                          Icons.event_available,
+                          endDateStr,
+                          strings?.get('targetDate') ?? 'Target date',
+                        ),
+                        _buildGridItem(
+                          context,
+                          priceBet.paid == true
+                              ? Icons.check_circle
+                              : Icons.cancel,
+                          statusStr,
+                          strings?.get('status') ?? 'Status',
+                          color: priceBet.paid == true ? Colors.green : Colors.red,
+                        ),
+                        _buildGridItem(
+                          context,
+                          Icons.numbers,
+                          priceBet.id.toString(),
+                          'ID',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            size: 42,
+                            Icons.remove_red_eye_outlined,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (BuildContext context) {
+                                return ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(25.0),
+                                  ),
+                                  child: Container(
+                                    color:
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                    height:
+                                    MediaQuery.of(context).size.height * 0.6,
+                                    child: OverflowBox(
+                                      alignment: Alignment.topCenter,
+                                      maxHeight:
+                                      MediaQuery.of(context).size.height,
+                                      child: Column(
+                                        children: [
+                                          Expanded(
+                                            child: CandlesticksView(
+                                              ticker: priceBet.ticker,
+                                              betId: priceBet.id,
+                                              name: priceBet.name,
+                                              controller: controller,
+                                              iconPath: priceBet.iconPath,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class RecentBetContainer extends StatefulWidget {
   final Bet bet;
   final Function onDelete;
@@ -476,9 +860,9 @@ class RecentBetContainerState extends State<RecentBetContainer> {
     int daysUntilFinal = widget.bet.endDate.difference(DateTime.now()).inDays;
     final strings = LocalizedStrings.of(context);
     String? trailingText =
-        (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
-            ? (widget.bet.profitLoss)?.toStringAsFixed(2)
-            : '¿?';
+    (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
+        ? (widget.bet.profitLoss)?.toStringAsFixed(2)
+        : '¿?';
     //TODO
     //String currency = 'xd';
 
@@ -552,58 +936,388 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             ],
           ),
           child: ListTile(
+              contentPadding:
+              const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+              onLongPress: _triggerBetButtons,
+              onTap: () {
+                (_showEditButtons)
+                    ? _triggerBetButtons()
+                    : Common().vibrate(40, 30);
+                popBetDialog(context, widget.bet, widget.controller);
+              },
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(10.0),
+                child: (widget.bet.iconPath.contains("http")
+                    ? Image.network(
+                  widget.bet.iconPath,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return AutoSizeText(
+                        Common().createTrendViewNameFromName(widget.bet.name),
+                        maxLines: 1,
+                        style: GoogleFonts.josefinSans(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ));
+                  },
+                )
+                    : (widget.bet.iconPath != "null"
+                    ? Image.memory(base64Decode(widget.bet.iconPath),
+                    width: 50, height: 50, fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        Text(
+                          widget.bet.name,
+                          maxLines: 1,
+                          style: GoogleFonts.roboto(
+                              fontSize: 36, fontWeight: FontWeight.w100),
+                          textAlign: TextAlign.center,
+                        ))
+                    : AutoSizeText(
+                  Common().createTrendViewNameFromName(widget.bet.name),
+                  maxLines: 1,
+                  style: GoogleFonts.josefinSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ))),
+              ),
+              title: Text(
+                maxLines: 1,
+                widget.bet.name,
+                style: GoogleFonts.mPlusRounded1c(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white,
+                ),
+              ),
+              subtitle: _showEditButtons
+                  ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 6),
+                  Text(
+                    maxLines: 1,
+                    '(${widget.bet.betAmount.toStringAsFixed(2)}🪙 @ ${widget.bet.originValue})',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    maxLines: 1,
+                    '${widget.bet.targetDate.year}-${widget.bet.targetDate.month}-${widget.bet.targetDate.day} @ ${widget.bet.targetValue} ± ${widget.bet.targetMargin}%',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.cyanAccent,
+                    ),
+                  ),
+                ],
+              )
+                  : Text(
+                (widget.dailyGain > 0.0)
+                    ? '▲ ${(widget.dailyGain * 100).toStringAsFixed(2)}%'
+                    : '▼ ${(widget.dailyGain.abs() * 100).toStringAsFixed(2)}%',
+                style: GoogleFonts.rajdhani(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: widget.dailyGain > 0.0 ? Colors.green : Colors.red,
+                ),
+              ),
+              trailing: _showEditButtons
+                  ? null
+                  : Column(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        trailingText!,
+                        maxLines: 1,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w300,
+                          color: widget.bet.targetDate.isAfter(DateTime.now())
+                              ? Colors.grey
+                              : widget.bet.targetWon == true
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Image.asset(
+                        'assets/coin.png',
+                        width: 20,
+                        height: 20,
+                        fit: BoxFit.contain,
+                      ),
+                    ],
+                  ),
+                  Container(
+                    width: 61,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          (daysUntilTarget > 0
+                              ? "$daysUntilTarget ${strings?.get('day') ?? "day/s"}"
+                              : (daysUntilFinal >= 0
+                              ? strings?.get('onPlay') ?? "On play!"
+                              : strings?.get('finished') ?? "Finished")),
+                          style: GoogleFonts.rajdhani(
+                            fontSize: 12,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Icon(
+                          (daysUntilTarget > 0
+                              ? Icons.watch_later
+                              : Icons.timer_off_outlined),
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class RecentPriceBetContainer extends StatefulWidget {
+  final PriceBet priceBet;
+  final Function onDelete;
+  final MainMenuPageController controller;
+  const RecentPriceBetContainer(
+      {super.key,
+        required this.priceBet,
+        required this.onDelete,
+        required this.controller});
+
+  @override
+  RecentPriceBetContainerState createState() => RecentPriceBetContainerState();
+}
+
+class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
+  bool _showEditButtons = false;
+
+  void _triggerBetButtons() {
+    setState(() {
+      _showEditButtons = !_showEditButtons;
+    });
+  }
+
+  Widget _buildTopBadge(IconData icon, Color color) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 1.0),
+        shape: BoxShape.circle,
+      ),
+      padding: const EdgeInsets.all(1),
+      child: Icon(icon, color: Colors.black, size: 20),
+    );
+  }
+
+  void popPriceBetDialog(
+      BuildContext context, PriceBet priceBet, MainMenuPageController controller) {
+    showGeneralDialog(
+      context: context,
+      pageBuilder: (BuildContext buildContext, Animation<double> animation,
+          Animation<double> secondaryAnimation) {
+        return RecentPriceBetDialog(controller: controller, priceBet: priceBet);
+      },
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.8, end: 1.0).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutBack,
+            )),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
+    final now = DateTime.now();
+    final daysUntilFinal = widget.priceBet.endDate.difference(now).inDays;
+
+    final amountText = widget.priceBet.priceBet.toStringAsFixed(2);
+    final marginText = '${widget.priceBet.margin.toStringAsFixed(2)}%';
+    final betDateStr = DateFormat('dd-MM-yyyy').format(widget.priceBet.betDate);
+    final endDateStr = DateFormat('dd-MM-yyyy').format(widget.priceBet.endDate);
+    final paidStr = widget.priceBet.paid == true
+        ? (strings?.get('paid') ?? 'Paid')
+        : (strings?.get('unpaid') ?? 'Unpaid');
+
+    final statusColor = now.isBefore(widget.priceBet.endDate)
+        ? Colors.grey
+        : (widget.priceBet.paid == true ? Colors.green : Colors.red);
+
+    return Column(
+      children: <Widget>[
+        Slidable(
+          key: Key(widget.priceBet.id.toString()),
+          endActionPane: ActionPane(
+            motion: const ScrollMotion(),
+            children: [
+              SlidableAction(
+                onPressed: (context) {
+                  Common().vibrate(40, 30);
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (BuildContext context) {
+                      return ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(25.0),
+                        ),
+                        child: Container(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          height: MediaQuery.of(context).size.height * 0.6,
+                          child: OverflowBox(
+                            alignment: Alignment.topCenter,
+                            maxHeight: MediaQuery.of(context).size.height,
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: CandlesticksView(
+                                    ticker: widget.priceBet.ticker,
+                                    betId: widget.priceBet.id,
+                                    name: widget.priceBet.name,
+                                    controller: widget.controller,
+                                    iconPath: widget.priceBet.iconPath,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                icon: Icons.remove_red_eye_outlined,
+              ),
+              SlidableAction(
+                onPressed: (context) async {
+                  Common().vibrate(40, 30);
+                  final result = await BetsService()
+                      .deleteRecentBet(widget.priceBet.id.toString());
+                  if (result) {
+                    Common().showFloatingSnack(
+                      context,
+                      LocalizedStrings.of(context)!.get('deletedSuccessfully') ??
+                          'Borrado con éxito!',
+                    );
+                    widget.onDelete();
+                  } else {
+                    Common().showFloatingSnack(
+                      context,
+                      'Error!',
+                      backgroundColor: Colors.red,
+                    );
+                  }
+                },
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+              ),
+            ],
+          ),
+          child: ListTile(
             contentPadding:
-                const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+            const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
             onLongPress: _triggerBetButtons,
             onTap: () {
-              (_showEditButtons)
-                  ? _triggerBetButtons()
-                  : Common().vibrate(40, 30);
-              popBetDialog(context, widget.bet, widget.controller);
+              (_showEditButtons) ? _triggerBetButtons() : Common().vibrate(40, 30);
+              popPriceBetDialog(context, widget.priceBet, widget.controller);
             },
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
-              child: (widget.bet.iconPath.contains("http")
-                  ? Image.network(
-                      widget.bet.iconPath,
+            leading: SizedBox(
+              width: 50,
+              height: 50,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10.0),
+                    child: (widget.priceBet.iconPath.contains("http")
+                        ? Image.network(
+                      widget.priceBet.iconPath,
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return AutoSizeText(
-                            Common().createTrendViewNameFromName(widget.bet.name),
-                            maxLines: 1,
-                            style: GoogleFonts.josefinSans(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ));
-                      },
-                    )
-                  : (widget.bet.iconPath != "null"
-                      ? Image.memory(base64Decode(widget.bet.iconPath),
-                          width: 50, height: 50, fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Text(
-                                widget.bet.name,
-                                maxLines: 1,
-                                style: GoogleFonts.roboto(
-                                    fontSize: 36, fontWeight: FontWeight.w100),
-                                textAlign: TextAlign.center,
-                              ))
-                      : AutoSizeText(
-                          Common().createTrendViewNameFromName(widget.bet.name),
+                          Common().createTrendViewNameFromName(widget.priceBet.name),
                           maxLines: 1,
                           style: GoogleFonts.josefinSans(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                             color: Colors.white,
                           ),
-                        ))),
+                        );
+                      },
+                    )
+                        : (widget.priceBet.iconPath != "null"
+                        ? Image.memory(
+                      base64Decode(widget.priceBet.iconPath),
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Text(
+                        widget.priceBet.name,
+                        maxLines: 1,
+                        style: GoogleFonts.roboto(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w100,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                        : AutoSizeText(
+                      Common().createTrendViewNameFromName(widget.priceBet.name),
+                      maxLines: 1,
+                      style: GoogleFonts.josefinSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ))),
+                  ),
+                  Positioned(
+                    top: -8,
+                    left: -10,
+                    child: _buildTopBadge(Icons.flash_on_sharp, Colors.white),
+                  ),
+                ],
+              ),
             ),
             title: Text(
+              widget.priceBet.name,
               maxLines: 1,
-              widget.bet.name,
               style: GoogleFonts.mPlusRounded1c(
                 fontSize: 20,
                 fontWeight: FontWeight.w300,
@@ -612,39 +1326,38 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             ),
             subtitle: _showEditButtons
                 ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 6),
-                      Text(
-                        maxLines: 1,
-                        '(${widget.bet.betAmount.toStringAsFixed(2)}🪙 @ ${widget.bet.originValue})',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        maxLines: 1,
-                        '${widget.bet.targetDate.year}-${widget.bet.targetDate.month}-${widget.bet.targetDate.day} @ ${widget.bet.targetValue} ± ${widget.bet.targetMargin}%',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.cyanAccent,
-                        ),
-                      ),
-                    ],
-                  )
-                : Text(
-                    (widget.dailyGain > 0.0)
-                        ? '▲ ${(widget.dailyGain * 100).toStringAsFixed(2)}%'
-                        : '▼ ${(widget.dailyGain.abs() * 100).toStringAsFixed(2)}%',
-                    style: GoogleFonts.rajdhani(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: widget.dailyGain > 0.0 ? Colors.green : Colors.red,
-                    ),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 6),
+                Text(
+                  '${widget.priceBet.ticker} • ${amountText}🪙 • ± $marginText',
+                  maxLines: 1,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    color: Colors.grey,
                   ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${strings?.get('betDate') ?? "Bet date"}: $betDateStr  •  ${strings?.get('targetDate') ?? "Target date"}: $endDateStr  •  $paidStr',
+                  maxLines: 1,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.cyanAccent,
+                  ),
+                ),
+              ],
+            )
+                : Text(
+              '${widget.priceBet.ticker} • ± $marginText',
+              maxLines: 1,
+              style: GoogleFonts.rajdhani(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: Colors.white70,
+              ),
+            ),
             trailing: _showEditButtons
                 ? null
                 : Column(
@@ -653,35 +1366,31 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      trailingText!,
+                      amountText,
                       maxLines: 1,
                       style: GoogleFonts.montserrat(
                         fontSize: 20,
                         fontWeight: FontWeight.w300,
-                        color: widget.bet.targetDate.isAfter(DateTime.now())
-                            ? Colors.grey
-                            : widget.bet.targetWon == true
-                            ? Colors.green
-                            : Colors.red,
+                        color: statusColor,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Image.asset(
-                      'assets/coin.png',
+                      'assets/euro.png', //TODO
                       width: 20,
                       height: 20,
                       fit: BoxFit.contain,
                     ),
                   ],
                 ),
-                Container(
+                SizedBox(
                   width: 61,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        (daysUntilTarget > 0
-                            ? "$daysUntilTarget ${strings?.get('day') ?? "day/s"}"
+                        (daysUntilFinal > 0
+                            ? "$daysUntilFinal ${strings?.get('day') ?? "day/s"}"
                             : (daysUntilFinal >= 0
                             ? strings?.get('onPlay') ?? "On play!"
                             : strings?.get('finished') ?? "Finished")),
@@ -692,7 +1401,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                       ),
                       const SizedBox(width: 5),
                       Icon(
-                        (daysUntilTarget > 0
+                        (daysUntilFinal > 0
                             ? Icons.watch_later
                             : Icons.timer_off_outlined),
                         size: 16,
@@ -701,8 +1410,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                   ),
                 ),
               ],
-            )
-
+            ),
           ),
         ),
       ],

@@ -39,22 +39,37 @@ class BetsService {
     }
   }
 
-  Future<Bets> fetchInvestmentData(String userId) async {
-    final response =
-        await Common().postRequestWrapper('Bet', 'UserBets', {'id': userId});
+  Future<BetsAndPriceBets> fetchInvestmentData(String userId) async {
+    final betsResponse =
+    await Common().postRequestWrapper('Bet', 'UserBets', {'id': userId});
+    final priceBetsResponse =
+    await Common().postRequestWrapper('Bet', 'UserPriceBets', {'id': userId});
 
-    if (response['statusCode'] == 200) {
-      List<Bet> bets = (response['body']['bets'] as List)
-          .map((json) => Bet.fromJson(json))
-          .toList();
+    final List<Bet> bets = (betsResponse['statusCode'] == 200 &&
+        betsResponse['body']?['bets'] is List)
+        ? (betsResponse['body']['bets'] as List)
+        .map((json) => Bet.fromJson(json))
+        .toList()
+        : <Bet>[];
 
-      double totalBetAmount = bets.fold(0, (sum, item) => sum + item.betAmount);
-      double totalProfit = bets.fold(0, (sum, item) => sum + item.profitLoss!);
+    final List<PriceBet> priceBets = (priceBetsResponse['statusCode'] == 200 &&
+        priceBetsResponse['body']?['bets'] is List)
+        ? (priceBetsResponse['body']['bets'] as List)
+        .map((json) => PriceBet.fromJson(json))
+        .toList()
+        : <PriceBet>[];
 
-      return Bets(totalBetAmount, totalProfit, bets.length, investList: bets);
-    } else {
-      return Bets(0, 0, 0, investList: []);
-    }
+    final double totalBetAmount =
+    bets.fold<double>(0, (sum, b) => sum + (b.betAmount));
+    final double totalProfit =
+    bets.fold<double>(0, (sum, b) => sum + (b.profitLoss ?? 0));
+
+    return BetsAndPriceBets(
+      bets: Bets(totalBetAmount, totalProfit, bets.length, investList: bets),
+      priceBets: priceBets,
+      totalBetAmount: totalBetAmount,
+      totalProfit: totalProfit,
+    );
   }
 
   Future<Favorites> fetchFavouritesData(String userId) async {
@@ -175,7 +190,7 @@ class BetsService {
 
     if (response['statusCode'] == 200) {
       final Map<String, dynamic> jsonData =
-          response['body']; // Aquí asumes que ya es un Map
+          response['body'];
 
       final List<dynamic> closeList = jsonData['close'];
       final List<dynamic>? openList = jsonData['open'];
@@ -201,12 +216,12 @@ class BetsService {
       List<Candle> candlesList = List.generate(length, (index) {
         final DateTime date = DateTime.now().subtract(Duration(
             days:
-                index)); // Usar fechas dinámicas (ajustar si tienes fechas reales)
+                index));
         return Candle(
           date: date,
-          open: open?[index] ?? close[index], // Fallback si open es nulo
-          high: high?[index] ?? close[index], // Fallback si high es nulo
-          low: low?[index] ?? close[index], // Fallback si low es nulo
+          open: open?[index] ?? close[index],
+          high: high?[index] ?? close[index],
+          low: low?[index] ?? close[index],
           close: close[index],
           volume: 0,
         );
@@ -224,7 +239,6 @@ class BetsService {
       }
       return candlesList;
     } else {
-      // RETURN TWO FAKE CANDLES TO PREVENT GRAPH CRASHING
       List<Candle> candleList = [
         Candle(
           date: DateTime.now(),
