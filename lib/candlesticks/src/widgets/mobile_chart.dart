@@ -248,35 +248,41 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             SizedBox(height: 10),
                             if (widget.iconPath != "null" &&
                                 !widget.iconPath.contains("http")) ...[
-                              Image.memory(
-                                base64Decode(widget.iconPath),
-                                height: 120,
-                                width: 120,
-                                gaplessPlayback: true,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Text(
-                                  widget.chartTitle,
-                                  maxLines: 1,
-                                  style: GoogleFonts.roboto(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w100),
-                                  textAlign: TextAlign.center,
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(18),
+                                child: Image.memory(
+                                  base64Decode(widget.iconPath),
+                                  height: 120,
+                                  width: 120,
+                                  gaplessPlayback: true,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Text(
+                                        widget.chartTitle,
+                                        maxLines: 1,
+                                        style: GoogleFonts.roboto(
+                                            fontSize: 36,
+                                            fontWeight: FontWeight.w100),
+                                        textAlign: TextAlign.center,
+                                      ),
                                 ),
                               )
                             ] else if (widget.iconPath.contains("http")) ...[
-                              Image.network(
-                                widget.iconPath,
-                                height: 120,
-                                width: 120,
-                                gaplessPlayback: true,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Text(
-                                  widget.chartTitle,
-                                  maxLines: 1,
-                                  style: GoogleFonts.roboto(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w100),
-                                  textAlign: TextAlign.center,
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(18),
+                                child: Image.network(
+                                  widget.iconPath,
+                                  height: 120,
+                                  width: 120,
+                                  gaplessPlayback: true,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Text(
+                                        widget.chartTitle,
+                                        maxLines: 1,
+                                        style: GoogleFonts.roboto(
+                                            fontSize: 36,
+                                            fontWeight: FontWeight.w100),
+                                        textAlign: TextAlign.center,
+                                      ),
                                 ),
                               )
                             ] else ...[
@@ -698,8 +704,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           child: IconButton(
                             icon: Icon(
                               FontAwesomeIcons.crosshairs,
-                              size: 35,
-                              color: Colors.white,
+                              size: 32,
+                              color: Colors.white70,
                               shadows: [
                                 Shadow(
                                   blurRadius: 1.5,

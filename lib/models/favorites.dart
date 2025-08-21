@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,7 @@ class Favorite {
       : id = json['id'],
         name = json['name'],
         icon = json['icon'],
-        dailyGain =  (json['daily_gain'] as num).toDouble(),
+        dailyGain = (json['daily_gain'] as num).toDouble(),
         close = (json['close'] as num).toDouble(),
         current = (json['current'] as num).toDouble(),
         userId = json['user_id'].toString(),
@@ -42,7 +43,7 @@ class Favorites {
 
   Favorites(this.favorites, this.length);
 
-  bool containsTicker(String ticker){
+  bool containsTicker(String ticker) {
     if (favorites.length == 0) return false;
     return favorites.contains(ticker);
   }
@@ -51,202 +52,275 @@ class Favorites {
 class FavoriteDialog extends StatelessWidget {
   final Favorite favorite;
   final MainMenuPageController controller;
-  const FavoriteDialog({super.key, required this.favorite, required this.controller});
+  const FavoriteDialog(
+      {super.key, required this.favorite, required this.controller});
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return Dialog(
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(52),
+        borderRadius: BorderRadius.circular(40),
       ),
-      backgroundColor: Colors.black,
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          color: Colors.white12.withValues(alpha:0.05),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black,
-              spreadRadius: 1,
-              blurRadius: 2,
-              offset: const Offset(0, 0),
-            ),
-          ],
-          borderRadius: BorderRadius.circular(52),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              children: [
-                Positioned(
-                  top: 0,
-                  right: -100,
-                  child: Icon(Icons.star,
-                      color: Colors.grey.withValues(alpha:0.1),
-                      size: 350),
+      backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(40),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.transparent.withValues(alpha: 0.01),
+              borderRadius: BorderRadius.circular(40),
+              border: Border.all(
+                color: Colors.white70.withValues(alpha: 0.12),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: .6),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: <Widget>[
-                          if (favorite.icon != "null") ... [
-                            Image.memory(
-                              base64Decode(favorite.icon),
-                              height: 100,
-                              width: 100,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Text(
-                                    favorite.name,
-                                    maxLines: 1,
-                                    style: GoogleFonts.roboto(
-                                        fontSize: 36, fontWeight: FontWeight.w100),
-                                    textAlign: TextAlign.center,
-                                  ),
-                            )
-                          ]
-                          else ... [
-                            AutoSizeText(
-                              Common().createFavViewName(favorite),
-                              maxLines: 1,
-                              style: GoogleFonts.josefinSans(
-                                fontSize: 60,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                          const Spacer(),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  children: [
+                    Positioned(
+                      top: 0,
+                      right: -100,
+                      child: Icon(
+                        FontAwesomeIcons.solidStar,
+                        color: Colors.grey.withValues(alpha: 0.08),
+                        size: 350,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              IconButton(
-                                iconSize: 50,
-                                onPressed: () async {
-                                  bool ok = await BetsService().postNewFavorite(
-                                      await _storage.read(
-                                              key: "sessionToken") ??
-                                          "none",
-                                      favorite.ticker);
-                                  if (ok) {
-                                    Common().showFloatingSnack(
-                                        context,
-                                        LocalizedStrings.of(context)!.get('updatedFavs') ?? "Updated favs!",
-                                        theDuration: 4);
-                                    homeScreenKey.currentState?.refreshFavorites();
-                                    marketsPageKey.currentState?.toggleFavorite(favorite.ticker, onlyLocal: true);
-                                    Navigator.of(context).pop(true);
-                                  }
-                                },
-                                icon: const Icon(Icons.star),
+                              if (favorite.icon != "null") ...[
+                                ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: (favorite.icon.startsWith('http')
+                                        ? Image.network(
+                                            favorite.icon,
+                                            height: 130,
+                                            width: 130,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    Text(
+                                              favorite.name,
+                                              maxLines: 1,
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 36,
+                                                fontWeight: FontWeight.w100,
+                                                color: Colors.white,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          )
+                                        : Image.memory(
+                                            base64Decode(favorite.icon),
+                                            height: 130,
+                                            width: 130,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    Text(
+                                              favorite.name,
+                                              maxLines: 1,
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 36,
+                                                fontWeight: FontWeight.w100,
+                                                color: Colors.white,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ))),
+                              ] else ...[
+                                AutoSizeText(
+                                  Common().createFavViewName(favorite),
+                                  maxLines: 1,
+                                  style: GoogleFonts.josefinSans(
+                                    fontSize: 60,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                              const Spacer(),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    iconSize: 50,
+                                    onPressed: () async {
+                                      bool ok =
+                                          await BetsService().postNewFavorite(
+                                        await _storage.read(
+                                                key: "sessionToken") ??
+                                            "none",
+                                        favorite.ticker,
+                                      );
+                                      if (ok) {
+                                        Common().showFloatingSnack(
+                                          context,
+                                          LocalizedStrings.of(context)!
+                                                  .get('updatedFavs') ??
+                                              "Updated favs!",
+                                          theDuration: 4,
+                                        );
+                                        homeScreenKey.currentState
+                                            ?.refreshFavorites();
+                                        marketsPageKey.currentState
+                                            ?.toggleFavorite(favorite.ticker,
+                                                onlyLocal: true);
+                                        Navigator.of(context).pop(true);
+                                      }
+                                    },
+                                    icon: const Icon(FontAwesomeIcons.solidStar,
+                                        color: Colors.white),
+                                  ),
+                                  const SizedBox(height: 90),
+                                ],
                               ),
-                              const SizedBox(height: 90),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          AutoSizeText(
+                            favorite.name,
+                            maxLines: 1,
+                            style: GoogleFonts.robotoCondensed(
+                              fontSize: 40,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              (favorite.dailyGain >= 0.0)
+                                  ? const Icon(FontAwesomeIcons.arrowTrendUp,
+                                      color: Colors.green, size: 20)
+                                  : const Icon(FontAwesomeIcons.arrowTrendDown,
+                                      color: Colors.red, size: 20),
+                              Text(
+                                (favorite.dailyGain >= 0.0)
+                                    ? ' ${(favorite.dailyGain).toStringAsFixed(2)}%'
+                                    : ' ${(favorite.dailyGain.abs()).toStringAsFixed(2)}%',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w400,
+                                  color: favorite.dailyGain >= 0.0
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${strings?.get('close') ?? 'Close'}: ${favorite.close.toStringAsFixed(2)}€',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                '${strings?.get('current') ?? 'Current'}: ${favorite.current.toStringAsFixed(2)}€',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: favorite.dailyGain >= 0.0
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                              ),
+                              const Spacer(),
+                              Column(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      FontAwesomeIcons.chartLine,
+                                      size: 42,
+                                      color: Colors.white70,
+                                    ),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (BuildContext context) {
+                                          return ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.vertical(
+                                              top: Radius.circular(25),
+                                            ),
+                                            child: Container(
+                                              color: Theme.of(context)
+                                                  .scaffoldBackgroundColor,
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.5,
+                                              child: OverflowBox(
+                                                alignment: Alignment.topCenter,
+                                                maxHeight:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height,
+                                                child: Column(
+                                                  children: [
+                                                    Expanded(
+                                                      child: CandlesticksView(
+                                                        ticker: favorite.ticker,
+                                                        name: favorite.name,
+                                                        controller: controller,
+                                                        iconPath: favorite.icon,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                  Text(
+                                    strings!.get('viewChart') ?? "View chart",
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w200,
+                                      color: Colors.white70,
+                                    ),
+                                  )
+                                ],
+                              )
                             ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      AutoSizeText(
-                        favorite.name,
-                        maxLines: 1,
-                        style: GoogleFonts.robotoCondensed(
-                          fontSize: 40,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          (favorite.dailyGain >= 0.0)
-                              ? Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.green, size: 20)
-                              : Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 20),
-                          Text(
-                            (favorite.dailyGain >= 0.0)
-                                ? ' ${(favorite.dailyGain).toStringAsFixed(2)}%'
-                                : ' ${(favorite.dailyGain.abs()).toStringAsFixed(2)}%',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 25,
-                              fontWeight: FontWeight.w400,
-                              color: favorite.dailyGain >= 0.0
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${strings?.get('close') ?? 'Close'}: ${favorite.close.toStringAsFixed(2)}€',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            '${strings?.get('current') ?? 'Current'}: ${favorite.current.toStringAsFixed(2)}€',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: favorite.dailyGain >= 0.0
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(
-                                size: 42,
-                                FontAwesomeIcons.chartLine,
-                                color: Colors.white),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (BuildContext context) {
-                                  return ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(25.0),
-                                    ),
-                                    child: Container(
-                                      color: Theme.of(context).scaffoldBackgroundColor,
-                                      height: MediaQuery.of(context).size.height * 0.6,
-                                      child: OverflowBox(
-                                        alignment: Alignment.topCenter,
-                                        maxHeight: MediaQuery.of(context).size.height,
-                                        child: Column(
-                                          children: [
-
-                                            Expanded(
-                                              child: CandlesticksView(ticker: favorite.ticker, name: favorite.name, controller: this.controller, iconPath: favorite.icon ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -258,23 +332,28 @@ class FavoriteContainer extends StatefulWidget {
   final VoidCallback onFavoriteUpdated;
   final MainMenuPageController controller;
 
-  const FavoriteContainer({super.key, required this.favorite, required this.onFavoriteUpdated, required this.controller});
+  const FavoriteContainer(
+      {super.key,
+      required this.favorite,
+      required this.onFavoriteUpdated,
+      required this.controller});
 
   @override
   FavoriteContainerState createState() => FavoriteContainerState();
 }
 
 class FavoriteContainerState extends State<FavoriteContainer> {
-
-  void popFavoritesDialog(BuildContext context, Favorite fav, MainMenuPageController controller) {
+  void popFavoritesDialog(
+      BuildContext context, Favorite fav, MainMenuPageController controller) {
     showGeneralDialog(
       context: context,
-      pageBuilder: (BuildContext buildContext, Animation<double> animation, Animation<double> secondaryAnimation) {
+      pageBuilder: (BuildContext buildContext, Animation<double> animation,
+          Animation<double> secondaryAnimation) {
         return FavoriteDialog(favorite: fav, controller: controller);
       },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black.withValues(alpha:0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       transitionDuration: const Duration(milliseconds: 300),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
@@ -299,8 +378,42 @@ class FavoriteContainerState extends State<FavoriteContainer> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => {
-            Common().vibrate(40,30),
-            popFavoritesDialog(context, widget.favorite, widget.controller) },
+            Common().vibrate(40, 30),
+            popFavoritesDialog(context, widget.favorite, widget.controller)
+          },
+          onLongPress: () => {
+            Common().vibrate(40, 30),
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (BuildContext context) {
+                return ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.55,
+                    child: OverflowBox(
+
+                      alignment: Alignment.topCenter,
+                      maxHeight: MediaQuery.of(context).size.height,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: CandlesticksView(
+                              ticker: widget.favorite.ticker,
+                              name: widget.favorite.name,
+                              controller: widget.controller,
+                              iconPath: widget.favorite.icon,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            )
+          },
           splashColor: Colors.white24,
           highlightColor: Colors.white12,
           borderRadius: BorderRadius.circular(8),
@@ -310,7 +423,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
               color: Colors.white12,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha:0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   spreadRadius: 1,
                   blurRadius: 1,
                   offset: const Offset(0, 1),
@@ -324,9 +437,8 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                 Positioned(
                   top: 0,
                   right: -30,
-                  child: Icon(Icons.star,
-                      color: Colors.grey.withValues(alpha:0.1),
-                      size: 150),
+                  child: Icon(FontAwesomeIcons.solidStar,
+                      color: Colors.grey.withValues(alpha: 0.1), size: 120),
                 ),
 
                 // Main content
@@ -336,39 +448,41 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (widget.favorite.icon != "null" && !widget.favorite.icon.startsWith("http")) ... [
-                        Image.memory(
-                          base64Decode(widget.favorite.icon),
-                          height: 40,
-                          width: 40,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Text(
-                                widget.favorite.name,
-                                maxLines: 1,
-                                style: GoogleFonts.roboto(
-                                    fontSize: 36, fontWeight: FontWeight.w100),
-                                textAlign: TextAlign.center,
+                      if (widget.favorite.icon != "null" &&
+                          !widget.favorite.icon.startsWith("http")) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.memory(
+                                base64Decode(widget.favorite.icon),
+                                height: 40,
+                                width: 40,
+                                errorBuilder: (context, error, stackTrace) => Text(
+                                  widget.favorite.name,
+                                  maxLines: 1,
+                                  style: GoogleFonts.roboto(
+                                      fontSize: 36, fontWeight: FontWeight.w100),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
+                            )
+                      ] else if (widget.favorite.icon.startsWith("http")) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.network(
+                            widget.favorite.icon,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => Text(
+                              widget.favorite.name,
+                              maxLines: 1,
+                              style: GoogleFonts.roboto(
+                                  fontSize: 36, fontWeight: FontWeight.w100),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         )
-                      ]
-                      else if (widget.favorite.icon.startsWith("http")) ... [
-                        Image.network(
-                          widget.favorite.icon,
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Text(
-                                widget.favorite.name,
-                                maxLines: 1,
-                                style: GoogleFonts.roboto(
-                                    fontSize: 36, fontWeight: FontWeight.w100),
-                                textAlign: TextAlign.center,
-                              ),
-                        )
-
-                      ]
-                      else ... [
+                      ] else ...[
                         AutoSizeText(
                           Common().createFavViewName(widget.favorite),
                           maxLines: 1,
@@ -389,19 +503,20 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                           color: Colors.white,
                         ),
                       ),
-
                       Row(
                         children: [
                           (widget.favorite.dailyGain >= 0.0)
-                              ? Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.green, size: 12)
-                              : Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 12),
+                              ? Icon(FontAwesomeIcons.arrowTrendUp,
+                                  color: Colors.green, size: 12)
+                              : Icon(FontAwesomeIcons.arrowTrendDown,
+                                  color: Colors.red, size: 12),
                           Text(
                             (widget.favorite.dailyGain >= 0.0)
                                 ? ' ${(widget.favorite.dailyGain).toStringAsFixed(2)}%'
                                 : ' ${(widget.favorite.dailyGain.abs()).toStringAsFixed(2)}%',
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
-                              fontWeight:FontWeight.w300,
+                              fontWeight: FontWeight.w300,
                               color: widget.favorite.dailyGain >= 0.0
                                   ? Colors.green
                                   : Colors.red,

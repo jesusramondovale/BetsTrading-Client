@@ -12,6 +12,8 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'exactPrice': 'Exact price',
+      'viewChart': 'View chart',
       'name': 'Name',
       'type': 'Type',
       'editMethod': 'Edit method',
@@ -268,6 +270,8 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'exactPrice': 'Precio exacto',
+      'viewChart': 'Ver gráfico',
       'name': 'Nombre',
       'type': 'Tipo',
       'editMethod': 'Editar método',
@@ -454,7 +458,7 @@ class LocalizedStrings {
       'currentBalance': 'Balance actual',
       'mostCommon': 'Más comunes',
       'totalBet': 'Mi cuenta',
-      'recentBets': 'Bets recientes',
+      'recentBets': 'Apuestas recientes',
       'liveBets': 'Tendencias',
       'darkMode': 'Modo oscuro',
       'attention': 'Atención!',
@@ -525,6 +529,8 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'exactPrice': 'Prix exact',
+      'viewChart': 'Voir le graphique',
       'name': 'Nom',
       'type': 'Type',
       'editMethod': 'Modifier la méthode',
@@ -785,6 +791,8 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'exactPrice': 'Prezzo esatto',
+      'viewChart': 'Vedi grafico',
       'name': 'Nome',
       'type': 'Tipo',
       'editMethod': 'Modifica metodo',
@@ -1043,6 +1051,8 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'exactPrice': 'Exakter Preis',
+      'viewChart': 'Diagramm',
       'name': 'Name',
       'type': 'Typ',
       'editMethod': 'Methode bearbeiten',

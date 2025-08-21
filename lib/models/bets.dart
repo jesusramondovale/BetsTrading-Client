@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:betrader/services/BetsService.dart';
@@ -243,69 +244,78 @@ class RecentBetDialog extends StatelessWidget {
     final strings = LocalizedStrings.of(context);
 
     return Dialog(
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
-      backgroundColor: Colors.black87,
-      child: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(20.0),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.black,
-                Colors.grey[900]!,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+      backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          child: SingleChildScrollView(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent.withValues(alpha: 0.02),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white70.withValues(alpha: 0.12),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: .6),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
                       children: <Widget>[
-                        if (bet.iconPath != "null" &&
-                            !bet.iconPath.contains("http")) ...[
+                        if (bet.iconPath != "null" && !bet.iconPath.contains("http")) ...[
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
+                            borderRadius: BorderRadius.circular(16),
                             child: Image.memory(
                               base64Decode(bet.iconPath),
                               height: 100,
                               width: 100,
                               errorBuilder: (context, error, stackTrace) =>
                                   Text(
-                                bet.name,
-                                maxLines: 1,
-                                style: GoogleFonts.roboto(
-                                    fontSize: 36, fontWeight: FontWeight.w100),
-                                textAlign: TextAlign.center,
-                              ),
+                                    bet.name,
+                                    maxLines: 1,
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w100,
+                                      color: Colors.white,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                             ),
                           ),
                         ] else if (bet.iconPath != "null") ...[
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Image.network(bet.iconPath,
-                                height: 100, width: 100,
-                                errorBuilder: (context, error, stackTrace) {
-                              return AutoSizeText(
-                                bet.name,
-                                maxLines: 1,
-                                style: GoogleFonts.josefinSans(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                ),
-                              );
-                            }),
+                            borderRadius: BorderRadius.circular(16.0),
+                            child: Image.network(
+                              bet.iconPath,
+                              height: 100,
+                              width: 100,
+                              errorBuilder: (context, error, stackTrace) {
+                                return AutoSizeText(
+                                  bet.name,
+                                  maxLines: 1,
+                                  style: GoogleFonts.josefinSans(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ] else ...[
                           AutoSizeText(
@@ -328,7 +338,7 @@ class RecentBetDialog extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.robotoCondensed(
                         fontSize: 30,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w200,
                         color: Colors.white,
                       ),
                     ),
@@ -365,8 +375,7 @@ class RecentBetDialog extends StatelessWidget {
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 15.0,
                         mainAxisSpacing: 15.0,
@@ -374,36 +383,41 @@ class RecentBetDialog extends StatelessWidget {
                       ),
                       children: [
                         _buildGridItem(
-                            context,
-                            Icons.casino,
-                            '${bet.betAmount.toStringAsFixed(2)}',
-                            strings?.get('betAmount') ?? "Bet amount"),
+                          context,
+                          Icons.casino,
+                          '${bet.betAmount.toStringAsFixed(2)}',
+                          strings?.get('betAmount') ?? "Bet amount",
+                        ),
                         _buildGridItem(
-                            context,
-                            Icons.update,
-                            //TODO Currency
-                            '${bet.originValue.toStringAsFixed(2)}€',
-                            strings?.get('originValue') ?? "Origin value"),
+                          context,
+                          Icons.update,
+                          '${bet.originValue.toStringAsFixed(2)}€',
+                          strings?.get('originValue') ?? "Origin value",
+                        ),
                         _buildGridItem(
-                            context,
-                            Icons.crop_sharp,
-                            '${bet.targetValue.toStringAsFixed(2)}€',
-                            strings?.get('targetValue') ?? "Target value"),
+                          context,
+                          Icons.crop_sharp,
+                          '${bet.targetValue.toStringAsFixed(2)}€',
+                          strings?.get('targetValue') ?? "Target value",
+                        ),
                         _buildGridItem(
-                            context,
-                            Icons.date_range,
-                            DateFormat('dd-MM-yyyy').format(bet.targetDate),
-                            strings?.get('targetDate') ?? "Target date"),
+                          context,
+                          Icons.date_range,
+                          DateFormat('dd-MM-yyyy').format(bet.targetDate),
+                          strings?.get('targetDate') ?? "Target date",
+                        ),
                         _buildGridItem(
-                            context,
-                            FontAwesomeIcons.arrowsLeftRightToLine,
-                            '${bet.targetMargin.toStringAsFixed(2)}%',
-                            strings?.get('targetMargin') ?? "Target margin"),
+                          context,
+                          FontAwesomeIcons.arrowsLeftRightToLine,
+                          '${bet.targetMargin.toStringAsFixed(2)}%',
+                          strings?.get('targetMargin') ?? "Target margin",
+                        ),
                         _buildGridItem(
-                            context,
-                            Icons.attach_money,
-                            'x${bet.targetOdds.toStringAsFixed(2)}',
-                            strings?.get('winBonus') ?? "Win bonus"),
+                          context,
+                          Icons.attach_money,
+                          'x${bet.targetOdds.toStringAsFixed(2)}',
+                          strings?.get('winBonus') ?? "Win bonus",
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -427,23 +441,21 @@ class RecentBetDialog extends StatelessWidget {
                                     top: Radius.circular(25.0),
                                   ),
                                   child: Container(
-                                    color: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    height: MediaQuery.of(context).size.height *
-                                        0.6,
+                                    color: Theme.of(context).scaffoldBackgroundColor,
+                                    height: MediaQuery.of(context).size.height * 0.6,
                                     child: OverflowBox(
                                       alignment: Alignment.topCenter,
-                                      maxHeight:
-                                          MediaQuery.of(context).size.height,
+                                      maxHeight: MediaQuery.of(context).size.height,
                                       child: Column(
                                         children: [
                                           Expanded(
                                             child: CandlesticksView(
-                                                ticker: bet.ticker,
-                                                betId: bet.id,
-                                                name: bet.name,
-                                                controller: controller,
-                                                iconPath: bet.iconPath),
+                                              ticker: bet.ticker,
+                                              betId: bet.id,
+                                              name: bet.name,
+                                              controller: controller,
+                                              iconPath: bet.iconPath,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -459,11 +471,12 @@ class RecentBetDialog extends StatelessWidget {
                   ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
+
   }
 }
 
@@ -555,27 +568,36 @@ class RecentPriceBetDialog extends StatelessWidget {
     final endDateStr = DateFormat('dd-MM-yyyy').format(priceBet.endDate);
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      backgroundColor: Colors.black87,
-      child: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(20.0),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.black, Colors.grey[900]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          child: SingleChildScrollView(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent.withValues(alpha: 0.02),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white70.withValues(alpha: 0.12),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: .6),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
                       children: <Widget>[
@@ -589,14 +611,15 @@ class RecentPriceBetDialog extends StatelessWidget {
                               width: 100,
                               errorBuilder: (context, error, stackTrace) =>
                                   Text(
-                                priceBet.name,
-                                maxLines: 1,
-                                style: GoogleFonts.roboto(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.w100,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                                    priceBet.name,
+                                    maxLines: 1,
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w100,
+                                      color: Colors.white,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                             ),
                           ),
                         ] else if (priceBet.iconPath != "null") ...[
@@ -672,8 +695,7 @@ class RecentPriceBetDialog extends StatelessWidget {
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 15.0,
                         mainAxisSpacing: 15.0,
@@ -722,44 +744,58 @@ class RecentPriceBetDialog extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        IconButton(
-                          icon: const Icon(
-                              size: 42,
-                              FontAwesomeIcons.crosshairs,
-                              color: Colors.white,
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 1.5,
-                                  color: Colors.black45,
-                                  offset: Offset(8.0, 4.0),
-                                )
-                              ]),
-                          onPressed: () async {
-                            List<Candle> candles = await BetsService()
-                                .fetchCandles(priceBet.ticker);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ExactPricePage(
-                                  name: priceBet.name,
-                                  ticker: priceBet.ticker,
-                                  currentValue: candles.first.close,
-                                  iconPath: priceBet.iconPath,
-                                ),
+                        Column(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                FontAwesomeIcons.crosshairs,
+                                size: 42,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 1.5,
+                                    color: Colors.black45,
+                                    offset: Offset(8.0, 4.0),
+                                  )
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                              onPressed: () async {
+                                List<Candle> candles =
+                                await BetsService().fetchCandles(priceBet.ticker);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ExactPricePage(
+                                      name: priceBet.name,
+                                      ticker: priceBet.ticker,
+                                      currentValue: candles.first.close,
+                                      iconPath: priceBet.iconPath,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            Text(
+                              strings?.get('exactPrice') ?? "Exact price",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w200,
+                                color: Colors.white70,
+                              ),
+                            )
+                          ],
+                        )
                       ],
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
+
   }
 }
 

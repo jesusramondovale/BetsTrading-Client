@@ -118,7 +118,7 @@ class ExchangePageState extends State<ExchangePage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(25),
                       ),
                     ),
                     onPressed: () async {
@@ -167,7 +167,7 @@ class ExchangePageState extends State<ExchangePage> {
                   return Card(
                     color: Colors.transparent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(35),
                     ),
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: InkWell(

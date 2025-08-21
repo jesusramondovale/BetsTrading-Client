@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:betrader/services/AssetsService.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
@@ -81,7 +82,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   Future<void> _showAssetDetails(BuildContext context, FinancialAsset a) async {
     final strings = LocalizedStrings.of(context);
-    final Color bgColor = Colors.grey[900]!;
     final Color textColor = Colors.white;
 
     // Mapeo de grupos a textos localizados (ajusta si tus claves son otras)
@@ -102,26 +102,53 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       context: context,
       barrierDismissible: true,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          backgroundColor: bgColor,
+        return Dialog(
+          elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (a.icon.isNotEmpty) ...[
-                  Center(child: _assetIcon(a, size: 120)),
-                  const SizedBox(height: 12),
-                ],
-                ...rows,
-              ],
+          backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.transparent.withValues(alpha: 0.02),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.white70.withValues(alpha: 0.12),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: .6),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (a.icon.isNotEmpty) ...[
+                          Center(child: _assetIcon(a, size: 120)),
+                          const SizedBox(height: 12),
+                        ],
+                        ...rows, // <- tu contenido tal cual
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
-          actionsAlignment: MainAxisAlignment.center,
         );
       },
     );
+
   }
 
   void toggleFavorite(String ticker, {bool onlyLocal = false}) async {
@@ -182,7 +209,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       ),
       child: Padding(
         padding: EdgeInsets.all(3),
-        child: Icon(FontAwesomeIcons.solidBookmark, size: 25, color: Colors.white70.withValues(alpha: 0.7)),
+        child: Icon(FontAwesomeIcons.solidStar, size: 25, color: Colors.white70.withValues(alpha: 0.7)),
       ),
     );
   }
@@ -240,7 +267,8 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
         // Base64
         return ClipRRect(
           borderRadius: BorderRadius.circular(size / 4),
-          child: Image.memory(
+          child:
+          Image.memory(
             base64Decode(a.icon),
             width: size,
             height: size,
@@ -443,7 +471,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                                     children: [
                                       ListTile(
                                         leading: Icon(
-                                          isFav ? FontAwesomeIcons.solidBookmark : FontAwesomeIcons.bookmark,
+                                          isFav ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
                                           color: Colors.white70,
                                         ),
                                         title: Text(
@@ -528,36 +556,42 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                                       if (asset.icon.isNotEmpty &&
                                           asset.icon != "null" &&
                                           !asset.icon.contains("http")) ...[
-                                        Image.memory(
-                                          base64Decode(asset.icon),
-                                          height: 55,
-                                          alignment: Alignment.center,
-                                          errorBuilder: (_, __, ___) => Text(
-                                            asset.name,
-                                            maxLines: 1,
-                                            textAlign: TextAlign.center,
-                                            style: GoogleFonts.roboto(
-                                              fontSize: 36,
-                                              fontWeight: FontWeight.w100,
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(6),
+                                          child: Image.memory(
+                                            base64Decode(asset.icon),
+                                            height: 55,
+                                            alignment: Alignment.center,
+                                            errorBuilder: (_, __, ___) => Text(
+                                              asset.name,
+                                              maxLines: 1,
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 36,
+                                                fontWeight: FontWeight.w100,
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        )
                                       ] else if (asset.icon.isNotEmpty &&
                                           asset.icon.contains("http")) ...[
-                                        Image.network(
-                                          asset.icon,
-                                          height: 55,
-                                          alignment: Alignment.center,
-                                          errorBuilder: (_, __, ___) => Text(
-                                            Common().createTrendViewNameFromName(asset.name),
-                                            maxLines: 1,
-                                            textAlign: TextAlign.center,
-                                            style: GoogleFonts.roboto(
-                                              fontSize: 36,
-                                              fontWeight: FontWeight.w100,
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(6),
+                                          child: Image.network(
+                                            asset.icon,
+                                            height: 55,
+                                            alignment: Alignment.center,
+                                            errorBuilder: (_, __, ___) => Text(
+                                              Common().createTrendViewNameFromName(asset.name),
+                                              maxLines: 1,
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 36,
+                                                fontWeight: FontWeight.w100,
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        )
                                       ] else ...[
                                         Text(
                                           Common().createTrendViewNameFromName(asset.name),

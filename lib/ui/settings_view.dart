@@ -281,6 +281,7 @@ class SettingsViewState extends State<SettingsView> {
           ),
           ListView(
             children: ListTile.divideTiles(
+              color: Colors.white70.withValues(alpha: 0.25),
               context: context,
               tiles: [
                 // Personal Info

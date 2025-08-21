@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:country_flags/country_flags.dart';
@@ -123,67 +124,71 @@ class UserDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
-      backgroundColor: Colors.black87,
-      child: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(10.0),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.black,
-                Colors.grey[900]!,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(10.0),
+      backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          child: SingleChildScrollView(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent.withValues(alpha: 0.02),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white70.withValues(alpha: 0.12),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: .6),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Perfil y nombre
                     Row(
                       children: [
-                        if (user.profilePic != null &&
-                            user.profilePic!.isNotEmpty)
+                        if (user.profilePic != null && user.profilePic!.isNotEmpty)
                           ClipRRect(
                             borderRadius: BorderRadius.circular(50.0),
                             child: user.profilePic!.startsWith('http')
                                 ? Image.network(
-                                    user.profilePic!,
-                                    height: 80,
-                                    width: 80,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, StackTrace) =>
-                                            Image.asset(
-                                      "assets/new_icon.png",
-                                      height: 80,
-                                      width: 80,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                : Image.memory(
-                                    base64Decode(user.profilePic!),
+                              user.profilePic!,
+                              height: 80,
+                              width: 80,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, StackTrace) =>
+                                  Image.asset(
+                                    "assets/new_icon.png",
                                     height: 80,
                                     width: 80,
                                     fit: BoxFit.cover,
                                   ),
+                            )
+                                : Image.memory(
+                              base64Decode(user.profilePic!),
+                              height: 80,
+                              width: 80,
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             AutoSizeText(
-                              (user.fullname.length < 12 ? user.fullname : user.fullname.substring(0,12) + '...') ,
+                              (user.fullname.length < 12
+                                  ? user.fullname
+                                  : user.fullname.substring(0, 12) + '...'),
                               maxLines: 1,
                               style: GoogleFonts.robotoCondensed(
                                 fontSize: 20,
@@ -192,8 +197,8 @@ class UserDialog extends StatelessWidget {
                               ),
                             ),
                             AutoSizeText(
-                              '@${(user.username.length < 20 ? user.username : user.username.substring(0,17) + '...')}',
-                              style: TextStyle(
+                              '@${(user.username.length < 20 ? user.username : user.username.substring(0, 17) + '...')}',
+                              style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
                               ),
@@ -202,7 +207,8 @@ class UserDialog extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
+
                     // Correo electrónico
                     ListTile(
                       dense: true,
@@ -210,12 +216,16 @@ class UserDialog extends StatelessWidget {
                       leading: const Icon(Icons.email,
                           color: Colors.white, size: 20),
                       title: Text(
+                        (user.email.length < 35
+                            ? user.email
+                            : user.email.substring(0, 30) + '...'),
                         maxLines: 1,
-                        (user.email.length < 35 ? user.email : user.email.substring(0,30) + '...') ,
                         style: GoogleFonts.montserrat(
                             color: Colors.white, fontSize: 12),
                       ),
                     ),
+
+                    // País
                     ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
@@ -250,6 +260,7 @@ class UserDialog extends StatelessWidget {
                             color: Colors.white, fontSize: 20),
                       ),
                     ),
+
                     // Estado activo
                     ListTile(
                       dense: true,
@@ -268,10 +279,11 @@ class UserDialog extends StatelessWidget {
                   ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
+
   }
 }
