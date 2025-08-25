@@ -23,14 +23,21 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late AnimationController _progressController;
   List<Map<String, dynamic>> _buyOptions = [];
+  List<Map<String, dynamic>> _adRewardOptions = [];
   Timer? _refreshTimer;
+  int? _rewardPrize;
 
   Future<void> loadData() async {
-    final currency = await _storage.read(key: 'currency') ?? 'eur';
-    final buyOptionsResponse = await Common().postRequestWrapper('Info', 'BuyOptions', {'id': currency});
+    final currency = await _storage.read(key: 'currency') ?? 'eur'; //TODO
+    final buyOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': currency, 'type' : 'buy'});
+    final adRewardOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': 'eur', 'type': 'ad_reward'}); //TODO Currency
+
+
 
     setState(() {
       _buyOptions = List<Map<String, dynamic>>.from(buyOptionsResponse['body'] as Iterable);
+      _adRewardOptions = List<Map<String, dynamic>>.from(adRewardOptionsResponse['body'] as Iterable);
+      _rewardPrize = _adRewardOptions[0]['coins'] ?? 50;
     });
   }
 
@@ -98,7 +105,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> _showRewardedAd(double coins, String localizedWarning) async {
+  Future<void> _showRewardedAd(int coins, String localizedWarning) async {
     final userId = await _storage.read(key: 'sessionToken');
     if (userId == null) return;
 
@@ -342,56 +349,65 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                 Stack(
                   alignment: Alignment.center,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: AnimatedBuilder(
-                        animation: _progressController,
-                        builder: (context, child) {
-                          return LinearProgressIndicator(
-                            value: _isAdLoaded ? 1 : _progressController.value,
-                            minHeight: 56,
-                            backgroundColor: Colors.grey.shade800,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
-                          );
-                        },
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 56),
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: _isAdLoaded
-                          ? () {
-                        Common().vibrate(40, 30);
-                        _showRewardedAd(
-                          50,
-                          Common().interpolate(
-                            strings.get('youWonCoins') ?? 'You won {coins}',
-                            {'coins': '50'}, //TODO
+                    if (_rewardPrize != null) ...
+                    [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: AnimatedBuilder(
+                            animation: _progressController,
+                            builder: (context, child) {
+                              return LinearProgressIndicator(
+                                value: _isAdLoaded ? 1 : _progressController.value,
+                                minHeight: 56,
+                                backgroundColor: Colors.grey.shade800,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
+                              );
+                            },
                           ),
-                        );
-                      }
-                          : null,
-                      icon: const Icon(Icons.ondemand_video, size: 34),
-                      label: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            Common().interpolate(
-                              strings.get('earnCoins') ?? 'Watch an Ad to Earn {coins}🪙',
-                              {'coins': '50'},
-                            ),
-                            style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w300, color: Colors.white),
+                        ),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 56),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
-                          const SizedBox(width: 8),
-                          Image.asset('assets/coin.png', width: 18, height: 18),
-                        ],
-                      ),
-                    ),
+                          onPressed: _isAdLoaded
+                              ? () {
+                            Common().vibrate(40, 30);
+                            _showRewardedAd(
+                              _rewardPrize ?? 15,
+                              Common().interpolate(
+                                strings.get('youWonCoins') ?? 'You won {coins}',
+                                {'coins': _rewardPrize.toString()}, //TODO
+                              ),
+                            );
+                          }
+                              : null,
+                          icon: const Icon(Icons.ondemand_video, size: 34),
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                Common().interpolate(
+                                  strings.get('earnCoins') ?? 'Watch an Ad to Earn {coins}🪙',
+                                  {'coins': _rewardPrize.toString()},
+                                ),
+                                style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w300, color: Colors.white),
+                              ),
+                              const SizedBox(width: 8),
+                              Image.asset('assets/coin.png', width: 18, height: 18),
+                            ],
+                          ),
+                        )
+                    ]
+                    else ...
+                    [
+                      Center(
+                        child: CircularProgressIndicator(color: Colors.grey)
+                      )
+                    ]
                   ],
                 ),
               ],

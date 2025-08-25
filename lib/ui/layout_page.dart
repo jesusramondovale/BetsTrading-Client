@@ -260,24 +260,23 @@ class MainMenuPageState extends State<MainMenuPage> {
                       unselectedItemColor: Colors.white30,
                       showUnselectedLabels: false,
                       showSelectedLabels: true,
-                      iconSize: 32,
+                      iconSize: 35,
                       items: <BottomNavigationBarItem>[
                         BottomNavigationBarItem(
-                          icon: Icon(Icons.home_outlined),
-                          activeIcon: Icon(Icons.home),
+                          icon: Icon(FontAwesomeIcons.house),
                           label: strings?.get('home') ?? "Home",
                         ),
                         BottomNavigationBarItem(
-                          icon: Icon(FontAwesomeIcons.peopleGroup),
+                          icon: Icon(FontAwesomeIcons.earthAmericas),
                           label: "Social",
                         ),
                         BottomNavigationBarItem(
-                          icon: Container(
-                            width: 34,
+                          icon: SizedBox(
+                            width: 40,
                             child: Image.asset('assets/new_icon.png'),
                           ),
-                          activeIcon: Container(
-                            width: 27,
+                          activeIcon: SizedBox(
+                            width: 34,
                             child: Image.asset('assets/new_icon.png'),
                           ),
                           label: strings?.get('liveMarkets') ?? 'Live Markets',
@@ -291,10 +290,17 @@ class MainMenuPageState extends State<MainMenuPage> {
                               ? CircleAvatar(
                                   backgroundImage:
                                       MemoryImage(_profilePicBytes!),
-                                  radius: 16, // Reducción del tamaño del avatar
+                                  radius: 20, // Reducción del tamaño del avatar
                                 )
                               : Icon(Icons.account_circle_outlined)),
-                          label: _username,
+                          activeIcon: (_profilePicBytes != null
+                              ? CircleAvatar(
+                            backgroundImage:
+                            MemoryImage(_profilePicBytes!),
+                            radius: 15, // Reducción del tamaño del avatar
+                          )
+                              : Icon(Icons.account_circle_outlined)),
+                          label: strings!.get('profileTitle') ?? "Your profile",
                         ),
                       ],
                       currentIndex: _controller.selectedIndexNotifier.value,

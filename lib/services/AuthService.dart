@@ -244,7 +244,7 @@ class AuthService {
   }
 
   //TODO: Delete when using real ADMOB_TOKEN with SSV
-  Future<bool> addCoins(String id, double coins) async {
+  Future<bool> addCoins(String id, int coins) async {
     final response = await Common().postRequestWrapper('Payments', 'AddCoins', {'user_id': id, 'reward': coins});
 
     if (response['statusCode'] == 200) {

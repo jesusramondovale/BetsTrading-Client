@@ -30,7 +30,8 @@ class ExchangePageState extends State<ExchangePage> {
     final userId = await _storage.read(key: 'sessionToken');
     final points = await _storage.read(key: 'points') ?? '0';
     final pendingBalanceResponse = await Common().postRequestWrapper('Info', 'PendingBalance', {'id': userId});
-    final exchangeOptionsResponse = await Common().postRequestWrapper('Info', 'ExchangeOptions', {'id': 'eur'}); //TODO Currency
+    final exchangeOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': 'eur', 'type': 'exchange'}); //TODO Currency
+
 
     setState(() {
         _userPoints = points;
@@ -41,6 +42,8 @@ class ExchangePageState extends State<ExchangePage> {
 
         }
         _exchangeOptions = List<Map<String, dynamic>>.from(exchangeOptionsResponse['body'] as Iterable);
+
+
   });
   }
 
