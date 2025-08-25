@@ -17,12 +17,9 @@ This is the first version of the Pre-Alpha client app of the Bets Trading Projec
 - [All versions](https://github.com/jesusramondovale/BetsTrading-Client/releases)
 
 #### Direct APK download
-- [Version 25.232.1](https://github.com/jesusramondovale/BetsTrading-Client/releases/download/25.232.1/app-release-25.232.1.apk) (Latest)
+- [Version 25.238.1](https://github.com/jesusramondovale/BetsTrading-Client/releases/download/25.238.1/app-release-25.238.1.apk) (Latest)
+- [Version 25.232.1](https://github.com/jesusramondovale/BetsTrading-Client/releases/download/25.232.1/app-release-25.232.1.apk)
 - [Version 25.223.1](https://github.com/jesusramondovale/BetsTrading-Client/releases/download/25.223.1/app-release-25.223.1.apk)
-- [Version 25.219.1](https://github.com/jesusramondovale/BetsTrading-Client/releases/download/25.219.1/app-release-25.219.1.apk)
-- [Version 25.214.2](https://github.com/jesusramondovale/BetsTrading-Client/releases/download/25.214.2/app-release-25.214.2.apk)
-- [Version 25.213.2](https://github.com/jesusramondovale/BetsTrading-Client/releases/download/25.213.2/app-release-25.213.2.apk) (Stable)
-
 
 __________________________________________________________________________________
-© All rights reserved to Jesús Ramón DoVale - BetsTrading LTD © 2025
+© All rights reserved to Jesús Ramón DoVale - BetsTrading LTD © 2024-2025
