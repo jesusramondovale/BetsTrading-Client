@@ -1143,13 +1143,13 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
   bool _showEditButtons = false;
   String _currency = 'eur';
 
-  void loadPreferences() async {
+  Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('dollarCurrency') ?? false){
-      setState(() {
-        _currency = 'usd';
-      });
-    }
+    final useDollar = prefs.getBool('dollarCurrency') ?? false;
+    if (!mounted) return;
+    setState(() {
+      _currency = useDollar ? 'usd' : 'eur';
+    });
   }
 
   void _triggerBetButtons() {
@@ -1196,9 +1196,15 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
     );
   }
 
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
   @override
   Widget build(BuildContext context) {
-    loadPreferences();
     final strings = LocalizedStrings.of(context);
     final now = DateTime.now();
     final daysUntilFinal = widget.priceBet.endDate.difference(now).inDays;
@@ -1263,7 +1269,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10.0),
-                    child: (widget.priceBet.iconPath.contains("http")
+                    child: (widget.priceBet.iconPath.startsWith("http")
                         ? Image.network(
                             widget.priceBet.iconPath,
                             width: 50,
