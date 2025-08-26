@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/BetsService.dart';
 import '../helpers/common.dart';
 import '../helpers/slider.dart';
@@ -31,10 +32,12 @@ class _WithdrawPageState extends State<WithdrawPage> {
   String? _coinIconBase64;
   String? _selectedMethod;
   String _userId = 'none';
+  String _currency = 'eur';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final Map<String, Map<String, String>> _userAvailableMethods = {};
 
   Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
     final id = await _storage.read(key: 'sessionToken');
     if (id == null) return;
 
@@ -98,7 +101,9 @@ class _WithdrawPageState extends State<WithdrawPage> {
     setState(() {
       _userId = id;
       _coinIconBase64 = base64;
-
+      if (prefs.getBool('dollarCurrency') == true){
+        _currency = 'usd';
+      }
       _userAvailableMethods
         ..clear()
         ..addAll(map);
@@ -216,7 +221,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                   ),
                                   const SizedBox(width: 4),
                                   Image.asset(
-                                    'assets/euro.png',
+                                    (_currency == 'eur' ? 'assets/euro.png' : 'assets/dollar.png'),
                                     width: 50,
                                     height: 50,
                                   ),
@@ -284,7 +289,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                                 }
 
                                                 if (changed == true) {
-                                                  await _loadData(); // <-- tu método del WithdrawPage
+                                                  await _loadData();
                                                   setState(() {});
                                                 }
                                               },
@@ -450,6 +455,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                             "Please enter your password to continue",
                                         widget.coins.toDouble(),
                                         widget.currencyAmount.toDouble(),
+                                        _currency,
                                         _userAvailableMethods[_selectedMethod]!['text']!,
                                         context,
                                         (password) async {
@@ -462,7 +468,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                             'currencyAmount': widget
                                                 .currencyAmount
                                                 .toDouble(),
-                                            'currency': "eur", //TODO
+                                            'currency': _currency,
                                             'coins': widget.coins.toDouble()
                                           });
                                           if (response['statusCode'] == 200) {

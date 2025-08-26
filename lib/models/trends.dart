@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
@@ -47,12 +48,12 @@ class TrendDialog extends StatelessWidget {
   final int index;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final MainMenuPageController controller;
-
+  final String currency;
   const TrendDialog(
       {super.key,
       required this.trend,
       required this.index,
-      required this.controller});
+      required this.controller, required this.currency});
 
   @override
   Widget build(BuildContext context) {
@@ -212,7 +213,7 @@ class TrendDialog extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            '${strings?.get('close') ?? 'Close'}: ${trend.close.toStringAsFixed(2)}€',
+                            '${strings?.get('close') ?? 'Close'}: ${trend.close.toStringAsFixed(2)}' + currency,
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -223,7 +224,7 @@ class TrendDialog extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                '${strings?.get('current') ?? 'Current'}: ${trend.current.toStringAsFixed(2)}€',
+                                '${strings?.get('current') ?? 'Current'}: ${trend.current.toStringAsFixed(2)}' + currency,
                                 style: GoogleFonts.montserrat(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
@@ -327,13 +328,16 @@ class TrendContainer extends StatefulWidget {
 }
 
 class TrendContainerState extends State<TrendContainer> {
+  String _currencyChar = '€';
+
   void popTrendDialog(BuildContext context, Trend trend, int index,
       MainMenuPageController controller) {
+    loadCurrency();
     showGeneralDialog(
       context: context,
       pageBuilder: (BuildContext buildContext, Animation<double> animation,
           Animation<double> secondaryAnimation) {
-        return TrendDialog(trend: trend, index: index, controller: controller);
+        return TrendDialog(trend: trend, index: index, controller: controller, currency: _currencyChar);
       },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
@@ -352,6 +356,13 @@ class TrendContainerState extends State<TrendContainer> {
         );
       },
     );
+  }
+
+  Future<void> loadCurrency() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('dollarCurrency') ?? false) {
+      _currencyChar = '\$';
+    }
   }
 
   Widget _buildTopBadge(IconData icon, Color color) {

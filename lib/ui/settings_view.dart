@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
@@ -28,20 +29,10 @@ class SettingsView extends StatefulWidget {
 }
 
 class SettingsViewState extends State<SettingsView> {
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool enableVibration = false;
-
-  Future<void> _loadThemePreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    final storedValue = prefs.getBool('enableVibration');
-    setState(() {
-      enableVibration = storedValue ?? false;
-    });
-  }
-
-  Future<void> _saveThemePreference(bool isDark) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('darkTheme', isDark);
-  }
+  bool dollarCurrency = false;
+  bool _loaded = false;
 
   Future<void> _openInAppBrowser(String url) async {
     final Uri uri = Uri.parse(url);
@@ -241,17 +232,89 @@ class SettingsViewState extends State<SettingsView> {
     );
   }
 
+  Future<bool?> showRestartDialog(BuildContext context) async {
+    final strings = LocalizedStrings.of(context);
+    final Color bgColor = Colors.grey[900]!;
+    final Color textColor = Colors.white;
+
+    return await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) exit(0);
+          },
+          child: AlertDialog(
+            backgroundColor: bgColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Text(
+              strings?.get('needToRestart') ?? "The application needs to be restarted. Please enter again",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 20,
+                fontWeight: FontWeight.w300,
+                color: textColor,
+              ),
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  exit(0);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: textColor,
+                  textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(strings?.get('confirm') ?? "Confirm"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+  Future<void> _saveEnableVibration(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('enableVibration', value);
+  }
+
+  Future<void> _saveDollarCurrency(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('dollarCurrency', value);
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      enableVibration = prefs.getBool('enableVibration') ?? false;
+      dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
+      _loaded = true;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    _loadThemePreference();
+    _loadSettings();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_loaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final strings = LocalizedStrings.of(context);
-    final FlutterSecureStorage _storage = const FlutterSecureStorage();
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -415,13 +478,28 @@ class SettingsViewState extends State<SettingsView> {
                   activeColor: Colors.greenAccent,
                   onChanged: (bool value) async {
                     Common().vibrate(40, 40);
-                    await _saveThemePreference(value);
-                    setState(() {
-                      enableVibration = value;
-                      Common().savePreference('enableVibration', value);
-                    });
+                    setState(() => enableVibration = value);
+                    _saveEnableVibration(value);
                   },
                 ),
+
+                // Switch currency EUR-USD
+                ListTile(
+                  title: Text(
+                    strings?.get('changeCurrency') ?? "Change currency",
+                    style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                  ),
+                  trailing: CurrencySwitch(
+                    value: dollarCurrency,
+                    onChanged: (bool newValue) async {
+                      Common().vibrate(40, 40);
+                      setState(() => dollarCurrency = newValue);
+                      _saveDollarCurrency(newValue);
+                      showRestartDialog(context);
+                    },
+                  ),
+                ),
+
 
                 // Advanced App Settings
                 Material(
@@ -457,3 +535,44 @@ class SettingsViewState extends State<SettingsView> {
     );
   }
 }
+
+class CurrencySwitch extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const CurrencySwitch({super.key, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: Container(
+        width: 52,
+        height: 34,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white70, width: 2),
+          borderRadius: BorderRadius.circular(20),
+          color: Colors.grey[500],
+        ),
+        child: Stack(
+          children: [
+            AnimatedAlign(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Image.asset(
+                  value ? 'assets/dollar.png' : 'assets/euro.png',
+                  width: 26,
+                  height: 26,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

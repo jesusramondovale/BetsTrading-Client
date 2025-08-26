@@ -124,6 +124,7 @@ class Common {
     String aBody,
     double coinsAmount,
     double currencyAmount,
+    String currency,
     String detail,
     BuildContext aContext,
     void Function(String password) onConfirm,
@@ -246,7 +247,7 @@ class Common {
                               ),
                             ),
                             const SizedBox(width: 4),
-                            Image.asset('assets/euro.png', width: 28, height: 28),
+                            Image.asset(currency == 'eur' ? 'assets/euro.png' : 'assets/dollar.png', width: 28, height: 28),
                           ],
                         ),
                       )

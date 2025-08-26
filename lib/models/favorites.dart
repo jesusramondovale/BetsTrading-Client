@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
@@ -52,8 +53,9 @@ class Favorites {
 class FavoriteDialog extends StatelessWidget {
   final Favorite favorite;
   final MainMenuPageController controller;
+  final String currency;
   const FavoriteDialog(
-      {super.key, required this.favorite, required this.controller});
+      {super.key, required this.favorite, required this.controller, required this.currency});
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
@@ -229,7 +231,7 @@ class FavoriteDialog extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '${strings?.get('close') ?? 'Close'}: ${favorite.close.toStringAsFixed(2)}€',
+                            '${strings?.get('close') ?? 'Close'}: ${favorite.close.toStringAsFixed(2)}' + currency,
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -239,7 +241,7 @@ class FavoriteDialog extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                '${strings?.get('current') ?? 'Current'}: ${favorite.current.toStringAsFixed(2)}€',
+                                '${strings?.get('current') ?? 'Current'}: ${favorite.current.toStringAsFixed(2)}' + currency,
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
@@ -343,13 +345,23 @@ class FavoriteContainer extends StatefulWidget {
 }
 
 class FavoriteContainerState extends State<FavoriteContainer> {
+  String _currencyChar = '€';
+
+  Future<void> loadCurrency() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('dollarCurrency') ?? false) {
+      _currencyChar = '\$';
+    }
+  }
+
   void popFavoritesDialog(
       BuildContext context, Favorite fav, MainMenuPageController controller) {
+    loadCurrency();
     showGeneralDialog(
       context: context,
       pageBuilder: (BuildContext buildContext, Animation<double> animation,
           Animation<double> secondaryAnimation) {
-        return FavoriteDialog(favorite: fav, controller: controller);
+        return FavoriteDialog(favorite: fav, controller: controller, currency: _currencyChar);
       },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,

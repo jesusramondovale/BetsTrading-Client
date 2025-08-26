@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
@@ -142,10 +143,12 @@ class BetsAndPriceBets {
 class RecentBetDialog extends StatelessWidget {
   final Bet bet;
   final MainMenuPageController controller;
+  final currency;
   RecentBetDialog({
     super.key,
     required this.bet,
     required this.controller,
+    required this.currency,
   });
 
   static get decodedBody => null;
@@ -391,13 +394,13 @@ class RecentBetDialog extends StatelessWidget {
                         _buildGridItem(
                           context,
                           Icons.update,
-                          '${bet.originValue.toStringAsFixed(2)}€',
+                          '${bet.originValue.toStringAsFixed(2)}' + currency,
                           strings?.get('originValue') ?? "Origin value",
                         ),
                         _buildGridItem(
                           context,
                           Icons.crop_sharp,
-                          '${bet.targetValue.toStringAsFixed(2)}€',
+                          '${bet.targetValue.toStringAsFixed(2)}' + currency,
                           strings?.get('targetValue') ?? "Target value",
                         ),
                         _buildGridItem(
@@ -483,10 +486,12 @@ class RecentBetDialog extends StatelessWidget {
 class RecentPriceBetDialog extends StatelessWidget {
   final PriceBet priceBet;
   final MainMenuPageController controller;
+  final String currency;
   RecentPriceBetDialog({
     super.key,
     required this.priceBet,
     required this.controller,
+    required this.currency,
   });
 
   static get decodedBody => null;
@@ -682,7 +687,7 @@ class RecentPriceBetDialog extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Image.asset(
-                            'assets/euro.png',
+                            currency == 'eur' ? 'assets/euro.png' : 'assets/dollar.png',
                             width: 24,
                             height: 24,
                             fit: BoxFit.contain,
@@ -817,20 +822,28 @@ class RecentBetContainer extends StatefulWidget {
 
 class RecentBetContainerState extends State<RecentBetContainer> {
   bool _showEditButtons = false;
-
+  String _currencyChar = '€';
   void _triggerBetButtons() {
     setState(() {
       _showEditButtons = !_showEditButtons;
     });
   }
 
+  Future<void> loadCurrency() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('dollarCurrency') ?? false) {
+      _currencyChar = '\$';
+    }
+  }
+
   void popBetDialog(
       BuildContext context, Bet bet, MainMenuPageController controller) {
+    loadCurrency();
     showGeneralDialog(
       context: context,
       pageBuilder: (BuildContext buildContext, Animation<double> animation,
           Animation<double> secondaryAnimation) {
-        return RecentBetDialog(bet: bet, controller: controller);
+        return RecentBetDialog(bet: bet, controller: controller, currency: _currencyChar);
       },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
@@ -850,6 +863,8 @@ class RecentBetContainerState extends State<RecentBetContainer> {
       },
     );
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -1126,6 +1141,16 @@ class RecentPriceBetContainer extends StatefulWidget {
 
 class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
   bool _showEditButtons = false;
+  String _currency = 'eur';
+
+  void loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('dollarCurrency') ?? false){
+      setState(() {
+        _currency = 'usd';
+      });
+    }
+  }
 
   void _triggerBetButtons() {
     setState(() {
@@ -1150,7 +1175,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
       context: context,
       pageBuilder: (BuildContext buildContext, Animation<double> animation,
           Animation<double> secondaryAnimation) {
-        return RecentPriceBetDialog(controller: controller, priceBet: priceBet);
+        return RecentPriceBetDialog(controller: controller, priceBet: priceBet, currency: _currency);
       },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
@@ -1173,6 +1198,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
 
   @override
   Widget build(BuildContext context) {
+    loadPreferences();
     final strings = LocalizedStrings.of(context);
     final now = DateTime.now();
     final daysUntilFinal = widget.priceBet.endDate.difference(now).inDays;
@@ -1354,7 +1380,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                           ),
                           const SizedBox(width: 6),
                           Image.asset(
-                            'assets/euro.png', //TODO
+                            _currency == 'eur' ? 'assets/euro.png' : 'assets/dollar.png',
                             width: 20,
                             height: 20,
                             fit: BoxFit.contain,

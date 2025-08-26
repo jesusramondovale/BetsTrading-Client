@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'changeCurrency': 'Change currency',
       'profileTitle': 'Your profile',
       'exactPrice': 'Exact price',
       'viewChart': 'View chart',
@@ -134,7 +135,8 @@ class LocalizedStrings {
       'getCoins': 'Get Coins',
       'buyCoins': 'Buy {coins}',
       'earnCoins': 'Watch an Ad to Earn {coins}',
-      'priceInEuros': '{price}€',
+
+
       'userOrEmailNotFound': 'User not found',
       'serverUnavailable': 'Server unavailable',
       'incorrectPassword': 'Incorrect password. Try again',
@@ -271,6 +273,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'changeCurrency': 'Cambiar divisa',
       'profileTitle': 'Tu perfil',
       'exactPrice': 'Precio exacto',
       'viewChart': 'Ver gráfico',
@@ -394,7 +397,6 @@ class LocalizedStrings {
       'getCoins': 'Obtener Monedas',
       'buyCoins': 'Comprar {coins}',
       'earnCoins': 'Vea un anuncio y gane {coins}',
-      'priceInEuros': '{price}€',
       'userOrEmailNotFound': 'Usuario no encontrado',
       'serverUnavailable': 'Servidor no disponible',
       'incorrectPassword': 'Contraseña incorrecta. Inténtelo de nuevo',
@@ -464,7 +466,7 @@ class LocalizedStrings {
       'liveBets': 'Tendencias',
       'darkMode': 'Modo oscuro',
       'attention': 'Atención!',
-      'needToRestart': 'La aplicación debe reiniciarse. Entre de nuevo',
+      'needToRestart': 'La aplicación debe reiniciarse. Entre nuevamente después de que esta se cierre',
       'wallet': 'Mi cartera',
       'staked': 'Apostado',
       'indexes': 'Índices',
@@ -531,6 +533,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'changeCurrency': 'Changer de devise',
       'profileTitle': 'Ton profil',
       'exactPrice': 'Prix exact',
       'viewChart': 'Voir le graphique',
@@ -656,7 +659,6 @@ class LocalizedStrings {
       'getCoins': 'Obtenez des Pièces',
       'buyCoins': 'Achetez {coins}',
       'earnCoins': 'Regardez une annonce pour gagner {coins}',
-      'priceInEuros': '{price}€',
       'userOrEmailNotFound': "Utilisateur introuvable",
       'serverUnavailable': 'Serveur indisponible',
       'incorrectPassword': 'Mot de passe incorrect. Réessayez',
@@ -794,6 +796,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'changeCurrency': 'Cambia valuta',
       'profileTitle': 'Tuo profilo',
       'exactPrice': 'Prezzo esatto',
       'viewChart': 'Vedi grafico',
@@ -916,7 +919,6 @@ class LocalizedStrings {
       'getCoins': 'Ottieni Monete',
       'buyCoins': 'Acquista {coins}',
       'earnCoins': 'Guarda un annuncio per guadagnare {coins}',
-      'priceInEuros': '{price}€',
       'userOrEmailNotFound': 'Utente non trovato',
       'serverUnavailable': 'Server non disponibile',
       'incorrectPassword': 'Password errata. Riprova',
@@ -1055,6 +1057,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'changeCurrency': 'Währung ändern',
       'profileTitle': 'Dein Profil',
       'exactPrice': 'Exakter Preis',
       'viewChart': 'Diagramm',
@@ -1177,7 +1180,6 @@ class LocalizedStrings {
       'getCoins': 'Münzen erhalten',
       'buyCoins': 'Kaufe {coins}',
       'earnCoins': 'Sehen Sie sich eine Anzeige an, um {coins}',
-      'priceInEuros': '{price}€',
       'userOrEmailNotFound': 'Benutzer nicht gefunden',
       'serverUnavailable': 'Server nicht verfügbar',
       'incorrectPassword': 'Falsches Passwort. Versuchen Sie es erneut',

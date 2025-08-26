@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/BetsService.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
@@ -20,6 +21,7 @@ class StorePage extends StatefulWidget {
 class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   RewardedAd? _rewardedAd;
   bool _isAdLoaded = false;
+  String _currency = 'eur';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late AnimationController _progressController;
   List<Map<String, dynamic>> _buyOptions = [];
@@ -28,11 +30,13 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   int? _rewardPrize;
 
   Future<void> loadData() async {
-    final currency = await _storage.read(key: 'currency') ?? 'eur'; //TODO
-    final buyOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': currency, 'type' : 'buy'});
-    final adRewardOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': 'eur', 'type': 'ad_reward'}); //TODO Currency
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('dollarCurrency') ?? false) {
+      _currency = 'usd';
+    }
 
-
+    final buyOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': _currency, 'type' : 'buy'});
+    final adRewardOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': _currency, 'type': 'ad_reward'});
 
     setState(() {
       _buyOptions = List<Map<String, dynamic>>.from(buyOptionsResponse['body'] as Iterable);
@@ -84,7 +88,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
           billingDetails: billingDetails,
           googlePay: stripe.PaymentSheetGooglePay(
             merchantCountryCode: 'ES',
-            currencyCode: 'EUR',
+            currencyCode: _currency.toUpperCase(),
           ),
         ),
       );
@@ -244,7 +248,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                   padding: const EdgeInsets.only(right: 12.0),
                   child: Text(
                     Common().interpolate(
-                      strings.get('priceInEuros') ?? '{price}',
+                      (_currency == 'eur' ? '{price}€' : '{price}\$'),
                       {'price': price.toStringAsFixed(2)},
                     ),
                     style: GoogleFonts.syncopate(
@@ -380,7 +384,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                               _rewardPrize ?? 15,
                               Common().interpolate(
                                 strings.get('youWonCoins') ?? 'You won {coins}',
-                                {'coins': _rewardPrize.toString()}, //TODO
+                                {'coins': _rewardPrize.toString()},
                               ),
                             );
                           }

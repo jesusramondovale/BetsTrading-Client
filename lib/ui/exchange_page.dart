@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import 'fist_time_page.dart';
 import 'layout_page.dart';
@@ -20,6 +21,7 @@ class ExchangePage extends StatefulWidget {
 
 class ExchangePageState extends State<ExchangePage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  String _currency = 'eur';
   String _userPoints = '0';
   double _pendingBalance = 0.0;
   List<Map<String, dynamic>> _exchangeOptions = [];
@@ -30,8 +32,8 @@ class ExchangePageState extends State<ExchangePage> {
     final userId = await _storage.read(key: 'sessionToken');
     final points = await _storage.read(key: 'points') ?? '0';
     final pendingBalanceResponse = await Common().postRequestWrapper('Info', 'PendingBalance', {'id': userId});
-    final exchangeOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': 'eur', 'type': 'exchange'}); //TODO Currency
-
+    final exchangeOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': _currency, 'type': 'exchange'}); //TODO Currency
+    final prefs = await SharedPreferences.getInstance();
 
     setState(() {
         _userPoints = points;
@@ -42,7 +44,9 @@ class ExchangePageState extends State<ExchangePage> {
 
         }
         _exchangeOptions = List<Map<String, dynamic>>.from(exchangeOptionsResponse['body'] as Iterable);
-
+        if (prefs.getBool('dollarCurrency') ?? false){
+          _currency = 'usd';
+        }
 
   });
   }
@@ -234,7 +238,7 @@ class ExchangePageState extends State<ExchangePage> {
                             Icon(FontAwesomeIcons.anglesRight),
                             const Spacer(),
                             Text(
-                              '${option['euros']} EUR',
+                              '${option['euros']}' + (_currency == 'eur' ? ' EUR' : ' USD'),
                               style: GoogleFonts.montserrat(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,
@@ -271,7 +275,7 @@ class ExchangePageState extends State<ExchangePage> {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      NumberFormat('#,###', 'es_ES').format(_pendingBalance) + ' EUR',
+                      NumberFormat('#,###', 'es_ES').format(_pendingBalance) + (_currency == 'eur' ? ' EUR' : ' USD'),
                       style: GoogleFonts.montserrat(
                         fontSize: 24,
                         fontWeight: FontWeight.w400,

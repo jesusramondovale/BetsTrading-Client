@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'common.dart';
 import 'package:intl/intl.dart' as intl;
@@ -34,6 +35,8 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
   double _sliderValue = 0.0;
   ui.Image? _thumbImage;
   ui.Image? _euroImage;
+  String _currency = 'eur';
+
 
   @override
   void initState() {
@@ -51,6 +54,11 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
       _loadImageFromBase64(widget.icon);
     } else {
       _loadSimpleLogoImage();
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('dollarCurrency') ?? false){
+      _currency = 'usd';
     }
   }
 
@@ -167,7 +175,7 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                       ),
                       const SizedBox(width: 5),
                       Image.asset(
-                        "assets/euro.png",
+                        (_currency == 'eur' ? 'assets/euro.png' : 'assets/dollar.png'),
                         width: 28,
                         height: 28,
                       ),

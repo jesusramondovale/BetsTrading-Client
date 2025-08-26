@@ -38,6 +38,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String? _points = '0.0';
   double _betAmount = 0.0;
+  String _currency = 'eur';
   double _potentialPrize = 0.0;
   bool _isAcceptButtonEnabled = false;
   final ScrollController _scrollController = ScrollController();
@@ -45,6 +46,10 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
 
   Future<void> _loadPoints() async {
     _points = await _storage.read(key: 'points');
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('dollarCurrency') ?? false) {
+      _currency = 'usd';
+    }
   }
 
   Future<void> _onAccept(int betZone) async {
@@ -147,7 +152,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
 
   Widget _buildBetDetails(BuildContext context) {
     final strings = LocalizedStrings.of(context);
-
+    final String currencyChar = (_currency == 'eur' ? '€' : '\$');
     return GridView(
       shrinkWrap: true,
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -163,13 +168,13 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
         _buildGridItem(
           context,
           icon: Icons.update,
-          value: '${widget.currentValue.toStringAsFixed(2)}€',
+          value: '${widget.currentValue.toStringAsFixed(2)}' + currencyChar,
           label: strings?.get('originValue') ?? "Origin value",
         ),
         _buildGridItem(
           context,
           icon: FontAwesomeIcons.crosshairs,
-          value: '${widget.zone.targetPrice.toStringAsFixed(2)}€',
+          value: '${widget.zone.targetPrice.toStringAsFixed(2)}' + currencyChar,
           label: strings?.get('targetValue') ?? "Target value",
         ),
         _buildGridItem(
@@ -182,7 +187,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
           context,
           icon: FontAwesomeIcons.arrowsLeftRightToLine,
           value:
-              '${widget.zone.margin.toStringAsFixed(2)}% (±${(widget.zone.targetPrice * widget.zone.margin / 200).toStringAsFixed(1)}€)',
+              '${widget.zone.margin.toStringAsFixed(2)}% (±${(widget.zone.targetPrice * widget.zone.margin / 200).toStringAsFixed(1)}' + currencyChar + ')',
           label: strings?.get('targetMargin') ?? "Target margin",
         ),
       ],
