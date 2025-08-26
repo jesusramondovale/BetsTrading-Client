@@ -161,7 +161,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   Future<String> _getClientSecret(double price, String userId, double coins) async {
     final requestData = {
       'amount': (price * 100).toInt(),
-      'currency': "eur",
+      'currency': _currency,
       'userId': userId,
       'coins': coins,
     };
@@ -373,7 +373,8 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size(double.infinity, 56),
                             backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
+                            shadowColor: Colors.transparent.withValues(alpha: 0.05),
+                            elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
@@ -395,13 +396,12 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                             children: [
                               Text(
                                 Common().interpolate(
-                                  strings.get('earnCoins') ?? 'Watch an Ad to Earn {coins}🪙',
+                                  strings.get('earnCoins') ?? 'Watch an Ad to Earn {coins}',
                                   {'coins': _rewardPrize.toString()},
-                                ),
-                                style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w300, color: Colors.white),
+                                ),style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w300, color: Colors.white),
                               ),
                               const SizedBox(width: 8),
-                              Image.asset('assets/coin.png', width: 18, height: 18),
+                              Image.asset('assets/coin.png', width: 30, height: 30),
                             ],
                           ),
                         )

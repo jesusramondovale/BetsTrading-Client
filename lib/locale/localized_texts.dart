@@ -12,7 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
-      'changeCurrency': 'Change currency',
+      'changeCurrency': 'Select currency',
       'profileTitle': 'Your profile',
       'exactPrice': 'Exact price',
       'viewChart': 'View chart',
@@ -273,7 +273,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
-      'changeCurrency': 'Cambiar divisa',
+      'changeCurrency': 'Seleccionar divisa',
       'profileTitle': 'Tu perfil',
       'exactPrice': 'Precio exacto',
       'viewChart': 'Ver gráfico',

@@ -97,7 +97,11 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
   }
 
   Future<void> _loadEuroImage() async {
-    ByteData data = await rootBundle.load("assets/euro.png");
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('dollarCurrency') ?? false) {
+      _currency = 'usd';
+    }
+    ByteData data = await rootBundle.load(_currency == 'eur' ? "assets/euro.png" : "assets/dollar.png");
     Uint8List bytes = data.buffer.asUint8List();
     final completer = Completer<ui.Image>();
     ui.decodeImageFromList(bytes, (ui.Image img) => completer.complete(img));
@@ -269,19 +273,42 @@ class _FadeThumbShape extends SliderComponentShape {
         required double textScaleFactor,
         required double value,
       }) {
+
     final Canvas canvas = context.canvas;
-    final rect = Rect.fromCenter(center: center, width: 60, height: 60);
+
+    // Caja del pulgar y caja interna con padding
+    final thumbRect = Rect.fromCenter(center: center, width: 80, height: 80);
+    final inner = thumbRect.deflate(8); // padding de 8 px
 
     if (useFade && transformImage != null) {
-      final paint1 = Paint()..color = Colors.white.withValues(alpha: 1.0 - transformProgress);
-      final paint2 = Paint()..color = Colors.white.withValues(alpha: transformProgress);
-
-      canvas.saveLayer(rect, Paint());
-      paintImage(canvas: canvas, image: baseImage, rect: rect, fit: BoxFit.fitWidth, opacity: paint1.color.a);
-      paintImage(canvas: canvas, image: transformImage!, rect: rect, fit: BoxFit.fitWidth, opacity: paint2.color.a);
+      final t = transformProgress.clamp(0.0, 1.0);
+      canvas.saveLayer(thumbRect, Paint());
+      paintImage(
+        canvas: canvas,
+        image: baseImage,
+        rect: inner,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+        opacity: 1.0 - t*1.1, // OJO: 0–1
+      );
+      paintImage(
+        canvas: canvas,
+        image: transformImage!,
+        rect: inner,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+        opacity: t*1.1,       // 0–1
+      );
       canvas.restore();
     } else {
-      paintImage(canvas: canvas, image: baseImage, rect: rect, fit: BoxFit.fitWidth);
+      paintImage(
+        canvas: canvas,
+        image: baseImage,
+        rect: inner,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+      );
     }
   }
 }
+
