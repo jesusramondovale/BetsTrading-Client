@@ -125,7 +125,7 @@ class ExchangePageState extends State<ExchangePage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: BorderRadius.circular(30),
                       ),
                     ),
                     onPressed: () async {
@@ -174,11 +174,11 @@ class ExchangePageState extends State<ExchangePage> {
                   return Card(
                     color: Colors.transparent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(35),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                         onTapDown: (TapDownDetails details) async {
                           if (canExchange) {
                             Common().vibrate(40, 30);

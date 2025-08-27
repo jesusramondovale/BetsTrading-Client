@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'loadingAdTrySoon': 'Loading ad… try again in a few seconds',
       'changeCurrency': 'Select currency',
       'profileTitle': 'Your profile',
       'exactPrice': 'Exact price',
@@ -273,6 +274,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'loadingAdTrySoon': 'Cargando anuncio… inténtalo en unos segundos',
       'changeCurrency': 'Seleccionar divisa',
       'profileTitle': 'Tu perfil',
       'exactPrice': 'Precio exacto',
@@ -392,7 +394,7 @@ class LocalizedStrings {
       'withdraw_consent':
           'Al aceptar, estás de acuerdo con los términos del procesamiento de datos. Puedes retirar tu consentimiento en cualquier momento.',
       'i_consent': 'Doy mi consentimiento',
-      'youWonCoins': 'Ganaste {coins}',
+      'youWonCoins': 'Has conseguido {coins}',
       'store': 'Tienda',
       'getCoins': 'Obtener Monedas',
       'buyCoins': 'Comprar {coins}',
@@ -533,6 +535,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'loadingAdTrySoon': 'Chargement de l’annonce… réessaie dans quelques secondes',
       'changeCurrency': 'Changer de devise',
       'profileTitle': 'Ton profil',
       'exactPrice': 'Prix exact',
@@ -796,6 +799,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'loadingAdTrySoon': 'Caricamento annuncio… riprova tra pochi secondi',
       'changeCurrency': 'Cambia valuta',
       'profileTitle': 'Tuo profilo',
       'exactPrice': 'Prezzo esatto',
@@ -1057,6 +1061,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'loadingAdTrySoon': 'Anzeige wird geladen… versuche es in ein paar Sekunden erneut',
       'changeCurrency': 'Währung ändern',
       'profileTitle': 'Dein Profil',
       'exactPrice': 'Exakter Preis',

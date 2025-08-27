@@ -1,16 +1,19 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../Services/BetsService.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
-import '../services/AuthService.dart';
 import 'layout_page.dart';
 
 class StorePage extends StatefulWidget {
@@ -21,6 +24,10 @@ class StorePage extends StatefulWidget {
 class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   RewardedAd? _rewardedAd;
   bool _isAdLoaded = false;
+  bool _loadingAd = false;
+  bool _showingAd = false;
+  int _loadRetry = 0;
+
   String _currency = 'eur';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late AnimationController _progressController;
@@ -29,40 +36,223 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   Timer? _refreshTimer;
   int? _rewardPrize;
 
+  @override
+  void initState() {
+    super.initState();
+
+    _progressController = AnimationController(
+      upperBound: 0.9,
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..forward();
+    MobileAds.instance.initialize();
+    _loadRewardedAd();
+    loadData();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      loadData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _rewardedAd?.dispose();
+    _progressController.dispose();
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('dollarCurrency') ?? false) {
       _currency = 'usd';
     }
 
-    final buyOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': _currency, 'type' : 'buy'});
-    final adRewardOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': _currency, 'type': 'ad_reward'});
+    final buyOptionsResponse = await Common().postRequestWrapper(
+      'Info',
+      'StoreOptions',
+      {'currency': _currency, 'type': 'buy'},
+    );
+
+    final adRewardOptionsResponse = await Common().postRequestWrapper(
+      'Info',
+      'StoreOptions',
+      {'currency': _currency, 'type': 'ad_reward'},
+    );
 
     setState(() {
-      _buyOptions = List<Map<String, dynamic>>.from(buyOptionsResponse['body'] as Iterable);
-      _adRewardOptions = List<Map<String, dynamic>>.from(adRewardOptionsResponse['body'] as Iterable);
-      _rewardPrize = _adRewardOptions[0]['coins'] ?? 50;
+      _buyOptions =
+      List<Map<String, dynamic>>.from(buyOptionsResponse['body'] as Iterable);
+      _adRewardOptions = List<Map<String, dynamic>>.from(
+          adRewardOptionsResponse['body'] as Iterable);
+      _rewardPrize = _adRewardOptions.isNotEmpty
+          ? (_adRewardOptions[0]['coins'] ?? 15) as int
+          : 15;
     });
   }
 
   void _loadRewardedAd() {
+    if (_loadingAd || _rewardedAd != null) return;
+    _loadingAd = true;
+    _isAdLoaded = false;
+    if (mounted) setState(() {});
+
     RewardedAd.load(
-      adUnitId: Config.ADMOB_AD_TOKEN_TEST, //TODO
-      request: AdRequest(),
+      adUnitId: Config.ADMOB_AD_TOKEN,
+      request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          setState(() {
-            _rewardedAd = ad;
-            _isAdLoaded = true;
-            _progressController.value = 1;
-          });
+          _rewardedAd = ad;
+          _loadingAd = false;
+          _loadRetry = 0;
+          _isAdLoaded = true;
+          _progressController.value = 1;
+          if (mounted) setState(() {});
+
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              ad.dispose();
+              _rewardedAd = null;
+              _isAdLoaded = false;
+              if (mounted) setState(() {});
+              Future.delayed(const Duration(milliseconds: 500), _loadRewardedAd);
+            },
+            onAdFailedToShowFullScreenContent: (ad, err) {
+              ad.dispose();
+              _rewardedAd = null;
+              _isAdLoaded = false;
+              if (mounted) setState(() {});
+              final delay = Duration(seconds: (1 << _loadRetry).clamp(1, 30));
+              _loadRetry = (_loadRetry + 1).clamp(0, 5);
+              Future.delayed(delay, _loadRewardedAd);
+              debugPrint('Rewarded failed to show: $err');
+            },
+          );
         },
+
         onAdFailedToLoad: (error) {
-          print('Error loading ad: $error');
+          _loadingAd = false;
+          _isAdLoaded = false;
+          if (mounted) setState(() {});
+          final delay = Duration(seconds: (1 << _loadRetry).clamp(2, 30));
+          _loadRetry = (_loadRetry + 1).clamp(0, 5);
+          Future.delayed(delay, _loadRewardedAd);
+          debugPrint('Rewarded load failed: $error');
         },
+
       ),
     );
+
   }
+
+  Future<String> requestRewardNonce({
+    required String userId,
+    required String adUnitId,
+    String? purpose,
+  }) async {
+    final url =
+    Uri.parse("https://${Config.PUBLIC_DOMAIN}/api/Rewards/RequestAdNonce");
+
+    final payload = {
+      'adUnitId': adUnitId,
+      if (purpose != null) 'purpose': purpose,
+    };
+
+    final client = HttpClient();
+    final req = await client.postUrl(url);
+    req.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
+    req.headers.add('X-UserId', userId);
+
+    final jsonBody = jsonEncode(payload);
+    req.add(utf8.encode(jsonBody));
+
+    final res = await req.close();
+    final body = await res.transform(utf8.decoder).join();
+
+    if (res.statusCode == 200) {
+      final data = jsonDecode(body) as Map<String, dynamic>;
+      final nonce = data['nonce'] as String?;
+      if (nonce == null || nonce.isEmpty) {
+        throw Exception('Nonce vacío del servidor');
+      }
+      return nonce;
+    }
+
+    throw Exception('requestRewardNonce failed: ${res.statusCode} $body');
+  }
+
+  Future<void> _showRewardedAd(String localizedWarning) async {
+    if (_showingAd) return;
+    if (_rewardedAd == null) {
+      Common().showFloatingSnack(
+        context,
+        LocalizedStrings.of(context)!.get('loadingAdTrySoon') ??  'Loading ad… try again in a few seconds',
+      );
+      _loadRewardedAd();
+      return;
+    }
+
+    _showingAd = true;
+    final ad = _rewardedAd!;
+    final dismissed = Completer<void>();
+    final prevCb = ad.fullScreenContentCallback;
+
+    ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (a) {
+        try { prevCb?.onAdShowedFullScreenContent?.call(a); } catch (_) {}
+      },
+      onAdImpression: (a) {
+        try { prevCb?.onAdImpression?.call(a); } catch (_) {}
+      },
+      onAdWillDismissFullScreenContent: (a) {
+        try { prevCb?.onAdWillDismissFullScreenContent?.call(a); } catch (_) {}
+      },
+      onAdDismissedFullScreenContent: (a) {
+        try { prevCb?.onAdDismissedFullScreenContent?.call(a); } catch (_) {}
+        if (!dismissed.isCompleted) dismissed.complete();
+      },
+      onAdFailedToShowFullScreenContent: (a, err) {
+        try { prevCb?.onAdFailedToShowFullScreenContent?.call(a, err); } catch (_) {}
+        if (!dismissed.isCompleted) dismissed.complete();
+      },
+    );
+
+    try {
+      final userId = await _storage.read(key: 'sessionToken');
+      final adId = Config.ADMOB_AD_TOKEN;
+      if (userId == null || !mounted) return;
+
+      final nonce = await requestRewardNonce(
+        userId: userId,
+        adUnitId: adId,
+        purpose: 'store_page_reward',
+      );
+
+      ad.setServerSideOptions(ServerSideVerificationOptions(
+        userId: userId,
+        customData: nonce,
+      ));
+
+      num earned = 0;
+      await ad.show(onUserEarnedReward: (_, reward) {
+        earned = reward.amount;
+      });
+
+      await dismissed.future;
+
+      if (earned > 0) {
+        await BetsService().getUserInfo(userId);
+        if (!mounted) return;
+        Navigator.pop(context);
+        Common().showFloatingSnack(context, localizedWarning, showIcon: true);
+        homeScreenKey.currentState?.loadUserIdAndData();
+      }
+    } catch (e) {
+      debugPrint('show rewarded error: $e');
+    } finally {
+      _showingAd = false;
+    }
+  }
+
 
   Future<void> _cardPayment(double coins, double price) async {
     try {
@@ -97,64 +287,23 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
       Navigator.pop(context);
       homeScreenKey.currentState?.loadUserIdAndData();
       Common().showFloatingSnack(
-          context,
-          Common().interpolate(LocalizedStrings.of(context)!.get('youEarnedCoins') ?? 'You earned {coins}',
-            {'coins': coins.toStringAsFixed(0)},), showIcon: true);
-
+        context,
+        Common().interpolate(
+          LocalizedStrings.of(context)!.get('youEarnedCoins') ?? 'You earned {coins}',
+          {'coins': coins.toStringAsFixed(0)},
+        ),
+        showIcon: true,
+      );
     } on stripe.StripeException catch (e) {
       if (e.error.code != stripe.FailureCode.Canceled) {
         Navigator.pop(context);
-        Common().showFloatingSnack(context, LocalizedStrings.of(context)!.get('transactionError') ?? "Error during transaction process!", backgroundColor: Colors.red);
+        Common().showFloatingSnack(
+          context,
+          LocalizedStrings.of(context)!.get('transactionError') ??
+              "Error during transaction process!",
+          backgroundColor: Colors.red,
+        );
       }
-    }
-  }
-
-  Future<void> _showRewardedAd(int coins, String localizedWarning) async {
-    final userId = await _storage.read(key: 'sessionToken');
-    if (userId == null) return;
-
-    try {
-      await RewardedAd.load(
-        adUnitId: Config.ADMOB_AD_TOKEN_TEST, //TODO
-        request: const AdRequest(),
-        rewardedAdLoadCallback: RewardedAdLoadCallback(
-          onAdLoaded: (RewardedAd ad) async {
-            final dismissed = Completer<void>();
-            num earned = 0;
-
-            ad.fullScreenContentCallback = FullScreenContentCallback(
-              onAdDismissedFullScreenContent: (ad) {
-                ad.dispose();
-                if (!dismissed.isCompleted) dismissed.complete(); // <- CERRADO
-              },
-              onAdFailedToShowFullScreenContent: (ad, err) {
-                ad.dispose();
-                if (!dismissed.isCompleted) dismissed.complete();
-              },
-            );
-
-            await ad.show(onUserEarnedReward: (ad, reward) {
-              earned = reward.amount;
-            });
-
-            await dismissed.future;
-
-            if (earned > 0) {
-              await AuthService().addCoins(userId, coins); // TODO: remove addCoins call
-              await BetsService().getUserInfo(userId);
-              if (!mounted) return;
-              Navigator.pop(context);
-              Common().showFloatingSnack(context, localizedWarning, showIcon: true); // <- tras cierre
-              homeScreenKey.currentState?.loadUserIdAndData();
-            }
-          },
-          onAdFailedToLoad: (LoadAdError e) {
-            print('Error mostrando anuncio recompensado: $e');
-          },
-        ),
-      );
-    } catch (e) {
-      print('Error mostrando anuncio recompensado: $e');
     }
   }
 
@@ -165,7 +314,11 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
       'userId': userId,
       'coins': coins,
     };
-    final response = await Common().postRequestWrapper('Payments', 'CreatePaymentIntent', requestData);
+    final response = await Common().postRequestWrapper(
+      'Payments',
+      'CreatePaymentIntent',
+      requestData,
+    );
     if (response['statusCode'] == 200 &&
         response['body'] != null &&
         response['body']['client_secret'] != null) {
@@ -266,30 +419,6 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _progressController = AnimationController(
-      upperBound: 0.9,
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..forward();
-    _loadRewardedAd();
-    loadData();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      loadData();
-      _loadRewardedAd();
-    });
-  }
-
-  @override
-  void dispose() {
-    _rewardedAd?.dispose();
-    _progressController.dispose();
-    _refreshTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
 
@@ -320,11 +449,9 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (_buyOptions.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 40),
-                    child: Center(
-                      child: CircularProgressIndicator(color: Colors.grey)
-                    ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 40),
+                    child: Center(child: CircularProgressIndicator(color: Colors.grey)),
                   )
                 else
                   ..._buyOptions.asMap().entries.map((entry) {
@@ -353,64 +480,68 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                 Stack(
                   alignment: Alignment.center,
                   children: [
-                    if (_rewardPrize != null) ...
-                    [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: AnimatedBuilder(
-                            animation: _progressController,
-                            builder: (context, child) {
-                              return LinearProgressIndicator(
-                                value: _isAdLoaded ? 1 : _progressController.value,
-                                minHeight: 56,
-                                backgroundColor: Colors.grey.shade800,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
-                              );
-                            },
+                    if (_rewardPrize != null) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: AnimatedBuilder(
+                          animation: _progressController,
+                          builder: (context, child) {
+                            return LinearProgressIndicator(
+                              value: _isAdLoaded ? 1 : _progressController.value,
+                              minHeight: 56,
+                              backgroundColor: Colors.grey.shade800,
+                              valueColor:
+                              const AlwaysStoppedAnimation<Color>(Colors.purple),
+                            );
+                          },
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 56),
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 16.0, horizontal: 10.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 56),
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent.withValues(alpha: 0.05),
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          onPressed: _isAdLoaded
-                              ? () {
-                            Common().vibrate(40, 30);
-                            _showRewardedAd(
-                              _rewardPrize ?? 15,
+                        onPressed: _isAdLoaded
+                            ? () {
+                          Common().vibrate(40, 30);
+                          _showRewardedAd(
+                            Common().interpolate(
+                              strings.get('youWonCoins') ?? 'You won {coins}',
+                              {'coins': _rewardPrize.toString()},
+                            ),
+                          );
+                        }
+                            : null,
+                        icon: const Icon(Icons.ondemand_video, size: 34),
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
                               Common().interpolate(
-                                strings.get('youWonCoins') ?? 'You won {coins}',
+                                strings.get('earnCoins') ??
+                                    'Watch an Ad to Earn {coins}',
                                 {'coins': _rewardPrize.toString()},
                               ),
-                            );
-                          }
-                              : null,
-                          icon: const Icon(Icons.ondemand_video, size: 34),
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                Common().interpolate(
-                                  strings.get('earnCoins') ?? 'Watch an Ad to Earn {coins}',
-                                  {'coins': _rewardPrize.toString()},
-                                ),style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w300, color: Colors.white),
+                              style: GoogleFonts.montserrat(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w300,
+                                color: Colors.white,
                               ),
-                              const SizedBox(width: 8),
-                              Image.asset('assets/coin.png', width: 30, height: 30),
-                            ],
-                          ),
-                        )
-                    ]
-                    else ...
-                    [
-                      Center(
-                        child: CircularProgressIndicator(color: Colors.grey)
+                            ),
+                            const SizedBox(width: 8),
+                            Image.asset('assets/coin.png', width: 30, height: 30),
+                          ],
+                        ),
                       )
+                    ] else ...[
+                      const Center(child: CircularProgressIndicator(color: Colors.grey))
                     ]
                   ],
                 ),
