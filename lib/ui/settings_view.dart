@@ -10,7 +10,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../helpers/common.dart';
 import '../config/config.dart';
 import '../services/AuthService.dart';
@@ -33,16 +32,6 @@ class SettingsViewState extends State<SettingsView> {
   bool enableVibration = false;
   bool dollarCurrency = false;
   bool _loaded = false;
-
-  Future<void> _openInAppBrowser(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(
-      uri,
-      mode: LaunchMode.inAppBrowserView,// navegador interno
-    )) {
-      Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
-    }
-  }
 
   Future<bool?> showChangePasswordDialog(
       BuildContext context,
@@ -381,26 +370,6 @@ class SettingsViewState extends State<SettingsView> {
                   ),
                 ),
 
-                // Payment History
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    splashColor: Colors.white.withValues(alpha: 0.1),
-                    highlightColor: Colors.white.withValues(alpha: 0.05),
-                    onTap: () {
-                      Common().vibrate(40, 40);
-                      Common().showFloatingSnack(context, '(Payment history)', backgroundColor: Colors.white);
-                    },
-                    child: ListTile(
-                      title: Text(
-                        strings?.get('paymentHistory') ?? 'Payment history',
-                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                    ),
-                  ),
-                ),
-
                 // Configure Withdrawal Methods (disabled)
                 Material(
                   color: Colors.transparent,
@@ -426,6 +395,46 @@ class SettingsViewState extends State<SettingsView> {
                   ),
                 ),
 
+                // Payment History
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: () {
+                      Common().vibrate(40, 40);
+                      Common().showFloatingSnack(context, '(Payment history)', backgroundColor: Colors.black);
+                    },
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('paymentHistory') ?? 'Payment history',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
+
+                // Withdrawal History
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: () {
+                      Common().vibrate(40, 40);
+                      Common().showFloatingSnack(context, '(Withdrawal history)', backgroundColor: Colors.black);
+                    },
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('withdrawalHistory') ?? 'Withdrawal history',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
+
                 // About Us
                 Material(
                   color: Colors.transparent,
@@ -434,7 +443,7 @@ class SettingsViewState extends State<SettingsView> {
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () {
                       Common().vibrate(40, 40);
-                      _openInAppBrowser("https://betstrading.online");
+                      Common().openInAppBrowser(context,"https://betstrading.online");
                     },
                     child: ListTile(
                       title: Text(
@@ -499,7 +508,6 @@ class SettingsViewState extends State<SettingsView> {
                     },
                   ),
                 ),
-
 
                 // Advanced App Settings
                 Material(

@@ -162,6 +162,11 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     req.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
     req.headers.add('X-UserId', userId);
 
+    final jwtToken = await _storage.read(key: 'jwtToken');
+    if (jwtToken != null && jwtToken.isNotEmpty) {
+      req.headers.set('Authorization', 'Bearer $jwtToken');
+    }
+
     final jsonBody = jsonEncode(payload);
     req.add(utf8.encode(jsonBody));
 

@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../config/config.dart';
 import '../helpers/common.dart';
 
 class AuthService {
@@ -16,7 +17,9 @@ class AuthService {
 
     if (response['statusCode'] == 200) {
       final String token = response['body']['userId'];
+      final String jwtToken = response['body']['jwtToken'];
       await _storage.write(key: 'sessionToken', value: token);
+      await _storage.write(key: 'jwtToken', value: jwtToken);
       AuthService().refreshFCM(token, FirebaseService().firebaseToken!);
       return {'success': true, 'message': response['body']['message']};
     } else {
@@ -36,8 +39,6 @@ class AuthService {
       return {'success': false, 'message': response['body']['message']};
     }
   }
-
-
 
   Future<Map<String, dynamic>> logOut() async {
     String userId = await _storage.read(key: 'sessionToken') ?? "none";
@@ -83,7 +84,9 @@ class AuthService {
 
     if (response['statusCode'] == 200) {
       final String token = response['body']['userId'];
+      final String jwtToken = response['body']['jwtToken'];
       await _storage.write(key: 'sessionToken', value: token);
+      await _storage.write(key: 'jwtToken', value: jwtToken);
       return {'success': true, 'message': response['body']['message']};
     } else {
       return {'success': false, 'message': response['body']['message']};
@@ -147,23 +150,30 @@ class AuthService {
   Future<int?> googleSignIn() async {
     try {
       const List<String> scopes = <String>[
-        'email',
         'https://www.googleapis.com/auth/contacts.readonly',
         'https://www.googleapis.com/auth/user.birthday.read',
         'https://www.googleapis.com/auth/user.addresses.read',
         'https://www.googleapis.com/auth/userinfo.profile'
       ];
-      final googleSignIn = GoogleSignIn.standard(scopes: scopes);
+
+      final googleSignIn = GoogleSignIn(
+        scopes: scopes,
+        serverClientId: Config.SERVER_CLIENT_ID,
+      );
 
       final user = await googleSignIn.signIn();
       String country = await Common().getUserCountry();
 
       if (user != null) {
-        if (kDebugMode) {
-          print("User OK : $user");
+        final auth = await user.authentication;
+
+        final accessToken = auth.accessToken;
+        final idToken = auth.idToken;
+
+        if (idToken != null) {
+          await _storage.write(key: 'jwtToken', value: idToken);
         }
 
-        final accessToken = (await user.authentication).accessToken;
         final response = await http.get(
           Uri.parse('https://people.googleapis.com/v1/people/me?personFields=birthdays,addresses,locations'),
           headers: {'Authorization': 'Bearer $accessToken'},
@@ -180,24 +190,22 @@ class AuthService {
 
             final int response = await _isLoggedIn(user.id);
             if (response == 0) {
-              // USER ACTIVE
               await _storage.write(key: 'sessionToken', value: user.id);
               return 0;
             }
             if (response == 2) {
-              // USER REGISTERED BUT SESSION EXPIRED OR NOT ACTIVE -> FORCE GOOGLE LOG IN
               await googleLogIn(user.id);
               return 0;
             }
-
             if (response == 3) {
-              // USER REGISTERED BUT PASSWORD NOT SET -> FORCE SET PASS VIEW
               await _storage.write(key: 'sessionToken', value: user.id);
               return 3;
-            }
-            else {
-              // NO USER REGISTER, NEED TO QUICK REGISTER IT
-              bool successfullyRegistered = await _googleQuickRegister(user, country, DateTime(year, month, day));
+            } else {
+              bool successfullyRegistered = await _googleQuickRegister(
+                user,
+                country,
+                DateTime(year, month, day),
+              );
               if (successfullyRegistered) {
                 await _storage.write(key: 'sessionToken', value: user.id);
                 return 2;
@@ -221,6 +229,7 @@ class AuthService {
     }
     return 1;
   }
+
 
   Future<int?> verifyAccount(String idCard) async {
     String? id = await _storage.read(key: 'sessionToken');

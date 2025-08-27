@@ -63,7 +63,7 @@ class _SignInState extends State<SignIn> {
         );
 
         if (result['success']) {
-          Common().logInPopDialog("Registration successful!" , _username.trim(), context);
+          Common().logInPopDialog(LocalizedStrings.of(context)!.get('registrationSuccessful') ?? "Registration successful!" , context);
         } else {
           Common().showFloatingSnack(context, "Oops... ${result['message']}", backgroundColor: Colors.red);
 
@@ -165,12 +165,16 @@ class _SignInState extends State<SignIn> {
   bool _validateAndSaveCurrentStep() {
     final currentForm = _formKeys[_currentStep].currentState;
 
-    if (_currentStep == 2 && !_idCardSet) return false;
-    if (currentForm?.saveAndValidate() ?? false) {
-      return true;
+    if (_currentStep == 2 && !_idCardSet) {
+      currentForm?.fields['idCard']?.invalidate(
+        LocalizedStrings.of(context)?.get('thisFieldIsRequired') ?? 'This field is required',
+      );
     }
 
-    return false;
+    final ok = currentForm?.saveAndValidate() ?? false;
+
+    if (_currentStep == 2 && !_idCardSet) return false;
+    return ok;
   }
   Widget _buildBasicInfoStep(context) {
     final strings = LocalizedStrings.of(context);
@@ -353,8 +357,8 @@ class _SignInState extends State<SignIn> {
               recognizer: TapGestureRecognizer()
                 ..onTap = ()
                 {
-                  /// TO-DO TERMS&CONDITIONS VIEW
-                  Common().showFloatingSnack(context , '(Terms & Conditions');
+                  Common().openInAppBrowser(context,
+                      "https://raw.githubusercontent.com/jesusramondovale/BetsTrading-Client/refs/heads/android-master/policies/privacy_policy_en.md");
                 },
             ),
           ],
@@ -397,9 +401,12 @@ class _SignInState extends State<SignIn> {
       ),
       obscureText: obscureText,
       onTap: onTap,
-      validator: FormBuilderValidators.required(
-        errorText: strings?.get('thisFieldIsRequired') ?? 'This field is required',
-      ),
+      validator: (val) {
+        if ((val == null || val.trim().isEmpty) || !_idCardSet) {
+          return strings?.get('thisFieldIsRequired') ?? 'This field is required';
+        }
+        return null;
+      },
     );
   }
   Widget _buildPasswordField(context , String label, String name, IconData icon, bool readonly, GlobalKey<FormBuilderState> formKey, {bool obscureText = true, void Function()? onTap}) {
@@ -422,12 +429,20 @@ class _SignInState extends State<SignIn> {
           return strings?.get('thisFieldIsRequired')?? 'This field is required';
         }
         if (name == 'confirmPassword') {
-
            _password = formKey.currentState?.fields['password']?.value.trim();
           if (val != formKey.currentState?.fields['password']?.value.trim()) {
             return strings?.get('passwordsNotMatching') ?? 'Passwords not matching';
           }
         }
+        final hasUppercase = val.contains(RegExp(r'[A-Z]'));
+        final hasNumber = val.contains(RegExp(r'[0-9]'));
+        final longEnough = val.length >= 12;
+
+        if (!hasUppercase || !hasNumber || !longEnough) {
+          return strings?.get('passwordRequirements') ??
+              "Password must contain 12 characters, one uppercase and one number.";
+        }
+
         return null;
       },
     );

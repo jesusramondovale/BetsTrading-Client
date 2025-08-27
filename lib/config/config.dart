@@ -7,7 +7,7 @@ class Config {
   static const ADMOB_AD_TOKEN = 'ca-app-pub-2465898294053562/4804536511';
   static const IP_GEOLOCALIZER_TOKEN = 'd99daa2befa6f8';
   static const SERVER_CERTIFICATE_HASH = 'E475D88044C231E073B0B4F40B124D496FF01B0D0A964A26D458BFA9BC2BF249';
-
+  static const SERVER_CLIENT_ID = '1020559524014-ge0t5b3bhkpdpg8h958b4rf8o716l12r.apps.googleusercontent.com';
 
   // DEV
   static const PRICE_SIMULATION = 200.0;

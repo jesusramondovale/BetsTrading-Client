@@ -13,6 +13,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../main.dart';
 import '../models/betZone.dart';
 import '../models/bets.dart';
@@ -332,7 +333,7 @@ class Common {
     );
   }
 
-  void logInPopDialog(String aTitle, String aUser, BuildContext aContext) {
+  void logInPopDialog(String aTitle, BuildContext aContext) {
     showDialog(
       context: aContext,
       builder: (BuildContext context) {
@@ -341,7 +342,7 @@ class Common {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
-            "$aTitle, $aUser",
+            aTitle,
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
               fontSize: 20,
@@ -1161,7 +1162,10 @@ class Common {
   }
 
   Future<Map<String, dynamic>> postRequestWrapper(
-      String controller, String endpoint, Map<String, dynamic> data) async {
+      String controller,
+      String endpoint,
+      Map<String, dynamic> data,
+      ) async {
     try {
       final client = HttpClient();
       final url = Uri.parse(
@@ -1169,6 +1173,12 @@ class Common {
       final HttpClientRequest request = await client.postUrl(url);
 
       request.headers.set('Content-Type', 'application/json; charset=utf-8');
+
+      final jwtToken = await _storage.read(key: 'jwtToken');
+      if (jwtToken != null && jwtToken.isNotEmpty) {
+        request.headers.set('Authorization', 'Bearer $jwtToken');
+      }
+
       request.write(jsonEncode(data));
 
       final HttpClientResponse response = await request.close();
@@ -1187,6 +1197,7 @@ class Common {
       return {'statusCode': 500, 'body': {}};
     }
   }
+
 
   Future<String> getUserCountry() async {
     final apiKey = Config.IP_GEOLOCALIZER_TOKEN;
@@ -1249,6 +1260,17 @@ class Common {
       overlayEntry.remove();
     });
   }
+
+  Future<void> openInAppBrowser(BuildContext context, String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(
+      uri,
+      mode: LaunchMode.inAppBrowserView,// navegador interno
+    )) {
+      Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+    }
+  }
+
 
 }
 

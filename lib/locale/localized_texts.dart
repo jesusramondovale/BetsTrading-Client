@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'withdrawalHistory': 'Withdrawal History',
       'loadingAdTrySoon': 'Loading ad… try again in a few seconds',
       'changeCurrency': 'Select currency',
       'profileTitle': 'Your profile',
@@ -274,6 +275,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'withdrawalHistory': 'Historial de retiros',
       'loadingAdTrySoon': 'Cargando anuncio… inténtalo en unos segundos',
       'changeCurrency': 'Seleccionar divisa',
       'profileTitle': 'Tu perfil',
@@ -535,6 +537,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'withdrawalHistory': 'Historique des retraits',
       'loadingAdTrySoon': 'Chargement de l’annonce… réessaie dans quelques secondes',
       'changeCurrency': 'Changer de devise',
       'profileTitle': 'Ton profil',
@@ -799,6 +802,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'withdrawalHistory': 'Storico prelievi',
       'loadingAdTrySoon': 'Caricamento annuncio… riprova tra pochi secondi',
       'changeCurrency': 'Cambia valuta',
       'profileTitle': 'Tuo profilo',
@@ -1061,6 +1065,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'withdrawalHistory': 'Verlauf der Auszahlungen',
       'loadingAdTrySoon': 'Anzeige wird geladen… versuche es in ein paar Sekunden erneut',
       'changeCurrency': 'Währung ändern',
       'profileTitle': 'Dein Profil',
