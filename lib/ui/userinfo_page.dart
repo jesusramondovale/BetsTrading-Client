@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:betrader/ui/paymenthistory_page.dart';
 import 'package:betrader/ui/verify_account_page.dart';
+import 'package:betrader/ui/withdrawalhistory_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:betrader/locale/localized_texts.dart';
@@ -257,7 +258,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => PaymentHistoryPage()
+                      builder: (context) => WithdrawalHistoryPage()
                   ),
                 );
 

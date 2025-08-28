@@ -469,7 +469,8 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                                 .currencyAmount
                                                 .toDouble(),
                                             'currency': _currency,
-                                            'coins': widget.coins.toDouble()
+                                            'coins': widget.coins.toDouble(),
+                                            'method': _selectedMethod
                                           });
                                           if (response['statusCode'] == 200) {
                                             Common().showFloatingSnack(

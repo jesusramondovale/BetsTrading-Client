@@ -12,6 +12,9 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'recentWithdrawals': 'Your latest withdrawals',
+      'noWithdrawalsYet': 'No withdrawals yet',
+      'withdrawalsAppearHere': 'Your withdrawals will appear here',
       'noPaymentsYet': 'You have no payments yet',
       'completed': 'Completed',
       'recentPayments': 'List of your most recent payments',
@@ -282,6 +285,9 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'recentWithdrawals': 'Tus últimos retiros',
+      'noWithdrawalsYet': 'Todavía no tienes retiros',
+      'withdrawalsAppearHere': 'Tus retiros aparecerán aquí',
       'noPaymentsYet': 'Todavía no tienes pagos',
       'completed': 'Completado',
       'recentPayments': 'Listado de tus pagos más recientes',
@@ -551,6 +557,9 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'recentWithdrawals': 'Vos derniers retraits',
+      'noWithdrawalsYet': 'Aucun retrait pour l’instant',
+      'withdrawalsAppearHere': 'Vos retraits apparaîtront ici',
       'noPaymentsYet': 'Vous n’avez encore aucun paiement',
       'completed': 'Terminé',
       'recentPayments': 'Liste de vos paiements les plus récents',
@@ -823,6 +832,9 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'recentWithdrawals': 'I tuoi ultimi prelievi',
+      'noWithdrawalsYet': 'Nessun prelievo ancora',
+      'withdrawalsAppearHere': 'I tuoi prelievi appariranno qui',
       'noPaymentsYet': 'Non hai ancora pagamenti',
       'completed': 'Completato',
       'recentPayments': 'Elenco dei tuoi pagamenti più recenti',
@@ -1093,6 +1105,9 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'recentWithdrawals': 'Deine letzten Auszahlungen',
+      'noWithdrawalsYet': 'Noch keine Auszahlungen',
+      'withdrawalsAppearHere': 'Deine Auszahlungen erscheinen hier',
       'noPaymentsYet': 'Du hast noch keine Zahlungen',
       'completed': 'Abgeschlossen',
       'recentPayments': 'Liste deiner neuesten Zahlungen',
