@@ -395,46 +395,6 @@ class SettingsViewState extends State<SettingsView> {
                   ),
                 ),
 
-                // Payment History
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    splashColor: Colors.white.withValues(alpha: 0.1),
-                    highlightColor: Colors.white.withValues(alpha: 0.05),
-                    onTap: () {
-                      Common().vibrate(40, 40);
-                      Common().showFloatingSnack(context, '(Payment history)', backgroundColor: Colors.black);
-                    },
-                    child: ListTile(
-                      title: Text(
-                        strings?.get('paymentHistory') ?? 'Payment history',
-                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                    ),
-                  ),
-                ),
-
-                // Withdrawal History
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    splashColor: Colors.white.withValues(alpha: 0.1),
-                    highlightColor: Colors.white.withValues(alpha: 0.05),
-                    onTap: () {
-                      Common().vibrate(40, 40);
-                      Common().showFloatingSnack(context, '(Withdrawal history)', backgroundColor: Colors.black);
-                    },
-                    child: ListTile(
-                      title: Text(
-                        strings?.get('withdrawalHistory') ?? 'Withdrawal history',
-                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                    ),
-                  ),
-                ),
-
                 // About Us
                 Material(
                   color: Colors.transparent,

@@ -12,6 +12,13 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'noPaymentsYet': 'You have no payments yet',
+      'completed': 'Completed',
+      'recentPayments': 'List of your most recent payments',
+      'coins': 'Coins',
+      'status': 'Status',
+      'amount': 'Amount',
+      'paymentsAppearHere': 'Your payments will appear here',
       'withdrawalHistory': 'Withdrawal History',
       'loadingAdTrySoon': 'Loading ad… try again in a few seconds',
       'changeCurrency': 'Select currency',
@@ -275,6 +282,13 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'noPaymentsYet': 'Todavía no tienes pagos',
+      'completed': 'Completado',
+      'recentPayments': 'Listado de tus pagos más recientes',
+      'coins': 'Monedas',
+      'status': 'Estado',
+      'amount': 'Cantidad',
+      'paymentsAppearHere': 'Tus pagos aparecerán aquí',
       'withdrawalHistory': 'Historial de retiros',
       'loadingAdTrySoon': 'Cargando anuncio… inténtalo en unos segundos',
       'changeCurrency': 'Seleccionar divisa',
@@ -537,6 +551,13 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'noPaymentsYet': 'Vous n’avez encore aucun paiement',
+      'completed': 'Terminé',
+      'recentPayments': 'Liste de vos paiements les plus récents',
+      'coins': 'Pièces',
+      'status': 'Statut',
+      'amount': 'Montant',
+      'paymentsAppearHere': 'Vos paiements apparaîtront ici',
       'withdrawalHistory': 'Historique des retraits',
       'loadingAdTrySoon': 'Chargement de l’annonce… réessaie dans quelques secondes',
       'changeCurrency': 'Changer de devise',
@@ -802,6 +823,13 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'noPaymentsYet': 'Non hai ancora pagamenti',
+      'completed': 'Completato',
+      'recentPayments': 'Elenco dei tuoi pagamenti più recenti',
+      'coins': 'Monete',
+      'status': 'Stato',
+      'amount': 'Importo',
+      'paymentsAppearHere': 'I tuoi pagamenti appariranno qui',
       'withdrawalHistory': 'Storico prelievi',
       'loadingAdTrySoon': 'Caricamento annuncio… riprova tra pochi secondi',
       'changeCurrency': 'Cambia valuta',
@@ -1065,6 +1093,13 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'noPaymentsYet': 'Du hast noch keine Zahlungen',
+      'completed': 'Abgeschlossen',
+      'recentPayments': 'Liste deiner neuesten Zahlungen',
+      'coins': 'Münzen',
+      'status': 'Status',
+      'amount': 'Betrag',
+      'paymentsAppearHere': 'Deine Zahlungen werden hier angezeigt',
       'withdrawalHistory': 'Verlauf der Auszahlungen',
       'loadingAdTrySoon': 'Anzeige wird geladen… versuche es in ein paar Sekunden erneut',
       'changeCurrency': 'Währung ändern',

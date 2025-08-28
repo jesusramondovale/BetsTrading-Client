@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:betrader/ui/paymenthistory_page.dart';
 import 'package:betrader/ui/verify_account_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -232,6 +233,40 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
           listItems.add(
             ListTile(
+              leading: const Icon(FontAwesomeIcons.creditCard),
+              title: Text(strings?.get('paymentHistory') ?? 'Payment History'),
+              onTap: () {
+                Common().vibrate(40, 40);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => PaymentHistoryPage()
+                  ),
+                );
+
+              },
+            ),
+          );
+
+          listItems.add(
+            ListTile(
+              leading: const Icon(FontAwesomeIcons.moneyBillTransfer),
+              title: Text(strings?.get('withdrawalHistory') ?? 'Withdrawal History'),
+              onTap: () {
+                Common().vibrate(40, 40);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => PaymentHistoryPage()
+                  ),
+                );
+
+              },
+            ),
+          );
+
+          listItems.add(
+            ListTile(
               leading: const Icon(FontAwesomeIcons.arrowRightFromBracket),
               title: Text(strings?.get('logOut') ?? 'Log Out'),
               onTap: () async {
@@ -242,7 +277,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
                           builder: (context) => const LoginPage()),
-                      (Route<dynamic> route) => false,
+                          (Route<dynamic> route) => false,
                     );
                   });
                 } else {
