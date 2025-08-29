@@ -335,7 +335,8 @@ class HomeScreenState extends State<HomeScreen> {
                         }
                 }
                 ),
-                IconButton(icon: Icon(FontAwesomeIcons.rotate), color: Colors.white70,
+                IconButton(icon: Icon(FontAwesomeIcons.rotate),
+                    color: Colors.white70,
                   onPressed: () async => {
                   Common().vibrate(40,30),
                   await BetsService().getUserInfo(_userId),

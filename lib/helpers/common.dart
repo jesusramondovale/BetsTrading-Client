@@ -27,6 +27,8 @@ import '../config/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibration/vibration.dart';
 import 'package:intl/intl.dart' as intl;
+import '../ui/login_page.dart';
+
 
 class Common {
   final ThemeData themeDark = ThemeData(
@@ -1183,6 +1185,17 @@ class Common {
 
       final HttpClientResponse response = await request.close();
       final String responseBody = await response.transform(utf8.decoder).join();
+
+      if (response.statusCode == 401 || response.statusCode == 403) { // Unauthorized/Forbidden
+
+        final storage = FlutterSecureStorage();
+        await storage.deleteAll();
+
+        navigatorKey.currentState?.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+              (route) => false,
+        );
+      }
 
       return {
         'statusCode': response.statusCode,

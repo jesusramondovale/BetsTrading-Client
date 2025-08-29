@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:betrader/services/TopService.dart';
 import 'package:betrader/models/users.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../helpers/common.dart';
@@ -288,11 +289,27 @@ class _TopUsersPageState extends State<TopUsersPage>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
-        title: Text('Social',
-            style: GoogleFonts.montserrat(
-              fontSize: 28,
-              fontWeight: FontWeight.w400,
-            )),
+        title: Row(
+          children: [
+            Text('Social',
+                style: GoogleFonts.montserrat(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w400,
+                )
+            ),
+            Spacer(),
+            IconButton(icon: Icon(FontAwesomeIcons.rotate),
+                color: Colors.white70,
+                onPressed: () async => {
+                  Common().vibrate(40,30),
+                  _loadUserIdAndData(),
+                  setState(() {
+
+
+                  })}
+            )
+          ],
+        ),
         bottom: TabBar(
           labelStyle: GoogleFonts.comfortaa(
             fontSize: 22,
