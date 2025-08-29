@@ -18,7 +18,7 @@ class _TopUsersPageState extends State<TopUsersPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  String _userId = "none";
+  String? _userId;
   String _userCountry = "none";
 
   Future<void> _loadUserIdAndData() async {
@@ -32,8 +32,10 @@ class _TopUsersPageState extends State<TopUsersPage>
   }
 
   Widget _buildTopUsersView() {
-    return FutureBuilder<List<User>>(
-      future: TopService().fetchTopUsers(_userId),
+    return _userId == null
+        ? const Center(child: CircularProgressIndicator(color: Colors.grey))
+        : FutureBuilder<List<User>>(
+      future: TopService().fetchTopUsers(_userId ?? "none"),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());

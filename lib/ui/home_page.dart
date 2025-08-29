@@ -27,7 +27,7 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   List<Bet> _bets = [];
-  String _userId = "none";
+  String? _userId;
   double _userPoints = 0;
   bool showFavorites = true;
 
@@ -35,7 +35,7 @@ class HomeScreenState extends State<HomeScreen> {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
     setState(() {
-      _userId = userId;
+      _userId = userId != "none" ? userId : null;
       _userPoints = double.tryParse(userPoints) ?? 0;
     });
     _loadBets(userId);
@@ -206,8 +206,11 @@ class HomeScreenState extends State<HomeScreen> {
                 height: 0.5),
             Expanded(
               flex: 9,
-              child: FutureBuilder<Trends>(
-                  future: BetsService().fetchTrendsData(_userId),
+              child: _userId == null
+                  ? const Center(child: CircularProgressIndicator(color: Colors.grey))
+                  :
+              FutureBuilder<Trends>(
+                  future: BetsService().fetchTrendsData(_userId ?? "none"),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
@@ -263,8 +266,11 @@ class HomeScreenState extends State<HomeScreen> {
                 height: 0.5),
             Expanded(
               flex: 8,
-              child: FutureBuilder<Favorites>(
-                  future: BetsService().fetchFavouritesData(_userId),
+              child: _userId == null
+                  ? const Center(child: CircularProgressIndicator(color: Colors.grey))
+                  :
+              FutureBuilder<Favorites>(
+                  future: BetsService().fetchFavouritesData(_userId ?? "none"),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
@@ -326,7 +332,7 @@ class HomeScreenState extends State<HomeScreen> {
                 IconButton(icon: Icon(Icons.auto_delete), color: Colors.white70,
                     onPressed:  () async {
                         Common().vibrate(40,30);
-                        bool result = await BetsService().deleteHistoricBets(_userId);
+                        bool result = await BetsService().deleteHistoricBets(_userId ?? "none");
                         if (result) {
                           Common().showFloatingSnack(context, LocalizedStrings.of(context)!.get('betsDeleted') ?? "Bets deleted");
                           setState(() {
@@ -339,7 +345,7 @@ class HomeScreenState extends State<HomeScreen> {
                     color: Colors.white70,
                   onPressed: () async => {
                   Common().vibrate(40,30),
-                  await BetsService().getUserInfo(_userId),
+                  await BetsService().getUserInfo(_userId ?? "none"),
                   loadUserIdAndData(),
                   setState(() {
 
@@ -354,8 +360,11 @@ class HomeScreenState extends State<HomeScreen> {
                 height: 0.5),
             Expanded(
               flex: 12,
-              child: FutureBuilder<BetsAndPriceBets>(
-                future: BetsService().fetchInvestmentData(_userId),
+              child: _userId == null
+                  ? const Center(child: CircularProgressIndicator(color: Colors.grey))
+                  :
+              FutureBuilder<BetsAndPriceBets>(
+                future: BetsService().fetchInvestmentData(_userId ?? "none"),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator(color: Colors.grey));

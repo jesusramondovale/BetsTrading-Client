@@ -31,7 +31,7 @@ class WithdrawPage extends StatefulWidget {
 class _WithdrawPageState extends State<WithdrawPage> {
   String? _coinIconBase64;
   String? _selectedMethod;
-  String _userId = 'none';
+  String? _userId;
   String _currency = 'eur';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final Map<String, Map<String, String>> _userAvailableMethods = {};
@@ -487,7 +487,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                             );
 
                                             await BetsService()
-                                                .getUserInfo(_userId);
+                                                .getUserInfo(_userId ?? "none");
                                             homeScreenKey.currentState
                                                 ?.loadUserIdAndData();
                                             exchangePageKey.currentState
