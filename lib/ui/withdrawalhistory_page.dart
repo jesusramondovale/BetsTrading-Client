@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -146,7 +147,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
         _kvRow(strings?.get('method') ?? 'Method', method.replaceAll('_',' ').toUpperCase(), textColor),
       if (id.isNotEmpty) ...[
         const Divider(thickness: 0.2),
-        _kvRow('ID', id, textColor),
+        _kvRow('ID', id, textColor, copyable: true),
       ],
     ];
 
@@ -212,7 +213,44 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
     );
   }
 
-  Widget _kvRow(String k, String v, Color textColor, {bool statusFlagMode = false}) {
+  Widget _kvRow(String k, String v, Color textColor, {bool statusFlagMode = false, bool copyable = false}) {
+    Widget rightChild;
+
+    if (statusFlagMode) {
+      rightChild = Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Icon(
+            v == 'true' ? FontAwesomeIcons.check : FontAwesomeIcons.xmark,
+            size: 25,
+          ),
+        ],
+      );
+    } else {
+      Widget valueText = Text(
+        v.isEmpty ? '—' : v,
+        textAlign: TextAlign.right,
+        style: GoogleFonts.roboto(
+          color: textColor,
+          fontSize: 18,
+          fontWeight: FontWeight.w400,
+        ),
+      );
+
+      if (copyable && v.isNotEmpty) {
+        valueText = InkWell(
+          onTap: () async {
+            await Clipboard.setData(ClipboardData(text: v));
+            final msg = LocalizedStrings.of(context)?.get('copiedToClipboard') ?? 'Copied to clipboard';
+            Common().showFloatingSnack(context, msg, backgroundColor: Colors.black87);
+          },
+          child: valueText,
+        );
+      }
+
+      rightChild = valueText;
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
@@ -230,28 +268,12 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
             ),
           ),
           const SizedBox(width: 8),
-          if (!statusFlagMode)
-            Expanded(
-                flex: 6,
-                child: Text(
-                  v.isEmpty ? '—' : v,
-                  textAlign: TextAlign.right,
-                  style: GoogleFonts.roboto(
-                    color: textColor,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ))
-          else
-            Row(
-              children: [
-                Icon(v == 'true' ? FontAwesomeIcons.check : FontAwesomeIcons.xmark, size: 25),
-              ],
-            ),
+          Expanded(flex: 6, child: rightChild),
         ],
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
