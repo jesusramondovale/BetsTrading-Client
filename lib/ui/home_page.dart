@@ -418,6 +418,7 @@ class HomeScreenState extends State<HomeScreen> {
                         priceBet: p,
                         onDelete: () => setState(() {}),
                         controller: widget.controller,
+                        isForex: Common().isTickerForex(p.ticker),
                       )),
                     ],
                   );

@@ -31,6 +31,25 @@ import '../ui/login_page.dart';
 
 
 class Common {
+
+  bool isTickerForex(String ticker){
+
+    List<String> forexTickers = 
+    [ 
+      "EUR/USD",
+      "USD/JPY",
+      "GPB/USD",
+      "EUR/JPY",
+      "USD/CAD",
+      "XRP/BTC",
+      "AUD/USD",
+      "USD/CHF",
+      "BTC/ETH" 
+    ];
+
+    return forexTickers.contains(ticker);
+  }
+
   final ThemeData themeDark = ThemeData(
     brightness: Brightness.dark,
     colorScheme: const ColorScheme.dark(

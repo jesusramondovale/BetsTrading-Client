@@ -18,6 +18,7 @@ class ExactPricePage extends StatefulWidget {
   final String iconPath;
   final String ticker;
   final String name;
+  final bool isForex;
 
   const ExactPricePage({
     super.key,
@@ -25,6 +26,7 @@ class ExactPricePage extends StatefulWidget {
     required this.currentValue,
     required this.ticker,
     required this.iconPath,
+    required this.isForex,
   });
 
   @override
@@ -39,15 +41,19 @@ class _ExactPricePageState extends State<ExactPricePage> {
   String _selectedMargin = "0%";
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   double _userPoints = 0.0;
+  String _currency = "eur";
   bool _isAcceptEnabled = false;
   final TextEditingController _priceController = TextEditingController();
 
   Future<void> _loadUserPoints() async {
     final String? pointsStr = await _storage.read(key: 'points');
+    final prefs = await SharedPreferences.getInstance();
+    String currency = (await prefs.getBool('dollarCurrency') == false ? "eur" : "usd");
     setState(() {
       _userPoints = double.tryParse(pointsStr ?? '0') ?? 0.0;
       _isAcceptEnabled =
           _getBetAmountFromMargin(_selectedMargin) <= _userPoints;
+      _currency = currency;
     });
   }
 
@@ -87,7 +93,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
   double _calculateTextWidth(String text, TextStyle style) {
     final TextPainter textPainter = TextPainter(
-      text: TextSpan(text: '\$$text', style: style),
+      text: TextSpan(text: (_currency == "eur" ? '€ ' : '\$ ')+text, style: style),
       maxLines: 1,
       textDirection: TextDirection.ltr,
     )..layout();
@@ -265,6 +271,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: Stack(
         children: [
@@ -320,7 +327,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           color: Colors.white),
                     ),
                     Text(
-                      '\$ ${widget.currentValue.toStringAsFixed(2)}', //TODO
+                      (widget.isForex ? '' : (_currency == "eur" ? '€' : '\$')) + ' ${widget.currentValue.toStringAsFixed(2)}',
                       style: GoogleFonts.montserrat(
                           fontSize: 36,
                           fontWeight: FontWeight.w400,
@@ -415,7 +422,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                       border: InputBorder.none,
                                       isDense: true,
                                       contentPadding: EdgeInsets.zero,
-                                      prefixText: '\$',
+                                      prefixText: (widget.isForex ? '' : (_currency == "eur" ? '€ ' : '\$ ')) ,
                                       prefixStyle: GoogleFonts.montserrat(
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,

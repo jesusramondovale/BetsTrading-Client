@@ -39,7 +39,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     groups = [
       strings?.get('shares') ?? 'Shares',
       'Crypto',
-      strings?.get('indexes') ?? 'Indexes',
+      'Forex',
       strings?.get('commodities') ?? 'Commodities',
     ];
   }
@@ -54,7 +54,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     Map<int, String> groupMapping = {
       0: 'Shares',
       1: 'Cryptos',
-      2: 'Indexes',
+      2: 'Forex',
       3: 'Commodities',
     };
 
@@ -322,8 +322,8 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       return 'Crypto';
     } else if (g.contains('share') || g.contains('stock') || g == 'shares') {
       return strings?.get('shares') ?? 'Shares';
-    } else if (g.contains('index') || g == 'indexes') {
-      return strings?.get('indexes') ?? 'Indexes';
+    } else if (g.contains('forex') || g == 'forex') {
+      return 'Forex';
     } else if (g.contains('commod') || g == 'commodities') {
       return strings?.get('commodities') ?? 'Commodities';
     }
@@ -501,6 +501,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                                                 ticker: asset.ticker,
                                                 currentValue: candles.first.close,
                                                 iconPath: asset.icon,
+                                                isForex: asset.group.toLowerCase() == "forex",
                                               ),
                                             ),
                                           );

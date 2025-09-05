@@ -724,6 +724,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                     ticker: widget.ticker,
                                     currentValue: widget.candles.first.close,
                                     iconPath: widget.iconPath,
+                                    isForex: Common().isTickerForex(widget.ticker),
                                   ),
                                 ),
                               );

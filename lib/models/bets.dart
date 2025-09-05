@@ -775,6 +775,7 @@ class RecentPriceBetDialog extends StatelessWidget {
                                       ticker: priceBet.ticker,
                                       currentValue: candles.first.close,
                                       iconPath: priceBet.iconPath,
+                                      isForex: Common().isTickerForex(priceBet.ticker)
                                     ),
                                   ),
                                 );
@@ -1128,12 +1129,14 @@ class RecentBetContainerState extends State<RecentBetContainer> {
 class RecentPriceBetContainer extends StatefulWidget {
   final PriceBet priceBet;
   final Function onDelete;
+  final bool isForex;
   final MainMenuPageController controller;
   const RecentPriceBetContainer(
       {super.key,
       required this.priceBet,
       required this.onDelete,
-      required this.controller});
+      required this.controller,
+        required this.isForex});
 
   @override
   RecentPriceBetContainerState createState() => RecentPriceBetContainerState();
@@ -1240,6 +1243,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                         ticker: widget.priceBet.ticker,
                         currentValue: candles.first.close,
                         iconPath: widget.priceBet.iconPath,
+                        isForex: widget.isForex,
                       ),
                     ),
                   );
