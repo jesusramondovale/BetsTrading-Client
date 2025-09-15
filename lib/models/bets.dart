@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
+import '../services/BetZoneRefresher.dart';
 import '../ui/candlesticks_view.dart';
 import '../ui/exact_price_view.dart';
 import '../ui/layout_page.dart';
@@ -192,7 +193,7 @@ class RecentBetDialog extends StatelessWidget {
     return GestureDetector(
       key: key,
       onTap: () {
-        Common().vibrate(40, 30);
+        Common().vibrate();
         final renderBox = key.currentContext?.findRenderObject() as RenderBox;
         final position = renderBox.localToGlobal(Offset.zero);
         showPopup(context, infoText, position);
@@ -535,7 +536,7 @@ class RecentPriceBetDialog extends StatelessWidget {
     return GestureDetector(
       key: key,
       onTap: () {
-        Common().vibrate(40, 30);
+        Common().vibrate();
         final renderBox = key.currentContext?.findRenderObject() as RenderBox;
         final position = renderBox.localToGlobal(Offset.zero);
         showPopup(context, infoText, position);
@@ -766,7 +767,7 @@ class RecentPriceBetDialog extends StatelessWidget {
                               ),
                               onPressed: () async {
                                 List<Candle> candles =
-                                await BetsService().fetchCandles(priceBet.ticker);
+                                await BetsService().fetchCandles(priceBet.ticker, TimeframeManager.current.value);
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -893,7 +894,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
             children: [
               SlidableAction(
                 onPressed: (context) {
-                  Common().vibrate(40, 30);
+                  Common().vibrate();
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
@@ -933,7 +934,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
               ),
               SlidableAction(
                 onPressed: (context) async {
-                  Common().vibrate(40, 30);
+                  Common().vibrate();
                   final result = await BetsService()
                       .deleteRecentBet(widget.bet.id.toString());
                   if (result) {
@@ -961,7 +962,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
               onTap: () {
                 (_showEditButtons)
                     ? _triggerBetButtons()
-                    : Common().vibrate(40, 30);
+                    : Common().vibrate();
                 popBetDialog(context, widget.bet, widget.controller);
               },
               leading: ClipRRect(
@@ -1233,8 +1234,8 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
             children: [
               SlidableAction(
                 onPressed: (_) async {
-                  Common().vibrate(40, 30);
-                  final candles = await BetsService().fetchCandles(widget.priceBet.ticker);
+                  Common().vibrate();
+                  final candles = await BetsService().fetchCandles(widget.priceBet.ticker, TimeframeManager.current.value);
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1262,7 +1263,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
             onTap: () {
               (_showEditButtons)
                   ? _triggerBetButtons()
-                  : Common().vibrate(40, 30);
+                  : Common().vibrate();
               popPriceBetDialog(context, widget.priceBet, widget.controller);
             },
             leading: SizedBox(

@@ -392,12 +392,12 @@ class TrendContainerState extends State<TrendContainer> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () => {
-                Common().vibrate(40, 30),
+                Common().vibrate(),
                 popTrendDialog(
                     context, widget.trend, widget.index, widget.controller)
               },
               onLongPress: () => {
-                Common().vibrate(40, 30),
+                Common().vibrate(),
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,

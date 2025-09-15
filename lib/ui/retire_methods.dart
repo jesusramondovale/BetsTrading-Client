@@ -74,7 +74,7 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
   }
 
   Future<void> _deleteMethod(String label) async {
-    Common().vibrate(30, 20);
+    Common().vibrate();
     final userId = await _storage.read(key: 'sessionToken');
     if (userId == null) return;
 
@@ -103,7 +103,7 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
   }
 
   Future<void> _addMethod() async {
-    Common().vibrate(40, 30);
+    Common().vibrate();
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
@@ -193,7 +193,7 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
 
   Future<void> _onMethodTap(BuildContext context, Map<String, dynamic> method) async {
     final strings = LocalizedStrings.of(context);
-    Common().vibrate(20, 15);
+    Common().vibrate();
 
     final action = await showModalBottomSheet<String>(
       context: context,

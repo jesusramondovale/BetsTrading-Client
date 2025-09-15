@@ -1255,7 +1255,7 @@ class Common {
     }
   }
 
-  void vibrate(int miliseconds, int intensity) async {
+  void vibrate([int miliseconds=40, int intensity=30]) async {
     final prefs = await SharedPreferences.getInstance();
     bool vibrationOn = prefs.getBool('enableVibration') ?? false;
     if (await Vibration.hasVibrator() && vibrationOn) {

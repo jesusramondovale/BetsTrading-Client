@@ -224,7 +224,7 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                         if (mounted) setState(() => _sliderValue = 0.0);
                       });
                     } else {
-                      Common().vibrate(40, 50);
+                      Common().vibrate();
                       setState(() => _sliderValue = 0.0);
                     }
                   },

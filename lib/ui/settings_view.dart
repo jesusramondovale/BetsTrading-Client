@@ -402,7 +402,7 @@ class SettingsViewState extends State<SettingsView> {
                     splashColor: Colors.white.withValues(alpha: 0.1),
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () {
-                      Common().vibrate(40, 40);
+                      Common().vibrate();
                       Common().openInAppBrowser(context,"https://betstrading.online");
                     },
                     child: ListTile(
@@ -422,7 +422,7 @@ class SettingsViewState extends State<SettingsView> {
                     splashColor: Colors.white.withValues(alpha: 0.1),
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () async {
-                      Common().vibrate(40, 40);
+                      Common().vibrate();
                       showChangePasswordDialog(context, await _storage.read(key: "sessionToken") ?? "none");
                     },
                     child: ListTile(
@@ -446,7 +446,7 @@ class SettingsViewState extends State<SettingsView> {
                   inactiveTrackColor: Colors.grey,
                   activeColor: Colors.greenAccent,
                   onChanged: (bool value) async {
-                    Common().vibrate(40, 40);
+                    Common().vibrate();
                     setState(() => enableVibration = value);
                     _saveEnableVibration(value);
                   },
@@ -461,7 +461,7 @@ class SettingsViewState extends State<SettingsView> {
                   trailing: CurrencySwitch(
                     value: dollarCurrency,
                     onChanged: (bool newValue) async {
-                      Common().vibrate(40, 40);
+                      Common().vibrate();
                       setState(() => dollarCurrency = newValue);
                       _saveDollarCurrency(newValue);
                       showRestartDialog(context);

@@ -51,7 +51,7 @@ class MainMenuPageController {
   final ValueNotifier<int> selectedIndexNotifier = ValueNotifier<int>(0);
 
   void updateIndex(int index) {
-    Common().vibrate(40, 30);
+    Common().vibrate();
     selectedIndexNotifier.value = index;
   }
 }

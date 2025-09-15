@@ -237,7 +237,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
               leading: const Icon(FontAwesomeIcons.creditCard),
               title: Text(strings?.get('paymentHistory') ?? 'Payment History'),
               onTap: () {
-                Common().vibrate(40, 40);
+                Common().vibrate();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -254,7 +254,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
               leading: const Icon(FontAwesomeIcons.moneyBillTransfer),
               title: Text(strings?.get('withdrawalHistory') ?? 'Withdrawal History'),
               onTap: () {
-                Common().vibrate(40, 40);
+                Common().vibrate();
                 Navigator.push(
                   context,
                   MaterialPageRoute(

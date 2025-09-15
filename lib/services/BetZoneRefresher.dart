@@ -20,8 +20,8 @@ class BetZoneRefresher {
     _timer?.cancel(); // por si ya hay uno
     _timer = Timer.periodic(Duration(seconds: 2), (_) async {
       try {
-        final candles = await BetsService().fetchCandles(ticker);
-        final zones = await BetsService().fetchBetZones(ticker, null);
+        final candles = await BetsService().fetchCandles(ticker, TimeframeManager.current.value);
+        final zones = await BetsService().fetchBetZones(ticker, TimeframeManager.current.value, null);
         if (_notifier != null) {
           _notifier!.value = Common().getRectangleZonesFromBetZones(zones, candles.isNotEmpty ? candles.first.close : 0.0);
         }
@@ -38,4 +38,12 @@ class BetZoneRefresher {
   }
 
   bool get isRunning => _timer != null;
+}
+
+class TimeframeManager {
+  static final ValueNotifier<int> current = ValueNotifier<int>(1);
+
+  static void set(int value) {
+    current.value = value;
+  }
 }

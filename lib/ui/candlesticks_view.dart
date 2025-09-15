@@ -5,6 +5,7 @@ import '../candlesticks/src/main.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 import '../models/rectangle_zone.dart';
+import '../services/BetZoneRefresher.dart';
 import 'layout_page.dart';
 
 class CandlesticksView extends StatefulWidget {
@@ -41,9 +42,9 @@ class CandlesticksViewState extends State<CandlesticksView> {
       final List<Candle> candles;
 
      final List<BetZone> betZones =
-        await BetsService().fetchBetZones(widget.ticker, widget.betId);
+        await BetsService().fetchBetZones(widget.ticker, TimeframeManager.current.value, widget.betId);
 
-      candles = await BetsService().fetchCandles(widget.ticker);
+      candles = await BetsService().fetchCandles(widget.ticker, TimeframeManager.current.value);
 
       List<RectangleZone> rectangleZones = Common()
           .getRectangleZonesFromBetZones(
@@ -82,6 +83,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
               ValueListenableBuilder<double>(
                 valueListenable: candleScaleNotifier,
                 builder: (BuildContext context, double scale, Widget? child) {
+                  TimeframeManager.set(1);
                   return Center(
                     child: Stack(
                       children: <Widget>[

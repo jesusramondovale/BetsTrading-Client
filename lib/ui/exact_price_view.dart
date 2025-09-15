@@ -156,7 +156,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () {
-                Common().vibrate(40, 30);
+                Common().vibrate();
                 Navigator.pop(context, null);
               },
               icon: Icon(CupertinoIcons.arrow_uturn_left, color: Colors.black),
@@ -181,7 +181,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
             child: ElevatedButton.icon(
               onPressed: isEnabled
                   ? () async {
-                      Common().vibrate(40, 30);
+                      Common().vibrate();
                       final prefs = await SharedPreferences.getInstance();
                       bool _bettingNotifications =
                           prefs.getBool('bettingNotifications') ?? true;
@@ -345,7 +345,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     StatefulBuilder(
                       builder: (context, setPriceState) {
                         void adjustPrice(double delta) {
-                          Common().vibrate(40, 30);
+                          Common().vibrate();
                           setPriceState(() {
                             _selectedPrice += delta;
                             if (_selectedPrice < 0) _selectedPrice = 0;
@@ -532,7 +532,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                 StatefulBuilder(
                   builder: (context, setAcceptState) {
                     void updateMargin(String newMargin) {
-                      Common().vibrate(40, 30);
+                      Common().vibrate();
                       _selectedMargin = newMargin;
                       _isAcceptEnabled =
                           _getBetAmountFromMargin(_selectedMargin) <=

@@ -279,7 +279,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                               splashColor: Colors.white24,
                                               highlightColor: Colors.white12,
                                               onTap: () async {
-                                                Common().vibrate(40, 30);
+                                                Common().vibrate();
                                                 final changed = await Navigator.push<bool>(
                                                   context,
                                                   MaterialPageRoute(builder: (_) => const RetireMethodsPage()),
@@ -349,7 +349,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                           GestureDetector(
                                             onTap: () => setState(() {
                                               _selectedMethod = methodKey;
-                                              Common().vibrate(30, 30);
+                                              Common().vibrate();
                                             }),
                                             child: Container(
                                               padding:

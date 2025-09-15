@@ -129,7 +129,7 @@ class ExchangePageState extends State<ExchangePage> {
                       ),
                     ),
                     onPressed: () async {
-                      Common().vibrate(40, 30);
+                      Common().vibrate();
                       await Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => StorePage()),
@@ -181,7 +181,7 @@ class ExchangePageState extends State<ExchangePage> {
                       borderRadius: BorderRadius.circular(20),
                         onTapDown: (TapDownDetails details) async {
                           if (canExchange) {
-                            Common().vibrate(40, 30);
+                            Common().vibrate();
 
 
                             final result = await Navigator.push<bool>(

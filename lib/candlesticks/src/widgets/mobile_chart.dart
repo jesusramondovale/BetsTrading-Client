@@ -73,6 +73,9 @@ class MobileChart extends StatefulWidget {
 
 class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
   final GlobalKey _customPaintKey = GlobalKey();
+  final options = ['1H', '2H', '4H', '1D'];
+  late String _currentRangeTime = "1H";
+  int _currentIndex = 0;
   double? longPressX;
   double? longPressY;
   bool showIndicatorNames = false;
@@ -129,12 +132,42 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
 
   void _fetchZones() async {
     try {
-      final zones = await BetsService().fetchBetZones(widget.ticker, null);
-      final candles = await BetsService().fetchCandles(widget.ticker);
+      final zones = await BetsService().fetchBetZones(widget.ticker, 1, null);
+      final candles = await BetsService().fetchCandles(widget.ticker,1 );
       final rectangleZones = Common().getRectangleZonesFromBetZones(zones, candles.isNotEmpty ? candles.first.close : 0.0);
       widget.rectangleZones.value = rectangleZones;
     } catch (e) {
       print("Error loading initial bet zones: $e");
+    }
+  }
+
+  int _mapTimeframe(String tf) {
+    switch (tf) {
+      case '1H': return 1;
+      case '2H': return 2;
+      case '4H': return 4;
+      case '1D': return 24;
+      default: return 1;
+    }
+  }
+
+  Future<void> _reloadData(int timeframe) async {
+    try {
+      final zones = await BetsService().fetchBetZones(widget.ticker, timeframe, null);
+      final candles = await BetsService().fetchCandles(widget.ticker, timeframe);
+      final rectangleZones = Common().getRectangleZonesFromBetZones(
+        zones,
+        candles.isNotEmpty ? candles.first.close : 0.0,
+      );
+
+      setState(() {
+        widget.rectangleZones.value = rectangleZones;
+        widget.candles
+          ..clear()
+          ..addAll(candles);
+      });
+    } catch (e) {
+      print("Error recharging candles with timeframe=$timeframe: $e");
     }
   }
 
@@ -572,7 +605,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           },
                           onLongPressStart: (LongPressStartDetails details) {
                             setState(() {
-                              Common().vibrate(40, 30);
+                              Common().vibrate();
                               longPressX = details.localPosition.dx;
                               longPressY = details.localPosition.dy;
                             });
@@ -598,7 +631,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   widget.candles.length - 1);
 
                               if (currentCandleIndex != lastCandleIndex) {
-                                Common().vibrate(40, 30);
+                                Common().vibrate();
                                 lastCandleIndex = currentCandleIndex;
                               }
                             });
@@ -664,7 +697,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   details.localPosition.dy, size);
 
                           if (zoneClicked != null && !widget.inactiveZone) {
-                            Common().vibrate(40, 40);
+                            Common().vibrate();
                             Navigator.push(
                               context,
                               PageRouteBuilder(
@@ -676,7 +709,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   currentValue: widget.candles.first.close,
                                   iconPath: widget.iconPath,
                                   onCancel: () {
-                                    Common().vibrate(40, 30);
+                                    Common().vibrate();
                                     Navigator.pop(context);
                                   },
                                 ),
@@ -715,7 +748,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                               ],
                             ),
                             onPressed: () {
-                              Common().vibrate(40, 30);
+                              Common().vibrate();
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -728,6 +761,40 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   ),
                                 ),
                               );
+                            },
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: (constraints.maxHeight/2)*0.97,
+                        left: 4.0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: widget.style.background,
+                          ),
+                          height: 60.0,
+                          width: PRICE_BAR_WIDTH,
+                          child:  TextButton(child:
+                          Text(
+                              _currentRangeTime,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                            onPressed: () async {
+                            Common().vibrate();
+                              setState(() {
+                                _currentIndex = (_currentIndex + 1) % options.length;
+                                _currentRangeTime = options[_currentIndex];
+
+                              });
+
+                              final timeframe = _mapTimeframe(_currentRangeTime);
+                              TimeframeManager.set(timeframe);
+                              await _reloadData(timeframe);
                             },
                           ),
                         ),

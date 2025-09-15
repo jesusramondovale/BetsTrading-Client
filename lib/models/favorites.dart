@@ -277,7 +277,7 @@ class FavoriteDialog extends StatelessWidget {
                                               height: MediaQuery.of(context)
                                                       .size
                                                       .height *
-                                                  0.5,
+                                                  0.55,
                                               child: OverflowBox(
                                                 alignment: Alignment.topCenter,
                                                 maxHeight:
@@ -390,11 +390,11 @@ class FavoriteContainerState extends State<FavoriteContainer> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => {
-            Common().vibrate(40, 30),
+            Common().vibrate(),
             popFavoritesDialog(context, widget.favorite, widget.controller)
           },
           onLongPress: () => {
-            Common().vibrate(40, 30),
+            Common().vibrate(),
             showModalBottomSheet(
               context: context,
               isScrollControlled: true,

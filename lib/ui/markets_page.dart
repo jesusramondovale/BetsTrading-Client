@@ -425,7 +425,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                             highlightColor: Colors.white.withValues(alpha: .18),
                             splashColor: Colors.white.withValues(alpha: .10),
                             onTap: () {
-                              Common().vibrate(40, 30);
+                              Common().vibrate();
                               showModalBottomSheet(
                                 context: context,
                                 isScrollControlled: true,
@@ -458,7 +458,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                               );
                             },
                             onLongPress: () {
-                              Common().vibrate(40, 30);
+                              Common().vibrate();
                               showModalBottomSheet(
                                 context: context,
                                 backgroundColor: Colors.black.withValues(alpha: 0.75),
@@ -492,7 +492,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                                           style: GoogleFonts.montserrat(),
                                         ),
                                         onTap: () async {
-                                          List<Candle> candles = await BetsService().fetchCandles(asset.ticker);
+                                          List<Candle> candles = await BetsService().fetchCandles(asset.ticker,1);
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(

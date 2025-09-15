@@ -51,7 +51,7 @@ class _TopUsersPageState extends State<TopUsersPage>
               User user = users[index];
               return InkWell(
                 onTap: () {
-                  Common().vibrate(40,30);
+                  Common().vibrate();
                   popUserDialog(context, user);
                 },
                 child: Card(
@@ -149,7 +149,7 @@ class _TopUsersPageState extends State<TopUsersPage>
               User user = users[index];
               return InkWell(
                 onTap: () {
-                  Common().vibrate(40,30);
+                  Common().vibrate();
                   popUserDialog(context, user);
                 },
                 child: Card(
@@ -303,7 +303,7 @@ class _TopUsersPageState extends State<TopUsersPage>
             IconButton(icon: Icon(FontAwesomeIcons.rotate),
                 color: Colors.white70,
                 onPressed: () async => {
-                  Common().vibrate(40,30),
+                  Common().vibrate(),
                   _loadUserIdAndData(),
                   setState(() {
 

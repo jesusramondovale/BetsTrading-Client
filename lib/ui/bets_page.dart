@@ -53,7 +53,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
   }
 
   Future<void> _onAccept(int betZone) async {
-    Common().vibrate(40, 30);
+    Common().vibrate();
     FocusScope.of(context).requestFocus(FocusNode());
     await Future.delayed(Duration(milliseconds: 100));
     final prefs = await SharedPreferences.getInstance();

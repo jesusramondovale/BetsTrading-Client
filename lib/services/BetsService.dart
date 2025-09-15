@@ -10,10 +10,10 @@ import '../models/trends.dart';
 class BetsService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  Future<List<BetZone>> fetchBetZones(String ticker, int? betId) async {
+  Future<List<BetZone>> fetchBetZones(String ticker, int hoursTimeframe, int? betId) async {
     if (null != betId) {
       final response =
-          await Common().postRequestWrapper('Bet', 'GetBetZone', {'id': betId});
+          await Common().postRequestWrapper('Bet', 'GetBetZone', {'id': betId, 'timeframe' : hoursTimeframe });
 
       if (response['statusCode'] == 200) {
         List<BetZone> zones = (response['body']['bets'] as List)
@@ -26,7 +26,7 @@ class BetsService {
       }
     }
     final response =
-        await Common().postRequestWrapper('Bet', 'GetBetZones', {'id': ticker});
+        await Common().postRequestWrapper('Bet', 'GetBetZones', {'id': ticker, 'timeframe': hoursTimeframe});
 
     if (response['statusCode'] == 200) {
       List<BetZone> zones = (response['body']['bets'] as List)
@@ -181,11 +181,12 @@ class BetsService {
     }
   }
 
-  Future<List<Candle>> fetchCandles(String symbol) async {
+  Future<List<Candle>> fetchCandles(String symbol, int hoursTimeframe) async {
     final response = await Common().postRequestWrapper(
       'FinancialAssets',
       'FetchCandles',
-      {'id': symbol},
+      {'id': symbol,
+       'timeframe': hoursTimeframe},
     );
 
     if (response['statusCode'] == 200) {
