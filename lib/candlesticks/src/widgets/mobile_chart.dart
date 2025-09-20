@@ -17,11 +17,9 @@ import '../utils/helper_functions.dart';
 import '../widgets/candle_stick_widget.dart';
 import '../widgets/mainwindow_indicator_widget.dart';
 import '../widgets/price_column.dart';
-import '../widgets/time_row.dart';
 import '../widgets/top_panel.dart';
 import '../widgets/volume_widget.dart';
 import 'package:flutter/material.dart';
-import 'dash_line.dart';
 
 /// This widget manages gestures
 /// Calculates the highest and lowest price of visible candles.
@@ -335,14 +333,6 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           ],
                         ),
                       ),
-                      TimeRow(
-                        style: widget.style,
-                        indicatorX: longPressX,
-                        candles: widget.candles,
-                        candleWidth: widget.candleWidth,
-                        indicatorTime: currentCandle?.date,
-                        index: widget.index,
-                      ),
                       Column(
                         children: [
                           Expanded(
@@ -514,51 +504,6 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           ),
                         ],
                       ),
-                      if (longPressY != null)
-                        Positioned(
-                          top: longPressY! - 10,
-                          child: Row(
-                            children: [
-                              DashLine(
-                                length: maxWidth,
-                                color: widget.style.borderColor,
-                                direction: Axis.horizontal,
-                                thickness: 0.5,
-                              ),
-                              Container(
-                                color:
-                                    widget.style.hoverIndicatorBackgroundColor,
-                                width: PRICE_BAR_WIDTH,
-                                height: 20,
-                                child: Center(
-                                  child: Text(
-                                    longPressY! < maxHeight * 0.75
-                                        ? HelperFunctions.priceToString(high -
-                                            (longPressY! -
-                                                    MAIN_CHART_VERTICAL_PADDING) /
-                                                (maxHeight * 0.75 -
-                                                    2 *
-                                                        MAIN_CHART_VERTICAL_PADDING) *
-                                                (high - low))
-                                        : HelperFunctions.addMetricPrefix(
-                                            HelperFunctions.getRoof(
-                                                    volumeHigh) *
-                                                (1 -
-                                                    (longPressY! -
-                                                            maxHeight * 0.75 -
-                                                            10) /
-                                                        (maxHeight * 0.25 -
-                                                            10))),
-                                    style: TextStyle(
-                                      color: widget.style.secondaryTextColor,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       if (longPressX != null)
                         Positioned(
                           right: (maxWidth - longPressX!) ~/
@@ -568,7 +513,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           child: Container(
                             width: widget.candleWidth,
                             height: maxHeight,
-                            color: widget.style.mobileCandleHoverColor,
+                            color: Colors.purple.withValues(alpha: 0.2),
                           ),
                         ),
                       Padding(

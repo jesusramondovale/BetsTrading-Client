@@ -216,8 +216,8 @@ class BetsService {
 
       List<Candle> candlesList = List.generate(length, (index) {
         final DateTime date = DateTime.now().subtract(Duration(
-            days:
-                index));
+            hours:index)
+        );
         return Candle(
           date: date,
           open: open?[index] ?? close[index],

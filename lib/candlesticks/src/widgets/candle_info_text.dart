@@ -21,7 +21,7 @@ class CandleInfoText extends StatelessWidget {
   }
 
   String dateFormatter(DateTime date) {
-    return "${date.year}-${numberFormat(date.month)}-${numberFormat(date.day)} ${numberFormat(date.hour)}:${numberFormat(date.minute)}";
+    return "${date.year}-${numberFormat(date.month)}-${numberFormat(date.day)} ${numberFormat(date.hour)}:00";
   }
 
   @override
@@ -29,12 +29,16 @@ class CandleInfoText extends StatelessWidget {
     return RichText(
       text: TextSpan(
         text: dateFormatter(candle.date),
-        style: defaultStyle,
+        style: TextStyle(
+          fontSize: 10,
+          color: Colors.blueAccent,
+        ),
         children: <TextSpan>[
           const TextSpan(text: " O:"),
           TextSpan(
             text: HelperFunctions.priceToString(candle.open),
             style: TextStyle(
+              fontSize: 12,
               color: candle.isBull ? bullColor : bearColor,
             ),
           ),
@@ -42,6 +46,7 @@ class CandleInfoText extends StatelessWidget {
           TextSpan(
             text: HelperFunctions.priceToString(candle.high),
             style: TextStyle(
+              fontSize: 12,
               color: candle.isBull ? bullColor : bearColor,
             ),
           ),
@@ -49,6 +54,7 @@ class CandleInfoText extends StatelessWidget {
           TextSpan(
             text: HelperFunctions.priceToString(candle.low),
             style: TextStyle(
+              fontSize: 12,
               color: candle.isBull ? bullColor : bearColor,
             ),
           ),
@@ -56,6 +62,7 @@ class CandleInfoText extends StatelessWidget {
           TextSpan(
             text: HelperFunctions.priceToString(candle.close),
             style: TextStyle(
+              fontSize: 12,
               color: candle.isBull ? bullColor : bearColor,
             ),
           ),
