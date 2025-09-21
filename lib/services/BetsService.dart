@@ -185,80 +185,57 @@ class BetsService {
     final response = await Common().postRequestWrapper(
       'FinancialAssets',
       'FetchCandles',
-      {'id': symbol,
-       'timeframe': hoursTimeframe},
+      {
+        'id': symbol,
+        'timeframe': hoursTimeframe,
+      },
     );
 
-    if (response['statusCode'] == 200) {
-      final Map<String, dynamic> jsonData =
-          response['body'];
-
-      final List<dynamic> closeList = jsonData['close'];
-      final List<dynamic>? openList = jsonData['open'];
-      final List<dynamic>? highList = jsonData['daily_max'];
-      final List<dynamic>? lowList = jsonData['daily_min'];
-
-      List<double> close = closeList.map((e) => (e as num).toDouble()).toList();
-      List<double>? open = openList?.map((e) => (e as num).toDouble()).toList();
-      List<double>? high = highList?.map((e) => (e as num).toDouble()).toList();
-      List<double>? low = lowList?.map((e) => (e as num).toDouble()).toList();
-
-      int length = close.length;
-      if (open != null && open.length != length) {
-        throw Exception('Mismatch in lengths of close and open lists');
-      }
-      if (high != null && high.length != length) {
-        throw Exception('Mismatch in lengths of close and daily_max lists');
-      }
-      if (low != null && low.length != length) {
-        throw Exception('Mismatch in lengths of close and daily_min lists');
-      }
-
-      List<Candle> candlesList = List.generate(length, (index) {
-        final DateTime date = DateTime.now().subtract(Duration(
-            hours:index)
-        );
-        return Candle(
-          date: date,
-          open: open?[index] ?? close[index],
-          high: high?[index] ?? close[index],
-          low: low?[index] ?? close[index],
-          close: close[index],
-          volume: 0,
-        );
-      });
-
-      if (candlesList.length == 1) {
-        candlesList.add(Candle(
-          date: DateTime.now(),
-          open: 1.0,
-          close: 1.0,
-          high: 1.0,
-          low: 1.0,
-          volume: 1.0,
-        ));
-      }
-      return candlesList;
-    } else {
-      List<Candle> candleList = [
-        Candle(
-          date: DateTime.now(),
-          open: 1.0,
-          close: 1.0,
-          high: 1.0,
-          low: 1.0,
-          volume: 1.0,
-        ),
-        Candle(
-          date: DateTime.now(),
-          open: 1.0,
-          close: 1.0,
-          high: 1.0,
-          low: 1.0,
-          volume: 1.0,
-        )
-      ];
-      return candleList;
+    if (response['statusCode'] != 200) {
+      return _fallbackCandles();
     }
+
+    final List<dynamic> jsonList = response['body'];
+
+    if (jsonList.isEmpty) {
+      return _fallbackCandles();
+    }
+
+    final candlesList = jsonList.map((c) {
+      return Candle(
+        date: DateTime.parse(c['dateTime']),
+        open: (c['open'] as num).toDouble(),
+        high: (c['high'] as num).toDouble(),
+        low: (c['low'] as num).toDouble(),
+        close: (c['close'] as num).toDouble(),
+        volume: 0, // la API no da volumen
+      );
+    }).toList();
+
+    // Hack si solo hay una vela
+    if (candlesList.length == 1) {
+      final first = candlesList.first;
+      candlesList.add(
+        Candle(
+          date: first.date.subtract(const Duration(hours: 1)),
+          open: first.open,
+          high: first.high,
+          low: first.low,
+          close: first.close,
+          volume: first.volume,
+        ),
+      );
+    }
+
+    return candlesList;
   }
+
+  List<Candle> _fallbackCandles() {
+    final now = DateTime.now();
+    return [
+      Candle(date: now, open: 1, close: 1, high: 1, low: 1, volume: 1),
+      Candle(date: now.subtract(const Duration(hours: 1)), open: 1, close: 1, high: 1, low: 1, volume: 1),
+    ];
+  }
+
 }

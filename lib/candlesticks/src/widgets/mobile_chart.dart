@@ -583,27 +583,32 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           },
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 12),
-                        child: TopPanel(
-                          style: widget.style,
-                          onRemoveIndicator: widget.onRemoveIndicator,
-                          currentCandle: currentCandle,
-                          indicators: widget.mainWindowDataContainer.indicators,
-                          toggleIndicatorVisibility: (indicatorName) {
-                            setState(() {
-                              longPressX = null;
-                              longPressY = null;
-                            });
-                            setState(() {
-                              widget.mainWindowDataContainer
-                                  .toggleIndicatorVisibility(indicatorName);
-                            });
-                          },
-                          unvisibleIndicators: widget
-                              .mainWindowDataContainer.unvisibleIndicators,
-                        ),
+                      Positioned(
+                        top: (constraints.maxHeight/2),
+                        left: 40.0,
+                        child:
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 4, horizontal: 12),
+                            child: TopPanel(
+                              style: widget.style,
+                              onRemoveIndicator: widget.onRemoveIndicator,
+                              currentCandle: currentCandle,
+                              indicators: widget.mainWindowDataContainer.indicators,
+                              toggleIndicatorVisibility: (indicatorName) {
+                                setState(() {
+                                  longPressX = null;
+                                  longPressY = null;
+                                });
+                                setState(() {
+                                  widget.mainWindowDataContainer
+                                      .toggleIndicatorVisibility(indicatorName);
+                                });
+                              },
+                              unvisibleIndicators: widget
+                                  .mainWindowDataContainer.unvisibleIndicators,
+                            ),
+                          ),
                       ),
                       GestureDetector(
                         onTapUp: (TapUpDetails details) {
@@ -718,13 +723,13 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             shape: BoxShape.circle,
                             color: widget.style.background,
                           ),
-                          height: 60.0,
-                          width: PRICE_BAR_WIDTH,
+                          height: 50.0,
+                          width: 50.0,
                           child:  TextButton(child:
                           Text(
                               _currentRangeTime,
                               style: GoogleFonts.montserrat(
-                                fontSize: 20,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
