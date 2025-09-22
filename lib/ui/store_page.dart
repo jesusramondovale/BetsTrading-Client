@@ -27,6 +27,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
   bool _loadingAd = false;
   bool _showingAd = false;
   int _loadRetry = 0;
+  bool _adPermanentlyDisabled = false;
 
   String _currency = 'eur';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -121,9 +122,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
               _rewardedAd = null;
               _isAdLoaded = false;
               if (mounted) setState(() {});
-              final delay = Duration(seconds: (1 << _loadRetry).clamp(1, 30));
               _loadRetry = (_loadRetry + 1).clamp(0, 5);
-              Future.delayed(delay, _loadRewardedAd);
               debugPrint('Rewarded failed to show: $err');
             },
           );
@@ -131,11 +130,10 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
 
         onAdFailedToLoad: (error) {
           _loadingAd = false;
+          _adPermanentlyDisabled = true;
           _isAdLoaded = false;
           if (mounted) setState(() {});
-          final delay = Duration(seconds: (1 << _loadRetry).clamp(2, 30));
           _loadRetry = (_loadRetry + 1).clamp(0, 5);
-          Future.delayed(delay, _loadRewardedAd);
           debugPrint('Rewarded load failed: $error');
         },
 
@@ -492,11 +490,16 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                           animation: _progressController,
                           builder: (context, child) {
                             return LinearProgressIndicator(
-                              value: _isAdLoaded ? 1 : _progressController.value,
                               minHeight: 56,
-                              backgroundColor: Colors.grey.shade800,
-                              valueColor:
-                              const AlwaysStoppedAnimation<Color>(Colors.purple),
+                              value: _adPermanentlyDisabled
+                                  ? 0
+                                  : (_isAdLoaded ? 1 : _progressController.value),
+                              backgroundColor: _adPermanentlyDisabled
+                                  ? Colors.grey
+                                  : Colors.grey.shade800,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                _adPermanentlyDisabled ? Colors.grey : Colors.purple,
+                              ),
                             );
                           },
                         ),
@@ -504,7 +507,9 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 56),
-                          backgroundColor: Colors.transparent,
+                          backgroundColor: _adPermanentlyDisabled
+                              ? Colors.grey
+                              : Colors.transparent,
                           shadowColor: Colors.transparent,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(
@@ -513,7 +518,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: _isAdLoaded
+                        onPressed: (_isAdLoaded && !_adPermanentlyDisabled)
                             ? () {
                           Common().vibrate();
                           _showRewardedAd(
@@ -523,7 +528,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                             ),
                           );
                         }
-                            : null,
+                            : () { Common().showFloatingSnack(context, strings.get('noAdsAvailableNow') ?? "No ads available right now!");},
                         icon: const Icon(Icons.ondemand_video, size: 34),
                         label: Row(
                           mainAxisSize: MainAxisSize.min,

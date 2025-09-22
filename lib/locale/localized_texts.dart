@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'noAdsAvailableNow': 'No ads available now',
       'copiedToClipboard': 'Copied to clipboard',
       'recentWithdrawals': 'Your latest withdrawals',
       'noWithdrawalsYet': 'No withdrawals yet',
@@ -286,6 +287,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'noAdsAvailableNow': 'No hay anuncios disponibles',
       'copiedToClipboard': 'Copiado al portapapeles',
       'recentWithdrawals': 'Tus últimos retiros',
       'noWithdrawalsYet': 'Todavía no tienes retiros',
@@ -559,6 +561,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'noAdsAvailableNow': 'Aucune publicité disponible',
       'copiedToClipboard': 'Copié dans le presse-papiers',
       'recentWithdrawals': 'Vos derniers retraits',
       'noWithdrawalsYet': 'Aucun retrait pour l’instant',
@@ -835,6 +838,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'noAdsAvailableNow': 'Nessun annuncio disponibile',
       'copiedToClipboard': 'Copiato negli appunti',
       'recentWithdrawals': 'I tuoi ultimi prelievi',
       'noWithdrawalsYet': 'Nessun prelievo ancora',
@@ -1109,6 +1113,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'noAdsAvailableNow': 'Derzeit sind keine Anzeigen',
       'copiedToClipboard': 'In die Zwischenablage kopiert',
       'recentWithdrawals': 'Deine letzten Auszahlungen',
       'noWithdrawalsYet': 'Noch keine Auszahlungen',
