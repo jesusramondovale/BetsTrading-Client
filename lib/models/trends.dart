@@ -260,7 +260,7 @@ class TrendDialog extends StatelessWidget {
                                                 height: MediaQuery.of(context)
                                                     .size
                                                     .height *
-                                                    0.5,
+                                                    0.55,
                                                 child: OverflowBox(
                                                   alignment: Alignment.topCenter,
                                                   maxHeight:

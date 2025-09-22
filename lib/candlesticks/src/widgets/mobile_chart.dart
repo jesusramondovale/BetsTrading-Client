@@ -178,19 +178,21 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
         final double maxWidth = constraints.maxWidth - PRICE_BAR_WIDTH;
         final double maxHeight = constraints.maxHeight - DATE_BAR_HEIGHT;
 
-        final int candlesStartIndex = max(widget.index, 0);
-        final int candlesEndIndex = min(
-            maxWidth ~/ widget.candleWidth + widget.index,
-            widget.candles.length - 1);
+        final int candlesStartIndex = widget.candles.isEmpty
+            ? 0
+            : min(max(widget.index, 0), widget.candles.length - 1);
 
-        if (candlesEndIndex == widget.candles.length - 1) {
-          Future(() {
-            widget.onReachEnd();
-          });
-        }
+        final int candlesEndIndex = widget.candles.isEmpty
+            ? 0
+            : min(
+          (maxWidth ~/ widget.candleWidth) + candlesStartIndex,
+          widget.candles.length - 1,
+        );
 
-        List<Candle> inRangeCandles = widget.candles
-            .getRange(candlesStartIndex, max(candlesEndIndex, 0) + 1)
+        List<Candle> inRangeCandles = widget.candles.isEmpty
+            ? []
+            : widget.candles
+            .getRange(candlesStartIndex, candlesEndIndex + 1)
             .toList();
 
         double candlesHighPrice = 0;
@@ -255,15 +257,15 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
               duration:
                   Duration(milliseconds: manualScaleHigh == null ? 300 : 0),
               builder: (context, double low, _) {
-                final currentCandle = longPressX == null
+                final currentCandle = (longPressX == null || widget.candles.isEmpty)
                     ? null
                     : widget.candles[min(
-                        max(
-                            (maxWidth - longPressX!) ~/ widget.candleWidth +
-                                widget.index -
-                                1,
-                            0),
-                        widget.candles.length - 1)];
+                  max(
+                    (maxWidth - longPressX!) ~/ widget.candleWidth + widget.index - 1,
+                    0,
+                  ),
+                  widget.candles.length - 1,
+                )];
 
                 return Container(
                   color: widget.style.background,
@@ -362,8 +364,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   high: tweenEnd,
                                   width: constraints.maxWidth,
                                   chartHeight: chartHeight,
-                                  lastCandle: widget.candles[
-                                      widget.index < 0 ? 0 : widget.index],
+                                  lastCandle: widget.candles[min(max(widget.index, 0), widget.candles.length - 1)],
                                   onScale: (delta) {
                                     if (manualScaleHigh == null ||
                                         manualScaleLow == null) {
@@ -583,27 +584,32 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           },
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 12),
-                        child: TopPanel(
-                          style: widget.style,
-                          onRemoveIndicator: widget.onRemoveIndicator,
-                          currentCandle: currentCandle,
-                          indicators: widget.mainWindowDataContainer.indicators,
-                          toggleIndicatorVisibility: (indicatorName) {
-                            setState(() {
-                              longPressX = null;
-                              longPressY = null;
-                            });
-                            setState(() {
-                              widget.mainWindowDataContainer
-                                  .toggleIndicatorVisibility(indicatorName);
-                            });
-                          },
-                          unvisibleIndicators: widget
-                              .mainWindowDataContainer.unvisibleIndicators,
-                        ),
+                      Positioned(
+                        top: (constraints.maxHeight/2),
+                        left: 40.0,
+                        child:
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 4, horizontal: 12),
+                            child: TopPanel(
+                              style: widget.style,
+                              onRemoveIndicator: widget.onRemoveIndicator,
+                              currentCandle: currentCandle,
+                              indicators: widget.mainWindowDataContainer.indicators,
+                              toggleIndicatorVisibility: (indicatorName) {
+                                setState(() {
+                                  longPressX = null;
+                                  longPressY = null;
+                                });
+                                setState(() {
+                                  widget.mainWindowDataContainer
+                                      .toggleIndicatorVisibility(indicatorName);
+                                });
+                              },
+                              unvisibleIndicators: widget
+                                  .mainWindowDataContainer.unvisibleIndicators,
+                            ),
+                          ),
                       ),
                       GestureDetector(
                         onTapUp: (TapUpDetails details) {
@@ -718,13 +724,13 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             shape: BoxShape.circle,
                             color: widget.style.background,
                           ),
-                          height: 60.0,
-                          width: PRICE_BAR_WIDTH,
+                          height: 50.0,
+                          width: 50.0,
                           child:  TextButton(child:
                           Text(
                               _currentRangeTime,
                               style: GoogleFonts.montserrat(
-                                fontSize: 20,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),

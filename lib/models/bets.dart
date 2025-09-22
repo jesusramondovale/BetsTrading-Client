@@ -446,7 +446,7 @@ class RecentBetDialog extends StatelessWidget {
                                   ),
                                   child: Container(
                                     color: Theme.of(context).scaffoldBackgroundColor,
-                                    height: MediaQuery.of(context).size.height * 0.6,
+                                    height: MediaQuery.of(context).size.height * 0.55,
                                     child: OverflowBox(
                                       alignment: Alignment.topCenter,
                                       maxHeight: MediaQuery.of(context).size.height,
@@ -906,7 +906,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                         ),
                         child: Container(
                           color: Theme.of(context).scaffoldBackgroundColor,
-                          height: MediaQuery.of(context).size.height * 0.6,
+                          height: MediaQuery.of(context).size.height * 0.55,
                           child: OverflowBox(
                             alignment: Alignment.topCenter,
                             maxHeight: MediaQuery.of(context).size.height,
