@@ -41,11 +41,9 @@ class _SignInState extends State<SignIn> {
   int _currentStep = 0;
 
   Future<void> _onStepContinue() async {
-
     if (_validateAndSaveCurrentStep()) {
       _updateFormData(context);
       if (_currentStep == 2) {
-
         String _countryCode = Common().getCountryCode(_country);
         final result = await AuthService().register(
             _idCard,
@@ -59,26 +57,27 @@ class _SignInState extends State<SignIn> {
             _birthday,
             _cardNumberController.text,
             _username,
-            _profilePic
-        );
+            _profilePic);
 
         if (result['success']) {
-          Common().logInPopDialog(LocalizedStrings.of(context)!.get('registrationSuccessful') ?? "Registration successful!" , context);
+          Common().logInPopDialog(
+              LocalizedStrings.of(context)!.get('registrationSuccessful') ??
+                  "Registration successful!",
+              context);
         } else {
-          Common().showFloatingSnack(context, "Oops... ${result['message']}", backgroundColor: Colors.red);
-
+          Common().showFloatingSnack(context, "Oops... ${result['message']}",
+              backgroundColor: Colors.red);
         }
       }
 
-      if (_currentStep < 2){
+      if (_currentStep < 2) {
         setState(() {
           _currentStep++;
         });
       }
-
     }
-
   }
+
   Future<void> _selectDate(BuildContext context) async {
     DateTime today = DateTime.now();
     final DateTime? picked = await showDatePicker(
@@ -89,9 +88,14 @@ class _SignInState extends State<SignIn> {
     );
 
     if (picked != null) {
-      _formKeys[0].currentState?.fields['birthday']?.didChange(picked.day.toString()+"-"+picked.month.toString()+"-"+picked.year.toString());
+      _formKeys[0].currentState?.fields['birthday']?.didChange(picked.day.toString() +
+          "-" +
+          picked.month.toString() +
+          "-" +
+          picked.year.toString());
     }
   }
+
   void _onStepCancel() {
     setState(() {
       if (_currentStep > 0) {
@@ -99,6 +103,7 @@ class _SignInState extends State<SignIn> {
       }
     });
   }
+
   void _updateFormData(context) {
     final basicInfoForm = _formKeys[0].currentState!;
     final addressInfoForm = _formKeys[1].currentState!;
@@ -125,11 +130,13 @@ class _SignInState extends State<SignIn> {
       _birthday = DateTime.now();
     }
   }
+
   void _navigateToCameraPage() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => CameraPage(countryCode: Common().getCountryCode(_country))),
+          builder: (context) =>
+              CameraPage(countryCode: Common().getCountryCode(_country))),
     );
 
     if (result != null) {
@@ -137,11 +144,10 @@ class _SignInState extends State<SignIn> {
         _idCard = result;
         _idCardSet = true;
         _formKeys[2].currentState?.fields['idCard']?.didChange(result);
-
       });
-
     }
   }
+
   List<Step> _buildSteps(context) {
     final strings = LocalizedStrings.of(context);
     return [
@@ -162,12 +168,14 @@ class _SignInState extends State<SignIn> {
       ),
     ];
   }
+
   bool _validateAndSaveCurrentStep() {
     final currentForm = _formKeys[_currentStep].currentState;
 
     if (_currentStep == 2 && !_idCardSet) {
       currentForm?.fields['idCard']?.invalidate(
-        LocalizedStrings.of(context)?.get('thisFieldIsRequired') ?? 'This field is required',
+        LocalizedStrings.of(context)?.get('thisFieldIsRequired') ??
+            'This field is required',
       );
     }
 
@@ -176,6 +184,7 @@ class _SignInState extends State<SignIn> {
     if (_currentStep == 2 && !_idCardSet) return false;
     return ok;
   }
+
   Widget _buildBasicInfoStep(context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilder(
@@ -185,9 +194,15 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4.5),
-            _buildTextField(context, strings?.get('fullName') ?? 'Full Name', 'fullName', Icons.person, false),
+            _buildTextField(
+                context,
+                strings?.get('fullName') ?? 'Full Name',
+                'fullName',
+                Icons.person,
+                false),
             const SizedBox(height: 10.0),
-            _buildTextField(context , strings?.get('username') ??'Username', 'username', Icons.account_circle, false),
+            _buildTextField(context, strings?.get('username') ?? 'Username',
+                'username', Icons.account_circle, false),
             const SizedBox(height: 10.0),
             _buildGenderDropdown(),
             const SizedBox(height: 10.0),
@@ -204,6 +219,7 @@ class _SignInState extends State<SignIn> {
       ),
     );
   }
+
   Widget _buildAddressInfoStep(context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilder(
@@ -213,9 +229,11 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4),
-            _buildTextField(context, strings?.get('address') ?? 'Address', 'address', Icons.location_on, false),
+            _buildTextField(context, strings?.get('address') ?? 'Address',
+                'address', Icons.location_on, false),
             const SizedBox(height: 10.0),
-            _buildTextField(context , strings?.get('zipCode') ??'ZIP Code', 'zipCode', Icons.gps_fixed, false),
+            _buildTextField(context, strings?.get('zipCode') ?? 'ZIP Code',
+                'zipCode', Icons.gps_fixed, false),
             const SizedBox(height: 10.0),
             _buildCountryDropdown(context),
           ],
@@ -223,41 +241,46 @@ class _SignInState extends State<SignIn> {
       ),
     );
   }
+
   Widget _buildCountryDropdown(context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilderDropdown(
       name: 'country',
       decoration: InputDecoration(
+        errorMaxLines: 2,
+        errorStyle: TextStyle(color: Colors.red),
         labelText: strings?.get('country') ?? 'Country',
         prefixIcon: const Icon(Icons.flag),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        contentPadding:
+        const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
-      validator: FormBuilderValidators.required(errorText: strings?.get('thisFieldIsRequired') ?? "This field is required"),
+      validator: FormBuilderValidators.required(
+          errorText:
+          strings?.get('thisFieldIsRequired') ?? "This field is required"),
       items: Common().getTopCountries().map((countryMap) {
         return DropdownMenuItem(
           alignment: AlignmentDirectional.center,
           value: countryMap['name'],
           child: Row(
             children: <Widget>[
-              CountryFlag. fromCountryCode(
+              CountryFlag.fromCountryCode(
                 countryMap['code']!,
                 shape: RoundedRectangle(5),
                 height: 25,
                 width: 40,
               ),
               const SizedBox(width: 10),
-              Text(
-                countryMap['name']!
-              ),
+              Text(countryMap['name']!),
             ],
           ),
         );
       }).toList(),
     );
   }
+
   Widget _buildControls(BuildContext context, ControlsDetails details) {
     final strings = LocalizedStrings.of(context);
     return Row(
@@ -274,12 +297,15 @@ class _SignInState extends State<SignIn> {
               details.onStepContinue?.call();
             }
           },
-          child: Text(_currentStep == _formKeys.length - 1 ? strings?.get('signIn') ?? 'Sign In' :
-          strings?.get('continueText') ?? 'Continue'),
+          child: Text(
+              _currentStep == _formKeys.length - 1
+                  ? strings?.get('signIn') ?? 'Sign In'
+                  : strings?.get('continueText') ?? 'Continue'),
         ),
       ],
     );
   }
+
   Widget _buildCredentialsStep(context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilder(
@@ -289,37 +315,63 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             const SizedBox(height: 4),
-            _buildTextField(context , strings?.get('idCard') ?? 'ID Card', 'idCard', Icons.credit_card, true),
+            _buildTextField(context, strings?.get('idCard') ?? 'ID Card',
+                'idCard', Icons.credit_card, true),
             const SizedBox(height: 10.0),
-            _buildEmailField(context, strings?.get('email') ?? 'Email', 'email', Icons.email, false),
+            _buildEmailField(
+                context, strings?.get('email') ?? 'Email', 'email', Icons.email, false),
             const SizedBox(height: 10.0),
-            _buildPasswordField(context, strings?.get('password') ?? 'Password', 'password', Icons.lock, false, _formKeys[2], obscureText: true),
+            _buildPasswordField(
+                context,
+                strings?.get('password') ?? 'Password',
+                'password',
+                Icons.lock,
+                false,
+                _formKeys[2],
+                obscureText: true),
             const SizedBox(height: 10.0),
-            _buildPasswordField(context, strings?.get('confirmPassword') ?? 'Confirm Password', 'confirmPassword', Icons.lock, false, _formKeys[2], obscureText: true),
+            _buildPasswordField(
+                context,
+                strings?.get('confirmPassword') ?? 'Confirm Password',
+                'confirmPassword',
+                Icons.lock,
+                false,
+                _formKeys[2],
+                obscureText: true),
             _buildTermsAndConditionsCheckbox(context),
           ],
         ),
       ),
     );
   }
-  Widget _buildEmailField(context, String label, String name, IconData icon, bool readonly, {void Function()? onTap, bool isIconEnabled = true}) {
+
+  Widget _buildEmailField(context, String label, String name, IconData icon,
+      bool readonly,
+      {void Function()? onTap, bool isIconEnabled = true}) {
     final strings = LocalizedStrings.of(context);
     return FormBuilderTextField(
       readOnly: readonly,
       name: name,
       decoration: InputDecoration(
         labelText: label,
+        errorStyle: TextStyle(color: Colors.red),
+        errorMaxLines: 2,
         prefixIcon: isIconEnabled ? Icon(icon) : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        contentPadding:
+        const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
       onTap: onTap,
       keyboardType: TextInputType.emailAddress,
       validator: FormBuilderValidators.compose([
-        FormBuilderValidators.required(errorText: strings?.get('thisFieldIsRequired') ?? 'This field is required'),
-        FormBuilderValidators.email(errorText: strings?.get('enterValidEmail') ?? 'Enter a valid email address'),
+        FormBuilderValidators.required(
+            errorText:
+            strings?.get('thisFieldIsRequired') ?? 'This field is required'),
+        FormBuilderValidators.email(
+            errorText: strings?.get('enterValidEmail') ??
+                'Enter a valid email address'),
       ]),
       onChanged: (value) {
         final trimmedValue = value?.trim();
@@ -332,6 +384,7 @@ class _SignInState extends State<SignIn> {
       },
     );
   }
+
   Widget _buildTermsAndConditionsCheckbox(context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilderCheckbox(
@@ -342,22 +395,20 @@ class _SignInState extends State<SignIn> {
           children: [
             TextSpan(
               text: strings?.get('acceptTerms') ?? 'I accept the ',
-              style: TextStyle(
-                  color:  Colors.white,
-                  fontSize: 16
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 16),
             ),
             TextSpan(
-              text: strings?.get('termsAndConditions') ?? 'terms and conditions',
+              text: strings?.get('termsAndConditions') ??
+                  'terms and conditions',
               style: const TextStyle(
                 fontSize: 16,
                 color: Colors.blue,
                 decoration: TextDecoration.underline,
               ),
               recognizer: TapGestureRecognizer()
-                ..onTap = ()
-                {
-                  Common().openInAppBrowser(context,
+                ..onTap = () {
+                  Common().openInAppBrowser(
+                      context,
                       "https://raw.githubusercontent.com/jesusramondovale/BetsTrading-Client/refs/heads/android-master/policies/privacy_policy_en.md");
                 },
             ),
@@ -366,72 +417,98 @@ class _SignInState extends State<SignIn> {
       ),
       validator: FormBuilderValidators.equal(
         true,
-        errorText: strings?.get('acceptTermsToContinue')?? 'Accept the terms and conditions to continue',
+        errorText: strings?.get('acceptTermsToContinue') ??
+            'Accept the terms and conditions to continue',
       ),
     );
   }
-  Widget _buildTextField(context, String label, String name, IconData icon, bool readonly,{bool obscureText = false, void Function()? onTap}) {
+
+  Widget _buildTextField(context, String label, String name, IconData icon,
+      bool readonly,
+      {bool obscureText = false, void Function()? onTap}) {
     final strings = LocalizedStrings.of(context);
     return FormBuilderTextField(
       readOnly: readonly,
-      initialValue: (name == 'idCard' ? strings?.get('takeIdPhoto') ?? "Take a photo of your document" : null ),
+      initialValue: (name == 'idCard'
+          ? strings?.get('takeIdPhoto') ?? "Take a photo of your document"
+          : null),
       name: name,
       decoration: InputDecoration(
         labelText: label,
+        errorStyle: TextStyle(color: Colors.red),
         prefixIcon: Icon(icon),
-        suffixIcon:
-        name == 'fullName' ?
-        IconButton(
+        errorMaxLines: 2,
+        suffixIcon: name == 'fullName'
+            ? IconButton(
           icon: const Icon(FontAwesomeIcons.camera),
           onPressed: () async {
             _profilePic = await Common().pickImageFromGallery();
           },
-        ) :
-        (name == 'idCard' ?
-        IconButton(
+        )
+            : (name == 'idCard'
+            ? IconButton(
           icon: const Icon(FontAwesomeIcons.camera),
           onPressed: () async {
-             _navigateToCameraPage();
+            _navigateToCameraPage();
           },
-        ): null ),
+        )
+            : null),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        contentPadding:
+        const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
       obscureText: obscureText,
       onTap: onTap,
       validator: (val) {
-        if ((val == null || val.trim().isEmpty) || !_idCardSet) {
-          return strings?.get('thisFieldIsRequired') ?? 'This field is required';
+        if (name == 'idCard') {
+          if ((val == null || val.trim().isEmpty) || !_idCardSet) {
+            return strings?.get('thisFieldIsRequired') ??
+                'This field is required';
+          }
+        } else {
+          if (val == null || val.trim().isEmpty) {
+            return strings?.get('thisFieldIsRequired') ??
+                'This field is required';
+          }
         }
         return null;
       },
     );
   }
-  Widget _buildPasswordField(context , String label, String name, IconData icon, bool readonly, GlobalKey<FormBuilderState> formKey, {bool obscureText = true, void Function()? onTap}) {
+
+  Widget _buildPasswordField(
+      context, String label, String name, IconData icon, bool readonly,
+      GlobalKey<FormBuilderState> formKey,
+      {bool obscureText = true, void Function()? onTap}) {
     final strings = LocalizedStrings.of(context);
     return FormBuilderTextField(
       readOnly: readonly,
       name: name,
       decoration: InputDecoration(
         labelText: label,
+        errorStyle: TextStyle(color: Colors.red),
+        errorMaxLines: 2,
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        contentPadding:
+        const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
       obscureText: obscureText,
       onTap: onTap,
       validator: (val) {
         if (val == null || val.isEmpty) {
-          return strings?.get('thisFieldIsRequired')?? 'This field is required';
+          return strings?.get('thisFieldIsRequired') ??
+              'This field is required';
         }
         if (name == 'confirmPassword') {
-           _password = formKey.currentState?.fields['password']?.value.trim();
+          _password = formKey.currentState?.fields['password']?.value.trim();
           if (val != formKey.currentState?.fields['password']?.value.trim()) {
-            return strings?.get('passwordsNotMatching') ?? 'Passwords not matching';
+            return strings?.get('passwordsNotMatching') ??
+                'Passwords not matching';
           }
         }
         final hasUppercase = val.contains(RegExp(r'[A-Z]'));
@@ -447,23 +524,32 @@ class _SignInState extends State<SignIn> {
       },
     );
   }
+
   Widget _buildGenderDropdown() {
     final strings = LocalizedStrings.of(context);
     return FormBuilderDropdown(
       name: 'gender',
       decoration: InputDecoration(
-        labelText: strings?.get('gender') ??'Gender',
+        errorStyle: TextStyle(color: Colors.red),
+        errorMaxLines: 2,
+        labelText: strings?.get('gender') ?? 'Gender',
         prefixIcon: const Icon(Icons.person_outline),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        contentPadding:
+        const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       ),
-      validator: FormBuilderValidators.required(errorText: strings?.get('thisFieldIsRequired') ?? "This field is required"),
-      items: Common().getAllGenders().map((gender) => DropdownMenuItem(
+      validator: FormBuilderValidators.required(
+          errorText:
+          strings?.get('thisFieldIsRequired') ?? "This field is required"),
+      items: Common()
+          .getAllGenders()
+          .map((gender) => DropdownMenuItem(
         value: gender,
         child: Text(gender),
-      )).toList(),
+      ))
+          .toList(),
     );
   }
 
@@ -488,14 +574,12 @@ class _SignInState extends State<SignIn> {
         ),
         body: Stack(
           children: [
-            // Fondo
             Positioned.fill(
               child: Image.asset(
                 'assets/android12splash.png',
                 fit: BoxFit.cover,
               ),
             ),
-
             Positioned.fill(
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -504,7 +588,6 @@ class _SignInState extends State<SignIn> {
                 ),
               ),
             ),
-
             Column(
               children: [
                 Container(
@@ -525,10 +608,7 @@ class _SignInState extends State<SignIn> {
                 ),
               ],
             )
-
-
           ],
-        )
-    );
+        ));
   }
 }
