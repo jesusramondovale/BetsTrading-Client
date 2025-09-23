@@ -1186,6 +1186,7 @@ class Common {
       String controller,
       String endpoint,
       Map<String, dynamic> data,
+      {clearingOnForbidden = true}
       ) async {
     try {
       final client = HttpClient();
@@ -1205,7 +1206,7 @@ class Common {
       final HttpClientResponse response = await request.close();
       final String responseBody = await response.transform(utf8.decoder).join();
 
-      if (response.statusCode == 401 || response.statusCode == 403) { // Unauthorized/Forbidden
+      if (clearingOnForbidden && (response.statusCode == 401 || response.statusCode == 403)) { // Unauthorized/Forbidden
 
         final storage = FlutterSecureStorage();
         await storage.deleteAll();

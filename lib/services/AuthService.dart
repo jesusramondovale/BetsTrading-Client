@@ -102,8 +102,8 @@ class AuthService {
     return response == 0;
   }
 
-  Future<int> _isLoggedIn(String token) async {
-    final response = await Common().postRequestWrapper('Auth','IsLoggedIn', {'id': token});
+  Future<int> _isLoggedIn(String token, {clearingOnForbidden = true}) async {
+    final response = await Common().postRequestWrapper('Auth','IsLoggedIn', {'id': token}, clearingOnForbidden: clearingOnForbidden);
     if (response['statusCode'] == 200) {
       AuthService().refreshFCM(token, FirebaseService().firebaseToken!);
       return 0; // VALID TOKEN
@@ -188,7 +188,7 @@ class AuthService {
             int month = birthdayData['month'];
             int day = birthdayData['day'];
 
-            final int response = await _isLoggedIn(user.id);
+            final int response = await _isLoggedIn(user.id, clearingOnForbidden: false);
             if (response == 0) {
               await _storage.write(key: 'sessionToken', value: user.id);
               return 0;

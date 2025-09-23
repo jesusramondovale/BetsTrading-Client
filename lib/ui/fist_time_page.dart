@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../Services/BetsService.dart';
 import '../locale/localized_texts.dart';
 import '../helpers/common.dart';
 import 'layout_page.dart';
@@ -239,6 +240,8 @@ class _FirstTimePageState extends State<FirstTimePage> {
                               strings?.get('successPassword') ?? "Password created successfully",
                               theDuration: 5,
                             );
+                            String? id = await _storage.read(key: 'sessionToken');
+                            await BetsService().getUserInfo(id!);
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(builder: (context) => const MainMenuPage()),

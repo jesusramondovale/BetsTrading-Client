@@ -190,8 +190,7 @@ class LoginFormState extends State<LoginForm> {
           await BetsService().getUserInfo(id!);
           String? username = await _storage.read(key: 'username');
           Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const FirstTimePage()));
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const FirstTimePage()));
         }
         else {
           Common().showFloatingSnack(context, "Ooops... error!", backgroundColor: Colors.red);
