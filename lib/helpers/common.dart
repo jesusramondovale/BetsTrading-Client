@@ -1186,7 +1186,7 @@ class Common {
       String controller,
       String endpoint,
       Map<String, dynamic> data,
-      {clearingOnForbidden = true}
+      {clearingOnForbidden = true, includeJwt = true}
       ) async {
     try {
       final client = HttpClient();
@@ -1197,7 +1197,7 @@ class Common {
       request.headers.set('Content-Type', 'application/json; charset=utf-8');
 
       final jwtToken = await _storage.read(key: 'jwtToken');
-      if (jwtToken != null && jwtToken.isNotEmpty) {
+      if (includeJwt && jwtToken != null && jwtToken.isNotEmpty) {
         request.headers.set('Authorization', 'Bearer $jwtToken');
       }
 
@@ -1365,6 +1365,7 @@ class _FloatingSnackState extends State<_FloatingSnack> with SingleTickerProvide
                   widget.text,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.montserrat(color: Colors.white),
+                  maxLines: 2
                 ),
 
                 ...[

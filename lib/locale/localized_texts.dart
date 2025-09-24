@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'resetPasswordInfo': 'Your account password will be reset and the new one will be sent to your email address',
       'noAdsAvailableNow': 'No ads available now',
       'copiedToClipboard': 'Copied to clipboard',
       'recentWithdrawals': 'Your latest withdrawals',
@@ -287,6 +288,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'resetPasswordInfo': 'Se reseteará la contraseña de su cuenta y se enviará la nueva a su correo electrónico',
       'noAdsAvailableNow': 'No hay anuncios disponibles',
       'copiedToClipboard': 'Copiado al portapapeles',
       'recentWithdrawals': 'Tus últimos retiros',
@@ -561,6 +563,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'resetPasswordInfo': 'Le mot de passe de votre compte sera réinitialisé et le nouveau sera envoyé à votre adresse e-mail',
       'noAdsAvailableNow': 'Aucune publicité disponible',
       'copiedToClipboard': 'Copié dans le presse-papiers',
       'recentWithdrawals': 'Vos derniers retraits',
@@ -838,6 +841,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'resetPasswordInfo': 'La password del tuo account verrà reimpostata e quella nuova ti sarà inviata via e-mail',
       'noAdsAvailableNow': 'Nessun annuncio disponibile',
       'copiedToClipboard': 'Copiato negli appunti',
       'recentWithdrawals': 'I tuoi ultimi prelievi',
@@ -1113,6 +1117,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'resetPasswordInfo': 'Das Passwort Ihres Kontos wird zurückgesetzt und das neue wird an Ihre E-Mail-Adresse gesendet',
       'noAdsAvailableNow': 'Derzeit sind keine Anzeigen',
       'copiedToClipboard': 'In die Zwischenablage kopiert',
       'recentWithdrawals': 'Deine letzten Auszahlungen',

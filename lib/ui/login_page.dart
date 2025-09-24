@@ -100,6 +100,108 @@ class LoginFormState extends State<LoginForm> {
     }
   }
 
+  Future<bool?> showEmailPasswordDialog(BuildContext context) async {
+    final strings = LocalizedStrings.of(context);
+    final TextEditingController emailController = TextEditingController();
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    final Color bgColor = Colors.grey[900]!;
+    final Color fieldColor = Colors.grey[850]!;
+    final Color textColor = Colors.white;
+
+    return await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) Navigator.pop(dialogContext, false);
+          },
+          child: AlertDialog(
+            backgroundColor: bgColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text(
+              strings?.get('resetPasswordInfo') ?? "Your account password will be reset and the new one will be sent to your email address",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 22,
+                fontWeight: FontWeight.w300,
+                color: textColor,
+              ),
+            ),
+            content: Form(
+              key: _formKey,
+              child: TextFormField(
+                controller: emailController,
+                style: GoogleFonts.montserrat(color: textColor),
+                decoration: InputDecoration(
+                  labelText: strings?.get('email') ?? "Email",
+                  labelStyle: GoogleFonts.montserrat(color: textColor),
+                  filled: true,
+                  fillColor: fieldColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return strings?.get('thisFieldIsRequired') ?? "Required";
+                  }
+                  final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+                  if (!emailRegex.hasMatch(value)) {
+                    return strings?.get('invalidEmail') ?? "Invalid email format";
+                  }
+                  return null;
+                },
+              ),
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              StatefulBuilder(
+                builder: (context, setState) => ElevatedButton(
+                  onPressed: () async {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    if (_formKey.currentState?.validate() != true) return;
+
+                    final response = await Common()
+                        .postRequestWrapper('Auth','ResetPassword', {"id": emailController.text} , includeJwt: false);
+
+                    if (response['statusCode'] == 200) {
+                      Navigator.of(dialogContext).pop(true);
+                      Common().showFloatingSnack(
+                          context,
+                          strings?.get('successPassword') ??
+                              "Password changed successfully");
+
+                    } else {
+                      Navigator.of(dialogContext).pop(true);
+                      Common().showFloatingSnack(
+                          context,
+                          strings?.get('errorChangingPassword') ??
+                              "Error changing password",
+                          backgroundColor: Colors.red);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: textColor,
+                    textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child:
+                  Text(strings?.get('newPassword') ?? "New Password"),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildUsernameField(LocalizedStrings strings) {
     return TextFormField(
       cursorColor: Colors.black,
@@ -308,13 +410,13 @@ class LoginFormState extends State<LoginForm> {
   Widget _buildForgotPasswordButton(LocalizedStrings strings) {
     return TextButton(
       onPressed: () {
-        // Forgot password logic
+        showEmailPasswordDialog(context);
       },
       child: Text(strings.get('forgotPassword') ?? 'Forgot Password?',
-          style: GoogleFonts.montserrat(
-              fontSize: 20,
-              fontWeight: FontWeight.w400,
-              color: Colors.blueAccent)),
+          style: GoogleFonts.syncopate(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white)),
     );
   }
 
@@ -336,6 +438,7 @@ class LoginFormState extends State<LoginForm> {
           ),
           SingleChildScrollView(
             child: Column(
+
               children: [
                 Image.asset('assets/new_icon.png',
                     width: 200, fit: BoxFit.cover),
@@ -344,17 +447,18 @@ class LoginFormState extends State<LoginForm> {
                   _buildGoogleSignInButton(strings!),
                   const SizedBox(height: 8),
                   _buildManualLogInButton(strings),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
+                  _buildForgotPasswordButton(strings),
                 ] else ...[
                   _buildUsernameField(strings!),
                   const SizedBox(height: 16),
                   _buildPasswordField(strings),
                   const SizedBox(height: 20),
                   _buildLoginAndRegisterButtons(context, strings),
+                 const SizedBox(height: 16),
+                  _buildToggleButton(strings),
                   const SizedBox(height: 16),
                   _buildForgotPasswordButton(strings),
-                  const SizedBox(height: 16),
-                  _buildToggleButton(strings),
                 ],
               ],
             ),
