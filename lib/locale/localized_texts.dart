@@ -12,6 +12,9 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'accountNotVerifiedTitle': 'Account not verified',
+      'accountNotVerifiedMsg': 'Your account has not been verified yet. Please verify it to continue using all features.',
+      'verifyNow': 'Verify now',
       'resetPasswordInfo': 'Your account password will be reset and the new one will be sent to your email address',
       'noAdsAvailableNow': 'No ads available now',
       'copiedToClipboard': 'Copied to clipboard',
@@ -288,6 +291,9 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'accountNotVerifiedTitle': 'Cuenta no verificada',
+      'accountNotVerifiedMsg': 'Tu cuenta aún no ha sido verificada. Verifícala para poder seguir usando todas las funciones.',
+      'verifyNow': 'Verificar ahora',
       'resetPasswordInfo': 'Se reseteará la contraseña de su cuenta y se enviará la nueva a su correo electrónico',
       'noAdsAvailableNow': 'No hay anuncios disponibles',
       'copiedToClipboard': 'Copiado al portapapeles',
@@ -541,7 +547,7 @@ class LocalizedStrings {
       'idNumberTitle': 'Número de ID escaneado',
       'verificationResultTitle': 'Resultado de la Verificación',
       'idNotFound': 'No se encontró un ID válido.',
-      'alignText': 'Alinea tu DNI aquí',
+      'alignText': 'Alinea tu DNI dentro del recuadro',
       'cameraError': 'Error al tomar la foto. Por favor, inténtalo de nuevo.',
       'takePhoto': 'Hacer foto',
       'accountVerifiedSuccess':
@@ -563,6 +569,9 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'accountNotVerifiedTitle': 'Compte non vérifié',
+      'accountNotVerifiedMsg': 'Votre compte n’a pas encore été vérifié. Veuillez le vérifier pour continuer à utiliser toutes les fonctionnalités.',
+      'verifyNow': 'Vérifier maintenant',
       'resetPasswordInfo': 'Le mot de passe de votre compte sera réinitialisé et le nouveau sera envoyé à votre adresse e-mail',
       'noAdsAvailableNow': 'Aucune publicité disponible',
       'copiedToClipboard': 'Copié dans le presse-papiers',
@@ -841,6 +850,9 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'accountNotVerifiedTitle': 'Account non verificato',
+      'accountNotVerifiedMsg': 'Il tuo account non è ancora stato verificato. Verificalo per continuare a utilizzare tutte le funzionalità.',
+      'verifyNow': 'Verifica ora',
       'resetPasswordInfo': 'La password del tuo account verrà reimpostata e quella nuova ti sarà inviata via e-mail',
       'noAdsAvailableNow': 'Nessun annuncio disponibile',
       'copiedToClipboard': 'Copiato negli appunti',
@@ -1117,6 +1129,9 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'accountNotVerifiedTitle': 'Konto nicht verifiziert',
+      'accountNotVerifiedMsg': 'Ihr Konto wurde noch nicht verifiziert. Bitte verifizieren Sie es, um alle Funktionen weiterhin nutzen zu können.',
+      'verifyNow': 'Jetzt verifizieren',
       'resetPasswordInfo': 'Das Passwort Ihres Kontos wird zurückgesetzt und das neue wird an Ihre E-Mail-Adresse gesendet',
       'noAdsAvailableNow': 'Derzeit sind keine Anzeigen',
       'copiedToClipboard': 'In die Zwischenablage kopiert',

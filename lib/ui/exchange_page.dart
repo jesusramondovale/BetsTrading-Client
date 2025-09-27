@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/store_page.dart';
+import 'package:betrader/ui/verify_account_page.dart';
 import 'package:betrader/ui/withdraw_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -27,16 +28,23 @@ class ExchangePageState extends State<ExchangePage> {
   List<Map<String, dynamic>> _exchangeOptions = [];
   bool _isUserPointsHighlighted = false;
   Timer? _refreshTimer;
+  bool _isVerified = false;
+  String _userCountry = '';
 
   Future<void> loadData() async {
     final userId = await _storage.read(key: 'sessionToken');
+    final country = await _storage.read(key: 'country') ?? '';
     final points = await _storage.read(key: 'points') ?? '0';
+    final idCard = await _storage.read(key: 'idCard') ?? "-";
+    final bool isVerified = !(idCard == "-");
     final pendingBalanceResponse = await Common().postRequestWrapper('Info', 'PendingBalance', {'id': userId});
     final exchangeOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': _currency, 'type': 'exchange'}); //TODO Currency
     final prefs = await SharedPreferences.getInstance();
 
     setState(() {
         _userPoints = points;
+        _isVerified = isVerified;
+        _userCountry = country;
         _pendingBalance = pendingBalanceResponse['body']['balance']?.toDouble() ?? 0.0;
         if (pendingBalanceResponse['statusCode'] == 201){ // PASSWORD NOT SET
           Navigator.pushReplacement(context,
@@ -50,6 +58,93 @@ class ExchangePageState extends State<ExchangePage> {
 
   });
   }
+
+  Future<bool?> showNotVerifiedDialog(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
+    final Color bgColor = Colors.grey.shade900;
+    final Color textColor = Colors.white;
+
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) Navigator.pop(dialogContext, false);
+          },
+          child: AlertDialog(
+
+            backgroundColor: bgColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Text(
+              strings?.get('accountNotVerifiedTitle') ?? "Account not verified",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 22,
+                fontWeight: FontWeight.w300,
+                color: textColor,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  strings?.get('accountNotVerifiedMsg') ??
+                      "Your account has not been verified yet. Please verify it to continue using all features.",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    color: textColor.withValues(alpha: .9),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 48,
+                    color: Colors.orangeAccent,
+                  ),
+                  Icon(
+                    Icons.verified_outlined,
+                    size: 48,
+                    color: Colors.orangeAccent,
+                  )
+                ],)
+              ],
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop(true);
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => VerifyAccountPage(countryCode: _userCountry)),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: textColor,
+                  textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(strings?.get('verifyNow') ?? "Verify now"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 
   @override
   void initState() {
@@ -180,6 +275,10 @@ class ExchangePageState extends State<ExchangePage> {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(20),
                         onTapDown: (TapDownDetails details) async {
+                          if (!_isVerified){
+                            showNotVerifiedDialog(context);
+                            return;
+                          }
                           if (canExchange) {
                             Common().vibrate();
 

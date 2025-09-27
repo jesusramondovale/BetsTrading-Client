@@ -28,7 +28,7 @@ import 'package:http/http.dart' as http;
 import 'package:vibration/vibration.dart';
 import 'package:intl/intl.dart' as intl;
 import '../ui/login_page.dart';
-
+import 'package:image_cropper/image_cropper.dart';
 
 class Common {
 
@@ -1110,21 +1110,38 @@ class Common {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
-    if (image != null) {
-      File imageFile = File(image.path);
-      img.Image originalImage = img.decodeImage(await imageFile.readAsBytes())!;
-      if (originalImage.width > 75 || originalImage.height > 75) {
-        img.Image resizedImage =
-            img.copyResize(originalImage, width: 75, height: 75);
-        List<int> resizedImageBytes = img.encodeJpg(resizedImage);
-        return base64Encode(resizedImageBytes);
-      } else {
-        List<int> imageBytes = await imageFile.readAsBytes();
-        return base64Encode(imageBytes);
-      }
-    } else {
-      throw Exception('No image selected.');
+    if (image == null) {
+      return '';
     }
+
+    
+    final CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: image.path,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1), // cuadrado
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Recortar imagen',
+          toolbarColor: const Color(0xFF000000),
+          toolbarWidgetColor: const Color(0xFFFFFFFF),
+          initAspectRatio: CropAspectRatioPreset.square,
+          lockAspectRatio: true,
+        ),
+        IOSUiSettings(
+          title: 'Recortar imagen',
+          aspectRatioLockEnabled: true,
+        ),
+      ],
+    );
+
+    if (croppedFile == null) {
+      return ''; // usuario canceló
+    }
+    
+    final File file = File(croppedFile.path);
+    img.Image original = img.decodeImage(await file.readAsBytes())!;
+    img.Image resized = img.copyResize(original, width: 75, height: 75);
+
+    return base64Encode(img.encodeJpg(resized, quality: 90));
   }
 
   List<FlSpot> createRandomSpots(int count) {
@@ -1267,6 +1284,11 @@ class Common {
   Future<void> savePreference(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
+  }
+
+  String capitalizeFirst(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
   }
 
   String interpolate(String template, Map<String, String> values) {

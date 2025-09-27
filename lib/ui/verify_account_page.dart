@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:betrader/services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import 'camera_page.dart';
@@ -102,111 +105,142 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(strings?.get('verify') ?? 'Verify Account'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(strings?.get('verify') ?? 'Verify Account', style: TextStyle(fontSize: 25)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              strings?.get('instructionsTitle') ??
-                  'To verify your account, follow these steps:',
-              style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+      body: Stack(
+        children: [
+          // Fondo a pantalla completa
+          Positioned.fill(
+            child: Image.asset(
+              'assets/android12splash.png',
+              fit: BoxFit.cover,
             ),
-            SizedBox(height: 12),
-            Text(
-              strings?.get('instructions') ??
-                  '1. Make sure you have your ID document handy.\n\n'
-                      '2. Click the button below to open the camera.\n\n'
-                      '3. Take a clear picture of your ID document.\n\n'
-                      '4. Wait a few seconds while we process the image.',
-              style: TextStyle(fontSize: 18),
+          ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(color: Colors.black.withValues(alpha: .2)),
             ),
-            SizedBox(height: 20),
-            Center(
-              child: Row(
+          ),
+
+          // Contenido
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.videocam, size: 120),
-                    onPressed: _navigateToCameraPage,
+                  Text(
+                    strings?.get('instructionsTitle') ??
+                        'To verify your account, follow these steps:',
+                    style: const TextStyle(
+                        fontSize: 21, fontWeight: FontWeight.bold),
                   ),
-                  Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.fact_check_outlined, size: 120),
-                    onPressed: _navigateToCameraPage,
+                  const SizedBox(height: 12),
+                  Text(
+                    strings?.get('instructions') ??
+                        '1. Make sure you have your ID document handy.\n\n'
+                            '2. Click the button below to open the camera.\n\n'
+                            '3. Take a clear picture of your ID document.\n\n'
+                            '4. Wait a few seconds while we process the image.',
+                    style: const TextStyle(fontSize: 18),
                   ),
-                  Spacer(),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: Row(
+                      children: [
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(FontAwesomeIcons.cameraRetro, size: 80),
+                          onPressed: _navigateToCameraPage,
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(FontAwesomeIcons.idCard, size: 80),
+                          onPressed: _navigateToCameraPage,
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 50),
+                  Center(
+                    child: ElevatedButton.icon(
+                      style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
+                          fixedSize: WidgetStatePropertyAll<Size>(Size.fromHeight(50))
+                      ),
+                      onPressed: _navigateToCameraPage,
+                      label: Text(
+                        maxLines: 1,
+                        strings?.get('scanButton') ?? 'Scan Document',
+                        style: GoogleFonts.syncopate(fontSize: 16, fontWeight: FontWeight.w200),
+                      ),
+                    ),
+                  ),
+                  if (_idNumber.isNotEmpty) ...[
+                    const SizedBox(height: 30),
+                    Text(
+                      strings?.get('idNumberTitle') ?? 'Scanned ID Number:',
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      _idNumber,
+                      style: const TextStyle(
+                          fontSize: 18, color: Colors.blueAccent),
+                    ),
+                  ],
                 ],
               ),
             ),
-            SizedBox(height: 20),
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: _navigateToCameraPage,
-                icon: Icon(FontAwesomeIcons.camera, size: 40),
-                label: Text(strings?.get('scanButton') ?? 'Scan Document',
-                    style: TextStyle(fontSize: 20)),
-              ),
-            ),
-            if (_idNumber.isNotEmpty) ...[
-              SizedBox(height: 30),
-              Text(
-                strings?.get('idNumberTitle') ?? 'Scanned ID Number:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              Text(
-                _idNumber,
-                style: TextStyle(fontSize: 18, color: Colors.blueAccent),
-              ),
-            ],
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButton: _idNumber.isNotEmpty
-          ? Container(
-              width: 180,
-              height: 56,
-              child: FloatingActionButton(
-                onPressed: () async {
-
-                  int? response = await _validateIDButtonPressed(_idNumber);
-                  // OK
-                  if (response == 0) {
-                    verifyExitPopDialog(
-                        strings?.get('success') ?? "Success",
-                        strings?.get('accountVerifiedSuccess') ??
-                            "Account succesfully verified",
-                        context);
-                  }
-                  // ERROR
-                  else if (response == 1) {
-                    Common().popDialog(
-                        "Ooops ...",
-                        strings?.get('accountVerificationError') ??
-                            "Error verifying account",
-                        context);
-                  }
-                  //Navigator.pop(context);
-                },
-                child: Row(
-                  children: [
-                    SizedBox(width: 4),
-                    Icon(Icons.check),
-                    Text(
-                      " ${strings?.get('verify') ?? "Verify account"}",
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-                tooltip: 'ID Verified',
-              ))
+          ? SizedBox(
+        width: 180,
+        height: 56,
+        child: FloatingActionButton(
+          onPressed: () async {
+            int? response = await _validateIDButtonPressed(_idNumber);
+            if (response == 0) {
+              verifyExitPopDialog(
+                  strings?.get('success') ?? "Success",
+                  strings?.get('accountVerifiedSuccess') ??
+                      "Account succesfully verified",
+                  context);
+            } else if (response == 1) {
+              Common().popDialog(
+                  "Ooops ...",
+                  strings?.get('accountVerificationError') ??
+                      "Error verifying account",
+                  context);
+            }
+          },
+          tooltip: 'ID Verified',
+          child: Row(
+            children: [
+              const SizedBox(width: 4),
+              const Icon(Icons.check),
+              Text(
+                " ${strings?.get('verify') ?? "Verify account"}",
+                style: const TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      )
           : null,
     );
   }
+
 }
 
 
