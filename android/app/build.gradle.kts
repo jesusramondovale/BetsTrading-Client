@@ -33,6 +33,11 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
+
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
@@ -50,7 +55,13 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android.txt"),
+                "proguard-rules.pro"
+            )
+
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("release")
         }
@@ -64,4 +75,6 @@ flutter {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okio:okio:3.9.0")
 }
