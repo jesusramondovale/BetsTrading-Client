@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import 'login_page.dart';
@@ -79,10 +79,14 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
                       "Account successfully verified.\nPlease log in again",
                 );
               } else if (url.toString().toLowerCase().contains("error")) {
-                Navigator.pop(context, false);
-
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => VerifyAccountPage(userId: widget.userId)),
+                      (Route<dynamic> route) => false,
+                );
                 Common().showFloatingSnack(
                   context,
+                  backgroundColor: Colors.red,
                   strings.get("accountVerificationError") ??
                       "Error verifying account",
                 );
@@ -177,11 +181,16 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
                       onPressed: _loading
                           ? null
                           : () async {
+                        final status = await Permission.camera.request();
+
                         if (_sessionUrl == null) {
                           await _createDiditSession();
                         }
                         if (_sessionUrl != null) {
-                          _openWebView();
+                          if (status.isGranted) {
+                            _openWebView();
+                          }
+
                         }
                       },
                       label: Text(

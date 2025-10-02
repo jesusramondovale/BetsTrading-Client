@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:ui';
-
 import 'package:betrader/helpers/slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,7 +31,6 @@ class _FirstTimePageState extends State<FirstTimePage> {
   Future<void> _init() async {
     final bytes = await rootBundle.load('assets/new_icon.png');
     final base64 = base64Encode(bytes.buffer.asUint8List());
-
     final userId = await _storage.read(key: 'sessionToken');
 
     setState(() {
