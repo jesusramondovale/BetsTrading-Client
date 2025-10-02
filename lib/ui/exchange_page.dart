@@ -29,22 +29,20 @@ class ExchangePageState extends State<ExchangePage> {
   bool _isUserPointsHighlighted = false;
   Timer? _refreshTimer;
   bool _isVerified = false;
-  String _userCountry = '';
+  String _userId = '';
 
   Future<void> loadData() async {
-    final userId = await _storage.read(key: 'sessionToken');
-    final country = await _storage.read(key: 'country') ?? '';
+    final userId = await _storage.read(key: 'sessionToken') ?? '';
     final points = await _storage.read(key: 'points') ?? '0';
-    final idCard = await _storage.read(key: 'idCard') ?? "-";
-    final bool isVerified = !(idCard == "-");
+    final isVerified = await _storage.read(key: 'isverified');
     final pendingBalanceResponse = await Common().postRequestWrapper('Info', 'PendingBalance', {'id': userId});
     final exchangeOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': _currency, 'type': 'exchange'}); //TODO Currency
     final prefs = await SharedPreferences.getInstance();
 
     setState(() {
+        _userId = userId;
         _userPoints = points;
-        _isVerified = isVerified;
-        _userCountry = country;
+        _isVerified = isVerified == "true";
         _pendingBalance = pendingBalanceResponse['body']['balance']?.toDouble() ?? 0.0;
         if (pendingBalanceResponse['statusCode'] == 201){ // PASSWORD NOT SET
           Navigator.pushReplacement(context,
@@ -125,7 +123,7 @@ class ExchangePageState extends State<ExchangePage> {
 
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => VerifyAccountPage(countryCode: _userCountry)),
+                    MaterialPageRoute(builder: (_) => VerifyAccountPage(userId: _userId,)),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -275,13 +273,18 @@ class ExchangePageState extends State<ExchangePage> {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(20),
                         onTapDown: (TapDownDetails details) async {
+                          if (!canExchange){
+                            Common().vibrate(300, 200);
+                            setState(() => _isUserPointsHighlighted = true);
+                            return;
+                          }
+
                           if (!_isVerified){
                             showNotVerifiedDialog(context);
                             return;
                           }
                           if (canExchange) {
                             Common().vibrate();
-
 
                             final result = await Navigator.push<bool>(
                               context,

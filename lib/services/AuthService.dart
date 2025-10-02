@@ -53,7 +53,6 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> register(
-      String idCard,
       String fcm,
       String fullName,
       String password,
@@ -66,7 +65,6 @@ class AuthService {
       String username,
       String? profilePic) async {
     final Map<String, dynamic> data = {
-      'idCard': idCard,
       'fcm': fcm,
       'fullName': fullName,
       'password': password,
@@ -230,16 +228,6 @@ class AuthService {
     return 1;
   }
 
-
-  Future<int?> verifyAccount(String idCard) async {
-    String? id = await _storage.read(key: 'sessionToken');
-    final response = await Common().postRequestWrapper('Auth','VerifyID', {'id': id , 'idCard': idCard });
-    if (response['statusCode'] == 200) {
-      return 0; // OK
-    } else {
-      return 1; // ERROR
-    }
-  }
 
   Future<Map<String, dynamic>> refreshFCM(String userId, String token) async {
     final response = await Common().postRequestWrapper('Auth','RefreshFCM', {'user_id':userId ,'token': token});

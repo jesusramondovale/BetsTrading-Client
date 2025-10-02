@@ -261,10 +261,7 @@ class LocalizedStrings {
       'verified': 'Account Verified',
       'ranking': 'Ranking',
       'instructionsTitle': 'To verify your account, follow these steps:',
-      'instructions': '1. Make sure you have your ID document handy.\n'
-          '2. Click the button below to open the camera.\n'
-          '3. Take a clear picture of your ID document.\n'
-          '4. Wait a few seconds while we process the image.',
+      'instructions': '1. Make sure you have your ID document ready.\n\n2. Click the button below to start the verification process. Then follow the instructions:\n· Take a clear photo (front and back) of your ID document.\n· Take a selfie and finish the process\n· Wait a few seconds while we process the image.\n\nIMPORTANT: if after one minute the system has not confirmed the verification, log out and log back in',
       'scanButton': 'Scan Document',
       'idNumberTitle': 'Scanned ID Number:',
       'verificationResultTitle': 'Verification Result',
@@ -538,11 +535,7 @@ class LocalizedStrings {
       'verified': 'Cuenta verificada',
       'ranking': 'Rankings',
       'instructionsTitle': 'Para verificar tu cuenta, sigue estos pasos:',
-      'instructions':
-          '1. Asegúrate de tener tu documento de identidad a mano.\n\n'
-              '2. Haz clic en el botón de abajo para abrir la cámara.\n\n'
-              '3. Toma una foto clara (frontal) de tu documento de identidad.\n\n'
-              '4. Espera unos segundos mientras procesamos la imagen.',
+      'instructions': '1. Asegúrate de tener tu documento de identidad a mano.\n2. Haz clic en el botón de abajo para comenzar el proceso de verificación. A continuación deberás seguir las indicaciones:\n· Toma una foto clara (frontal y reverso) de tu documento de identidad.\n· Tómate un selfie y finaliza el proceso\n· Espera unos segundos mientras procesamos la imagen.\n\nIMPORTANTE: si al cabo de un minuto el sistema no informa de la verificación, cierre sesión y vuelva a entrar',
       'scanButton': 'Escanear Documento',
       'idNumberTitle': 'Número de ID escaneado',
       'verificationResultTitle': 'Resultado de la Verificación',
@@ -819,11 +812,7 @@ class LocalizedStrings {
       'verified': 'Compte vérifié',
       'ranking': 'Classement',
       'instructionsTitle': 'Pour vérifier votre compte, suivez ces étapes :',
-      'instructions':
-          '1. Assurez-vous d\'avoir votre document d\'identité à portée de main.\n'
-              '2. Cliquez sur le bouton ci-dessous pour ouvrir la caméra.\n'
-              '3. Prenez une photo claire de votre document d\'identité.\n'
-              '4. Attendez quelques secondes pendant que nous traitons l\'image.',
+      'instructions': '1. Assurez-vous d’avoir votre pièce d’identité à portée de main.\n2. Cliquez sur le bouton ci-dessous pour commencer le processus de vérification. Suivez ensuite les indications :\n· Prenez une photo claire (recto et verso) de votre pièce d’identité.\n· Faites un selfie et terminez le processus\n· Attendez quelques secondes pendant que nous traitons l’image.\n\nIMPORTANT : si au bout d’une minute le système n’a pas confirmé la vérification, déconnectez-vous puis reconnectez-vous',
       'scanButton': 'Scanner le Document',
       'idNumberTitle': 'Numéro d\'ID scanné :',
       'verificationResultTitle': 'Résultat de la Vérification',
@@ -1098,11 +1087,7 @@ class LocalizedStrings {
       'ranking': 'Classifica',
       'instructionsTitle':
           'Per verificare il tuo account, segui questi passaggi:',
-      'instructions':
-          '1. Assicurati di avere il tuo documento d\'identità a portata di mano.\n'
-              '2. Clicca sul pulsante qui sotto per aprire la fotocamera.\n'
-              '3. Scatta una foto chiara del tuo documento d\'identità.\n'
-              '4. Attendi qualche secondo mentre elaboriamo l\'immagine.',
+      'instructions': '1. Assicurati di avere a portata di mano il tuo documento d’identità.\n2. Clicca sul pulsante qui sotto per avviare il processo di verifica. Quindi segui le istruzioni:\n· Scatta una foto chiara (fronte e retro) del tuo documento d’identità.\n· Fatti un selfie e completa il processo\n· Attendi qualche secondo mentre elaboriamo l’immagine.\n\nIMPORTANTE: se dopo un minuto il sistema non conferma la verifica, esci e rientra',
       'scanButton': 'Scansiona Documento',
       'idNumberTitle': 'Numero di ID scansionato:',
       'verificationResultTitle': 'Risultato della Verifica',
@@ -1371,11 +1356,7 @@ class LocalizedStrings {
       'ranking': 'Rangliste',
       'instructionsTitle':
           'Um Ihr Konto zu verifizieren, folgen Sie diesen Schritten:',
-      'instructions':
-          '1. Stellen Sie sicher, dass Sie Ihr Ausweisdokument zur Hand haben.\n'
-              '2. Klicken Sie auf die Schaltfläche unten, um die Kamera zu öffnen.\n'
-              '3. Machen Sie ein klares Foto von Ihrem Ausweisdokument.\n'
-              '4. Warten Sie ein paar Sekunden, während wir das Bild verarbeiten.',
+      'instructions': '1. Stelle sicher, dass du deinen Ausweis griffbereit hast.\n2. Klicke auf die Schaltfläche unten, um den Verifizierungsprozess zu starten. Folge anschließend den Anweisungen:\n· Mache ein klares Foto (Vorder- und Rückseite) deines Ausweises.\n· Mach ein Selfie und beende den Prozess\n· Warte ein paar Sekunden, während wir das Bild verarbeiten.\n\nWICHTIG: Falls das System nach einer Minute keine Bestätigung anzeigt, melde dich ab und wieder an',
       'scanButton': 'Dokument scannen',
       'idNumberTitle': 'Gescanntes ID-Nummer:',
       'verificationResultTitle': 'Verifizierungsergebnis',

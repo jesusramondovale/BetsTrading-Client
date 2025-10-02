@@ -8,7 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 class User {
   final String id;
-  String? idcard;
   final String fullname;
   final String password;
   final String country;
@@ -21,6 +20,7 @@ class User {
   final String username;
   DateTime? tokenExpiration;
   bool isActive;
+  bool isVerified;
   int failedAttempts;
   DateTime? lastLoginAttempt;
   DateTime? lastPasswordChange;
@@ -29,7 +29,6 @@ class User {
 
   User({
     required this.id,
-    this.idcard,
     required this.fullname,
     required this.password,
     required this.country,
@@ -42,6 +41,7 @@ class User {
     required this.username,
     this.points = 0.0,
     this.tokenExpiration,
+    this.isVerified = false,
     this.isActive = true,
     this.failedAttempts = 0,
     this.lastLoginAttempt,
@@ -53,7 +53,6 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
-      idcard: json['idcard'],
       fullname: json['fullname'],
       password: json['password'],
       country: json['country'],
@@ -68,6 +67,7 @@ class User {
       tokenExpiration: json['token_expiration'] != null
           ? DateTime.parse(json['token_expiration'])
           : null,
+      isVerified: json['isverified'] ?? false,
       isActive: json['is_active'] ?? true,
       failedAttempts: json['failed_attempts'] ?? 0,
       lastLoginAttempt: json['last_login_attempt'] != null

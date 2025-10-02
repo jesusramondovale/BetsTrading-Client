@@ -1,63 +1,96 @@
 import 'dart:ui';
-
-import 'package:betrader/services/AuthService.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
-import 'camera_page.dart';
 import 'login_page.dart';
 
 class VerifyAccountPage extends StatefulWidget {
-  final String countryCode;
+  final String userId;
 
-  VerifyAccountPage({required this.countryCode});
+  const VerifyAccountPage({super.key, required this.userId});
 
   @override
   _VerifyAccountPageState createState() => _VerifyAccountPageState();
 }
 
 class _VerifyAccountPageState extends State<VerifyAccountPage> {
-  String _idNumber = "";
+  String? _sessionUrl;
+  bool _loading = false;
 
-  void _navigateToCameraPage() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => CameraPage(countryCode: widget.countryCode)),
+  Future<void> _createDiditSession() async {
+    setState(() => _loading = true);
+
+    final response = await Common().postRequestWrapper(
+      "Didit",
+      "CreateSession",
+      {"id": widget.userId},
     );
 
-    if (result != null) {
+    if (response['statusCode'] == 200) {
       setState(() {
-        _idNumber = result;
+        _sessionUrl = response['body']["url"];
       });
-      _showIdResultDialog();
+    } else {
+      Common().showFloatingSnack(
+        context,
+        "Error creando sesión Didit",
+        backgroundColor: Colors.red,
+      );
     }
+
+    setState(() => _loading = false);
   }
 
-  void _showIdResultDialog() {
+  void _openWebView() {
     final strings = LocalizedStrings.of(context);
-    showDialog(
-      barrierColor: Colors.black.withAlpha(220),
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title:
-              Text(strings?.get('verificationResultTitle') ?? 'Verification Result'),
-          content: Text(_idNumber.isNotEmpty
-              ? '${strings?.get('idNumberTitle') ?? 'Scanned ID Number'}: $_idNumber'
-              : strings?.get('idNotFound') ?? 'No valid ID found.'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+    if (_sessionUrl == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(title: Text(strings!.get('verify') ?? "Verify Account")),
+          body: InAppWebView(
+            initialUrlRequest: URLRequest(url: WebUri(_sessionUrl!)),
+            initialSettings: InAppWebViewSettings(
+              javaScriptEnabled: true,
+              mediaPlaybackRequiresUserGesture: false,
             ),
-          ],
-        );
-      },
+            onPermissionRequest: (controller, request) async {
+              return PermissionResponse(
+                resources: request.resources,
+                action: PermissionResponseAction.GRANT,
+              );
+            },
+            onLoadStop: (controller, url) async {
+              if (url.toString().toLowerCase().contains("approved")) {
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                      (Route<dynamic> route) => false,
+                );
+
+                Common().showFloatingSnack(
+                  context,
+                  strings.get("accountVerifiedSuccess") ??
+                      "Account successfully verified.\nPlease log in again",
+                );
+              } else if (url.toString().toLowerCase().contains("error")) {
+                Navigator.pop(context, false);
+
+                Common().showFloatingSnack(
+                  context,
+                  strings.get("accountVerificationError") ??
+                      "Error verifying account",
+                );
+              }
+            },
+          ),
+        ),
+      ),
     );
   }
 
@@ -67,25 +100,17 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.black ,
-          title: Text(
-              aTitle,
-              style: const TextStyle(color: Colors.white)),
-          content: Text(
-            aBody,
-            style: const TextStyle(fontSize: 16.0, color: Colors.white),
-          ),
+          backgroundColor: Colors.black,
+          title: Text(aTitle, style: const TextStyle(color: Colors.white)),
+          content: Text(aBody,
+              style: const TextStyle(fontSize: 16.0, color: Colors.white)),
           actions: [
             ElevatedButton(
               onPressed: () {
-                setState(() {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                        builder: (context) => const LoginPage()),
-                        (Route<dynamic> route) => false,
-                  );
-                });
-
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                      (Route<dynamic> route) => false,
+                );
               },
               child: const Text("Ok"),
             ),
@@ -93,12 +118,6 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
         );
       },
     );
-  }
-
-  Future<int?> _validateIDButtonPressed(String anID) {
-    //TO-DO: Send ID to controller
-    //Common().unimplementedAction(context);
-    return AuthService().verifyAccount(anID);
   }
 
   @override
@@ -110,11 +129,11 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(strings?.get('verify') ?? 'Verify Account', style: TextStyle(fontSize: 25)),
+        title: Text(strings?.get('verify') ?? 'Verify Account',
+            style: const TextStyle(fontSize: 25)),
       ),
       body: Stack(
         children: [
-          // Fondo a pantalla completa
           Positioned.fill(
             child: Image.asset(
               'assets/android12splash.png',
@@ -124,11 +143,9 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(color: Colors.black.withValues(alpha: .2)),
+              child: Container(color: Colors.black.withAlpha(50)),
             ),
           ),
-
-          // Contenido
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -143,104 +160,46 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    strings?.get('instructions') ??
-                        '1. Make sure you have your ID document handy.\n\n'
-                            '2. Click the button below to open the camera.\n\n'
-                            '3. Take a clear picture of your ID document.\n\n'
-                            '4. Wait a few seconds while we process the image.',
-                    style: const TextStyle(fontSize: 18),
+                    strings?.get('instructions') ?? '1. Make sure you have your ID document ready.\n\n2. Click the button below to start the verification process. Then follow the instructions:\n· Take a clear photo (front and back) of your ID document.\n· Take a selfie and finish the process\n· Wait a few seconds while we process the image.\n\nIMPORTANT: if after one minute the system has not confirmed the verification, log out and log back in',
+                    style: GoogleFonts.montserrat(fontSize: 17),
+
                   ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: Row(
-                      children: [
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(FontAwesomeIcons.cameraRetro, size: 80),
-                          onPressed: _navigateToCameraPage,
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(FontAwesomeIcons.idCard, size: 80),
-                          onPressed: _navigateToCameraPage,
-                        ),
-                        const Spacer(),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 50),
+                  const Spacer(),
                   Center(
                     child: ElevatedButton.icon(
                       style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
-                          fixedSize: WidgetStatePropertyAll<Size>(Size.fromHeight(50))
+                        backgroundColor:
+                        WidgetStateProperty.all<Color>(Colors.transparent),
+                        fixedSize: const WidgetStatePropertyAll<Size>(
+                          Size.fromHeight(50),
+                        ),
                       ),
-                      onPressed: _navigateToCameraPage,
+                      onPressed: _loading
+                          ? null
+                          : () async {
+                        if (_sessionUrl == null) {
+                          await _createDiditSession();
+                        }
+                        if (_sessionUrl != null) {
+                          _openWebView();
+                        }
+                      },
                       label: Text(
-                        maxLines: 1,
-                        strings?.get('scanButton') ?? 'Scan Document',
-                        style: GoogleFonts.syncopate(fontSize: 16, fontWeight: FontWeight.w200),
+                        strings?.get('verify') ?? 'Verify',
+                        style: GoogleFonts.syncopate(
+                            fontSize: 16, fontWeight: FontWeight.w200),
                       ),
                     ),
                   ),
-                  if (_idNumber.isNotEmpty) ...[
-                    const SizedBox(height: 30),
-                    Text(
-                      strings?.get('idNumberTitle') ?? 'Scanned ID Number:',
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _idNumber,
-                      style: const TextStyle(
-                          fontSize: 18, color: Colors.blueAccent),
-                    ),
-                  ],
+                  const SizedBox(height: 15),
+                  if (_loading)
+                    const Center(child: CircularProgressIndicator()),
                 ],
               ),
             ),
           ),
         ],
       ),
-      floatingActionButton: _idNumber.isNotEmpty
-          ? SizedBox(
-        width: 180,
-        height: 56,
-        child: FloatingActionButton(
-          onPressed: () async {
-            int? response = await _validateIDButtonPressed(_idNumber);
-            if (response == 0) {
-              verifyExitPopDialog(
-                  strings?.get('success') ?? "Success",
-                  strings?.get('accountVerifiedSuccess') ??
-                      "Account succesfully verified",
-                  context);
-            } else if (response == 1) {
-              Common().popDialog(
-                  "Ooops ...",
-                  strings?.get('accountVerificationError') ??
-                      "Error verifying account",
-                  context);
-            }
-          },
-          tooltip: 'ID Verified',
-          child: Row(
-            children: [
-              const SizedBox(width: 4),
-              const Icon(Icons.check),
-              Text(
-                " ${strings?.get('verify') ?? "Verify account"}",
-                style: const TextStyle(fontSize: 16),
-              ),
-            ],
-          ),
-        ),
-      )
-          : null,
     );
   }
-
 }
-
-
