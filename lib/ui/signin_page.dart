@@ -14,7 +14,6 @@ import 'package:country_flags/country_flags.dart';
 import 'package:betrader/services/AuthService.dart';
 
 import '../helpers/common.dart';
-import 'camera_page.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -30,7 +29,6 @@ class _SignInState extends State<SignIn> {
   final _cvvCodeController = TextEditingController();
   final _formKeys = List.generate(3, (_) => GlobalKey<FormBuilderState>());
 
-  bool _idCardSet = false;
   String _fullName = '';
   String _password = '';
   String _address = '';
@@ -48,7 +46,6 @@ class _SignInState extends State<SignIn> {
       if (_currentStep == 2) {
         String _countryCode = Common().getCountryCode(_country);
         final result = await AuthService().register(
-          "-",
           FirebaseService().firebaseToken!,
           _fullName,
           _password,
@@ -59,7 +56,7 @@ class _SignInState extends State<SignIn> {
           _birthday,
           _cardNumberController.text,
           _username,
-          _profilePic, // guardamos la foto de perfil en base64
+          _profilePic, // foto de perfil en base64
         );
 
         if (result['success']) {
@@ -130,23 +127,6 @@ class _SignInState extends State<SignIn> {
     }
   }
 
-  void _navigateToCameraPage() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            CameraPage(countryCode: Common().getCountryCode(_country)),
-      ),
-    );
-
-    if (result != null) {
-      setState(() {
-        _idCardSet = true;
-        _formKeys[2].currentState?.fields['idCard']?.didChange(result);
-      });
-    }
-  }
-
   List<Step> _buildSteps(context) {
     final strings = LocalizedStrings.of(context);
     return [
@@ -213,7 +193,6 @@ class _SignInState extends State<SignIn> {
       ),
     );
   }
-
 
   Widget _buildAddressInfoStep(context) {
     final strings = LocalizedStrings.of(context);
@@ -440,9 +419,6 @@ class _SignInState extends State<SignIn> {
     final strings = LocalizedStrings.of(context);
     return FormBuilderTextField(
       readOnly: readonly,
-      initialValue: (name == 'idCard'
-          ? strings?.get('takeIdPhoto') ?? "Take a photo of your document"
-          : null),
       name: name,
       decoration: InputDecoration(
         labelText: label,
@@ -455,7 +431,7 @@ class _SignInState extends State<SignIn> {
             final picked = await Common().pickImageFromGallery();
             if (picked.isNotEmpty) {
               setState(() {
-                _profilePic = picked; // ya es base64 o string de tu método
+                _profilePic = picked;
               });
             }
           },
@@ -470,14 +446,7 @@ class _SignInState extends State<SignIn> {
             ),
           ),
         )
-            : (name == 'idCard'
-            ? IconButton(
-          icon: const Icon(FontAwesomeIcons.camera),
-          onPressed: () async {
-            _navigateToCameraPage();
-          },
-        )
-            : null),
+            : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
@@ -487,20 +456,13 @@ class _SignInState extends State<SignIn> {
       obscureText: obscureText,
       onTap: onTap,
       validator: (val) {
-        if (name == 'idCard') {
-          if ((val == null || val.trim().isEmpty) || !_idCardSet) {
-            return strings?.get('thisFieldIsRequired') ?? 'This field is required';
-          }
-        } else {
-          if (val == null || val.trim().isEmpty) {
-            return strings?.get('thisFieldIsRequired') ?? 'This field is required';
-          }
+        if (val == null || val.trim().isEmpty) {
+          return strings?.get('thisFieldIsRequired') ?? 'This field is required';
         }
         return null;
       },
     );
   }
-
 
   Widget _buildPasswordField(
       context, String label, String name, IconData icon, bool readonly,
@@ -525,8 +487,7 @@ class _SignInState extends State<SignIn> {
       onTap: onTap,
       validator: (val) {
         if (val == null || val.isEmpty) {
-          return strings?.get('thisFieldIsRequired') ??
-              'This field is required';
+          return strings?.get('thisFieldIsRequired') ?? 'This field is required';
         }
         if (name == 'confirmPassword') {
           _password =
@@ -641,4 +602,3 @@ class _SignInState extends State<SignIn> {
     );
   }
 }
-

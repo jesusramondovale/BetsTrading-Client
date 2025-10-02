@@ -25,12 +25,14 @@ class UserInfoPage extends StatefulWidget {
 class _UserInfoPageState extends State<UserInfoPage> {
   bool userVerified = false;
   late String countryCode = '';
+  late String _userId = '';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Uint8List? _profilePicBytes;
   bool isDark = true;
 
   Future<void> _loadProfilePic() async {
     String? profilePicString = await _storage.read(key: 'profilepic');
+    String userId = await _storage.read(key: 'sessionToken') ?? '';
     if (profilePicString != null && profilePicString.isNotEmpty) {
       Uint8List imageBytes;
       if (profilePicString.startsWith('http')) {
@@ -45,6 +47,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
         imageBytes = base64Decode(profilePicString);
       }
       setState(() {
+        _userId = userId;
         _profilePicBytes = imageBytes;
       });
     }
@@ -57,7 +60,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
     List<String> keys = [
       'fullname',
       'username',
-      'idCard',
+      'isverified',
       'email',
       'birthday',
       'country',
@@ -101,11 +104,9 @@ class _UserInfoPageState extends State<UserInfoPage> {
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
-          userVerified = snapshot.data?['idCard'] == '-' ? false : true;
+          userVerified = snapshot.data?['isverified'] == 'true' ? true : false;
           List<Widget> listItems = [];
-          listItems.addAll(snapshot.data!.entries
-              .where((entry) => entry.key != 'idCard')
-              .map((entry) {
+          listItems.addAll(snapshot.data!.entries.where((entry) => entry.key != 'isverified').map((entry) {
             String title = '';
             switch (entry.key) {
               case "lastsession":
@@ -224,7 +225,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          VerifyAccountPage(countryCode: countryCode),
+                          VerifyAccountPage(userId: _userId,),
                     ),
                   );
                 },

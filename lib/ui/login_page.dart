@@ -32,7 +32,6 @@ class LoginPage extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          // Contenedor centrado
           Center(
             child: SingleChildScrollView(
               child: Container(
@@ -77,7 +76,7 @@ class LoginFormState extends State<LoginForm> {
     try {
       final result = await AuthService()
           .logIn(_usernameController.text.trim(), pass.toString());
-      Navigator.of(context).pop(); // Close the progress dialog
+      Navigator.of(context).pop();
 
       if (result['success']) {
         String? id = await _storage.read(key: 'sessionToken');
@@ -216,7 +215,7 @@ class LoginFormState extends State<LoginForm> {
             fontSize: 14,
           ),
           floatingLabelStyle: GoogleFonts.syncopate(
-            color: Colors.white, // cuando SÍ está enfocado
+            color: Colors.white,
             fontWeight: FontWeight.w500,
           ),
 
@@ -247,7 +246,7 @@ class LoginFormState extends State<LoginForm> {
             fontSize: 14,
           ),
           floatingLabelStyle: GoogleFonts.syncopate(
-            color: Colors.white, // cuando SÍ está enfocado
+            color: Colors.white,
               fontWeight: FontWeight.w500,
           ),
       ),
