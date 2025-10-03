@@ -152,15 +152,26 @@ class _UserInfoPageState extends State<UserInfoPage> {
                     Text(strings!.get('pendingVerification') ?? '(Pending verification)',
                       style: TextStyle(color: Colors.redAccent),)
                   ]
+                  else ... [
+                    SizedBox(width: 5, height: 1),
+                    Icon(Icons.verified, size: 18)
+                  ]
                 ],
               );
             }
-            else if (entry.key == 'fullname' && userVerified) {
+            else if (entry.key == 'fullname') {
               subtitle = Row (
                 children: [
                   Text(entry.value),
-                  SizedBox(width: 5, height: 1),
-                  Icon(Icons.verified, size: 20)
+                  if (userVerified)... [
+                    SizedBox(width: 5, height: 1),
+                    Icon(Icons.verified, size: 20)
+                  ]
+                  else ... [
+                    SizedBox(width: 10, height: 1),
+                    Text(strings!.get('pendingVerification') ?? '(Pending verification)',
+                      style: TextStyle(color: Colors.redAccent),)
+                  ]
                 ],
               );
             }
@@ -176,6 +187,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
                     SizedBox(width: 8, height: 1),
                     Text(strings!.get('pendingVerification') ?? '(Pending verification)',
                       style: TextStyle(color: Colors.redAccent),)
+                  ]
+                  else ... [
+                    SizedBox(width: 5, height: 1),
+                    Icon(Icons.verified, size: 16)
                   ]
                 ],
               );
