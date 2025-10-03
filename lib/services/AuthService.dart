@@ -148,10 +148,7 @@ class AuthService {
   Future<int?> googleSignIn() async {
     try {
       const List<String> scopes = <String>[
-        'https://www.googleapis.com/auth/contacts.readonly',
         'https://www.googleapis.com/auth/user.birthday.read',
-        'https://www.googleapis.com/auth/user.addresses.read',
-        'https://www.googleapis.com/auth/userinfo.profile'
       ];
 
       final googleSignIn = GoogleSignIn(
@@ -173,7 +170,7 @@ class AuthService {
         }
 
         final response = await http.get(
-          Uri.parse('https://people.googleapis.com/v1/people/me?personFields=birthdays,addresses,locations'),
+          Uri.parse('https://people.googleapis.com/v1/people/me?personFields=birthdays'),
           headers: {'Authorization': 'Bearer $accessToken'},
         );
 

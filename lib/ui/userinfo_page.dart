@@ -147,6 +147,11 @@ class _UserInfoPageState extends State<UserInfoPage> {
                     height: 18,
                     width: 25,
                   ),
+                  if (!userVerified)... [
+                    SizedBox(width: 10, height: 1),
+                    Text(strings!.get('pendingVerification') ?? '(Pending verification)',
+                      style: TextStyle(color: Colors.redAccent),)
+                  ]
                 ],
               );
             }
@@ -156,6 +161,22 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   Text(entry.value),
                   SizedBox(width: 5, height: 1),
                   Icon(Icons.verified, size: 20)
+                ],
+              );
+            }
+            else if (entry.key == 'birthday') {
+              Locale locale = Localizations.localeOf(context);
+              String localeCode = "${locale.languageCode}_${locale.countryCode}";
+              final parsed = DateFormat("d MMMM yyyy", "en_US").parse(entry.value);
+              String localizedDate = DateFormat("d MMMM yyyy", localeCode).format(parsed);
+              subtitle = Row (
+                children: [
+                  Text(localizedDate),
+                  if (!userVerified)... [
+                    SizedBox(width: 8, height: 1),
+                    Text(strings!.get('pendingVerification') ?? '(Pending verification)',
+                      style: TextStyle(color: Colors.redAccent),)
+                  ]
                 ],
               );
             }
