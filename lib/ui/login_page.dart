@@ -185,7 +185,7 @@ class LoginFormState extends State<LoginForm> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: textColor,
-                    textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                    textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600).copyWith(inherit: false),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -350,7 +350,8 @@ class LoginFormState extends State<LoginForm> {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
-            textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+            textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600).copyWith(inherit: false),
+
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
@@ -368,7 +369,7 @@ class LoginFormState extends State<LoginForm> {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.grey[800],
             foregroundColor: Colors.white,
-            textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+            textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600).copyWith(inherit: false),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
@@ -388,7 +389,7 @@ class LoginFormState extends State<LoginForm> {
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.grey[850],
         foregroundColor: Colors.white,
-        textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600).copyWith(inherit: false),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       ),

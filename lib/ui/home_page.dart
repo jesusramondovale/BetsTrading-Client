@@ -29,6 +29,8 @@ class HomeScreenState extends State<HomeScreen> {
   List<Bet> _bets = [];
   String? _userId;
   double _userPoints = 0;
+  late Future<Trends> _trendsFuture;
+  late Future<Favorites> _favsFuture;
   bool showFavorites = true;
 
   Future<void> loadUserIdAndData() async {
@@ -63,7 +65,13 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    loadUserIdAndData();
+    loadUserIdAndData().then((_) {
+      setState(() {
+        _trendsFuture = BetsService().fetchTrendsData(_userId ?? "none");
+        _favsFuture = BetsService().fetchFavouritesData(_userId ?? "none");
+      });
+    });
+
   }
 
   @override
@@ -207,14 +215,42 @@ class HomeScreenState extends State<HomeScreen> {
             Expanded(
               flex: 9,
               child: _userId == null
-                  ? const Center(child: CircularProgressIndicator(color: Colors.grey))
+                  ?  Center(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      SizedBox(width: 8),
+                      SkeletonTrendContainer(),
+                      SizedBox(width: 8),
+                      SkeletonTrendContainer(),
+                      SizedBox(width: 8),
+                      SkeletonTrendContainer(),
+                      SizedBox(width: 8),
+                    ],
+                  ),
+                ),
+              )
                   :
               FutureBuilder<Trends>(
-                  future: BetsService().fetchTrendsData(_userId ?? "none"),
+                  future: _trendsFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.grey),
+                      return Center(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              SizedBox(width: 8),
+                              SkeletonTrendContainer(),
+                              SizedBox(width: 8),
+                              SkeletonTrendContainer(),
+                              SizedBox(width: 8),
+                              SkeletonTrendContainer(),
+                              SizedBox(width: 8),
+                            ],
+                          ),
+                        ),
                       );
                     } else if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
@@ -237,16 +273,17 @@ class HomeScreenState extends State<HomeScreen> {
                       );
                     } else {
                       return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
                             children: [
-                              Icon(
-                                Icons.wifi_off_sharp,
-                                size: 90,
-                                color: Colors.white,
-                              ),
+                              SizedBox(width: 8),
+                              SkeletonTrendContainer(),
+                              SizedBox(width: 8),
+                              SkeletonTrendContainer(),
+                              SizedBox(width: 8),
+                              SkeletonTrendContainer(),
+                              SizedBox(width: 8),
                             ],
                           ),
                         ),
@@ -267,14 +304,44 @@ class HomeScreenState extends State<HomeScreen> {
             Expanded(
               flex: 8,
               child: _userId == null
-                  ? const Center(child: CircularProgressIndicator(color: Colors.grey))
+                  ? Center(child: Center(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      SizedBox(width: 8),
+                      SkeletonTrendContainer(),
+                      SizedBox(width: 8),
+                      SkeletonTrendContainer(),
+                      SizedBox(width: 8),
+                      SkeletonTrendContainer(),
+                      SizedBox(width: 8),
+                    ],
+                  ),
+                ),
+              ))
                   :
               FutureBuilder<Favorites>(
-                  future: BetsService().fetchFavouritesData(_userId ?? "none"),
+                  future: _favsFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.grey),
+                      return  Center(
+                        child: Center(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                SizedBox(width: 8),
+                                SkeletonFavoriteContainer(),
+                                SizedBox(width: 8),
+                                SkeletonFavoriteContainer(),
+                                SizedBox(width: 8),
+                                SkeletonFavoriteContainer(),
+                                SizedBox(width: 8),
+                              ],
+                            ),
+                          ),
+                        ),
                       );
                     } else if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
@@ -361,13 +428,13 @@ class HomeScreenState extends State<HomeScreen> {
             Expanded(
               flex: 12,
               child: _userId == null
-                  ? const Center(child: CircularProgressIndicator(color: Colors.grey))
+                  ? Center(child: CircularProgressIndicator(color: Colors.grey))
                   :
               FutureBuilder<BetsAndPriceBets>(
                 future: BetsService().fetchInvestmentData(_userId ?? "none"),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(color: Colors.grey));
+                    return  Center(child: CircularProgressIndicator(color: Colors.grey));
                   }
                   if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');

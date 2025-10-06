@@ -311,13 +311,11 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 final response = await AuthService().logOut();
                 if (response['success']) {
                   await _storage.deleteAll();
-                  setState(() {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                          builder: (context) => const LoginPage()),
-                          (Route<dynamic> route) => false,
-                    );
-                  });
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (context) => const LoginPage()),
+                        (Route<dynamic> route) => false,
+                  );
                 } else {
                   setState(() {
                     Common().popDialog(

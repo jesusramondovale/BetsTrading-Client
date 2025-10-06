@@ -445,15 +445,12 @@ class FavoriteContainerState extends State<FavoriteContainer> {
             ),
             child: Stack(
               children: [
-                //Background star
                 Positioned(
                   top: 0,
                   right: -30,
                   child: Icon(FontAwesomeIcons.solidStar,
                       color: Colors.grey.withValues(alpha: 0.1), size: 120),
                 ),
-
-                // Main content
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Column(
@@ -543,6 +540,87 @@ class FavoriteContainerState extends State<FavoriteContainer> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+//------- SKELETON
+
+class SkeletonFavoriteContainer extends StatelessWidget {
+  const SkeletonFavoriteContainer({super.key});
+
+  Widget _box(double width, double height, {double radius = 6}) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+
+  Widget _circle(double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withValues(alpha: 0.07),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+      width: 120,
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            spreadRadius: 1,
+            blurRadius: 1,
+            offset: const Offset(0, 1),
+          ),
+        ],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            right: -30,
+            child: Icon(
+              FontAwesomeIcons.solidStar,
+              color: Colors.grey.withValues(alpha: 0.1),
+              size: 120,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _box(40, 40, radius: 6),
+                const Spacer(),
+                _box(80, 14, radius: 4),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    _circle(10),
+                    const SizedBox(width: 6),
+                    _box(40, 10, radius: 4),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
