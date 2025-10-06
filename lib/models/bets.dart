@@ -1433,3 +1433,86 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
     );
   }
 }
+
+//-------- SKELETON
+
+class SkeletonRecentBetContainer extends StatelessWidget {
+  const SkeletonRecentBetContainer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding:
+        const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+        leading: Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: Colors.grey.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+        ),
+        title: Container(
+          width: 120,
+          height: 18,
+          decoration: BoxDecoration(
+            color: Colors.grey.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                width: 60,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ],
+          ),
+        ),
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Container(
+              width: 50,
+              height: 16,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              width: 40,
+              height: 12,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

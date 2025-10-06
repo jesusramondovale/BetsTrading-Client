@@ -238,7 +238,7 @@ class LocalizedStrings {
       'commonSignIn': 'E-mail log-in',
       'backToSocialsLogin': 'Back to Social Login',
       'noLiveBets':
-          'You have no live bets at the moment, go to the markets tab to create a new one.',
+          'You have no live bets at the moment, go to the markets tab to create a new one',
       'noClosedBets': 'There are no closed bets\n(for now ...) 😏',
       'changePassword': 'Change Password',
       'notifications': 'Notifications',

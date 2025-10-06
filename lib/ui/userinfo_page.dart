@@ -199,60 +199,65 @@ class _UserInfoPageState extends State<UserInfoPage> {
               subtitle = Text(entry.value);
             }
             if (entry.key == 'fullname') {
-              return ListTile(
-                leading: (_profilePicBytes != null ? CircleAvatar(
-                  backgroundImage: MemoryImage(_profilePicBytes!)) :
-                   Common().getIconForUserInfo(entry.key)),
-                title: Text(title),
-                subtitle: subtitle,
-                trailing: IconButton(
-                      icon: const Icon(FontAwesomeIcons.camera),
-                      onPressed: () async {
-                        String? sessionToken =
-                        await _storage.read(key: 'sessionToken');
-                        bool result = await BetsService().uploadProfilePic(
-                            sessionToken, await Common().pickImageFromGallery());
-                        if (result) {
-                          _loadProfilePic();
-                          setState(() {
-                            Common().popDialog(
-                                strings?.get('success') ?? "Success!",
-                                strings?.get('profilePictureUploadedSuccessfully') ??
-                                    "Profile picture uploaded successfully",
-                                context);
-                          });
-                        } else {
-                          setState(() {
-                            Common().popDialog(
-                                "Oops!",
-                                strings?.get('errorUploadingProfilePic') ??
-                                    "An error has occurred while uploading the profile pic",
-                                context);
-                          });
-                        }
-                      },
-                    ),
+              return TouchableTile(child:
+                ListTile(
+                  leading: (_profilePicBytes != null ? CircleAvatar(
+                      backgroundImage: MemoryImage(_profilePicBytes!)) :
+                  Common().getIconForUserInfo(entry.key)),
+                  title: Text(title),
+                  subtitle: subtitle,
+                  trailing: IconButton(
+                    icon: const Icon(FontAwesomeIcons.camera),
+                    onPressed: () async {
+                      String? sessionToken =
+                      await _storage.read(key: 'sessionToken');
+                      bool result = await BetsService().uploadProfilePic(
+                          sessionToken, await Common().pickImageFromGallery());
+                      if (result) {
+                        _loadProfilePic();
+                        setState(() {
+                          Common().popDialog(
+                              strings?.get('success') ?? "Success!",
+                              strings?.get('profilePictureUploadedSuccessfully') ??
+                                  "Profile picture uploaded successfully",
+                              context);
+                        });
+                      } else {
+                        setState(() {
+                          Common().popDialog(
+                              "Oops!",
+                              strings?.get('errorUploadingProfilePic') ??
+                                  "An error has occurred while uploading the profile pic",
+                              context);
+                        });
+                      }
+                    },
+                  ),
+                  onTap: () => Common().vibrate(),
+                )
               );
             } else {
-              return ListTile(
+              return TouchableTile(child:
+              ListTile(
                 leading: Common().getIconForUserInfo(entry.key),
                 title: Text(title),
                 subtitle: subtitle,
-
-              );
+                onTap: () => Common().vibrate(),
+              ));
             }
           }).toList());
 
           if (userVerified) {
-            listItems.add(
-              ListTile(
-                leading: const Icon(Icons.verified),
-                title: Text(strings?.get('verified') ?? 'Account verified!'),
-                onTap: () async {},
-              ),
+            listItems.add(TouchableTile(child:
+                ListTile(
+                  leading: const Icon(Icons.verified),
+                  title: Text(strings?.get('verified') ?? 'Account verified!'),
+                  onTap: () => Common().vibrate(),
+                ),
+              )
             );
           } else {
-            listItems.add(
+            listItems.add(TouchableTile(child:
               ListTile(
                 leading: const Icon(Icons.verified_outlined),
                 title: Text(strings?.get('verify') ?? 'Verify Account'),
@@ -265,12 +270,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
                     ),
                   );
                 },
-              ),
+              )),
             );
           }
-
-          listItems.add(
-            ListTile(
+          listItems.add(TouchableTile(child: ListTile(
               leading: const Icon(FontAwesomeIcons.creditCard),
               title: Text(strings?.get('paymentHistory') ?? 'Payment History'),
               onTap: () {
@@ -283,11 +286,12 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 );
 
               },
-            ),
+            )
+          )
+
           );
 
-          listItems.add(
-            ListTile(
+          listItems.add(TouchableTile(child: ListTile(
               leading: const Icon(FontAwesomeIcons.moneyBillTransfer),
               title: Text(strings?.get('withdrawalHistory') ?? 'Withdrawal History'),
               onTap: () {
@@ -300,11 +304,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 );
 
               },
-            ),
+            ))
           );
-
           listItems.add(
-            ListTile(
+            TouchableTile(child: ListTile(
               leading: const Icon(FontAwesomeIcons.arrowRightFromBracket),
               title: Text(strings?.get('logOut') ?? 'Log Out'),
               onTap: () async {
@@ -323,7 +326,8 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   });
                 }
               },
-            ),
+            ))
+
           );
 
           return ListView(children: listItems);
@@ -335,3 +339,65 @@ class _UserInfoPageState extends State<UserInfoPage> {
     );
   }
 }
+
+class TouchableTile extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final double borderRadius;
+  final EdgeInsetsGeometry margin;
+
+  const TouchableTile({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.borderRadius = 20.0,
+    this.margin = const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+  });
+
+  @override
+  State<TouchableTile> createState() => _TouchableTileState();
+}
+
+class _TouchableTileState extends State<TouchableTile> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 120),
+      margin: widget.margin,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        boxShadow: _pressed
+            ? [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .45),
+            blurRadius: 20,
+            spreadRadius: 1.5,
+            offset: const Offset(0, 6),
+          )
+        ]
+            : [],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            splashColor: Colors.white.withValues(alpha: .05),
+            highlightColor: Colors.white.withValues(alpha: .03),
+            onTap: widget.onTap,
+            onHighlightChanged: (pressed) {
+              setState(() => _pressed = pressed);
+            },
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+

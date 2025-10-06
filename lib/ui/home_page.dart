@@ -31,7 +31,7 @@ class HomeScreenState extends State<HomeScreen> {
   double _userPoints = 0;
   late Future<Trends> _trendsFuture;
   late Future<Favorites> _favsFuture;
-  bool showFavorites = true;
+    bool showFavorites = true;
 
   Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
@@ -428,13 +428,22 @@ class HomeScreenState extends State<HomeScreen> {
             Expanded(
               flex: 12,
               child: _userId == null
-                  ? Center(child: CircularProgressIndicator(color: Colors.grey))
+                  ? ListView(children: const [
+                        SkeletonRecentBetContainer(),
+                        SkeletonRecentBetContainer(),
+                  ],
+                )
                   :
               FutureBuilder<BetsAndPriceBets>(
                 future: BetsService().fetchInvestmentData(_userId ?? "none"),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return  Center(child: CircularProgressIndicator(color: Colors.grey));
+                    return ListView(
+                      children: const [
+                        SkeletonRecentBetContainer(),
+                        SkeletonRecentBetContainer(),
+                      ],
+                    );
                   }
                   if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');
@@ -456,15 +465,24 @@ class HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               strings!.get('noLiveBets') ??
-                                  'You have no live bets at the moment, go to the markets tab to create a new one.',
+                                  'You have no live bets at the moment, go to the markets tab to create a new one',
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.roboto(
+                              style: GoogleFonts.montserrat(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w400,
-                                color: Colors.grey,
+                                color: Colors.white70,
                               ),
                             ),
-                            Icon(Icons.arrow_downward_rounded, size: 50, color: Colors.grey),
+                            Row(
+                              mainAxisAlignment : MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 40,
+                                  child: Image.asset('assets/new_icon.png'),
+                                ),
+                                SizedBox(width: 5.0),
+                                Icon(Icons.arrow_downward_rounded, size: 50, color: Colors.grey),
+                            ],)
                           ],
                         ),
                       ),

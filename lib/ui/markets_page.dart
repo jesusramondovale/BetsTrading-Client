@@ -84,10 +84,8 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     final strings = LocalizedStrings.of(context);
     final Color textColor = Colors.white;
 
-    // Mapeo de grupos a textos localizados (ajusta si tus claves son otras)
     final groupPretty = _prettyGroup(a.group, strings);
 
-    // Filas clave-valor
     final rows = <Widget>[
       _kvRow(strings?.get('name') ?? 'Name', a.name.length > 10 ? a.name.substring(0,10) : a.name, textColor),
       const Divider(),
@@ -137,7 +135,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                           Center(child: _assetIcon(a, size: 120)),
                           const SizedBox(height: 12),
                         ],
-                        ...rows, // <- tu contenido tal cual
+                        ...rows,
                       ],
                     ),
                   ),
@@ -383,7 +381,17 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
         ),
         Expanded(
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? GridView.builder(
+                  padding: const EdgeInsets.all(6),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 5.0,
+                    mainAxisSpacing: 7.0,
+                    childAspectRatio: 1.0,
+                  ),
+                  itemCount: 15,
+                  itemBuilder: (_, __) => const SkeletonAssetContainer(),
+                )
               : TabBarView(
             controller: _tabController,
             children: List.generate(groups.length, (index) {
@@ -399,7 +407,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
               });
 
               return GridView.builder(
-                padding: const EdgeInsets.all(6), // margen del grid
+                padding: const EdgeInsets.all(6),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   crossAxisSpacing: 5.0,
@@ -640,4 +648,45 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     );
   }
 
+}
+
+//------ SKELETON
+
+class SkeletonAssetContainer extends StatelessWidget {
+  const SkeletonAssetContainer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 55,
+              height: 55,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              width: 60,
+              height: 12,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

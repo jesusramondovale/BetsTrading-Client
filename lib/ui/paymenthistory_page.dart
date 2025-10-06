@@ -247,8 +247,6 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
         valueText = InkWell(
           onTap: () async {
             await Clipboard.setData(ClipboardData(text: v));
-            final msg = LocalizedStrings.of(context)?.get('copiedToClipboard') ?? 'Copied to clipboard';
-            Common().showFloatingSnack(context, msg, backgroundColor: Colors.black87);
           },
           child: valueText,
         );
