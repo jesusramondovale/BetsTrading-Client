@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'betDate': 'Bet date',
       'pendingVerification': '(Pending verification)',
       'accountNotVerifiedTitle': 'Account not verified',
       'accountNotVerifiedMsg': 'Your account has not been verified yet. Please verify it to continue using all features.',
@@ -289,6 +290,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'betDate': 'Fecha de apuesta',
       'pendingVerification': '(Por verificar)',
       'accountNotVerifiedTitle': 'Cuenta no verificada',
       'accountNotVerifiedMsg': 'Tu cuenta aún no ha sido verificada. Verifícala para poder seguir usando todas las funciones.',
@@ -564,6 +566,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'betDate': "Date du pari",
       'pendingVerification': '(À vérifier)',
       'accountNotVerifiedTitle': 'Compte non vérifié',
       'accountNotVerifiedMsg': 'Votre compte n’a pas encore été vérifié. Veuillez le vérifier pour continuer à utiliser toutes les fonctionnalités.',
@@ -842,6 +845,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'betDate': "Data della scommessa",
       'pendingVerification': '(Da verificare)',
       'accountNotVerifiedTitle': 'Account non verificato',
       'accountNotVerifiedMsg': 'Il tuo account non è ancora stato verificato. Verificalo per continuare a utilizzare tutte le funzionalità.',
@@ -1118,6 +1122,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'betDate': "Wetttermin",
       'pendingVerification': '(Zu überprüfen)',
       'accountNotVerifiedTitle': 'Konto nicht verifiziert',
       'accountNotVerifiedMsg': 'Ihr Konto wurde noch nicht verifiziert. Bitte verifizieren Sie es, um alle Funktionen weiterhin nutzen zu können.',

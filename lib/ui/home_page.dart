@@ -31,7 +31,7 @@ class HomeScreenState extends State<HomeScreen> {
   double _userPoints = 0;
   late Future<Trends> _trendsFuture;
   late Future<Favorites> _favsFuture;
-    bool showFavorites = true;
+
 
   Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
@@ -58,7 +58,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   void refreshFavorites() {
     setState(() {
-      showFavorites = true;
+      _favsFuture = BetsService().fetchFavouritesData(_userId ?? "none");
     });
   }
 
