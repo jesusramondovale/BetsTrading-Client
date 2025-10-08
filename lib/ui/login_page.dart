@@ -8,7 +8,6 @@ import 'package:betrader/ui/signin_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../config/config.dart';
 import '../services/BetsService.dart';
 import 'fist_time_page.dart';
