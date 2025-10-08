@@ -155,6 +155,8 @@ class AuthService {
         scopes: scopes,
         serverClientId: Config.SERVER_CLIENT_ID,
       );
+      googleSignIn.signOut();
+      googleSignIn.disconnect();
 
       final user = await googleSignIn.signIn();
       String country = await Common().getUserCountry();
@@ -216,10 +218,12 @@ class AuthService {
           }
         }
       }
-    } catch (error) {
-      if (kDebugMode) {
-        print(error);
+      else if (user == null){
+        return 0;
       }
+    } catch (error)
+    {
+      if (kDebugMode) { print(error); }
       return 1;
     }
     return 1;

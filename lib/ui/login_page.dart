@@ -6,7 +6,9 @@ import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/helpers/common.dart';
 import 'package:betrader/ui/signin_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../config/config.dart';
 import '../services/BetsService.dart';
 import 'fist_time_page.dart';
@@ -23,8 +25,25 @@ class LoginPage extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         scrolledUnderElevation: 0.0,
-        title: const Text(''),
         automaticallyImplyLeading: false,
+      ),
+
+      floatingActionButton: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.fromLTRB(0, 0, 5, 0),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: Colors.transparent,
+          overlayColor: Colors.transparent.withValues(alpha: 0),
+          elevation: 0,
+        ),
+        onPressed: () => Common().openInAppBrowser(context, Config.INSTAGRAM_PAGE),
+        child: Icon(
+          FontAwesomeIcons.instagram,
+          size: 40,
+          color: Colors.white70.withValues(alpha: .5),
+        ),
       ),
       body: Stack(
         children: [
@@ -271,10 +290,14 @@ class LoginFormState extends State<LoginForm> {
 
   Widget _buildGoogleSignInButton(LocalizedStrings strings) {
     return ElevatedButton(
+
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.black,
         backgroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 50),
+        minimumSize: const Size(50,50),
+        maximumSize: Size(
+            MediaQuery.of(context).size.width*0.85,
+            50),
       ),
       onPressed: () async {
         int? result = await AuthService().googleSignIn();
@@ -327,7 +350,10 @@ class LoginFormState extends State<LoginForm> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        minimumSize: const Size(double.infinity, 50),
+        minimumSize: const Size(50,50),
+        maximumSize: Size(
+            MediaQuery.of(context).size.width*0.85,
+            50),
         padding: const EdgeInsets.symmetric(horizontal: 20),
       ),
       onPressed: () {
@@ -422,11 +448,29 @@ class LoginFormState extends State<LoginForm> {
       },
       child: Text(strings.get('forgotPassword') ?? 'Forgot Password?',
           style: GoogleFonts.syncopate(
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: FontWeight.w500,
               color: Colors.white)),
     );
   }
+
+  Widget _buildCreateNewAccountButton(LocalizedStrings strings) {
+    return TextButton(
+      onPressed: () {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const SignIn()));
+      },
+      child: Text(strings.get('noAccountRegister') ?? 'Don\'t have an account?',
+          style: GoogleFonts.lato(
+              decoration: TextDecoration.underline,
+              decorationColor: Colors.blue,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.blue)),
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -435,6 +479,7 @@ class LoginFormState extends State<LoginForm> {
     return Form(
       key: _formKey,
       child: Stack(
+        alignment: Alignment.center,
         children: [
           Positioned.fill(
             child: BackdropFilter(
@@ -457,6 +502,7 @@ class LoginFormState extends State<LoginForm> {
                   _buildManualLogInButton(strings),
                   const SizedBox(height: 16),
                   _buildForgotPasswordButton(strings),
+                  _buildCreateNewAccountButton(strings)
                 ] else ...[
                   _buildUsernameField(strings!),
                   const SizedBox(height: 16),

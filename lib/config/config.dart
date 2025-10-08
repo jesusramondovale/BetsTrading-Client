@@ -2,6 +2,8 @@ class Config {
 
 
   static const PUBLIC_DOMAIN = 'api.betstrading.online';
+  static const LANDING_PAGE = 'https://betstrading.online';
+  static const INSTAGRAM_PAGE = 'https://www.instagram.com/betstrading/';
   static const TERMS_N_CONDITIONS_PAGE = 'https://raw.githubusercontent.com/jesusramondovale/BetsTrading-Client/refs/heads/android-master/policies/privacy_policy_en.md';
   static const CODE_VERSION = '25.281.1';
   static const ADMOB_APP_ID = 'ca-app-pub-2465898294053562/1629478765';

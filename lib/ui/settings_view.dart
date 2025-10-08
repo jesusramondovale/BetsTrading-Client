@@ -403,7 +403,7 @@ class SettingsViewState extends State<SettingsView> {
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () {
                       Common().vibrate();
-                      Common().openInAppBrowser(context,"https://betstrading.online");
+                      Common().openInAppBrowser(context,Config.LANDING_PAGE);
                     },
                     child: ListTile(
                       title: Text(

@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'noAccountRegister': 'Don\'t have an account?',
       'betDate': 'Bet date',
       'pendingVerification': '(Pending verification)',
       'accountNotVerifiedTitle': 'Account not verified',
@@ -290,6 +291,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'noAccountRegister': "¿No tienes cuenta?",
       'betDate': 'Fecha de apuesta',
       'pendingVerification': '(Por verificar)',
       'accountNotVerifiedTitle': 'Cuenta no verificada',
@@ -566,6 +568,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'noAccountRegister': "Vous n'avez pas de compte ?",
       'betDate': "Date du pari",
       'pendingVerification': '(À vérifier)',
       'accountNotVerifiedTitle': 'Compte non vérifié',
@@ -845,6 +848,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'noAccountRegister': "Non hai un account?",
       'betDate': "Data della scommessa",
       'pendingVerification': '(Da verificare)',
       'accountNotVerifiedTitle': 'Account non verificato',
@@ -1122,6 +1126,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'noAccountRegister': "Kein Konto?",
       'betDate': "Wetttermin",
       'pendingVerification': '(Zu überprüfen)',
       'accountNotVerifiedTitle': 'Konto nicht verifiziert',
