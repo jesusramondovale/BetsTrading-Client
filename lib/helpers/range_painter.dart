@@ -86,15 +86,15 @@ class RangePainter extends CustomPainter {
       startX = min(startX, size.width - PRICE_BAR_WIDTH);
       endX = min(endX, size.width);
       final paintFill = Paint()
-        ..color = zone.fillColor
+        ..color = zone.fillColor.withValues(alpha: 0.6)
         ..style = PaintingStyle.fill;
       canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintFill);
 
 
       final paintStroke = Paint()
-        ..color = Colors.purple
+        ..color = Colors.white.withValues(alpha: 0.8)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1;
+        ..strokeWidth = 0.5;
 
       canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintStroke);
 

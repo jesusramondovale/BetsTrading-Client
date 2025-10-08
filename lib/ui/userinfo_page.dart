@@ -161,21 +161,28 @@ class _UserInfoPageState extends State<UserInfoPage> {
               );
             }
             else if (entry.key == 'fullname') {
-              subtitle = Column (
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(entry.value, textAlign: TextAlign.start),
-                  if (userVerified)... [
-                    SizedBox(width: 5, height: 1),
-                    Icon(Icons.verified, size: 20)
-                  ]
-                  else ... [
+              if (!userVerified){
+                subtitle = Column (
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(entry.value, textAlign: TextAlign.start),
                     SizedBox(width: 10, height: 1),
                     Text(strings!.get('pendingVerification') ?? '(Pending verification)',
-                      style: TextStyle(color: Colors.redAccent),)
-                  ]
-                ],
-              );
+                        style: TextStyle(color: Colors.redAccent),)
+                  ],
+                );
+              }
+              else {
+                subtitle = Row (
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(entry.value, textAlign: TextAlign.start),
+                    SizedBox(width: 5, height: 1),
+                    Icon(Icons.verified, size: 20)
+                  ],
+                );
+              }
+
             }
             else if (entry.key == 'birthday') {
               Locale locale = Localizations.localeOf(context);
@@ -255,7 +262,8 @@ class _UserInfoPageState extends State<UserInfoPage> {
             listItems.add(TouchableTile(child:
                 ListTile(
                   leading: const Icon(Icons.verified),
-                  title: Text(strings?.get('verified') ?? 'Account verified!'),
+                  title: Text(strings?.get('verified') ?? 'Account verified!',
+                    style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
                   onTap: () => Common().vibrate(),
                 ),
               )

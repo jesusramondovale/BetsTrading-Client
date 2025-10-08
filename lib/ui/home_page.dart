@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
@@ -5,6 +7,7 @@ import 'package:betrader/services/BetsService.dart';
 import 'package:betrader/ui/settings_view.dart';
 import 'package:betrader/ui/store_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,8 +34,10 @@ class HomeScreenState extends State<HomeScreen> {
   double _userPoints = 0;
   late Future<Trends> _trendsFuture;
   late Future<Favorites> _favsFuture;
-
-
+  bool _userIsInteracting = false;
+  final ScrollController _trendScrollController = ScrollController();
+  Ticker? _ticker;
+  double _direction = 1;
   Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
@@ -62,9 +67,42 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _delayedAutoScrollInit() async {
+    await Future.delayed(const Duration(seconds: 3));
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _ticker = Ticker((Duration elapsed) {
+      if (!_trendScrollController.hasClients) return;
+
+      if (_userIsInteracting) return;
+
+      final max = _trendScrollController.position.maxScrollExtent;
+      final min = 0.0;
+      double offset = _trendScrollController.offset + _direction * 0.5;
+
+      if (offset >= max) {
+        _direction = -1;
+        offset = max;
+      } else if (offset <= min) {
+        _direction = 1;
+        offset = min;
+      }
+
+      _trendScrollController.jumpTo(offset);
+    });
+
+    _ticker!.start();
+  }
+
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _delayedAutoScrollInit();
+    });
     loadUserIdAndData().then((_) {
       setState(() {
         _trendsFuture = BetsService().fetchTrendsData(_userId ?? "none");
@@ -232,7 +270,9 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
               )
                   :
-              FutureBuilder<Trends>(
+              Expanded(
+                flex: 9,
+                child: FutureBuilder<Trends>(
                   future: _trendsFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -240,7 +280,7 @@ class HomeScreenState extends State<HomeScreen> {
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
-                            children: [
+                            children: const [
                               SizedBox(width: 8),
                               SkeletonTrendContainer(),
                               SizedBox(width: 8),
@@ -254,29 +294,41 @@ class HomeScreenState extends State<HomeScreen> {
                       );
                     } else if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
-                    } else if (snapshot.hasData &&
-                        snapshot.data!.trends.isNotEmpty) {
+                    } else if (snapshot.hasData && snapshot.data!.trends.isNotEmpty) {
                       final data = snapshot.data!;
-                      return ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: data.length,
-                        itemBuilder: (context, index) {
-                          List<Trend> sortedTrends = List.from(data.trends)
-                            ..sort((a, b) => a.id.compareTo(b.id));
-                          int sortedIndex = sortedTrends[index].id - 1;
-                          return TrendContainer(
+
+                      return Listener(
+                        onPointerDown: (_) {
+                          _userIsInteracting = true;
+                        },
+                        onPointerUp: (_) async {
+                          await Future.delayed(const Duration(seconds: 2));
+                          _userIsInteracting = false;
+                        },
+                          child: ListView.builder(
+                          controller: _trendScrollController,
+                          scrollDirection: Axis.horizontal,
+                          itemCount: data.trends.length,
+                          itemBuilder: (context, index) {
+                            final sortedTrends = List.from(data.trends)
+                              ..sort((a, b) => a.id.compareTo(b.id));
+                            final sortedIndex = sortedTrends[index].id - 1;
+
+                            return TrendContainer(
                               trend: sortedTrends[index],
                               index: sortedIndex,
                               onFavoriteUpdated: refreshFavorites,
-                              controller: widget.controller,);
-                        },
+                              controller: widget.controller,
+                            );
+                          },
+                        ),
                       );
                     } else {
                       return Center(
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
-                            children: [
+                            children: const [
                               SizedBox(width: 8),
                               SkeletonTrendContainer(),
                               SizedBox(width: 8),
@@ -289,7 +341,11 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                       );
                     }
-                  }),
+                  },
+                ),
+              ),
+
+
             ),
 
             Text(strings?.get('favs') ?? 'Favs',
@@ -516,4 +572,10 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  @override
+  void dispose() {
+    _trendScrollController.dispose();
+    _ticker?.dispose;
+    super.dispose();
+  }
 }
