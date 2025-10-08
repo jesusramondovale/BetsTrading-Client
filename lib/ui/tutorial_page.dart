@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../locale/localized_texts.dart';
@@ -55,9 +57,23 @@ class _TutorialScreenState extends State<TutorialScreen> {
         children: [
           // Imagen de fondo
           Positioned.fill(
-            child: Image.asset(
-              'assets/backgn.png',
-              fit: BoxFit.cover,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  'assets/backgn.png',
+                  fit: BoxFit.cover,
+                ),
+                BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: 4.0,
+                    sigmaY: 4.0,
+                  ),
+                  child: Container(
+                    color: Colors.black.withValues(alpha: .2),
+                  ),
+                ),
+              ],
             ),
           ),
           // Contenido principal
@@ -97,7 +113,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                               style: GoogleFonts.montserrat(
                                 fontSize: 36,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: Colors.blueAccent,
                               ),
                             )),
                         const SizedBox(height: 10),

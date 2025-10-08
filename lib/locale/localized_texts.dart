@@ -400,7 +400,7 @@ class LocalizedStrings {
       'enableNotifications': 'Permitir notificaciones',
       'trendingNotifications': 'Notificaciones de tendencias',
       'bettingNotifications': 'Notificaciones de apuestas',
-      'onboarding_title_intro': 'Bienvenido a Betrader!',
+      'onboarding_title_intro': 'Bienvenid@ a Betrader!',
       'onboarding_description_intro':
           'Descubre todas las funciones que tenemos para ofrecerte.',
       'onboarding_title_favorites': 'Favoritos',
