@@ -3,6 +3,7 @@ import 'package:betrader/ui/paymenthistory_page.dart';
 import 'package:betrader/ui/verify_account_page.dart';
 import 'package:betrader/ui/withdrawalhistory_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/services/BetsService.dart';
@@ -160,9 +161,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
               );
             }
             else if (entry.key == 'fullname') {
-              subtitle = Row (
+              subtitle = Column (
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(entry.value),
+                  Text(entry.value, textAlign: TextAlign.start),
                   if (userVerified)... [
                     SizedBox(width: 5, height: 1),
                     Icon(Icons.verified, size: 20)
@@ -202,9 +204,11 @@ class _UserInfoPageState extends State<UserInfoPage> {
               return TouchableTile(child:
                 ListTile(
                   leading: (_profilePicBytes != null ? CircleAvatar(
+                    radius: 28,
                       backgroundImage: MemoryImage(_profilePicBytes!)) :
                   Common().getIconForUserInfo(entry.key)),
-                  title: Text(title),
+                  title: Text(title,
+                      style: GoogleFonts.syncopate(fontSize: 12, fontWeight: FontWeight.w500)),
                   subtitle: subtitle,
                   trailing: IconButton(
                     icon: const Icon(FontAwesomeIcons.camera),
@@ -240,7 +244,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
               return TouchableTile(child:
               ListTile(
                 leading: Common().getIconForUserInfo(entry.key),
-                title: Text(title),
+                title: Text(title, style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
                 subtitle: subtitle,
                 onTap: () => Common().vibrate(),
               ));
@@ -259,8 +263,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
           } else {
             listItems.add(TouchableTile(child:
               ListTile(
-                leading: const Icon(Icons.verified_outlined),
-                title: Text(strings?.get('verify') ?? 'Verify Account'),
+                leading: const Icon(Icons.verified_outlined, color: Colors.redAccent,),
+                title: Text(strings?.get('verify') ?? 'Verify Account',
+                    style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500,),
+                ),
                 onTap: () async {
                   await Navigator.push(
                     context,
@@ -275,7 +281,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
           }
           listItems.add(TouchableTile(child: ListTile(
               leading: const Icon(FontAwesomeIcons.creditCard),
-              title: Text(strings?.get('paymentHistory') ?? 'Payment History'),
+              title: Text(strings?.get('paymentHistory') ?? 'Payment History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
               onTap: () {
                 Common().vibrate();
                 Navigator.push(
@@ -293,7 +299,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
           listItems.add(TouchableTile(child: ListTile(
               leading: const Icon(FontAwesomeIcons.moneyBillTransfer),
-              title: Text(strings?.get('withdrawalHistory') ?? 'Withdrawal History'),
+              title: Text(strings?.get('withdrawalHistory') ?? 'Withdrawal History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
               onTap: () {
                 Common().vibrate();
                 Navigator.push(
@@ -309,7 +315,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
           listItems.add(
             TouchableTile(child: ListTile(
               leading: const Icon(FontAwesomeIcons.arrowRightFromBracket),
-              title: Text(strings?.get('logOut') ?? 'Log Out'),
+              title: Text(strings?.get('logOut') ?? 'Log Out', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
               onTap: () async {
                 final response = await AuthService().logOut();
                 if (response['success']) {
@@ -351,7 +357,7 @@ class TouchableTile extends StatefulWidget {
     required this.child,
     this.onTap,
     this.borderRadius = 20.0,
-    this.margin = const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+    this.margin = const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
   });
 
   @override

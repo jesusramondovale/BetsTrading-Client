@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:betrader/services/AuthService.dart';
@@ -40,16 +41,28 @@ class LoginPage extends StatelessWidget {
         onPressed: () => Common().openInAppBrowser(context, Config.INSTAGRAM_PAGE),
         child: Icon(
           FontAwesomeIcons.instagram,
-          size: 40,
+          size: 35,
           color: Colors.white70.withValues(alpha: .5),
         ),
       ),
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset(
-              'assets/backgn.png',
-              fit: BoxFit.cover,
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Colors.black.withValues(alpha: 0.1),
+                BlendMode.darken,
+              ),
+              child: Image.asset(
+                'assets/backgn.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: Container(color: Colors.transparent),
             ),
           ),
           Center(
@@ -441,15 +454,22 @@ class LoginFormState extends State<LoginForm> {
   }
 
   Widget _buildForgotPasswordButton(LocalizedStrings strings) {
-    return TextButton(
-      onPressed: () {
-        showEmailPasswordDialog(context);
-      },
-      child: Text(strings.get('forgotPassword') ?? 'Forgot Password?',
-          style: GoogleFonts.syncopate(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.white)),
+    return Row(
+
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextButton(
+
+          onPressed: () {
+            showEmailPasswordDialog(context);
+          },
+          child: Text(strings.get('forgotPassword') ?? 'Forgot Password?',
+              style: GoogleFonts.syncopate(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white)),
+        )
+      ],
     );
   }
 
@@ -468,8 +488,6 @@ class LoginFormState extends State<LoginForm> {
               color: Colors.blue)),
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -492,10 +510,25 @@ class LoginFormState extends State<LoginForm> {
             child: Column(
 
               children: [
+                AutoSizeText(
+                  "betrader.v1",
+                  textAlign: TextAlign.center,
+                  minFontSize: 20,
+                  maxLines: 1,
+                  style: GoogleFonts.syncopate(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 38,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 20),
                 Image.asset('assets/new_icon.png',
                     width: 200, fit: BoxFit.cover),
                 const Padding(padding: EdgeInsets.all(10.0)),
+
+
                 if (_showSocialSignIn) ...[
+
                   _buildGoogleSignInButton(strings!),
                   const SizedBox(height: 8),
                   _buildManualLogInButton(strings),

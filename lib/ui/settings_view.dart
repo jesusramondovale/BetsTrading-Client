@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:app_settings/app_settings.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/retire_methods.dart';
+import 'package:betrader/ui/tutorial_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -36,7 +37,7 @@ class SettingsViewState extends State<SettingsView> {
   Future<bool?> showChangePasswordDialog(
       BuildContext context,
       String token,
-      ) async  {
+      ) async {
     bool _showNewPassword = false;
     final strings = LocalizedStrings.of(context);
     final TextEditingController currentPasswordController = TextEditingController();
@@ -73,6 +74,7 @@ class SettingsViewState extends State<SettingsView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Current password
                   Container(
                     margin: const EdgeInsets.only(bottom: 14),
                     child: TextFormField(
@@ -97,79 +99,95 @@ class SettingsViewState extends State<SettingsView> {
                       },
                     ),
                   ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 14),
-                    child: StatefulBuilder(
-                      builder: (context, setState) => TextFormField(
-                        controller: newPasswordController,
-                        obscureText: !_showNewPassword,
-                        style: GoogleFonts.montserrat(color: textColor),
-                        decoration: InputDecoration(
-                          labelText: strings?.get('newPassword') ?? "New Password",
-                          labelStyle: GoogleFonts.montserrat(color: textColor),
-                          filled: true,
-                          errorMaxLines: 3,
-                          fillColor: fieldColor,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _showNewPassword ? Icons.visibility : Icons.visibility_off,
-                              color: Colors.white70,
-                            ),
-                            onPressed: () {
-                              setState(() => _showNewPassword = !_showNewPassword);
-                            },
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return strings?.get('thisFieldIsRequired') ?? "Field required";
-                          }
-                          final hasUppercase = value.contains(RegExp(r'[A-Z]'));
-                          final hasNumber = value.contains(RegExp(r'[0-9]'));
-                          final longEnough = value.length >= 12;
 
-                          if (!hasUppercase || !hasNumber || !longEnough) {
-                            return strings?.get('passwordRequirements') ??
-                                "Password must contain 12 characters, one uppercase and one number.";
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-                  Container(
-                    child: TextFormField(
-                      controller: confirmPasswordController,
-                      obscureText: true,
-                      style: GoogleFonts.montserrat(color: textColor),
-                      decoration: InputDecoration(
-                        labelText: strings?.get('confirmPassword') ?? "Confirm Password",
-                        labelStyle: GoogleFonts.montserrat(color: textColor),
-                        filled: true,
-                        fillColor: fieldColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return strings?.get('thisFieldIsRequired') ?? "Field required";
-                        }
-                        if (value != newPasswordController.text) {
-                          return strings?.get('passwordMismatch') ?? "Passwords do not match";
-                        }
-                        if (value == newPasswordController.text && value == currentPasswordController.text) {
-                          Common().showFloatingSnack(context, "¿Desayunaste payaso 🤡?", backgroundColor: Colors.pink[300]!);
-                          return "";
-                        }
-                        return null;
-                      },
-                    ),
+                  // New password + Confirm password (StatefulBuilder)
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      return Column(
+                        children: [
+                          // New password
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 14),
+                            child: TextFormField(
+                              controller: newPasswordController,
+                              obscureText: !_showNewPassword,
+                              style: GoogleFonts.montserrat(color: textColor),
+                              decoration: InputDecoration(
+                                labelText: strings?.get('newPassword') ?? "New Password",
+                                labelStyle: GoogleFonts.montserrat(color: textColor),
+                                filled: true,
+                                errorMaxLines: 3,
+                                fillColor: fieldColor,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _showNewPassword ? Icons.visibility : Icons.visibility_off,
+                                    color: Colors.white70,
+                                  ),
+                                  onPressed: () {
+                                    setState(() => _showNewPassword = !_showNewPassword);
+                                  },
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return strings?.get('thisFieldIsRequired') ?? "Field required";
+                                }
+                                final hasUppercase = value.contains(RegExp(r'[A-Z]'));
+                                final hasNumber = value.contains(RegExp(r'[0-9]'));
+                                final longEnough = value.length >= 12;
+
+                                if (!hasUppercase || !hasNumber || !longEnough) {
+                                  return strings?.get('passwordRequirements') ??
+                                      "Password must contain 12 characters, one uppercase and one number.";
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+
+                          // Confirm password
+                          Container(
+                            child: TextFormField(
+                              controller: confirmPasswordController,
+                              obscureText: !_showNewPassword,
+                              style: GoogleFonts.montserrat(color: textColor),
+                              decoration: InputDecoration(
+                                labelText: strings?.get('confirmPassword') ?? "Confirm Password",
+                                labelStyle: GoogleFonts.montserrat(color: textColor),
+                                filled: true,
+                                fillColor: fieldColor,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return strings?.get('thisFieldIsRequired') ?? "Field required";
+                                }
+                                if (value != newPasswordController.text) {
+                                  return strings?.get('passwordMismatch') ?? "Passwords do not match";
+                                }
+                                if (value == newPasswordController.text &&
+                                    value == currentPasswordController.text) {
+                                  Common().showFloatingSnack(
+                                    context,
+                                    "¿Desayunaste payaso 🤡?",
+                                    backgroundColor: Colors.pink[300]!,
+                                  );
+                                  return "";
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -198,10 +216,18 @@ class SettingsViewState extends State<SettingsView> {
                   );
 
                   if (result == 0) {
-                    Common().showFloatingSnack(context, strings?.get('successPassword') ?? "Password changed successfully");
+                    Common().showFloatingSnack(
+                        context,
+                        strings?.get('successPassword') ??
+                            "Password changed successfully");
                     Navigator.of(dialogContext).pop(true);
                   } else {
-                    Common().showFloatingSnack(context, strings?.get('errorChangingPassword') ?? "Error changing password", backgroundColor: Colors.red);
+                    Common().showFloatingSnack(
+                      context,
+                      strings?.get('errorChangingPassword') ??
+                          "Error changing password",
+                      backgroundColor: Colors.red,
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -220,6 +246,7 @@ class SettingsViewState extends State<SettingsView> {
       },
     );
   }
+
 
   Future<bool?> showRestartDialog(BuildContext context) async {
     final strings = LocalizedStrings.of(context);
@@ -395,26 +422,6 @@ class SettingsViewState extends State<SettingsView> {
                   ),
                 ),
 
-                // About Us
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    splashColor: Colors.white.withValues(alpha: 0.1),
-                    highlightColor: Colors.white.withValues(alpha: 0.05),
-                    onTap: () {
-                      Common().vibrate();
-                      Common().openInAppBrowser(context,Config.LANDING_PAGE);
-                    },
-                    child: ListTile(
-                      title: Text(
-                        strings?.get('aboutUs') ?? 'About us',
-                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                    ),
-                  ),
-                ),
-
                 // Change Password
                 Material(
                   color: Colors.transparent,
@@ -428,6 +435,47 @@ class SettingsViewState extends State<SettingsView> {
                     child: ListTile(
                       title: Text(
                         strings?.get('changePassword') ?? 'Change password',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
+
+                // Show tutorial
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: () async {
+                      Common().vibrate();
+                      Navigator.pushReplacement(context,
+                          MaterialPageRoute(builder: (context) => TutorialScreen(onDone: () => Navigator.pop(context))));
+                    },
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('showTutorial') ?? 'Show tutorial',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
+
+                // About Us
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: () {
+                      Common().vibrate();
+                      Common().openInAppBrowser(context,Config.LANDING_PAGE);
+                    },
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('aboutUs') ?? 'About us',
                         style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
                       ),
                       trailing: const Icon(Icons.chevron_right),

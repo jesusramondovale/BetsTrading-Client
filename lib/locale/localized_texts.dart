@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'showTutorial': 'Show tutorial',
       'noAccountRegister': 'Don\'t have an account?',
       'betDate': 'Bet date',
       'pendingVerification': '(Pending verification)',
@@ -291,6 +292,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'showTutorial': 'Ver tutorial',
       'noAccountRegister': "¿No tienes cuenta?",
       'betDate': 'Fecha de apuesta',
       'pendingVerification': '(Por verificar)',
@@ -460,7 +462,7 @@ class LocalizedStrings {
       'lastSession': 'Última Sesión',
       'logOut': 'Cerrar Sesión',
       'logIn': 'Iniciar Sesión',
-      'forgotPassword': '¿Olvidaste tu contraseña?',
+      'forgotPassword': '¿contraseña olvidada?',
       'exit': 'Salir',
       'gender': 'Género',
       'creditCard': 'Tarjeta de Crédito',
@@ -568,6 +570,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'showTutorial': 'Afficher le tutoriel',
       'noAccountRegister': "Vous n'avez pas de compte ?",
       'betDate': "Date du pari",
       'pendingVerification': '(À vérifier)',
@@ -739,7 +742,7 @@ class LocalizedStrings {
       'lastSession': 'Dernière Session',
       'logOut': 'Déconnexion',
       'logIn': 'Connexion',
-      'forgotPassword': 'Mot de passe oublié?',
+      'forgotPassword': 'Passe oublié?',
       'exit': 'Sortir',
       'gender': 'Genre',
       'creditCard': 'Carte de Crédit',
@@ -848,6 +851,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'showTutorial': 'Mostra il tutorial',
       'noAccountRegister': "Non hai un account?",
       'betDate': "Data della scommessa",
       'pendingVerification': '(Da verificare)',
@@ -1016,7 +1020,7 @@ class LocalizedStrings {
       'lastSession': 'Ultima Sessione',
       'logOut': 'Esci',
       'logIn': 'Accedi',
-      'forgotPassword': 'Hai dimenticato la password?',
+      'forgotPassword': 'Dimenticato password?',
       'exit': 'Esci',
       'personalInfo': 'Informazioni Personali',
       'gender': 'Genere',
@@ -1126,6 +1130,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'showTutorial': 'Tutorial anzeigen',
       'noAccountRegister': "Kein Konto?",
       'betDate': "Wetttermin",
       'pendingVerification': '(Zu überprüfen)',

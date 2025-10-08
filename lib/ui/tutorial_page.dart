@@ -57,23 +57,21 @@ class _TutorialScreenState extends State<TutorialScreen> {
         children: [
           // Imagen de fondo
           Positioned.fill(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.asset(
-                  'assets/backgn.png',
-                  fit: BoxFit.cover,
-                ),
-                BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: 4.0,
-                    sigmaY: 4.0,
-                  ),
-                  child: Container(
-                    color: Colors.black.withValues(alpha: .2),
-                  ),
-                ),
-              ],
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Colors.black.withValues(alpha: 0.1),
+                BlendMode.darken,
+              ),
+              child: Image.asset(
+                'assets/backgn.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: Container(color: Colors.transparent),
             ),
           ),
           // Contenido principal
