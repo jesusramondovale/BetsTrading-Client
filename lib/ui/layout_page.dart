@@ -11,7 +11,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
@@ -136,13 +135,11 @@ class MainMenuPageState extends State<MainMenuPage> {
   @override
   Widget build(BuildContext context) {
 
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarBrightness: Brightness.dark,
       statusBarIconBrightness: Brightness.light,
     ));
-
-    FlutterStatusbarcolor.setStatusBarColor(Colors.transparent);
 
     final strings = LocalizedStrings.of(context);
     final List<String> titles = [
