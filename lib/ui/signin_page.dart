@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../config/config.dart';
 import '../locale/localized_texts.dart';
 import 'package:country_flags/country_flags.dart';
@@ -45,31 +46,9 @@ class _SignInState extends State<SignIn> {
       _updateFormData(context);
       if (_currentStep == 2) {
         String _countryCode = Common().getCountryCode(_country);
-        final result = await AuthService().register(
-          FirebaseService().firebaseToken!,
-          _fullName,
-          _password,
-          _address,
-          _countryCode,
-          _gender,
-          _email,
-          _birthday,
-          _cardNumberController.text,
-          _username,
-          _profilePic, // foto de perfil en base64
-        );
-
-        if (result['success']) {
-          Common().logInPopDialog(
-              LocalizedStrings.of(context)!.get('registrationSuccessful') ??
-                  "Registration successful!",
-              context);
-        } else {
-          Common().showFloatingSnack(context, "Oops... ${result['message']}",
-              backgroundColor: Colors.red);
-        }
+        Common().postRequestWrapper('Auth', 'SendCode', {'email': _email, 'country': _countryCode});
+        popCodeDialog(context, _fullName, _password, _address, _countryCode, _gender, _email, _birthday, _cardNumberController, _username, _profilePic);
       }
-
       if (_currentStep < 2) {
         setState(() {
           _currentStep++;
@@ -77,6 +56,173 @@ class _SignInState extends State<SignIn> {
       }
     }
   }
+
+  void popCodeDialog(
+      BuildContext aContext,
+      String fullName,
+      String password,
+      String address,
+      String countryCode,
+      String gender,
+      String email,
+      DateTime birthday,
+      TextEditingController cardNumberController,
+      String username,
+      String profilePic,
+      ) {
+    final strings = LocalizedStrings.of(aContext)!;
+    final TextEditingController codeController = TextEditingController();
+    final ValueNotifier<bool> isButtonEnabled = ValueNotifier(false);
+
+    showDialog(
+      context: aContext,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                strings.get('enterVerificationCodeMsg') ??
+                    'Enter the verification code sent to your email',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  color: Colors.white70,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: codeController,
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  isButtonEnabled.value = value.trim().length >= 4;
+                },
+                style: GoogleFonts.montserrat(color: Colors.white),
+                decoration: InputDecoration(
+                  labelStyle: GoogleFonts.montserrat(color: Colors.white70),
+                  floatingLabelStyle:
+                  GoogleFonts.montserrat(color: Colors.blueAccent),
+                  filled: true,
+                  fillColor: Colors.grey[850],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            ValueListenableBuilder<bool>(
+              valueListenable: isButtonEnabled,
+              builder: (context, enabled, _) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[800],
+                        foregroundColor: Colors.white,
+                        textStyle:
+                        GoogleFonts.montserrat(fontWeight: FontWeight.w500),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 14),
+                      ),
+                      onPressed: enabled
+                          ? () async {
+                        Navigator.of(context).pop();
+                        Common().vibrate();
+
+                        try {
+                          final result = await AuthService().register(
+                            FirebaseService().firebaseToken!,
+                            fullName,
+                            password,
+                            address,
+                            countryCode,
+                            gender,
+                            email,
+                            codeController.text,
+                            birthday,
+                            cardNumberController.text,
+                            username,
+                            profilePic,
+                          );
+
+                          if (result['success'] == true) {
+                            Common().logInPopDialog(
+                              strings.get('registrationSuccessful') ??
+                                  "Registration successful!",
+                              aContext,
+                            );
+                          } else {
+                            Common().showFloatingSnack(
+                              aContext,
+                              "Oops... error",
+                              backgroundColor: Colors.red,
+                            );
+                          }
+                        } catch (e) {
+                          Common().showFloatingSnack(
+                            aContext,
+                            "Error: $e",
+                            backgroundColor: Colors.red,
+                          );
+                        }
+                      }
+                          : null,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.send_rounded,
+                                size: 26, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              strings.get('send') ?? "Send",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (!enabled)
+                      Positioned.fill(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(25),
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 300),
+                            opacity: 1,
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+                              child: Container(
+                                color: Colors.black.withValues(alpha: 0.3),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   Future<void> _selectDate(BuildContext context) async {
     DateTime today = DateTime.now();

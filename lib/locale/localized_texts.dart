@@ -12,6 +12,8 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'send': 'Send',
+      'enterVerificationCodeMsg': 'Enter the verification code sent to your email',
       'showTutorial': 'Show tutorial',
       'noAccountRegister': 'Don\'t have an account?',
       'betDate': 'Bet date',
@@ -292,6 +294,8 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'send': 'Enviar',
+      'enterVerificationCodeMsg': 'Introduce el código de verificación enviado a tu correo',
       'showTutorial': 'Ver tutorial',
       'noAccountRegister': "¿No tienes cuenta?",
       'betDate': 'Fecha de apuesta',
@@ -570,6 +574,8 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'send': 'Envoyer',
+      'enterVerificationCodeMsg': 'Entrez le code de vérification envoyé à votre adresse e-mail',
       'showTutorial': 'Afficher le tutoriel',
       'noAccountRegister': "Vous n'avez pas de compte ?",
       'betDate': "Date du pari",
@@ -851,6 +857,8 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'send': 'Invia',
+      'enterVerificationCodeMsg': 'Inserisci il codice di verifica inviato alla tua email',
       'showTutorial': 'Mostra il tutorial',
       'noAccountRegister': "Non hai un account?",
       'betDate': "Data della scommessa",
@@ -1130,6 +1138,8 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'send': 'Senden',
+      'enterVerificationCodeMsg': 'Geben Sie den Bestätigungscode ein, der an Ihre E-Mail gesendet wurde',
       'showTutorial': 'Tutorial anzeigen',
       'noAccountRegister': "Kein Konto?",
       'betDate': "Wetttermin",

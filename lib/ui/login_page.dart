@@ -93,11 +93,14 @@ class LoginForm extends StatefulWidget {
   LoginFormState createState() => LoginFormState();
 }
 
-class LoginFormState extends State<LoginForm> {
+class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _showSocialSignIn = true;
+  bool _isKeyboardVisible = false;
+
+
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   void logInHelper(LocalizedStrings strings) async {
@@ -490,6 +493,21 @@ class LoginFormState extends State<LoginForm> {
   }
 
   @override
+  void didChangeMetrics() {
+    final bottomInset = View.of(context).viewInsets.bottom;
+    final isVisible = bottomInset > 0.0;
+    if (isVisible != _isKeyboardVisible) {
+      setState(() => _isKeyboardVisible = isVisible);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
 
@@ -501,34 +519,34 @@ class LoginFormState extends State<LoginForm> {
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.0),
-              ),
+              child: Container(color: Colors.black.withValues(alpha: 0.0)),
             ),
           ),
           SingleChildScrollView(
             child: Column(
-
               children: [
-                AutoSizeText(
-                  "betrader.v1",
-                  textAlign: TextAlign.center,
-                  minFontSize: 20,
-                  maxLines: 1,
-                  style: GoogleFonts.syncopate(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 38,
-                    color: Colors.white,
+                // Texto que se oculta con el teclado
+                AnimatedOpacity(
+                  opacity: _isKeyboardVisible ? 0.0 : 1.0,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  child: AutoSizeText(
+                    "betrader.v1",
+                    textAlign: TextAlign.center,
+                    minFontSize: 20,
+                    maxLines: 1,
+                    style: GoogleFonts.syncopate(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 38,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                Image.asset('assets/new_icon.png',
-                    width: 200, fit: BoxFit.cover),
-                const Padding(padding: EdgeInsets.all(10.0)),
-
+                Image.asset('assets/new_icon.png', width: 200, fit: BoxFit.cover),
+                const SizedBox(height: 10),
 
                 if (_showSocialSignIn) ...[
-
                   _buildGoogleSignInButton(strings!),
                   const SizedBox(height: 8),
                   _buildManualLogInButton(strings),
@@ -541,7 +559,7 @@ class LoginFormState extends State<LoginForm> {
                   _buildPasswordField(strings),
                   const SizedBox(height: 20),
                   _buildLoginAndRegisterButtons(context, strings),
-                 const SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildToggleButton(strings),
                   const SizedBox(height: 16),
                   _buildForgotPasswordButton(strings),
@@ -552,5 +570,13 @@ class LoginFormState extends State<LoginForm> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

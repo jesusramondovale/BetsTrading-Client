@@ -111,26 +111,50 @@ class TrendDialog extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               if (trend.icon != "null") ...[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Image.memory(
-                                    base64Decode(trend.icon),
-                                    height: 120,
-                                    width: 120,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) => Text(
-                                      trend.name,
-                                      maxLines: 1,
-                                      style: GoogleFonts.josefinSans(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.w200,
-                                        color: Colors.white,
+                                if (trend.icon.startsWith('http'))...[
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.network(
+                                      trend.icon,
+                                      height: 120,
+                                      width: 120,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) => Text(
+                                        trend.name,
+                                        maxLines: 1,
+                                        style: GoogleFonts.josefinSans(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w200,
+                                          color: Colors.white,
+                                        ),
+                                        textAlign: TextAlign.center,
                                       ),
-                                      textAlign: TextAlign.center,
                                     ),
-                                  ),
-                                ),
+                                  )
+                                ]
+                                else ... [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.memory(
+                                      base64Decode(trend.icon),
+                                      height: 120,
+                                      width: 120,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) => Text(
+                                        trend.name,
+                                        maxLines: 1,
+                                        style: GoogleFonts.josefinSans(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w200,
+                                          color: Colors.white,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  )
+                                ]
                               ] else ...[
                                 AutoSizeText(
                                   Common().createTrendViewName(trend),
