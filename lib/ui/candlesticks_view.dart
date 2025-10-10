@@ -69,8 +69,9 @@ class CandlesticksViewState extends State<CandlesticksView> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    TimeframeManager.set(1);
     _inactive_zone = widget.betId != null;
+    _loadData();
   }
 
   @override
@@ -83,7 +84,6 @@ class CandlesticksViewState extends State<CandlesticksView> {
               ValueListenableBuilder<double>(
                 valueListenable: candleScaleNotifier,
                 builder: (BuildContext context, double scale, Widget? child) {
-                  TimeframeManager.set(1);
                   return Center(
                     child: Stack(
                       children: <Widget>[

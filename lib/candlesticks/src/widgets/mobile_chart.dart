@@ -130,8 +130,9 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
 
   void _fetchZones() async {
     try {
-      final zones = await BetsService().fetchBetZones(widget.ticker, 1, null);
-      final candles = await BetsService().fetchCandles(widget.ticker,1 );
+      final tf = _mapTimeframe(_currentRangeTime);
+      final zones = await BetsService().fetchBetZones(widget.ticker, tf, null);
+      final candles = await BetsService().fetchCandles(widget.ticker, tf);
       final rectangleZones = Common().getRectangleZonesFromBetZones(zones, candles.isNotEmpty ? candles.first.close : 0.0);
       widget.rectangleZones.value = rectangleZones;
     } catch (e) {

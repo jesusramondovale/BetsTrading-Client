@@ -127,6 +127,13 @@ class CandlesticksState extends State<Candlesticks> {
     if (widget.candles.isEmpty) {
       return;
     }
+
+    if (oldWidget.extraHours != widget.extraHours) {
+      indexMarginRight = -widget.extraHours;
+      index = indexMarginRight;
+      lastIndex = indexMarginRight;
+    }
+
     if (mainWindowDataContainer == null) {
       mainWindowDataContainer =
           MainWindowDataContainer(widget.indicators ?? [], widget.candles);
@@ -138,8 +145,8 @@ class CandlesticksState extends State<Candlesticks> {
           if (currentIndicators[i] == oldIndicators[i]) {
             continue;
           } else {
-            mainWindowDataContainer = MainWindowDataContainer(
-                widget.indicators ?? [], widget.candles);
+            mainWindowDataContainer =
+                MainWindowDataContainer(widget.indicators ?? [], widget.candles);
             return;
           }
         }
@@ -156,6 +163,7 @@ class CandlesticksState extends State<Candlesticks> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
