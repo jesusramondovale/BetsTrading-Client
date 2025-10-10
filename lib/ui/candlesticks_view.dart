@@ -102,7 +102,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                               chartTitle: widget.name,
                               ticker: widget.ticker,
                               iconPath: widget.iconPath,
-                              extraDays: Common().daysUntilLatestEndDate(_zonesNotifier.value),
+                              extraHours: Common().hoursUntilLatestEndDate(_zonesNotifier.value, _candles.first.date),
                             ),
                         Positioned(
                           top: 10.0,

@@ -485,7 +485,7 @@ class Common {
         bet_zone: 999);
   }
 
-  int daysUntilLatestEndDate(List<RectangleZone> rectangleZones) {
+  int hoursUntilLatestEndDate(List<RectangleZone> rectangleZones, DateTime lastCandleDateTime) {
     if (rectangleZones.isEmpty) {
       return 10;
     }
@@ -496,8 +496,7 @@ class Common {
         latestDate = zone.endDate;
       }
     }
-    DateTime now = DateTime.now();
-    int daysUntil = latestDate.difference(now).inDays;
+    int daysUntil = latestDate.difference(lastCandleDateTime).inHours;
     return daysUntil > 0 ? daysUntil : 0;
   }
 

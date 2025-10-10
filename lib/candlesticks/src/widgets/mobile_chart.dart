@@ -175,7 +175,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
         LocalizedStrings.of(context)!.get('noBetsAvailable') ?? "No Bets available!";
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double maxWidth = constraints.maxWidth - PRICE_BAR_WIDTH;
+        final double maxWidth = constraints.maxWidth - PRICE_BAR_WIDTH + widget.candleWidth * 2;
         final double maxHeight = constraints.maxHeight - DATE_BAR_HEIGHT;
 
         final int candlesStartIndex = widget.candles.isEmpty
@@ -351,7 +351,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                         topPrice: tweenEnd,
                                         bottomPrice: tweenBegin,
                                         index: widget.index,
-                                        minIndex: -20,
+                                        timeframe: _mapTimeframe(_currentRangeTime),
                                         priceColumnWidth: PRICE_BAR_WIDTH,
                                         noBetsText: noBetsText,
                                         noIcon: widget.iconPath == "null",
@@ -639,7 +639,6 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                                   : element),
                                       candlesLowPrice),
                                   index: widget.index,
-                                  minIndex: -20,
                                   priceColumnWidth: PRICE_BAR_WIDTH,
                                   noBetsText: noBetsText,
                                   noIcon: widget.iconPath == "null",

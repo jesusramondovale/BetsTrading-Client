@@ -825,6 +825,7 @@ class RecentBetContainer extends StatefulWidget {
 class RecentBetContainerState extends State<RecentBetContainer> {
   bool _showEditButtons = false;
   String _currencyChar = '€';
+
   void _triggerBetButtons() {
     setState(() {
       _showEditButtons = !_showEditButtons;
@@ -866,8 +867,6 @@ class RecentBetContainerState extends State<RecentBetContainer> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     int daysUntilTarget =
@@ -878,13 +877,12 @@ class RecentBetContainerState extends State<RecentBetContainer> {
         (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
             ? (widget.bet.profitLoss)?.toStringAsFixed(2)
             : '¿?';
-    //TODO
-    //String currency = 'xd';
 
-    /* TO-DO
-    String currency = (bet.currency != null) ?
-                                     bet.currency as String :
-                                     '-';  */
+    //TODO
+    //String currency = (bet.currency != null) ?
+    //                                 bet.currency as String :
+    //                                 '-';  */
+
     return Column(
       children: <Widget>[
         Slidable(
@@ -1050,8 +1048,8 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                         : Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 12),
                         Text(
                           (widget.dailyGain >= 0.0)
-                              ? ' ${(widget.dailyGain * 100).toStringAsFixed(2)}%'
-                              : ' ${(widget.dailyGain.abs() * 100).toStringAsFixed(2)}%',
+                              ? ' ${(widget.dailyGain).toStringAsFixed(2)}%'
+                              : ' ${(widget.dailyGain.abs()).toStringAsFixed(2)}%',
                           style: GoogleFonts.rajdhani(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,

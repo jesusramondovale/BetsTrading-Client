@@ -1,4 +1,4 @@
-import 'dart:math';
+
 import 'package:betrader/candlesticks/src/constant/view_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,10 +13,10 @@ class RangePainter extends CustomPainter {
   final double topPrice;
   final double bottomPrice;
   final int index;
-  final int minIndex;
   final double priceColumnWidth;
   final String noBetsText;
   final bool noIcon;
+  final int timeframe ;
 
   RangePainter( {
     required this.zones,
@@ -25,21 +25,17 @@ class RangePainter extends CustomPainter {
     required this.topPrice,
     required this.bottomPrice,
     required this.index,
-    required this.minIndex,
     required this.priceColumnWidth,
     required this.noBetsText,
     required this.noIcon,
-
+    this.timeframe = 1,
   }) : super(repaint: zones);
 
-  double dateToX(DateTime date, int index, double candleWidth, DateTime lastCandleDate, Size size) {
-    int daysFromLastCandle = date.difference(lastCandleDate).inDays;
-    double startXForFuture =
-        (size.width - priceColumnWidth) + (index * candleWidth);
-
-    double xPositionForDate =
-        startXForFuture + (daysFromLastCandle * candleWidth);
-
+  double hoursToX(DateTime date, int index, double candleWidth, DateTime lastCandleDate, Size size, int timeframe) {
+    int hoursFromLastCandle = date.difference(lastCandleDate).inHours;
+    double candleOffset = hoursFromLastCandle / timeframe;
+    double startXForFuture = (size.width - priceColumnWidth) + ((index-1) * candleWidth);
+    double xPositionForDate = startXForFuture + (candleOffset * candleWidth);
     return xPositionForDate;
   }
 
@@ -78,24 +74,28 @@ class RangePainter extends CustomPainter {
         .reduce((a, b) => a.isAfter(b) ? a : b);
 
     for (final zone in zones.value) {
-      double startX = dateToX(zone.startDate, index, candleWidth, maxCandleDate, size);
-      double endX = dateToX(zone.endDate, index, candleWidth, maxCandleDate, size);
-      endX = max(endX, startX + candleWidth);
+      double startX = hoursToX(zone.startDate, index, candleWidth, maxCandleDate, size, timeframe);
+      double endX = hoursToX(zone.endDate, index, candleWidth, maxCandleDate, size, timeframe);
+
+      final durationHours = zone.endDate.difference(zone.startDate).inHours.abs();
+      final widthFactor = (durationHours / timeframe).clamp(1, double.infinity);
+
+      endX = startX + widthFactor * candleWidth;
+      startX = startX.clamp(0.0, size.width - PRICE_BAR_WIDTH);
+      endX = endX.clamp(0.0, size.width);
+
       double startY = priceToY(zone.highPrice, topPrice, bottomPrice, size);
       double endY = priceToY(zone.lowPrice, topPrice, bottomPrice, size);
-      startX = min(startX, size.width - PRICE_BAR_WIDTH);
-      endX = min(endX, size.width);
+
       final paintFill = Paint()
         ..color = zone.fillColor.withValues(alpha: 0.6)
         ..style = PaintingStyle.fill;
       canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintFill);
 
-
       final paintStroke = Paint()
         ..color = Colors.white.withValues(alpha: 0.8)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 0.5;
-
       canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintStroke);
 
       double fontSize = Common()
@@ -117,6 +117,7 @@ class RangePainter extends CustomPainter {
       final textY = startY + (endY - startY - textPainter.height) / 2;
       textPainter.paint(canvas, Offset(textX, textY));
     }
+
   }
 
   @override
@@ -128,9 +129,9 @@ class RangePainter extends CustomPainter {
         .reduce((a, b) => a.isAfter(b) ? a : b);
     for (final zone in zones.value) {
       if (x >=
-              dateToX(
-                  zone.startDate, index, candleWidth, maxCandleDate, size) &&
-          x <= dateToX(zone.endDate, index, candleWidth, maxCandleDate, size) &&
+          hoursToX(
+                  zone.startDate, index, candleWidth, maxCandleDate, size, timeframe) &&
+          x <= hoursToX(zone.endDate, index, candleWidth, maxCandleDate, size, timeframe ) &&
           y >= priceToY(zone.highPrice, topPrice, bottomPrice, size) &&
           y <= priceToY(zone.lowPrice, topPrice, bottomPrice, size)) {
         return zone;

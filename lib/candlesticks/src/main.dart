@@ -60,7 +60,7 @@ class Candlesticks extends StatefulWidget {
 
   final String iconPath;
 
-  final int extraDays;
+  final int extraHours;
 
   final bool inactiveZone;
 
@@ -83,7 +83,7 @@ class Candlesticks extends StatefulWidget {
     required this.controller,
     required this.chartTitle,
     required this.iconPath,
-    required this.extraDays,
+    required this.extraHours,
 
   });
 
@@ -111,7 +111,7 @@ class CandlesticksState extends State<Candlesticks> {
   @override
   void initState() {
     super.initState();
-    indexMarginRight = -5-widget.extraDays;
+    indexMarginRight = -widget.extraHours;
     index = indexMarginRight;
     lastIndex = indexMarginRight;
     if (widget.candles.isEmpty) {
