@@ -96,7 +96,6 @@ class HomeScreenState extends State<HomeScreen> {
     _ticker!.start();
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -109,7 +108,6 @@ class HomeScreenState extends State<HomeScreen> {
         _favsFuture = BetsService().fetchFavouritesData(_userId ?? "none");
       });
     });
-
   }
 
   @override
@@ -146,7 +144,6 @@ class HomeScreenState extends State<HomeScreen> {
                           onPersonalInfoTap: () {
                             Navigator.pop(context);
                             widget.controller.updateIndex(4);
-
                           },
                           onShowNotifications: () {
                             Navigator.push(
@@ -176,52 +173,48 @@ class HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Spacer(flex: 4),
-
                 IconButton(
-                  padding: const EdgeInsets.all(2.5),
-                  onPressed: () async {
-                    Common().vibrate();
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => StorePage()),
-                    );
-                    exchangePageKey.currentState?.loadData();
-                  },
-                  icon: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.1),
-                            Colors.grey.shade800.withValues(alpha: 1.0),
-                          ]
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(6.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                            child: Image.asset(
-                              'assets/coin.png',
-                              width: 25,
-                              height: 25,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            NumberFormat.compact().format(_userPoints),
-                            style: GoogleFonts.montserrat(color: Colors.white),
-                          ),
-                        ],
-                      )
-                    )
-                  )
-                )
+                    padding: const EdgeInsets.all(2.5),
+                    onPressed: () async {
+                      Common().vibrate();
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => StorePage()),
+                      );
+                      exchangePageKey.currentState?.loadData();
+                    },
+                    icon: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.1),
+                                Colors.grey.shade800.withValues(alpha: 1.0),
+                              ]),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                            padding: const EdgeInsets.all(6.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.fromLTRB(0, 0, 0, 2),
+                                  child: Image.asset(
+                                    'assets/coin.png',
+                                    width: 25,
+                                    height: 25,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  NumberFormat.compact().format(_userPoints),
+                                  style: GoogleFonts.montserrat(
+                                      color: Colors.white),
+                                ),
+                              ],
+                            ))))
               ],
             ),
 
@@ -229,9 +222,9 @@ class HomeScreenState extends State<HomeScreen> {
             Row(
               children: <Widget>[
                 Text(strings?.get('liveBets') ?? 'Trends',
-                    style: GoogleFonts.comfortaa(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
+                    style: GoogleFonts.syncopate(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w200,
                     )),
                 const Spacer(),
                 const SizedBox(width: 5),
@@ -246,325 +239,334 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            Divider(
-                color: Colors.white,
-                thickness: 0.5,
-                height: 0.5),
+            Divider(color: Colors.white, thickness: 0.5, height: 0.5),
             Expanded(
               flex: 9,
               child: _userId == null
-                  ?  Center(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      SizedBox(width: 8),
-                      SkeletonTrendContainer(),
-                      SizedBox(width: 8),
-                      SkeletonTrendContainer(),
-                      SizedBox(width: 8),
-                      SkeletonTrendContainer(),
-                      SizedBox(width: 8),
-                    ],
-                  ),
-                ),
-              )
-                  :
-              Expanded(
-                flex: 9,
-                child: FutureBuilder<Trends>(
-                  future: _trendsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: const [
-                              SizedBox(width: 8),
-                              SkeletonTrendContainer(),
-                              SizedBox(width: 8),
-                              SkeletonTrendContainer(),
-                              SizedBox(width: 8),
-                              SkeletonTrendContainer(),
-                              SizedBox(width: 8),
-                            ],
-                          ),
+                  ? Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            SizedBox(width: 8),
+                            SkeletonTrendContainer(),
+                            SizedBox(width: 8),
+                            SkeletonTrendContainer(),
+                            SizedBox(width: 8),
+                            SkeletonTrendContainer(),
+                            SizedBox(width: 8),
+                          ],
                         ),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (snapshot.hasData && snapshot.data!.trends.isNotEmpty) {
-                      final data = snapshot.data!;
-
-                      return Listener(
-                        onPointerDown: (_) {
-                          _userIsInteracting = true;
-                        },
-                        onPointerUp: (_) async {
-                          await Future.delayed(const Duration(seconds: 2));
-                          _userIsInteracting = false;
-                        },
-                          child: ListView.builder(
-                          controller: _trendScrollController,
-                          scrollDirection: Axis.horizontal,
-                          itemCount: data.trends.length,
-                          itemBuilder: (context, index) {
-                            final sortedTrends = List.from(data.trends)
-                              ..sort((a, b) => a.id.compareTo(b.id));
-                            final sortedIndex = sortedTrends[index].id - 1;
-
-                            return TrendContainer(
-                              trend: sortedTrends[index],
-                              index: sortedIndex,
-                              onFavoriteUpdated: refreshFavorites,
-                              controller: widget.controller,
+                      ),
+                    )
+                  : Expanded(
+                      flex: 9,
+                      child: FutureBuilder<Trends>(
+                        future: _trendsFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: const [
+                                    SizedBox(width: 8),
+                                    SkeletonTrendContainer(),
+                                    SizedBox(width: 8),
+                                    SkeletonTrendContainer(),
+                                    SizedBox(width: 8),
+                                    SkeletonTrendContainer(),
+                                    SizedBox(width: 8),
+                                  ],
+                                ),
+                              ),
                             );
-                          },
-                        ),
-                      );
-                    } else {
-                      return Center(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: const [
-                              SizedBox(width: 8),
-                              SkeletonTrendContainer(),
-                              SizedBox(width: 8),
-                              SkeletonTrendContainer(),
-                              SizedBox(width: 8),
-                              SkeletonTrendContainer(),
-                              SizedBox(width: 8),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-              ),
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else if (snapshot.hasData &&
+                              snapshot.data!.trends.isNotEmpty) {
+                            final data = snapshot.data!;
 
+                            return Listener(
+                              onPointerDown: (_) {
+                                _userIsInteracting = true;
+                              },
+                              onPointerUp: (_) async {
+                                await Future.delayed(
+                                    const Duration(seconds: 2));
+                                _userIsInteracting = false;
+                              },
+                              child: ListView.builder(
+                                controller: _trendScrollController,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.trends.length,
+                                itemBuilder: (context, index) {
+                                  final sortedTrends = List.from(data.trends)
+                                    ..sort((a, b) => a.id.compareTo(b.id));
+                                  final sortedIndex =
+                                      sortedTrends[index].id - 1;
 
+                                  return TrendContainer(
+                                    trend: sortedTrends[index],
+                                    index: sortedIndex,
+                                    onFavoriteUpdated: refreshFavorites,
+                                    controller: widget.controller,
+                                  );
+                                },
+                              ),
+                            );
+                          } else {
+                            return Center(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: const [
+                                    SizedBox(width: 8),
+                                    SkeletonTrendContainer(),
+                                    SizedBox(width: 8),
+                                    SkeletonTrendContainer(),
+                                    SizedBox(width: 8),
+                                    SkeletonTrendContainer(),
+                                    SizedBox(width: 8),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
             ),
 
+            // Favorites
             Text(strings?.get('favs') ?? 'Favs',
-                  style: GoogleFonts.comfortaa(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w400,
-                  )),
-            Divider(
-                color: Colors.white,
-                thickness: 0.5,
-                height: 0.5),
+                style: GoogleFonts.syncopate(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w300,
+                )),
+            Divider(color: Colors.white, thickness: 0.5, height: 0.5),
             Expanded(
               flex: 8,
               child: _userId == null
-                  ? Center(child: Center(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      SizedBox(width: 8),
-                      SkeletonTrendContainer(),
-                      SizedBox(width: 8),
-                      SkeletonTrendContainer(),
-                      SizedBox(width: 8),
-                      SkeletonTrendContainer(),
-                      SizedBox(width: 8),
-                    ],
-                  ),
-                ),
-              ))
-                  :
-              FutureBuilder<Favorites>(
-                  future: _favsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return  Center(
-                        child: Center(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                SizedBox(width: 8),
-                                SkeletonFavoriteContainer(),
-                                SizedBox(width: 8),
-                                SkeletonFavoriteContainer(),
-                                SizedBox(width: 8),
-                                SkeletonFavoriteContainer(),
-                                SizedBox(width: 8),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (snapshot.hasData &&
-                        snapshot.data!.favorites.isNotEmpty) {
-                      final data = snapshot.data!;
-                      return ListView.builder(
+                  ? Center(
+                      child: Center(
+                      child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
-                        itemCount: data.length,
-                        itemBuilder: (context, index) {
-                          return FavoriteContainer(
-                              favorite: data.favorites[index],
-                              onFavoriteUpdated: refreshFavorites, controller: widget.controller,);
-                        },
-                      );
-                    } else {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                LocalizedStrings.of(context)!.get('noFavsYet') ??
-                                    "No favorites yet!",
-                                style: GoogleFonts.dosis(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w200,
+                        child: Row(
+                          children: [
+                            SizedBox(width: 8),
+                            SkeletonTrendContainer(),
+                            SizedBox(width: 8),
+                            SkeletonTrendContainer(),
+                            SizedBox(width: 8),
+                            SkeletonTrendContainer(),
+                            SizedBox(width: 8),
+                          ],
+                        ),
+                      ),
+                    ))
+                  : FutureBuilder<Favorites>(
+                      future: _favsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(
+                            child: Center(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    SizedBox(width: 8),
+                                    SkeletonFavoriteContainer(),
+                                    SizedBox(width: 8),
+                                    SkeletonFavoriteContainer(),
+                                    SizedBox(width: 8),
+                                    SkeletonFavoriteContainer(),
+                                    SizedBox(width: 8),
+                                  ],
                                 ),
                               ),
-                              SizedBox(height: 10),
-                              Icon(
-                                Icons.star_border,
-                                size: 50,
-                                color: Colors.grey,
+                            ),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (snapshot.hasData &&
+                            snapshot.data!.favorites.isNotEmpty) {
+                          final data = snapshot.data!;
+                          return ScrollConfiguration(
+                            behavior: ScrollConfiguration.of(context).copyWith(
+                              overscroll: false,
+                            ),
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
+                              itemCount: data.length,
+                              itemBuilder: (context, index) {
+                                return FavoriteContainer(
+                                  favorite: data.favorites[index],
+                                  onFavoriteUpdated: refreshFavorites,
+                                  controller: widget.controller,
+                                );
+                              },
+                            ),
+                          );
+                        } else {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    LocalizedStrings.of(context)!
+                                            .get('noFavsYet') ??
+                                        "No favorites yet!",
+                                    style: GoogleFonts.dosis(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w200,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Icon(
+                                    Icons.star_border,
+                                    size: 50,
+                                    color: Colors.grey,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                  }),
+                            ),
+                          );
+                        }
+                      }),
             ),
-
 
             // Recent bets
             Row(
               children: [
                 Text(
                   strings?.get('recentBets') ?? 'Recent Bets',
-                  style: GoogleFonts.comfortaa(
-                      fontSize: 20, fontWeight: FontWeight.w400),
+                  style: GoogleFonts.syncopate(
+                      fontSize: 16, fontWeight: FontWeight.w200),
                 ),
                 Spacer(),
-                IconButton(icon: Icon(Icons.auto_delete), color: Colors.white70,
-                    onPressed:  () async {
-                        Common().vibrate();
-                        bool result = await BetsService().deleteHistoricBets(_userId ?? "none");
-                        if (result) {
-                          Common().showFloatingSnack(context, LocalizedStrings.of(context)!.get('betsDeleted') ?? "Bets deleted");
-                          setState(() {
-
-                          });
-                        }
-                }
-                ),
-                IconButton(icon: Icon(FontAwesomeIcons.rotate),
+                IconButton(
+                    icon: Icon(Icons.auto_delete),
                     color: Colors.white70,
-                  onPressed: () async => {
-                  Common().vibrate(),
-                  await BetsService().getUserInfo(_userId ?? "none"),
-                  loadUserIdAndData(),
-                  setState(() {
-
-
-                  })}
-                )
+                    onPressed: () async {
+                      Common().vibrate();
+                      bool result = await BetsService()
+                          .deleteHistoricBets(_userId ?? "none");
+                      if (result) {
+                        Common().showFloatingSnack(
+                            context,
+                            LocalizedStrings.of(context)!.get('betsDeleted') ??
+                                "Bets deleted");
+                        setState(() {});
+                      }
+                    }),
+                IconButton(
+                    icon: Icon(FontAwesomeIcons.rotate),
+                    color: Colors.white70,
+                    onPressed: () async => {
+                          Common().vibrate(),
+                          await BetsService().getUserInfo(_userId ?? "none"),
+                          loadUserIdAndData(),
+                          setState(() {})
+                        })
               ],
             ),
-            Divider(
-                color: Colors.white,
-                thickness: 0.5,
-                height: 0.5),
+            Divider(color: Colors.white, thickness: 0.5, height: 0.5),
             Expanded(
               flex: 12,
               child: _userId == null
-                  ? ListView(children: const [
-                        SkeletonRecentBetContainer(),
-                        SkeletonRecentBetContainer(),
-                  ],
-                )
-                  :
-              FutureBuilder<BetsAndPriceBets>(
-                future: BetsService().fetchInvestmentData(_userId ?? "none"),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return ListView(
+                  ? ListView(
                       children: const [
                         SkeletonRecentBetContainer(),
                         SkeletonRecentBetContainer(),
                       ],
-                    );
-                  }
-                  if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  }
-                  if (!snapshot.hasData) {
-                    return const SizedBox.shrink();
-                  }
+                    )
+                  : FutureBuilder<BetsAndPriceBets>(
+                      future:
+                          BetsService().fetchInvestmentData(_userId ?? "none"),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return ListView(
+                            children: const [
+                              SkeletonRecentBetContainer(),
+                              SkeletonRecentBetContainer(),
+                            ],
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        }
+                        if (!snapshot.hasData) {
+                          return const SizedBox.shrink();
+                        }
 
-                  final data = snapshot.data!;
-                  final bets = data.bets.investList;
-                  final priceBets = data.priceBets;
+                        final data = snapshot.data!;
+                        final bets = data.bets.investList;
+                        final priceBets = data.priceBets;
 
-                  if (bets.isEmpty && priceBets.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              strings!.get('noLiveBets') ??
-                                  'You have no live bets at the moment, go to the markets tab to create a new one',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.white70,
+                        if (bets.isEmpty && priceBets.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    strings!.get('noLiveBets') ??
+                                        'You have no live bets at the moment, go to the markets tab to create a new one',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 40,
+                                        child:
+                                            Image.asset('assets/new_icon.png'),
+                                      ),
+                                      SizedBox(width: 5.0),
+                                      Icon(Icons.arrow_downward_rounded,
+                                          size: 50, color: Colors.grey),
+                                    ],
+                                  )
+                                ],
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment : MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 40,
-                                  child: Image.asset('assets/new_icon.png'),
-                                ),
-                                SizedBox(width: 5.0),
-                                Icon(Icons.arrow_downward_rounded, size: 50, color: Colors.grey),
-                            ],)
+                          );
+                        }
+
+                        _bets = bets;
+
+                        return ListView(
+                          children: [
+                            ...bets.reversed.map((b) => RecentBetContainer(
+                                  dailyGain: b.dailyGain,
+                                  bet: b,
+                                  onDelete: () => _deleteBet(b.id),
+                                  controller: widget.controller,
+                                )),
+                            ...priceBets.reversed
+                                .map((p) => RecentPriceBetContainer(
+                                      priceBet: p,
+                                      onDelete: () => setState(() {}),
+                                      controller: widget.controller,
+                                      isForex: Common().isTickerForex(p.ticker),
+                                    )),
                           ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  _bets = bets;
-
-                  return ListView(
-                    children: [
-                      ...bets.reversed.map((b) => RecentBetContainer(
-                        dailyGain: b.dailyGain,
-                        bet: b,
-                        onDelete: () => _deleteBet(b.id),
-                        controller: widget.controller,
-                      )),
-                      ...priceBets.reversed.map((p) => RecentPriceBetContainer(
-                        priceBet: p,
-                        onDelete: () => setState(() {}),
-                        controller: widget.controller,
-                        isForex: Common().isTickerForex(p.ticker),
-                      )),
-                    ],
-                  );
-                },
-              ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -91,6 +92,7 @@ class FavoriteDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Stack(
+                  clipBehavior: Clip.hardEdge,
                   children: [
                     Positioned(
                       top: 0,
@@ -382,30 +384,47 @@ class FavoriteContainerState extends State<FavoriteContainer> {
     );
   }
 
+  Color calculateShadowColor(double dailyGain) {
+    const double maxGain = 7;
+    const double minAlpha = 0.01;
+    const double maxAlpha = 0.5;
+
+    double normalized = (dailyGain.abs() / maxGain).clamp(0.0, 1.0);
+    double alpha = minAlpha + (maxAlpha - minAlpha) * sqrt(normalized);
+
+    if (dailyGain > 0.15) {
+      return Colors.green.withValues(alpha: alpha);
+    } else if (dailyGain < (-0.15)) {
+      return Colors.red.withValues(alpha: alpha);
+    } else {
+      return Colors.grey.withValues(alpha: 0.15);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
       child: Material(
-        color: Colors.transparent,
+        type: MaterialType.transparency,
         child: InkWell(
-          onTap: () => {
-            Common().vibrate(),
-            popFavoritesDialog(context, widget.favorite, widget.controller)
+
+          onTap: () {
+            Common().vibrate();
+            popFavoritesDialog(context, widget.favorite, widget.controller);
           },
-          onLongPress: () => {
-            Common().vibrate(),
+          onLongPress: () {
+            Common().vibrate();
             showModalBottomSheet(
               context: context,
               isScrollControlled: true,
-              backgroundColor: Colors.transparent,
               builder: (BuildContext context) {
                 return ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
+                  borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(25.0)),
                   child: Container(
                     height: MediaQuery.of(context).size.height * 0.55,
                     child: OverflowBox(
-
                       alignment: Alignment.topCenter,
                       maxHeight: MediaQuery.of(context).size.height,
                       child: Column(
@@ -424,56 +443,45 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                   ),
                 );
               },
-            )
+            );
           },
-          splashColor: Colors.white24,
-          highlightColor: Colors.white12,
+          splashColor: Colors.white12,
           borderRadius: BorderRadius.circular(8),
-          child: Container(
-            width: 120,
+          child: Ink(
             decoration: BoxDecoration(
-              color: Colors.white12,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  spreadRadius: 1,
-                  blurRadius: 1,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+              color: calculateShadowColor(widget.favorite.dailyGain),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Stack(
-              children: [
-                Positioned(
-                  top: 0,
-                  right: -30,
-                  child: Icon(FontAwesomeIcons.solidStar,
-                      color: Colors.grey.withValues(alpha: 0.1), size: 120),
-                ),
-                Padding(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 0.8, sigmaY: 0.8),
+                child: Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (widget.favorite.icon != "null" &&
                           !widget.favorite.icon.startsWith("http")) ...[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
-                              child: Image.memory(
-                                base64Decode(widget.favorite.icon),
-                                height: 40,
-                                width: 40,
-                                errorBuilder: (context, error, stackTrace) => Text(
-                                  widget.favorite.name,
-                                  maxLines: 1,
-                                  style: GoogleFonts.roboto(
-                                      fontSize: 36, fontWeight: FontWeight.w100),
-                                  textAlign: TextAlign.center,
-                                ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.memory(
+                            base64Decode(widget.favorite.icon),
+                            height: 40,
+                            width: 40,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Text(
+                              widget.favorite.name,
+                              maxLines: 1,
+                              style: GoogleFonts.roboto(
+                                fontSize: 36,
+                                fontWeight: FontWeight.w100,
                               ),
-                            )
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        )
                       ] else if (widget.favorite.icon.startsWith("http")) ...[
                         ClipRRect(
                           borderRadius: BorderRadius.circular(6),
@@ -486,7 +494,9 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                               widget.favorite.name,
                               maxLines: 1,
                               style: GoogleFonts.roboto(
-                                  fontSize: 36, fontWeight: FontWeight.w100),
+                                fontSize: 36,
+                                fontWeight: FontWeight.w100,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -502,7 +512,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                           ),
                         ),
                       ],
-                      const Spacer(),
+                      const SizedBox(height: 6),
                       AutoSizeText(
                         widget.favorite.name,
                         maxLines: 1,
@@ -513,12 +523,19 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                         ),
                       ),
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           (widget.favorite.dailyGain >= 0.0)
-                              ? Icon(FontAwesomeIcons.arrowTrendUp,
-                                  color: Colors.green, size: 12)
-                              : Icon(FontAwesomeIcons.arrowTrendDown,
-                                  color: Colors.red, size: 12),
+                              ? const Icon(
+                            FontAwesomeIcons.arrowTrendUp,
+                            color: Colors.green,
+                            size: 12,
+                          )
+                              : const Icon(
+                            FontAwesomeIcons.arrowTrendDown,
+                            color: Colors.red,
+                            size: 12,
+                          ),
                           Text(
                             (widget.favorite.dailyGain >= 0.0)
                                 ? ' ${(widget.favorite.dailyGain).toStringAsFixed(2)}%'
@@ -536,13 +553,16 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+
+
+
 }
 
 //------- SKELETON
@@ -576,7 +596,7 @@ class SkeletonFavoriteContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-      width: 120,
+      width: 100,
       decoration: BoxDecoration(
         color: Colors.white12,
         boxShadow: [
@@ -590,6 +610,7 @@ class SkeletonFavoriteContainer extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Stack(
+        clipBehavior: Clip.hardEdge,
         children: [
           Positioned(
             top: 0,
@@ -625,3 +646,5 @@ class SkeletonFavoriteContainer extends StatelessWidget {
     );
   }
 }
+
+
