@@ -51,22 +51,33 @@ class Favorites {
   }
 }
 
-class FavoriteDialog extends StatelessWidget {
+class FavoriteDialog extends StatefulWidget {
   final Favorite favorite;
   final MainMenuPageController controller;
   final String currency;
-  const FavoriteDialog(
-      {super.key, required this.favorite, required this.controller, required this.currency});
+
+  const FavoriteDialog({
+    super.key,
+    required this.favorite,
+    required this.controller,
+    required this.currency,
+  });
+
+  @override
+  State<FavoriteDialog> createState() => _FavoriteDialogState();
+}
+
+class _FavoriteDialogState extends State<FavoriteDialog> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  bool isFavorite = true;
 
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
+
     return Dialog(
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(40),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
       backgroundColor: Colors.transparent.withValues(alpha: 0.1),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(40),
@@ -111,49 +122,48 @@ class FavoriteDialog extends StatelessWidget {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (favorite.icon != "null") ...[
+                              if (widget.favorite.icon != "null") ...[
                                 ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: (favorite.icon.startsWith('http')
-                                        ? Image.network(
-                                            favorite.icon,
-                                            height: 130,
-                                            width: 130,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) =>
-                                                    Text(
-                                              favorite.name,
-                                              maxLines: 1,
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 36,
-                                                fontWeight: FontWeight.w100,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          )
-                                        : Image.memory(
-                                            base64Decode(favorite.icon),
-                                            height: 130,
-                                            width: 130,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) =>
-                                                    Text(
-                                              favorite.name,
-                                              maxLines: 1,
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 36,
-                                                fontWeight: FontWeight.w100,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ))),
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: widget.favorite.icon.startsWith('http')
+                                      ? Image.network(
+                                    widget.favorite.icon,
+                                    height: 130,
+                                    width: 130,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, _) =>
+                                        Text(
+                                          widget.favorite.name,
+                                          maxLines: 1,
+                                          style: GoogleFonts.roboto(
+                                            fontSize: 36,
+                                            fontWeight: FontWeight.w100,
+                                            color: Colors.white,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                  )
+                                      : Image.memory(
+                                    base64Decode(widget.favorite.icon),
+                                    height: 130,
+                                    width: 130,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, _) =>
+                                        Text(
+                                          widget.favorite.name,
+                                          maxLines: 1,
+                                          style: GoogleFonts.roboto(
+                                            fontSize: 36,
+                                            fontWeight: FontWeight.w100,
+                                            color: Colors.white,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                  ),
+                                ),
                               ] else ...[
                                 AutoSizeText(
-                                  Common().createFavViewName(favorite),
+                                  Common().createFavViewName(widget.favorite),
                                   maxLines: 1,
                                   style: GoogleFonts.josefinSans(
                                     fontSize: 60,
@@ -169,31 +179,35 @@ class FavoriteDialog extends StatelessWidget {
                                   IconButton(
                                     iconSize: 50,
                                     onPressed: () async {
+                                      final newState = !isFavorite;
                                       bool ok =
-                                          await BetsService().postNewFavorite(
+                                      await BetsService().postNewFavorite(
                                         await _storage.read(
-                                                key: "sessionToken") ??
+                                            key: "sessionToken") ??
                                             "none",
-                                        favorite.ticker,
+                                        widget.favorite.ticker,
                                       );
+
                                       if (ok) {
-                                        Common().showFloatingSnack(
-                                          context,
-                                          LocalizedStrings.of(context)!
-                                                  .get('updatedFavs') ??
-                                              "Updated favs!",
-                                          theDuration: 4,
-                                        );
+                                        setState(() {
+                                          isFavorite = newState;
+                                        });
                                         homeScreenKey.currentState
                                             ?.refreshFavorites();
                                         marketsPageKey.currentState
-                                            ?.toggleFavorite(favorite.ticker,
-                                                onlyLocal: true);
-                                        Navigator.of(context).pop(true);
+                                            ?.toggleFavorite(
+                                          widget.favorite.ticker,
+                                          onlyLocal: true,
+                                        );
                                       }
                                     },
-                                    icon: const Icon(FontAwesomeIcons.solidStar,
-                                        color: Colors.white),
+                                    icon: Icon(
+                                      isFavorite
+                                          ? FontAwesomeIcons.solidStar
+                                          : FontAwesomeIcons.star,
+                                      color: Colors.yellow,
+                                      size: 36,
+                                    ),
                                   ),
                                   const SizedBox(height: 90),
                                 ],
@@ -202,7 +216,7 @@ class FavoriteDialog extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           AutoSizeText(
-                            favorite.name,
+                            widget.favorite.name,
                             maxLines: 1,
                             style: GoogleFonts.robotoCondensed(
                               fontSize: 40,
@@ -212,19 +226,17 @@ class FavoriteDialog extends StatelessWidget {
                           ),
                           Row(
                             children: [
-                              (favorite.dailyGain >= 0.0)
+                              (widget.favorite.dailyGain >= 0.0)
                                   ? const Icon(FontAwesomeIcons.arrowTrendUp,
-                                      color: Colors.green, size: 20)
+                                  color: Colors.green, size: 20)
                                   : const Icon(FontAwesomeIcons.arrowTrendDown,
-                                      color: Colors.red, size: 20),
+                                  color: Colors.red, size: 20),
                               Text(
-                                (favorite.dailyGain >= 0.0)
-                                    ? ' ${(favorite.dailyGain).toStringAsFixed(2)}%'
-                                    : ' ${(favorite.dailyGain.abs()).toStringAsFixed(2)}%',
+                                ' ${(widget.favorite.dailyGain).abs().toStringAsFixed(2)}%',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 25,
                                   fontWeight: FontWeight.w400,
-                                  color: favorite.dailyGain >= 0.0
+                                  color: widget.favorite.dailyGain >= 0.0
                                       ? Colors.green
                                       : Colors.red,
                                 ),
@@ -233,7 +245,7 @@ class FavoriteDialog extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '${strings?.get('close') ?? 'Close'}: ${favorite.close.toStringAsFixed(2)}' + currency,
+                            '${strings?.get('close') ?? 'Close'}: ${widget.favorite.close.toStringAsFixed(2)}${widget.currency}',
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -243,11 +255,11 @@ class FavoriteDialog extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                '${strings?.get('current') ?? 'Current'}: ${favorite.current.toStringAsFixed(2)}' + currency,
+                                '${strings?.get('current') ?? 'Current'}: ${widget.favorite.current.toStringAsFixed(2)}${widget.currency}',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: favorite.dailyGain >= 0.0
+                                  color: widget.favorite.dailyGain >= 0.0
                                       ? Colors.green
                                       : Colors.red,
                                 ),
@@ -270,30 +282,33 @@ class FavoriteDialog extends StatelessWidget {
                                         builder: (BuildContext context) {
                                           return ClipRRect(
                                             borderRadius:
-                                                const BorderRadius.vertical(
+                                            const BorderRadius.vertical(
                                               top: Radius.circular(25),
                                             ),
                                             child: Container(
                                               color: Theme.of(context)
                                                   .scaffoldBackgroundColor,
                                               height: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
+                                                  .size
+                                                  .height *
                                                   0.55,
                                               child: OverflowBox(
                                                 alignment: Alignment.topCenter,
                                                 maxHeight:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .height,
+                                                MediaQuery.of(context)
+                                                    .size
+                                                    .height,
                                                 child: Column(
                                                   children: [
                                                     Expanded(
                                                       child: CandlesticksView(
-                                                        ticker: favorite.ticker,
-                                                        name: favorite.name,
-                                                        controller: controller,
-                                                        iconPath: favorite.icon,
+                                                        ticker:
+                                                        widget.favorite.ticker,
+                                                        name: widget.favorite.name,
+                                                        controller:
+                                                        widget.controller,
+                                                        iconPath:
+                                                        widget.favorite.icon,
                                                       ),
                                                     ),
                                                   ],
@@ -314,7 +329,7 @@ class FavoriteDialog extends StatelessWidget {
                                     ),
                                   )
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ],
@@ -330,6 +345,7 @@ class FavoriteDialog extends StatelessWidget {
     );
   }
 }
+
 
 class FavoriteContainer extends StatefulWidget {
   final Favorite favorite;

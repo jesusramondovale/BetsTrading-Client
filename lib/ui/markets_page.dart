@@ -149,6 +149,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   }
 
+  bool isFavorite(String ticker) {
+    return _favTickers.contains(ticker);
+  }
+
   void toggleFavorite(String ticker, {bool onlyLocal = false}) async {
     final key = ticker.toUpperCase().trim();
 
@@ -189,10 +193,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       });
       Common().showFloatingSnack(context, "Error updating favorites", backgroundColor: Colors.red);
     } else {
-      Common().showFloatingSnack(
-          context,
-          LocalizedStrings.of(context)?.get('updatedFavs') ?? "Updated favs!"
-      );
       await _loadFavorites();
     }
 
@@ -322,10 +322,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       return strings?.get('shares') ?? 'Shares';
     } else if (g.contains('forex') || g == 'forex') {
       return 'Forex';
-    } else if (g.contains('commod') || g == 'commodities') {
+    } else if (g.contains('commodities') || g == 'commodities') {
       return strings?.get('commodities') ?? 'Commodities';
     }
-    return group; // fallback tal cual viene del backend
+    return group;
   }
 
   @override

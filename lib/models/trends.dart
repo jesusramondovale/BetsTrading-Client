@@ -43,17 +43,33 @@ class Trends {
   Trends(this.trends, this.length);
 }
 
-class TrendDialog extends StatelessWidget {
+class TrendDialog extends StatefulWidget {
   final Trend trend;
   final int index;
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final MainMenuPageController controller;
   final String currency;
-  const TrendDialog(
-      {super.key,
-      required this.trend,
-      required this.index,
-      required this.controller, required this.currency});
+
+  const TrendDialog({
+    super.key,
+    required this.trend,
+    required this.index,
+    required this.controller,
+    required this.currency,
+  });
+
+  @override
+  State<TrendDialog> createState() => _TrendDialogState();
+}
+
+class _TrendDialogState extends State<TrendDialog> {
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isFavorite = marketsPageKey.currentState?.isFavorite(widget.trend.ticker) ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,9 +77,7 @@ class TrendDialog extends StatelessWidget {
 
     return Dialog(
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(40),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
       backgroundColor: Colors.transparent.withValues(alpha: 0.1),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(40),
@@ -92,9 +106,9 @@ class TrendDialog extends StatelessWidget {
                   children: [
                     Positioned(
                       top: -30,
-                      right: (index == 0 || index >= 9) ? -40 : -25,
+                      right: (widget.index == 0 || widget.index >= 9) ? -40 : -25,
                       child: Text(
-                        (index + 1).toString(),
+                        (widget.index + 1).toString(),
                         style: TextStyle(
                           fontSize: 400,
                           color: Colors.white.withValues(alpha: 0.05),
@@ -110,54 +124,31 @@ class TrendDialog extends StatelessWidget {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              if (trend.icon != "null") ...[
-                                if (trend.icon.startsWith('http'))...[
+                              if (widget.trend.icon != "null") ...[
+                                if (widget.trend.icon.startsWith('http')) ...[
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
                                     child: Image.network(
-                                      trend.icon,
+                                      widget.trend.icon,
                                       height: 120,
                                       width: 120,
                                       fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) => Text(
-                                        trend.name,
-                                        maxLines: 1,
-                                        style: GoogleFonts.josefinSans(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w200,
-                                          color: Colors.white,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
                                     ),
                                   )
-                                ]
-                                else ... [
+                                ] else ...[
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
                                     child: Image.memory(
-                                      base64Decode(trend.icon),
+                                      base64Decode(widget.trend.icon),
                                       height: 120,
                                       width: 120,
                                       fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) => Text(
-                                        trend.name,
-                                        maxLines: 1,
-                                        style: GoogleFonts.josefinSans(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w200,
-                                          color: Colors.white,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
                                     ),
                                   )
                                 ]
                               ] else ...[
                                 AutoSizeText(
-                                  Common().createTrendViewName(trend),
+                                  Common().createTrendViewName(widget.trend),
                                   maxLines: 1,
                                   style: GoogleFonts.josefinSans(
                                     fontSize: 60,
@@ -173,31 +164,31 @@ class TrendDialog extends StatelessWidget {
                                     iconSize: 44,
                                     splashRadius: 28,
                                     onPressed: () async {
-                                      bool ok =
-                                          await BetsService().postNewFavorite(
-                                        await _storage.read(
-                                                key: "sessionToken") ??
-                                            "none",
-                                        trend.ticker,
+                                      final newState = !isFavorite;
+
+                                      bool ok = await BetsService().postNewFavorite(
+                                        await _storage.read(key: "sessionToken") ?? "none",
+                                        widget.trend.ticker,
                                       );
+
                                       if (ok) {
-                                        Common().showFloatingSnack(
-                                          context,
-                                          LocalizedStrings.of(context)!
-                                                  .get('updatedFavs') ??
-                                              "Updated favs!",
-                                          showIcon: false,
+                                        setState(() {
+                                          isFavorite = newState;
+                                        });
+                                        homeScreenKey.currentState?.refreshFavorites();
+                                        marketsPageKey.currentState?.toggleFavorite(
+                                          widget.trend.ticker,
+                                          onlyLocal: true,
                                         );
-                                        homeScreenKey.currentState
-                                            ?.refreshFavorites();
-                                        marketsPageKey.currentState
-                                            ?.toggleFavorite(trend.ticker,
-                                                onlyLocal: true);
-                                        Navigator.of(context).pop(true);
                                       }
                                     },
-                                    icon: const Icon(FontAwesomeIcons.star,
-                                        size: 32, color: Colors.white),
+                                    icon: Icon(
+                                      isFavorite
+                                          ? FontAwesomeIcons.solidStar
+                                          : FontAwesomeIcons.star,
+                                      size: 32,
+                                      color: Colors.yellow,
+                                    ),
                                   ),
                                   const SizedBox(height: 80),
                                 ],
@@ -206,7 +197,7 @@ class TrendDialog extends StatelessWidget {
                           ),
                           const SizedBox(height: 20),
                           AutoSizeText(
-                            trend.name,
+                            widget.trend.name,
                             maxLines: 2,
                             style: GoogleFonts.robotoCondensed(
                               fontSize: 42,
@@ -217,18 +208,18 @@ class TrendDialog extends StatelessWidget {
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              (trend.dailyGain >= 0)
+                              (widget.trend.dailyGain >= 0)
                                   ? const Icon(FontAwesomeIcons.arrowTrendUp,
-                                      color: Colors.green, size: 22)
+                                  color: Colors.green, size: 22)
                                   : const Icon(FontAwesomeIcons.arrowTrendDown,
-                                      color: Colors.red, size: 22),
+                                  color: Colors.red, size: 22),
                               const SizedBox(width: 6),
                               Text(
-                                ' ${trend.dailyGain.abs().toStringAsFixed(2)}%',
+                                ' ${widget.trend.dailyGain.abs().toStringAsFixed(2)}%',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w500,
-                                  color: trend.dailyGain >= 0
+                                  color: widget.trend.dailyGain >= 0
                                       ? Colors.green
                                       : Colors.red,
                                 ),
@@ -237,7 +228,7 @@ class TrendDialog extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            '${strings?.get('close') ?? 'Close'}: ${trend.close.toStringAsFixed(2)}' + currency,
+                            '${strings?.get('close') ?? 'Close'}: ${widget.trend.close.toStringAsFixed(2)}${widget.currency}',
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -248,11 +239,11 @@ class TrendDialog extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                '${strings?.get('current') ?? 'Current'}: ${trend.current.toStringAsFixed(2)}' + currency,
+                                '${strings?.get('current') ?? 'Current'}: ${widget.trend.current.toStringAsFixed(2)}${widget.currency}',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
-                                  color: trend.dailyGain >= 0
+                                  color: widget.trend.dailyGain >= 0
                                       ? Colors.green
                                       : Colors.red,
                                 ),
@@ -266,49 +257,47 @@ class TrendDialog extends StatelessWidget {
                                       size: 38,
                                       color: Colors.white70,
                                     ),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                        showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          backgroundColor: Colors.transparent,
-                                          builder: (BuildContext context) {
-                                            return ClipRRect(
-                                              borderRadius:
-                                              const BorderRadius.vertical(
-                                                top: Radius.circular(25),
-                                              ),
-                                              child: Container(
-                                                color: Theme.of(context)
-                                                    .scaffoldBackgroundColor,
-                                                height: MediaQuery.of(context)
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (BuildContext context) {
+                                          return ClipRRect(
+                                            borderRadius: const BorderRadius.vertical(
+                                              top: Radius.circular(25),
+                                            ),
+                                            child: Container(
+                                              color: Theme.of(context)
+                                                  .scaffoldBackgroundColor,
+                                              height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                                  0.55,
+                                              child: OverflowBox(
+                                                alignment: Alignment.topCenter,
+                                                maxHeight: MediaQuery.of(context)
                                                     .size
-                                                    .height *
-                                                    0.55,
-                                                child: OverflowBox(
-                                                  alignment: Alignment.topCenter,
-                                                  maxHeight:
-                                                  MediaQuery.of(context)
-                                                      .size
-                                                      .height,
-                                                  child: Column(
-                                                    children: [
-                                                      Expanded(
-                                                        child: CandlesticksView(
-                                                          ticker: trend.ticker,
-                                                          name: trend.name,
-                                                          controller: controller,
-                                                          iconPath: trend.icon,
-                                                        ),
+                                                    .height,
+                                                child: Column(
+                                                  children: [
+                                                    Expanded(
+                                                      child: CandlesticksView(
+                                                        ticker: widget.trend.ticker,
+                                                        name: widget.trend.name,
+                                                        controller: widget.controller,
+                                                        iconPath: widget.trend.icon,
                                                       ),
-                                                    ],
-                                                  ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                            );
-                                          },
-                                        );
-                                      }
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
                                   ),
                                   Text(
                                     strings!.get('viewChart') ?? "View chart",
@@ -333,6 +322,7 @@ class TrendDialog extends StatelessWidget {
     );
   }
 }
+
 
 class TrendContainer extends StatefulWidget {
   final Trend trend;
