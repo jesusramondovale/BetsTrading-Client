@@ -1017,48 +1017,47 @@ class Common {
     return candlesList;
   }
 
-  List<Candle> generateRandomCandles(int count, double price) {
-    Random random = Random();
-    List<Candle> candlesList = [];
-    DateTime startDate = DateTime.now();
+  List<Candle> generateRandomCandles(int count, [double priceSeed = 250]) {
+    final random = Random();
+    final List<Candle> candles = [];
+    DateTime time = DateTime.now();
 
-    // Inicializa el primer valor de 'open'
-    double lastClose = price + random.nextDouble() * (1.10 - 1.065);
+    double lastClose = priceSeed;
+    double drift = 0.0008;
 
     for (int i = 0; i < count; i++) {
-      DateTime date = startDate.subtract(Duration(days: i));
-      double open = lastClose;
+      final date = time.subtract(Duration(hours: i * 4));
+      final volatility = priceSeed * 0.002;
+      final trendBias = drift * (1 - i / count);
 
-      // Generar cierre de la vela con variación
-      double close = open +
-          (random.nextBool() ? 1 : -1) *
-              (0.0001 + random.nextDouble() * (price * 0.01));
+      final open = lastClose;
+      final delta =
+          (random.nextDouble() - 0.5) * 2 * volatility + trendBias * priceSeed;
 
-      // Proporcionalidad del rango alto-bajo basada en el precio pasado
-      double maxChange =
-          price * 0.05; // 5% de variación con respecto al precio original
+      final close = (open + delta).clamp(priceSeed * 0.8, priceSeed * 1.2);
 
-      double high = max(open, close) + random.nextDouble() * maxChange;
-      double low = min(open, close) - random.nextDouble() * maxChange;
+      final high =
+          max(open, close) + random.nextDouble() * (volatility * 0.6);
+      final low =
+          min(open, close) - random.nextDouble() * (volatility * 0.6);
 
-      // Generar volumen aleatorio
-      double volume = 500 + random.nextDouble() * 4500;
+      final volume = 500 + random.nextDouble() * 4500;
 
-      // Actualizar el cierre anterior
+      candles.add(Candle(
+        date: date,
+        open: open,
+        close: close,
+        high: high,
+        low: low,
+        volume: volume,
+      ));
+
       lastClose = close;
-
-      // Añadir vela a la lista
-      candlesList.add(Candle(
-          date: date,
-          open: open,
-          close: close,
-          high: high,
-          low: low,
-          volume: volume));
     }
 
-    return candlesList;
+    return candles.reversed.toList();
   }
+
 
   List<Candle> generateSinusoidalCandles(
       int count, double centerValue, double amplitude, double period) {

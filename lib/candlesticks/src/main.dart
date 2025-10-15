@@ -1,6 +1,8 @@
 // ignore_for_file: must_be_immutable
 
 import 'dart:math';
+import 'package:betrader/candlesticks/src/constant/view_constants.dart';
+import '../../helpers/common.dart';
 import '../../models/rectangle_zone.dart';
 import '../../ui/layout_page.dart';
 import '../candlesticks.dart';
@@ -324,4 +326,172 @@ class CandlesticksState extends State<Candlesticks> {
       ],
     );
   }
+}
+
+//---- S K E L E T O N -----------------------------------
+
+class _PriceBar extends StatelessWidget {
+  const _PriceBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFF191C20),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(6, (i) {
+          return Text(
+            '${255 - (i * 5)}.00',
+            style: TextStyle(
+              color: Colors.grey.shade500,
+              fontSize: 12,
+              fontFamily: 'RobotoMono',
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class CandlesticksSkeleton extends StatelessWidget {
+  const CandlesticksSkeleton({super.key, this.seedPrice = 250});
+
+  final double seedPrice;
+
+  @override
+  Widget build(BuildContext context) {
+    final screenH = MediaQuery.of(context).size.height;
+
+    return Container(
+      color: const Color(0xFF111315),
+      width: double.infinity,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final h = constraints.maxHeight;
+          final bool isCompact = h < screenH * 0.7;
+          final double topPad = h * 0.08;
+          final double bottomPad = isCompact ? h * 0.38 : h * 0.12;
+
+
+          final candles = Common().generateRandomCandles(30, seedPrice);
+
+          return Stack(
+            children: [
+
+
+              Positioned(
+                left: 0,
+                right: PRICE_BAR_WIDTH,
+                top: topPad,
+                bottom: bottomPad,
+                child: CustomPaint(
+                  painter: _CandleFromModelPainter(candles),
+                ),
+              ),
+
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: PRICE_BAR_WIDTH,
+                child: const _PriceBar(),
+              ),
+
+              Positioned(
+                right: PRICE_BAR_WIDTH*1.5,
+                top: topPad,
+                bottom: bottomPad,
+                child: Icon(Icons.wifi_find_outlined, size: 50, color: Colors.grey.shade500)
+              ),
+
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CandleFromModelPainter extends CustomPainter {
+  _CandleFromModelPainter(this.candles);
+
+  final List<Candle> candles;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bg = Paint()..color = const Color(0xFF111315);
+    canvas.drawRect(Offset.zero & size, bg);
+
+    final grid = Paint()
+      ..color = const Color(0xFF1E2227)
+      ..strokeWidth = 1;
+    const cols = 6;
+    for (int i = 1; i < cols; i++) {
+      final x = size.width * i / cols;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
+    }
+
+    if (candles.isEmpty) return;
+
+    double minLow = candles.map((c) => c.low).reduce(min);
+    double maxHigh = candles.map((c) => c.high).reduce(max);
+
+    final range = (maxHigh - minLow).abs();
+    final double safeRange = max(range, candles.first.close * 0.02);
+    final double center = (maxHigh + minLow) / 2;
+    maxHigh = center + safeRange / 2;
+    minLow = center - safeRange / 2;
+
+    double yFor(double price) {
+      final t = (price - minLow) / (maxHigh - minLow);
+      return size.height * (1 - t);
+    }
+
+    const double candleW = 6;
+    const double gap = 2;
+    double x = 0;
+
+    final wickPaint = Paint()
+      ..color = Colors.grey.shade500
+      ..strokeWidth = 1.2;
+
+    for (int i = candles.length - 1; i >= 0; i--) {
+      final c = candles[i];
+      final yOpen = yFor(c.open);
+      final yClose = yFor(c.close);
+      final yHigh = yFor(c.high);
+      final yLow = yFor(c.low);
+
+      canvas.drawLine(
+        Offset(x + candleW / 2, yHigh),
+        Offset(x + candleW / 2, yLow),
+        wickPaint,
+      );
+
+      final bodyPaint = Paint()
+        ..color = ((candles.length - 1 - i) % 2 == 0)
+            ? Colors.grey.shade400
+            : Colors.grey.shade600;
+
+      final top = min(yOpen, yClose);
+      final height = max(2.0, (yOpen - yClose).abs());
+
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x, top, candleW, height),
+          const Radius.circular(1.5),
+        ),
+        bodyPaint,
+      );
+
+      x += candleW + gap;
+      if (x > size.width) break;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CandleFromModelPainter oldDelegate) =>
+      !identical(oldDelegate.candles, candles);
 }

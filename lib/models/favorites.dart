@@ -538,6 +538,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                           color: Colors.white,
                         ),
                       ),
+                      SizedBox(height: 8),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

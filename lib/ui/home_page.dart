@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/BetsService.dart';
@@ -38,13 +36,34 @@ class HomeScreenState extends State<HomeScreen> {
   final ScrollController _trendScrollController = ScrollController();
   Ticker? _ticker;
   double _direction = 1;
+  Timer? _clockTimer;
+  Timer? _refreshTimer;
+
+
+  void _refreshData() async {
+    final userId = await _storage.read(key: "sessionToken") ?? "none";
+    final userPoints = await _storage.read(key: "points") ?? "0";
+
+    if (!mounted) return;
+
+    setState(() {
+      _userId = userId != "none" ? userId : null;
+      _userPoints = double.tryParse(userPoints) ?? 0;
+      _trendsFuture = BetsService().fetchTrendsData(_userId ?? "none");
+      _favsFuture = BetsService().fetchFavouritesData(_userId ?? "none");
+    });
+  }
+
   Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
     setState(() {
       _userId = userId != "none" ? userId : null;
       _userPoints = double.tryParse(userPoints) ?? 0;
+      _trendsFuture = BetsService().fetchTrendsData(_userId ?? "none");
+      _favsFuture = BetsService().fetchFavouritesData(_userId ?? "none");
     });
+
     _loadBets(userId);
   }
 
@@ -108,15 +127,15 @@ class HomeScreenState extends State<HomeScreen> {
         _favsFuture = BetsService().fetchFavouritesData(_userId ?? "none");
       });
     });
+
+    _refreshTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      _refreshData();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
-
-    Locale locale = Localizations.localeOf(context);
-    String formattedDate =
-        DateFormat.yMMMMd(locale.toString()).format(DateTime.now());
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -228,15 +247,7 @@ class HomeScreenState extends State<HomeScreen> {
                     )),
                 const Spacer(),
                 const SizedBox(width: 5),
-                AutoSizeText(
-                  formattedDate,
-                  style: GoogleFonts.dosis(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w200,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                ),
+                const HourCountdown(),
               ],
             ),
             Divider(color: Colors.white, thickness: 0.5, height: 0.5),
@@ -340,11 +351,15 @@ class HomeScreenState extends State<HomeScreen> {
             ),
 
             // Favorites
-            Text(strings?.get('favs') ?? 'Favs',
-                style: GoogleFonts.syncopate(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w300,
-                )),
+            Row(
+                children: [
+                  Text(strings?.get('favs') ?? 'Favs',
+                      style: GoogleFonts.syncopate(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w300,
+                      )),
+                ],
+            ),
             Divider(color: Colors.white, thickness: 0.5, height: 0.5),
             Expanded(
               flex: 8,
@@ -400,7 +415,9 @@ class HomeScreenState extends State<HomeScreen> {
                             ),
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
+                              physics: const BouncingScrollPhysics(
+                                  decelerationRate:
+                                      ScrollDecelerationRate.fast),
                               itemCount: data.length,
                               itemBuilder: (context, index) {
                                 return FavoriteContainer(
@@ -442,39 +459,10 @@ class HomeScreenState extends State<HomeScreen> {
             ),
 
             // Recent bets
-            Row(
-              children: [
-                Text(
-                  strings?.get('recentBets') ?? 'Recent Bets',
-                  style: GoogleFonts.syncopate(
-                      fontSize: 16, fontWeight: FontWeight.w200),
-                ),
-                Spacer(),
-                IconButton(
-                    icon: Icon(Icons.auto_delete),
-                    color: Colors.white70,
-                    onPressed: () async {
-                      Common().vibrate();
-                      bool result = await BetsService()
-                          .deleteHistoricBets(_userId ?? "none");
-                      if (result) {
-                        Common().showFloatingSnack(
-                            context,
-                            LocalizedStrings.of(context)!.get('betsDeleted') ??
-                                "Bets deleted");
-                        setState(() {});
-                      }
-                    }),
-                IconButton(
-                    icon: Icon(FontAwesomeIcons.rotate),
-                    color: Colors.white70,
-                    onPressed: () async => {
-                          Common().vibrate(),
-                          await BetsService().getUserInfo(_userId ?? "none"),
-                          loadUserIdAndData(),
-                          setState(() {})
-                        })
-              ],
+            Text(
+              strings?.get('recentBets') ?? 'Recent Bets',
+              style: GoogleFonts.syncopate(
+                  fontSize: 16, fontWeight: FontWeight.w200),
             ),
             Divider(color: Colors.white, thickness: 0.5, height: 0.5),
             Expanded(
@@ -578,6 +566,68 @@ class HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _trendScrollController.dispose();
     _ticker?.dispose;
+    _refreshTimer?.cancel();
+    _clockTimer?.cancel();
+    super.dispose();
+  }
+}
+
+class HourCountdown extends StatefulWidget {
+  const HourCountdown({super.key});
+
+  @override
+  State<HourCountdown> createState() => _HourCountdownState();
+}
+
+class _HourCountdownState extends State<HourCountdown> {
+  late Timer _timer;
+  late String formattedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTime();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+  }
+
+  void _updateTime() {
+    final now = DateTime.now();
+    final nextHour = DateTime(now.year, now.month, now.day, now.hour + 1);
+    final remaining = nextHour.difference(now);
+
+    final minutes = remaining.inMinutes % 60;
+    final seconds = remaining.inSeconds % 60;
+
+    setState(() {
+      formattedDate = '$minutes:${seconds.toString().padLeft(2, '0')}';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(FontAwesomeIcons.rotateRight,
+            color: Colors.white70, size: 10),
+        const Icon(FontAwesomeIcons.hourglassHalf,
+            color: Colors.white70, size: 16),
+        const SizedBox(width: 4),
+        Text(
+              formattedDate,
+              textAlign: TextAlign.right,
+              style: GoogleFonts.syncopate(
+                fontSize: 14,
+                fontWeight: FontWeight.w200,
+                color: Colors.white,
+              ),
+        )
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
     super.dispose();
   }
 }

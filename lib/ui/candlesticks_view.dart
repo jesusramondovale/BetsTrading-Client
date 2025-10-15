@@ -88,7 +88,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                     child: Stack(
                       children: <Widget>[
                         if (_isLoading)
-                          Center(child: CircularProgressIndicator())
+                          CandlesticksSkeleton()
                         else
                           Candlesticks(
                               candles: _candles,
