@@ -23,7 +23,7 @@ class Bet {
   final String name;
   final String ticker;
   final String iconPath;
-  final double dailyGain;
+  final double necessaryGain;
   final double betAmount;
   final double originValue;
   final double currentValue;
@@ -42,7 +42,7 @@ class Bet {
     this.profitLoss, {
     required this.id,
     required this.ticker,
-    required this.dailyGain,
+    required this.necessaryGain,
     required this.name,
     required this.iconPath,
     required this.betAmount,
@@ -61,7 +61,7 @@ class Bet {
         name = json['name'],
         iconPath = json['icon_path'],
         betAmount = json['bet_amount'].toDouble(),
-        dailyGain = json['daily_gain'].toDouble(),
+        necessaryGain = json['necessary_gain'].toDouble(),
         originValue = json['origin_value'].toDouble(),
         currentValue = json['current_value'].toDouble(),
         targetValue = json['target_value'].toDouble(),
@@ -809,13 +809,13 @@ class RecentPriceBetDialog extends StatelessWidget {
 class RecentBetContainer extends StatefulWidget {
   final Bet bet;
   final Function onDelete;
-  final double dailyGain;
+  final double necessaryGain;
   final MainMenuPageController controller;
   const RecentBetContainer(
       {super.key,
       required this.bet,
       required this.onDelete,
-      required this.dailyGain,
+      required this.necessaryGain,
       required this.controller});
 
   @override
@@ -869,19 +869,17 @@ class RecentBetContainerState extends State<RecentBetContainer> {
 
   @override
   Widget build(BuildContext context) {
-    int daysUntilTarget =
-        widget.bet.targetDate.difference(DateTime.now()).inDays;
-    int daysUntilFinal = widget.bet.endDate.difference(DateTime.now()).inDays;
+    int hoursUntilTarget = widget.bet.targetDate.difference(DateTime.now()).inHours;
+    int minutesUntilTarget = widget.bet.targetDate.difference(DateTime.now()).inMinutes;
+    int hoursUntilFinal = widget.bet.endDate.difference(DateTime.now()).inHours;
     final strings = LocalizedStrings.of(context);
-    String? trailingText =
-        (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
-            ? (widget.bet.profitLoss)?.toStringAsFixed(2)
-            : '¿?';
-
-    //TODO
-    //String currency = (bet.currency != null) ?
-    //                                 bet.currency as String :
-    //                                 '-';  */
+    String? betAmountText =
+    (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
+        ? widget.bet.profitLoss!
+        .toStringAsFixed(2)
+        .replaceFirst(RegExp(r'\.?0+$'), '')
+        : '¿?';
+    String? betMultiplierText = "x${widget.bet.targetOdds}";
 
     return Column(
       children: <Widget>[
@@ -940,7 +938,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                         context,
                         LocalizedStrings.of(context)!
                                 .get('deletedSuccessfully') ??
-                            "Borrado con éxito!");
+                            "Deleted successfully!");
                     widget.onDelete();
                   } else {
                     Common().showFloatingSnack(context, "Error!",
@@ -1042,24 +1040,58 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                       ],
                     )
                   : Row(
-                      children: [
-                        (widget.dailyGain >= 0.0)
-                        ? Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.green, size: 12)
-                        : Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 12),
-                        Text(
-                          (widget.dailyGain >= 0.0)
-                              ? ' ${(widget.dailyGain).toStringAsFixed(2)}%'
-                              : ' ${(widget.dailyGain.abs()).toStringAsFixed(2)}%',
-                          style: GoogleFonts.rajdhani(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            color: widget.dailyGain >= 0.0
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                        )
-                      ],
+                children: [
+                  if (widget.necessaryGain == 0.0)
+                    Row(children: [Icon(FontAwesomeIcons.crosshairs, color: Colors.green, size: 14),
+                      SizedBox(width: 2),
+                      Icon(FontAwesomeIcons.check, color: Colors.green, size: 12),
+                      SizedBox(width: 2)],)
+                  else if (widget.necessaryGain >= 2.0)
+                    Row(children: [Icon(FontAwesomeIcons.crosshairs, color: Colors.grey, size: 14) ,
+                      SizedBox(width: 2),
+                      Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.red, size: 10)],)
+                  else if (widget.necessaryGain <= -2.0)
+                    Row(children: [Icon(FontAwesomeIcons.crosshairs, color: Colors.grey, size: 14) ,
+                      SizedBox(width: 2),
+                      Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 10)],)
+                    else if (widget.necessaryGain > 0.0)
+                    Row(children: [Icon(FontAwesomeIcons.crosshairs, color: Colors.grey, size: 14) ,
+                        SizedBox(width: 2),
+                        Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.yellow, size: 10)],)
+                      else
+                    Row(children: [Icon(FontAwesomeIcons.crosshairs, color: Colors.grey, size: 14) ,
+                        SizedBox(width: 2),
+                        Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.yellow, size: 10)],),
+
+                  Text(
+                    (widget.necessaryGain != 0.0)
+                        ?
+                    ' ${(widget.necessaryGain).abs().toStringAsFixed(2)}% ' : '',
+                    style: GoogleFonts.rajdhani(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: widget.necessaryGain == 0.0
+                          ? Colors.green
+                          : (widget.necessaryGain.abs() >= 2 ? Colors.red : Colors.yellow),
                     ),
+                  ),
+
+                  Icon(FontAwesomeIcons.hourglassHalf, size: 12),
+
+                  Text(
+                    (hoursUntilTarget >= 1
+                        ? '($hoursUntilTarget h)'
+                        : '($minutesUntilTarget m)'),
+                    style: GoogleFonts.rajdhani(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: widget.necessaryGain == 0.0
+                          ? Colors.green
+                          : (widget.necessaryGain.abs() >= 2 ? Colors.red : Colors.yellow),
+                    ),
+                  ),
+                ],
+              ),
               trailing: _showEditButtons
                   ? null
                   : Column(
@@ -1068,7 +1100,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              trailingText!,
+                              "${betAmountText} ${betMultiplierText}",
                               maxLines: 1,
                               style: GoogleFonts.montserrat(
                                 fontSize: 20,
@@ -1096,9 +1128,9 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                (daysUntilTarget > 0
-                                    ? "$daysUntilTarget ${strings?.get('day') ?? "day/s"}"
-                                    : (daysUntilFinal >= 0
+                                (hoursUntilFinal > 0
+                                    ? "$hoursUntilFinal ${strings?.get('hours') ?? "hour/s"}"
+                                    : (hoursUntilFinal >= 0
                                         ? strings?.get('onPlay') ?? "On play!"
                                         : strings?.get('finished') ??
                                             "Finished")),
@@ -1109,7 +1141,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                               ),
                               const SizedBox(width: 5),
                               Icon(
-                                (daysUntilTarget >= 0
+                                (hoursUntilTarget >= 0
                                     ? FontAwesomeIcons.hourglassHalf
                                     : Icons.timer_off_outlined),
                                 size: 16,
@@ -1209,7 +1241,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     final now = DateTime.now();
-    final daysUntilFinal = widget.priceBet.endDate.difference(now).inDays;
+    final hoursUntilFinal = widget.priceBet.endDate.difference(now).inHours;
 
     final amountText = widget.priceBet.priceBet.toStringAsFixed(2);
     final marginText = '${widget.priceBet.margin.toStringAsFixed(2)}%';
@@ -1402,9 +1434,9 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              (daysUntilFinal > 0
-                                  ? "$daysUntilFinal ${strings?.get('day') ?? "day/s"}"
-                                  : (daysUntilFinal >= 0
+                              (hoursUntilFinal > 0
+                                  ? "$hoursUntilFinal ${strings?.get('hours') ?? "hour/s"}"
+                                  : (hoursUntilFinal >= 0
                                       ? strings?.get('onPlay') ?? "On play!"
                                       : strings?.get('finished') ??
                                           "Finished")),
@@ -1415,7 +1447,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                             ),
                             const SizedBox(width: 5),
                             Icon(
-                              (daysUntilFinal > 0
+                              (hoursUntilFinal > 0
                                   ? FontAwesomeIcons.hourglassHalf
                                   : Icons.timer_off_outlined),
                               size: 16,

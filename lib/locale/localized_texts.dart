@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'hours': 'Hour/s',
       'send': 'Send',
       'enterVerificationCodeMsg': 'Enter the verification code sent to your email',
       'showTutorial': 'Show tutorial',
@@ -294,6 +295,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'hours': 'Hora/s',
       'send': 'Enviar',
       'enterVerificationCodeMsg': 'Introduce el código de verificación enviado a tu correo',
       'showTutorial': 'Ver tutorial',
@@ -574,6 +576,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'hours': 'Heure/s',
       'send': 'Envoyer',
       'enterVerificationCodeMsg': 'Entrez le code de vérification envoyé à votre adresse e-mail',
       'showTutorial': 'Afficher le tutoriel',
@@ -857,6 +860,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'hours': 'Ora/e',
       'send': 'Invia',
       'enterVerificationCodeMsg': 'Inserisci il codice di verifica inviato alla tua email',
       'showTutorial': 'Mostra il tutorial',
@@ -1138,6 +1142,7 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'hours': 'Stunde/n',
       'send': 'Senden',
       'enterVerificationCodeMsg': 'Geben Sie den Bestätigungscode ein, der an Ihre E-Mail gesendet wurde',
       'showTutorial': 'Tutorial anzeigen',

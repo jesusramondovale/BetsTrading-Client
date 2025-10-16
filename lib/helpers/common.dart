@@ -471,7 +471,7 @@ class Common {
 
     return Bet(currentValue, false, currentValue - originValue,
         id: id,
-        dailyGain: 1.0,
+        necessaryGain: 1.0,
         ticker: ticker,
         name: name,
         iconPath: iconPath,

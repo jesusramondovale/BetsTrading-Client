@@ -128,7 +128,7 @@ class HomeScreenState extends State<HomeScreen> {
       });
     });
 
-    _refreshTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       _refreshData();
     });
   }
@@ -237,19 +237,13 @@ class HomeScreenState extends State<HomeScreen> {
               ],
             ),
 
+
             // Trends
-            Row(
-              children: <Widget>[
-                Text(strings?.get('liveBets') ?? 'Trends',
-                    style: GoogleFonts.syncopate(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w200,
-                    )),
-                const Spacer(),
-                const SizedBox(width: 5),
-                const HourCountdown(),
-              ],
-            ),
+            Text(strings?.get('liveBets') ?? 'Trends',
+                style: GoogleFonts.syncopate(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w200,
+                )),
             Divider(color: Colors.white, thickness: 0.5, height: 0.5),
             Expanded(
               flex: 9,
@@ -459,10 +453,16 @@ class HomeScreenState extends State<HomeScreen> {
             ),
 
             // Recent bets
-            Text(
-              strings?.get('recentBets') ?? 'Recent Bets',
-              style: GoogleFonts.syncopate(
-                  fontSize: 16, fontWeight: FontWeight.w200),
+            Row(
+              children: [
+                Text(
+                  strings?.get('recentBets') ?? 'Recent Bets',
+                  style: GoogleFonts.syncopate(
+                      fontSize: 16, fontWeight: FontWeight.w200),
+                ),
+                Spacer(),
+                const HourCountdown(),
+              ],
             ),
             Divider(color: Colors.white, thickness: 0.5, height: 0.5),
             Expanded(
@@ -539,7 +539,7 @@ class HomeScreenState extends State<HomeScreen> {
                         return ListView(
                           children: [
                             ...bets.reversed.map((b) => RecentBetContainer(
-                                  dailyGain: b.dailyGain,
+                                  necessaryGain: b.necessaryGain,
                                   bet: b,
                                   onDelete: () => _deleteBet(b.id),
                                   controller: widget.controller,
