@@ -170,6 +170,42 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     }
   }
 
+  void _autoAdjustVerticalRange() {
+    if (widget.candles.isEmpty) return;
+
+    final RenderBox? renderBox =
+    _customPaintKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final double maxWidth = renderBox.size.width - PRICE_BAR_WIDTH + widget.candleWidth * 2;
+
+    final int candlesStartIndex = widget.candles.isEmpty
+        ? 0
+        : min(max(widget.index, 0), widget.candles.length - 1);
+
+    final int candlesEndIndex = widget.candles.isEmpty
+        ? 0
+        : min(
+      (maxWidth ~/ widget.candleWidth) + candlesStartIndex,
+      widget.candles.length - 1,
+    );
+
+    if (candlesEndIndex <= candlesStartIndex) return;
+
+    List<Candle> visibleCandles = widget.candles
+        .getRange(candlesStartIndex, candlesEndIndex + 1)
+        .toList();
+
+    double newHigh = visibleCandles.map((c) => c.high).reduce(max);
+    double newLow = visibleCandles.map((c) => c.low).reduce(min);
+
+    setState(() {
+      manualScaleHigh = newHigh;
+      manualScaleLow = newLow;
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final noBetsText =
@@ -524,25 +560,10 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           onScaleUpdate: (details) {
                             if (details.scale == 1) {
                               widget.onHorizontalDragUpdate(details);
-                              setState(() {
-                                if (manualScaleHigh != null) {
-                                  double deltaPrice =
-                                      details.focalPointDelta.dy /
-                                          chartHeight *
-                                          (manualScaleHigh! - manualScaleLow!);
-                                  for (RectangleZone zone
-                                      in widget.rectangleZones.value) {
-                                    zone.centerPrice +=
-                                        details.focalPointDelta.dy;
-                                  }
-                                  manualScaleHigh =
-                                      manualScaleHigh! + deltaPrice;
-                                  manualScaleLow = manualScaleLow! + deltaPrice;
-                                }
-                              });
+                              _autoAdjustVerticalRange();
+                            } else {
+                              widget.onScaleUpdate(1 + (details.scale - 1) * 0.05);
                             }
-                            widget
-                                .onScaleUpdate(1 + (details.scale - 1) * 0.05);
                           },
                           onScaleStart: (details) {
                             widget.onPanDown(details.localFocalPoint.dx);
@@ -736,16 +757,33 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                               ),
                             ),
                             onPressed: () async {
-                            Common().vibrate();
+                              Common().vibrate();
                               setState(() {
                                 _currentIndex = (_currentIndex + 1) % options.length;
                                 _currentRangeTime = options[_currentIndex];
-
                               });
 
                               final timeframe = _mapTimeframe(_currentRangeTime);
                               TimeframeManager.set(timeframe);
                               await _reloadData(timeframe);
+
+                              if (widget.candles.isNotEmpty) {
+                                final highs = widget.candles.map((c) => c.high).toList();
+                                final lows = widget.candles.map((c) => c.low).toList();
+
+                                final double newHigh = highs.reduce(max);
+                                final double newLow = lows.reduce(min);
+
+                                setState(() {
+                                  manualScaleHigh = newHigh;
+                                  manualScaleLow = newLow;
+                                  scaleX = 1.0;
+                                  scaleY = 1.0;
+                                  offsetX = 0.0;
+                                  offsetY = 0.0;
+                                });
+                                _ensureZonesVisible();
+                              }
                             },
                           ),
                         ),

@@ -403,7 +403,7 @@ class CandlesticksSkeleton extends StatelessWidget {
                 right: PRICE_BAR_WIDTH*1.5,
                 top: topPad,
                 bottom: bottomPad,
-                child: Icon(Icons.wifi_find_outlined, size: 50, color: Colors.grey.shade500)
+                child: Icon(Icons.wifi_find_outlined, size: 50, color: Colors.grey.shade800)
               ),
 
             ],
@@ -454,7 +454,7 @@ class _CandleFromModelPainter extends CustomPainter {
     double x = 0;
 
     final wickPaint = Paint()
-      ..color = Colors.grey.shade500
+      ..color = Colors.grey.shade800
       ..strokeWidth = 1.2;
 
     for (int i = candles.length - 1; i >= 0; i--) {
@@ -472,8 +472,8 @@ class _CandleFromModelPainter extends CustomPainter {
 
       final bodyPaint = Paint()
         ..color = ((candles.length - 1 - i) % 2 == 0)
-            ? Colors.grey.shade400
-            : Colors.grey.shade600;
+            ? Colors.grey.shade800
+            : Colors.grey.shade900;
 
       final top = min(yOpen, yClose);
       final height = max(2.0, (yOpen - yClose).abs());
