@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Services/BetsService.dart';
 import '../../../helpers/common.dart';
 import '../../../helpers/range_painter.dart';
@@ -85,16 +86,40 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
   int lastTimestamp = 0;
   bool firstVerticalDragOffset = true;
   int? lastCandleIndex;
-
+  bool dollarCurrency = true;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _ensureZonesVisible();
+    _getCurrentCurrency();
     if (!widget.inactiveZone) {
       _fetchZones();
       BetZoneRefresher().start(widget.ticker, widget.rectangleZones);
     }
+  }
+
+  void _openZone(RectangleZone zone) {
+    if (widget.inactiveZone) return;
+
+    Common().vibrate();
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => BetConfirmationPage(
+          name: widget.chartTitle,
+          zone: zone,
+          currentValue: widget.candles.first.close,
+          iconPath: widget.iconPath,
+          onCancel: () {
+            Common().vibrate();
+            Navigator.pop(context);
+          },
+        ),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
   }
 
   void _ensureZonesVisible() {
@@ -128,6 +153,13 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     });
   }
 
+  void _getCurrentCurrency() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      dollarCurrency = prefs.getBool('dollarCurrency') ?? true;
+    });
+  }
+
   void _fetchZones() async {
     try {
       final tf = _mapTimeframe(_currentRangeTime);
@@ -135,6 +167,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
       final candles = await BetsService().fetchCandles(widget.ticker, tf);
       final rectangleZones = Common().getRectangleZonesFromBetZones(zones, candles.isNotEmpty ? candles.first.close : 0.0);
       widget.rectangleZones.value = rectangleZones;
+
     } catch (e) {
       print("Error loading initial bet zones: $e");
     }
@@ -285,6 +318,25 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
           tweenBegin = candlesLowPrice;
           tweenEnd = candlesHighPrice;
         }
+        final double painterBottomPrice = tweenBegin;
+        final double painterTopPrice = tweenEnd;
+        final RangePainter Function() buildHitTestPainter = () => RangePainter(
+          zones: widget.rectangleZones,
+          candles: widget.candles,
+          candleWidth: widget.candleWidth,
+          topPrice: painterTopPrice,
+          bottomPrice: painterBottomPrice,
+          index: widget.index,
+          timeframe: _mapTimeframe(_currentRangeTime),
+          priceColumnWidth: PRICE_BAR_WIDTH,
+          noBetsText: noBetsText,
+          noIcon: widget.iconPath == "null",
+        );
+
+        RectangleZone? hitTestZone(Offset localPosition, Size size) {
+          return buildHitTestPainter()
+              .hit(localPosition.dx, localPosition.dy, size);
+        }
         return TweenAnimationBuilder(
           tween: Tween(begin: tweenBegin, end: tweenEnd),
           duration: Duration(milliseconds: manualScaleHigh == null ? 300 : 0),
@@ -379,22 +431,32 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             child: Stack(
                               children: [
                                 Positioned.fill(
-                                  child: CustomPaint(
-                                    key: _customPaintKey,
-                                    painter: RangePainter(
-                                        zones: widget.rectangleZones,
-                                        candles: widget.candles,
-                                        candleWidth: widget.candleWidth,
-                                        topPrice: tweenEnd,
-                                        bottomPrice: tweenBegin,
-                                        index: widget.index,
-                                        timeframe: _mapTimeframe(_currentRangeTime),
-                                        priceColumnWidth: PRICE_BAR_WIDTH,
-                                        noBetsText: noBetsText,
-                                        noIcon: widget.iconPath == "null",
-                                    ),
+                                  child: LayoutBuilder(
+                                    builder: (context, boxConstraints) {
+                                      final double painterTop = tweenEnd;     // topPrice
+                                      final double painterBottom = tweenBegin; // bottomPrice
+                                      final int painterTimeframe = _mapTimeframe(_currentRangeTime);
+
+                                      return CustomPaint(
+                                          key: _customPaintKey,
+                                          painter: RangePainter(
+                                            zones: widget.rectangleZones,
+                                            candles: widget.candles,
+                                            candleWidth: widget.candleWidth,
+                                            topPrice: painterTop,
+                                            bottomPrice: painterBottom,
+                                            index: widget.index,
+                                            timeframe: painterTimeframe,
+                                            priceColumnWidth: PRICE_BAR_WIDTH,
+                                            noBetsText: noBetsText,
+                                            noIcon: widget.iconPath == "null",
+                                          ),
+                                        );
+
+                                    },
                                   ),
                                 ),
+
                                 PriceColumn(
                                   style: widget.style,
                                   low: tweenBegin,
@@ -572,6 +634,25 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             widget.onPanEnd();
                           },
                           onLongPressStart: (LongPressStartDetails details) {
+                            final RenderBox? renderBox =
+                            _customPaintKey.currentContext?.findRenderObject()
+                            as RenderBox?;
+                            if (renderBox == null) {
+                              return;
+                            }
+
+                            final Size size = renderBox.size;
+                            final RectangleZone? zoneLongPressed = hitTestZone(
+                              details.localPosition,
+                              size,
+                            );
+
+                            if (zoneLongPressed != null && !widget.inactiveZone) {
+                              final originRect = Rect.fromLTWH(details.globalPosition.dx, details.globalPosition.dy, 50, 50);
+                              showZoneDialogAnimated(context, zoneLongPressed, originRect, dollarCurrency);
+                              return;
+                            }
+
                             setState(() {
                               Common().vibrate();
                               longPressX = details.localPosition.dx;
@@ -583,20 +664,18 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             longPressY = null;
                           },
                           behavior: HitTestBehavior.translucent,
-                          onLongPressMoveUpdate:
-                              (LongPressMoveUpdateDetails details) {
+                          onLongPressMoveUpdate: (LongPressMoveUpdateDetails details) {
                             setState(() {
                               longPressX = details.localPosition.dx;
                               longPressY = details.localPosition.dy;
 
                               int currentCandleIndex = min(
-                                  max(
-                                      (maxWidth - longPressX!) ~/
-                                              widget.candleWidth +
-                                          widget.index -
-                                          1,
-                                      0),
-                                  widget.candles.length - 1);
+                                max(
+                                  (maxWidth - longPressX!) ~/ widget.candleWidth + widget.index - 1,
+                                  0,
+                                ),
+                                widget.candles.length - 1,
+                              );
 
                               if (currentCandleIndex != lastCandleIndex) {
                                 Common().vibrate();
@@ -606,6 +685,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           },
                         ),
                       ),
+
                       Positioned(
                         top: (constraints.maxHeight/2),
                         left: 40.0,
@@ -640,60 +720,13 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   as RenderBox;
                           final size = renderBox.size;
 
-                          RectangleZone? zoneClicked = RangePainter(
-                                  zones: widget.rectangleZones,
-                                  candles: widget.candles,
-                                  candleWidth: widget.candleWidth,
-                                  topPrice: max(
-                                      widget.rectangleZones.value
-                                          .map((zone) => zone.highPrice)
-                                          .reduce((value, element) =>
-                                              value > element
-                                                  ? value
-                                                  : element),
-                                      candlesHighPrice),
-                                  bottomPrice: min(
-                                      widget.rectangleZones.value
-                                          .map((zone) => zone.lowPrice)
-                                          .reduce((value, element) =>
-                                              value < element
-                                                  ? value
-                                                  : element),
-                                      candlesLowPrice),
-                                  index: widget.index,
-                                  priceColumnWidth: PRICE_BAR_WIDTH,
-                                  noBetsText: noBetsText,
-                                  noIcon: widget.iconPath == "null",
-                                  )
-                              .hit(details.localPosition.dx,
-                                  details.localPosition.dy, size);
+                          final RectangleZone? zoneClicked = hitTestZone(
+                            details.localPosition,
+                            size,
+                          );
 
                           if (zoneClicked != null && !widget.inactiveZone) {
-                            Common().vibrate();
-                            Navigator.push(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder:
-                                    (context, animation, secondaryAnimation) =>
-                                        BetConfirmationPage(
-                                  name: widget.chartTitle,
-                                  zone: zoneClicked,
-                                  currentValue: widget.candles.first.close,
-                                  iconPath: widget.iconPath,
-                                  onCancel: () {
-                                    Common().vibrate();
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                transitionsBuilder: (context, animation,
-                                    secondaryAnimation, child) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: child,
-                                  );
-                                },
-                              ),
-                            );
+                            _openZone(zoneClicked);
                           }
                         },
                       ),
