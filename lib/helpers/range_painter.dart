@@ -1,8 +1,13 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:ui';
+import 'dart:ui' as ui;
 import 'package:betrader/candlesticks/src/constant/view_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import '../candlesticks/src/models/candle.dart';
+import '../ui/bets_page.dart';
 import 'common.dart';
 import '../models/rectangle_zone.dart';
 
@@ -89,7 +94,7 @@ class RangePainter extends CustomPainter {
       double endY = priceToY(zone.lowPrice, topPrice, bottomPrice, size);
 
       final paintFill = Paint()
-        ..color = zone.fillColor.withValues(alpha: 0.6)
+        ..color = zone.fillColor.withValues(alpha: 0.8)
         ..style = PaintingStyle.fill;
       canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintFill);
 
@@ -131,7 +136,7 @@ class RangePainter extends CustomPainter {
     for (final zone in zones.value) {
       if (x >=
           hoursToX(
-                  zone.startDate, index, candleWidth, maxCandleDate, size, timeframe) &&
+              zone.startDate, index, candleWidth, maxCandleDate, size, timeframe) &&
           x <= hoursToX(zone.endDate, index, candleWidth, maxCandleDate, size, timeframe ) &&
           y >= priceToY(zone.highPrice, topPrice, bottomPrice, size) &&
           y <= priceToY(zone.lowPrice, topPrice, bottomPrice, size)) {
@@ -142,14 +147,38 @@ class RangePainter extends CustomPainter {
   }
 }
 
+Future<ui.Image?> _loadImage(String iconPath) async {
+  if (iconPath.isEmpty || iconPath == "null") return null;
+  try {
+    if (iconPath.startsWith('http')) {
+      final response = await http.get(Uri.parse(iconPath));
+      if (response.statusCode == 200) {
+        return _decodeImage(response.bodyBytes);
+      }
+    } else {
+      return _decodeImage(base64Decode(iconPath));
+    }
+  } catch (_) {}
+  return null;
+}
+
+Future<ui.Image> _decodeImage(Uint8List bytes) async {
+  final codec = await ui.instantiateImageCodec(bytes);
+  final frame = await codec.getNextFrame();
+  return frame.image;
+}
+
 Future<Future<Object?>> showZoneDialogAnimated(
     BuildContext context,
     RectangleZone zone,
+    String assetName,
+    double currentValue,
+    String iconPath,
     Rect originRect,
     bool dollarCurrency
     ) async {
   final durationHours = zone.endDate.difference(zone.startDate).inHours.abs();
-
+  final ui.Image? image = await _loadImage(iconPath);
   return showGeneralDialog(
     context: context,
     barrierDismissible: true,
@@ -193,10 +222,29 @@ Future<Future<Object?>> showZoneDialogAnimated(
                 child: Transform.scale(
                   scale: scale.value,
                   child: GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Common().vibrate();
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => BetConfirmationPage(
+                            name: assetName,
+                            zone: zone,
+                            currentValue: currentValue,
+                            iconPath: iconPath,
+                            onCancel: () {
+                              Common().vibrate();
+                              Navigator.pop(context);
+                            },
+                          ),
+                          transitionsBuilder: (_, animation, __, child) =>
+                              FadeTransition(opacity: animation, child: child),
+                        ),
+                      );
+                    },
                     child: CustomPaint(
                       size: const Size(250, 260),
-                      painter: _ZoneDialogPainter(zone, durationHours, dollarCurrency),
+                      painter: _ZoneDialogPainter(zone, durationHours, dollarCurrency, image),
                     ),
                   ),
                 ),
@@ -212,9 +260,36 @@ Future<Future<Object?>> showZoneDialogAnimated(
 class _ZoneDialogPainter extends CustomPainter {
   final RectangleZone zone;
   final int durationHours;
-  bool dollarCurrency;
+  final bool dollarCurrency;
+  final ui.Image? image;
 
-  _ZoneDialogPainter(this.zone, this.durationHours, this.dollarCurrency);
+  _ZoneDialogPainter(this.zone, this.durationHours, this.dollarCurrency, this.image);
+
+  String _formatPrice(double value, bool dollarCurrency) {
+    final thresholds = {
+      5.0: 2,
+      1.0: 3,
+      0.1: 4,
+      0.001: 5,
+      0.000001: 8,
+    };
+
+    int decimals = 10;
+    for (final entry in thresholds.entries) {
+      if (value >= entry.key) {
+        decimals = entry.value;
+        break;
+      }
+    }
+
+    String formatted = double.parse(value.toStringAsFixed(decimals)).toString();
+    return "$formatted ${dollarCurrency ? '\$' : '€'}";
+  }
+
+  String _formatDate(DateTime date) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return "${date.year}-${twoDigits(date.month)}-${twoDigits(date.day)} @ ${twoDigits(date.hour)}:${twoDigits(date.minute)} UTC";
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -223,8 +298,12 @@ class _ZoneDialogPainter extends CustomPainter {
     final fill = Paint()
       ..shader = LinearGradient(
         colors: [
-          zone.fillColor.withValues(alpha: .9),
-          zone.fillColor.withValues(alpha: .6),
+          HSLColor.fromColor(zone.fillColor).withLightness(
+            (HSLColor.fromColor(zone.fillColor).lightness * 0.75).clamp(0.0, 1.0),
+          ).toColor(),
+          HSLColor.fromColor(zone.fillColor).withLightness(
+            (HSLColor.fromColor(zone.fillColor).lightness * 1.1).clamp(0.0, 1.0),
+          ).toColor(),
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
@@ -262,47 +341,57 @@ class _ZoneDialogPainter extends CustomPainter {
       canvas,
       Offset(
         (size.width - oddsPainter.width) / 2,
-        (size.height - oddsPainter.height) / 2,
+        (size.height - oddsPainter.height) * 0.7,
       ),
     );
 
-    final tickerText = zone.ticker;
-    final tickerSpan = TextSpan(
-      text: tickerText,
-      style: GoogleFonts.syncopate(
-        color: Colors.white,
-        fontSize: 35,
-        fontWeight: FontWeight.w300,
-      ),
-    );
-    final tickerPainter = TextPainter(
-      text: tickerSpan,
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: size.width);
-    tickerPainter.paint(
-      canvas,
-      Offset(
-        (size.width - tickerPainter.width) / 2,
-        ((size.height - tickerPainter.height) / 2) * 1.5 ,
-      ),
-    );
+    if (image != null) {
+      final double iconSize = 100;
+      final double x = (size.width - iconSize) / 2;
+      final double y = (size.height - iconSize) * 0.2;
+      final rectDst = Rect.fromLTWH(x, y, iconSize, iconSize);
+
+      final double srcAspect = image!.width / image!.height;
+      const double dstAspect = 1.0;
+      Rect srcRect;
+
+      if (srcAspect > dstAspect) {
+        final double newWidth = image!.height * dstAspect;
+        final double xOffset = (image!.width - newWidth) / 2;
+        srcRect = Rect.fromLTWH(xOffset, 0, newWidth, image!.height.toDouble());
+      } else {
+        final double newHeight = image!.width / dstAspect;
+        final double yOffset = (image!.height - newHeight) / 2;
+        srcRect = Rect.fromLTWH(0, yOffset, image!.width.toDouble(), newHeight);
+      }
+
+      canvas.save();
+      canvas.clipRRect(RRect.fromRectAndRadius(rectDst, const Radius.circular(20)));
+      canvas.drawImageRect(
+        image!,
+        srcRect,
+        rectDst,
+        Paint(),
+      );
+      canvas.restore();
+    }
 
 
 
     final highSpan = TextSpan(
-      text: "${zone.highPrice.toStringAsFixed(2)} ${dollarCurrency ? '\$' : '€'}",
+      text: _formatPrice(zone.highPrice, dollarCurrency),
       style: GoogleFonts.syncopate(
-        color: Colors.white.withValues(alpha: .85),
+        color: Colors.white,
         fontSize: 20,
-        fontWeight: FontWeight.w300,
+        fontWeight: FontWeight.w400,
       ),
     );
     final lowSpan = TextSpan(
-      text: "${zone. lowPrice.toStringAsFixed(2)} ${dollarCurrency ? '\$' : '€'}",
+      text: _formatPrice(zone.lowPrice, dollarCurrency),
       style: GoogleFonts.syncopate(
-        color: Colors.white.withValues(alpha: .85),
+        color: Colors.white,
         fontSize: 20,
-        fontWeight: FontWeight.w300,
+        fontWeight: FontWeight.w400,
       ),
     );
 
@@ -314,10 +403,58 @@ class _ZoneDialogPainter extends CustomPainter {
     highPainter.paint(canvas, Offset(highX, size.height * 0.004));
     lowPainter.paint(canvas, Offset(lowX, size.height - lowPainter.height - size.height * 0.004));
 
+    final startDateSpan = TextSpan(
+      text: _formatDate(zone.startDate),
+      style: GoogleFonts.montserrat(
+        color: Colors.white,
+        fontSize: 15,
+        fontWeight: FontWeight.w300,
+      ),
+    );
+    final startDatePainter =
+    TextPainter(text: startDateSpan, textDirection: TextDirection.ltr)
+      ..layout();
+
+    canvas.save();
+    canvas.translate(
+      size.width * 0.05,
+      size.height / 2,
+    );
+    canvas.rotate(90 * 3.1415926535 / 180);
+    startDatePainter.paint(
+      canvas,
+      Offset(-startDatePainter.width / 2, -startDatePainter.height / 2),
+    );
+    canvas.restore();
+
+    final endDateSpan = TextSpan(
+      text: _formatDate(zone.endDate),
+      style: GoogleFonts.montserrat(
+        color: Colors.white,
+        fontSize: 15,
+        fontWeight: FontWeight.w300,
+      ),
+    );
+    final endDatePainter =
+    TextPainter(text: endDateSpan, textDirection: TextDirection.ltr)
+      ..layout();
+
+    canvas.save();
+    canvas.translate(
+      size.width * 0.95,
+      size.height / 2,
+    );
+    canvas.rotate(-90 * 3.1415926535 / 180);
+    endDatePainter.paint(
+      canvas,
+      Offset(-endDatePainter.width / 2, -endDatePainter.height / 2),
+    );
+    canvas.restore();
+
     final durationSpan = TextSpan(
       text: '← $durationHours h →',
       style: GoogleFonts.montserrat(
-        color: Colors.white.withValues(alpha: .85),
+        color: Colors.white,
         fontSize: 20,
         fontWeight: FontWeight.w300,
       ),
@@ -328,6 +465,27 @@ class _ZoneDialogPainter extends CustomPainter {
     durationPainter.paint(
       canvas,
       Offset((size.width - durationPainter.width) / 2, size.height + 6),
+    );
+
+    final tickerText = zone.ticker.split('.')[0];
+    final tickerSpan = TextSpan(
+      text: tickerText,
+      style: GoogleFonts.syncopate(
+        color: Colors.white,
+        fontSize: 26,
+        fontWeight: FontWeight.w300,
+      ),
+    );
+    final tickerPainter = TextPainter(
+      text: tickerSpan,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: size.width);
+    tickerPainter.paint(
+      canvas,
+      Offset(
+        (size.width - tickerPainter.width) / 2,
+        ((size.height - tickerPainter.height) / 2) * 1.7 ,
+      ),
     );
   }
 

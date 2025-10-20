@@ -226,7 +226,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     if (candlesEndIndex <= candlesStartIndex) return;
 
     List<Candle> visibleCandles = widget.candles
-        .getRange(candlesStartIndex, candlesEndIndex + 1)
+        .getRange(candlesStartIndex, candlesEndIndex - 10)
         .toList();
 
     double newHigh = visibleCandles.map((c) => c.high).reduce(max);
@@ -648,8 +648,9 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             );
 
                             if (zoneLongPressed != null && !widget.inactiveZone) {
+                              Common().vibrate();
                               final originRect = Rect.fromLTWH(details.globalPosition.dx, details.globalPosition.dy, 50, 50);
-                              showZoneDialogAnimated(context, zoneLongPressed, originRect, dollarCurrency);
+                              showZoneDialogAnimated(context, zoneLongPressed,  widget.chartTitle, widget.candles.last.close, widget.iconPath, originRect, dollarCurrency);
                               return;
                             }
 
