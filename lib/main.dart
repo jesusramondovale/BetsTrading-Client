@@ -4,6 +4,7 @@ import 'package:betrader/ui/consent_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'config/config.dart';
 import 'helpers/common.dart';
 import 'ui/login_page.dart';
 import 'ui/layout_page.dart';
@@ -82,14 +83,13 @@ void showOverlayNotification(String message, String ip, String city, String coun
 
   Future.delayed(const Duration(seconds: 4), () {
     opacity = 0.0;
-    overlayEntry.markNeedsBuild(); // fuerza rebuild con la nueva opacidad
+    overlayEntry.markNeedsBuild();
 
     Future.delayed(const Duration(milliseconds: 500), () {
       overlayEntry.remove();
     });
   });
 }
-
 
 Future<void> handleFirebaseMessage(RemoteMessage message) async {
 
@@ -131,20 +131,15 @@ Future<void> handleFirebaseMessage(RemoteMessage message) async {
   }
 }
 
-
-
-
 Future onDidReceiveLocalNotification(
     int id, String? title, String? body, String? payload) async {
   // Handle the local notification received on iOS
 }
 
-
 Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializa los datos de localización para fechas y otros formatos
   await initializeDateFormatting();
 
   try {
@@ -176,22 +171,18 @@ Future<void> main() async {
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-
   MobileAds.instance.initialize();
-
-
 
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.manual,
     overlays: [SystemUiOverlay.top],
   );
 
-  stripe.Stripe.publishableKey = 'pk_test_51Ro4wcIoWhLn7aPbiJW4oRV3Gtvyijmw9hSGkn7pVMcOYZ4wpKmjRX1SA4tDPlJa8iKS1iRD5edE894KWgrRkqnM007ZLfNfKr';
-
+  stripe.Stripe.publishableKey = Config.STRIPE_PUBLIC_KEY;
   await stripe.Stripe.instance.applySettings();
+
   runApp(MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
 
@@ -203,6 +194,15 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       theme: Common().themeDark,
       title: 'Betrader',
+      builder: (context, child) {
+        final mq = MediaQuery.of(context);
+        return MediaQuery(
+          data: mq.copyWith(
+            textScaler: const TextScaler.linear(1.0),
+          ),
+          child: child!,
+        );
+      },
       supportedLocales: const [
         Locale('en', ''),
         Locale('es', ''),
@@ -211,7 +211,7 @@ class MyApp extends StatelessWidget {
         Locale('de', ''),
       ],
       localizationsDelegates: const [
-        LocalizedStringsDelegate(), // Soporte para LocalizedStrings
+        LocalizedStringsDelegate(),
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
