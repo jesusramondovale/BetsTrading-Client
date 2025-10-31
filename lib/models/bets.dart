@@ -34,12 +34,13 @@ class Bet {
   final double targetOdds;
   final int bet_zone;
   final bool? targetWon;
+  final bool? finished;
   final double? profitLoss;
 
   Bet(
     this.currentValue,
     this.targetWon,
-    this.profitLoss, {
+    this.profitLoss , {
     required this.id,
     required this.ticker,
     required this.necessaryGain,
@@ -51,6 +52,7 @@ class Bet {
     required this.targetMargin,
     required this.targetDate,
     required this.endDate,
+    required this.finished,
     required this.targetOdds,
     required this.bet_zone,
   });
@@ -70,6 +72,7 @@ class Bet {
         endDate = DateTime.parse(json['final_date']),
         targetOdds = json['target_odds'].toDouble(),
         targetWon = json['target_won'],
+        finished = json['finished'],
         profitLoss = DateTime.parse(json['target_date']).isAfter(DateTime.now())
             ? json['bet_amount'].toDouble()
             : json['target_won'] == true
@@ -886,6 +889,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
         Slidable(
           key: Key(widget.bet.id.toString()),
           endActionPane: ActionPane(
+            extentRatio: 0.30,
             motion: const ScrollMotion(),
             children: [
               SlidableAction(
@@ -928,27 +932,30 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                 foregroundColor: Colors.white,
                 icon: Icons.remove_red_eye_outlined,
               ),
-              SlidableAction(
-                onPressed: (context) async {
-                  Common().vibrate();
-                  final result = await BetsService()
-                      .deleteRecentBet(widget.bet.id.toString());
-                  if (result) {
-                    Common().showFloatingSnack(
-                        context,
-                        LocalizedStrings.of(context)!
-                                .get('deletedSuccessfully') ??
-                            "Deleted successfully!");
-                    widget.onDelete();
-                  } else {
-                    Common().showFloatingSnack(context, "Error!",
-                        backgroundColor: Colors.red);
-                  }
-                },
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-              ),
+              if (widget.bet.finished ?? false)... [
+                SlidableAction(
+                  onPressed: (context) async {
+                    Common().vibrate();
+
+                    final result = await BetsService()
+                        .deleteRecentBet(widget.bet.id.toString());
+                    if (result) {
+                      Common().showFloatingSnack(
+                          context,
+                          LocalizedStrings.of(context)!
+                              .get('deletedSuccessfully') ??
+                              "Deleted successfully!");
+                      widget.onDelete();
+                    } else {
+                      Common().showFloatingSnack(context, "Error!",
+                          backgroundColor: Colors.red);
+                    }
+                  },
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  icon: Icons.delete,
+                ),
+              ]
             ],
           ),
           child: ListTile(
@@ -1100,7 +1107,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              "${betAmountText} ${betMultiplierText}",
+                              "${betAmountText} ${((widget.bet.finished ?? false ) ? "" : betMultiplierText)}",
                               maxLines: 1,
                               style: GoogleFonts.montserrat(
                                 fontSize: 20,
@@ -1260,6 +1267,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
         Slidable(
           key: Key(widget.priceBet.id.toString()),
           endActionPane: ActionPane(
+            extentRatio: 0.30,
             motion: const ScrollMotion(),
             children: [
               SlidableAction(
@@ -1283,7 +1291,33 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                 foregroundColor: Colors.white,
                 icon: FontAwesomeIcons.crosshairs
 
-              )
+              ),
+              if (DateTime.now().isAfter(widget.priceBet.endDate))...[
+                SlidableAction(
+                  onPressed: (context) async {
+                    Common().vibrate();
+                    final result = await BetsService()
+                        .deleteRecentPriceBet(widget.priceBet.id.toString());
+                    if (result) {
+                      Common().showFloatingSnack(
+                          context,
+                          LocalizedStrings.of(context)!
+                              .get('deletedSuccessfully') ??
+                              "Deleted successfully!");
+                      widget.onDelete();
+                    } else {
+                      Common().showFloatingSnack(context, "Error!",
+                          backgroundColor: Colors.red);
+                    }
+                  },
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  icon: Icons.delete,
+                ),
+
+
+              ]
+
             ],
           ),
           child: ListTile(

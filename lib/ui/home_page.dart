@@ -28,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   List<Bet> _bets = [];
+  List<PriceBet> _priceBets = [];
   String? _userId;
   double _userPoints = 0;
   late Future<Trends> _trendsFuture;
@@ -71,12 +72,19 @@ class HomeScreenState extends State<HomeScreen> {
     final betsData = await BetsService().fetchInvestmentData(userId);
     setState(() {
       _bets = betsData.bets.investList;
+      _priceBets = betsData.priceBets;
     });
   }
 
   void _deleteBet(int betId) {
     setState(() {
       _bets.removeWhere((bet) => bet.id == betId);
+    });
+  }
+
+  void _deletePriceBet(int priceBetId) {
+    setState(() {
+      _priceBets.removeWhere((bet) => bet.id == priceBetId);
     });
   }
 
@@ -535,6 +543,7 @@ class HomeScreenState extends State<HomeScreen> {
                         }
 
                         _bets = bets;
+                        _priceBets = priceBets;
 
                         return ListView(
                           children: [
@@ -547,7 +556,7 @@ class HomeScreenState extends State<HomeScreen> {
                             ...priceBets.reversed
                                 .map((p) => RecentPriceBetContainer(
                                       priceBet: p,
-                                      onDelete: () => setState(() {}),
+                                      onDelete: () => _deletePriceBet(p.id),
                                       controller: widget.controller,
                                       isForex: Common().isTickerForex(p.ticker),
                                     )),

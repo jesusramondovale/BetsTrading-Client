@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'dart:ui' as ui;
 import 'package:betrader/candlesticks/src/constant/view_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import '../candlesticks/src/models/candle.dart';
@@ -51,6 +52,54 @@ class RangePainter extends CustomPainter {
     return yPosition;
   }
 
+  Color oddsToColor(double odds, Color fillColor) {
+    const double minOdds = 1.0;
+    const double maxOdds = 6.0;
+
+    final double clamped =
+    odds.clamp(minOdds, maxOdds).toDouble();
+
+    const double minAlpha = 0.75;
+    const double maxAlpha = 1.0;
+
+    final double t = (clamped - minOdds) / (maxOdds - minOdds);
+    final double alpha = minAlpha + (maxAlpha - minAlpha) * t;
+
+    return fillColor.withValues(alpha: alpha);
+  }
+
+  Shader buildZoneShader(Color base, double odds, Rect rect) {
+    const double minOdds = 1.0;
+    const double maxOdds = 6.0;
+
+    final double t = ((odds.clamp(minOdds, maxOdds) - minOdds) / (maxOdds - minOdds)).toDouble();
+
+    final hsl = HSLColor.fromColor(base);
+
+    // lightness base
+    final double baseLight = hsl.lightness;
+
+    final double darkFactor = lerpDouble(0.65, 0.8, t)!;
+    final double lightFactor = lerpDouble(1.02, 1.15, t)!;
+
+    final Color startColor = hsl
+        .withLightness((baseLight * darkFactor).clamp(0.0, 1.0))
+        .toColor();
+
+    final Color endColor = hsl
+        .withLightness((baseLight * lightFactor).clamp(0.0, 1.0))
+        .toColor();
+
+    return LinearGradient(
+      colors: [
+        startColor,
+        endColor,
+      ],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ).createShader(rect);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     if (zones.value.isEmpty){
@@ -94,7 +143,8 @@ class RangePainter extends CustomPainter {
       double endY = priceToY(zone.lowPrice, topPrice, bottomPrice, size);
 
       final paintFill = Paint()
-        ..color = zone.fillColor.withValues(alpha: 0.8)
+        ..shader = buildZoneShader(zone.fillColor, zone.odds, Rect.fromLTRB(startX, startY, endX, endY))
+        ..color = oddsToColor(zone.odds, zone.fillColor)
         ..style = PaintingStyle.fill;
       canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintFill);
 
@@ -379,20 +429,70 @@ class _ZoneDialogPainter extends CustomPainter {
 
 
     final highSpan = TextSpan(
-      text: _formatPrice(zone.highPrice, dollarCurrency),
-      style: GoogleFonts.syncopate(
-        color: Colors.white,
-        fontSize: 20,
-        fontWeight: FontWeight.w400,
-      ),
+      children: [
+        TextSpan(
+          text: String.fromCharCode(FontAwesomeIcons.chevronUp.codePoint),
+          style: TextStyle(
+            fontFamily: FontAwesomeIcons.chevronUp.fontFamily,
+            package: FontAwesomeIcons.chevronUp.fontPackage,
+            color: Colors.white,
+            fontSize: 16,
+          ),
+        ),
+        const TextSpan(text: '  '),
+        TextSpan(
+          text: _formatPrice(zone.highPrice, dollarCurrency),
+          style: GoogleFonts.figtree(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        const TextSpan(text: '  '),
+        TextSpan(
+          text: String.fromCharCode(FontAwesomeIcons.chevronUp.codePoint),
+          style: TextStyle(
+            fontFamily: FontAwesomeIcons.chevronUp.fontFamily,
+            package: FontAwesomeIcons.chevronUp.fontPackage,
+            color: Colors.white,
+            fontSize: 16,
+          ),
+        ),
+      ],
     );
     final lowSpan = TextSpan(
-      text: _formatPrice(zone.lowPrice, dollarCurrency),
-      style: GoogleFonts.syncopate(
-        color: Colors.white,
-        fontSize: 20,
-        fontWeight: FontWeight.w400,
-      ),
+      children: [
+
+        TextSpan(
+          text: String.fromCharCode(FontAwesomeIcons.chevronDown.codePoint),
+          style: TextStyle(
+            fontFamily: FontAwesomeIcons.chevronDown.fontFamily,
+            package: FontAwesomeIcons.chevronDown.fontPackage,
+            color: Colors.white,
+            fontSize: 16,
+          ),
+        ),
+        const TextSpan(text: '  '),
+        TextSpan(
+          text: _formatPrice(zone.lowPrice, dollarCurrency),
+          style: GoogleFonts.figtree(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        const TextSpan(text: '  '),
+        TextSpan(
+          text: String.fromCharCode(FontAwesomeIcons.chevronDown.codePoint),
+          style: TextStyle(
+            fontFamily: FontAwesomeIcons.chevronDown.fontFamily,
+            package: FontAwesomeIcons.chevronDown.fontPackage,
+            color: Colors.white,
+            fontSize: 16,
+          ),
+        ),
+      ],
+
     );
 
     final highPainter = TextPainter(text: highSpan, textDirection: TextDirection.ltr)..layout();

@@ -481,6 +481,7 @@ class Common {
         targetMargin: targetMargin,
         targetDate: targetDate,
         endDate: endDate,
+        finished: false,
         targetOdds: targetOdds,
         bet_zone: 999);
   }

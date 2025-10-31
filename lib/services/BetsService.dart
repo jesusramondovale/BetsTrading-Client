@@ -126,6 +126,12 @@ class BetsService {
     return response['statusCode'] == 200;
   }
 
+  Future<bool> deleteRecentPriceBet(String priceBetId) async {
+    final response = await Common()
+        .postRequestWrapper('Bet', 'DeleteRecentPriceBet', {'id': priceBetId});
+    return response['statusCode'] == 200;
+  }
+
   Future<bool> deleteHistoricBets(String userId) async {
     final response = await Common()
         .postRequestWrapper('Bet', 'DeleteHistoricBet', {'id': userId});

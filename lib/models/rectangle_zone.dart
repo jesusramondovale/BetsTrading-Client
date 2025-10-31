@@ -13,8 +13,6 @@ class RectangleZone {
   double odds;
   String ticker;
 
-
-
   RectangleZone({
     required this.id,
     required this.startDate,

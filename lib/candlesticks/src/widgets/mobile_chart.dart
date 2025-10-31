@@ -156,7 +156,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
   void _getCurrentCurrency() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      dollarCurrency = prefs.getBool('dollarCurrency') ?? true;
+      dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
     });
   }
 
