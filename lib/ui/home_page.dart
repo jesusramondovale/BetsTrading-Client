@@ -40,7 +40,6 @@ class HomeScreenState extends State<HomeScreen> {
   Timer? _clockTimer;
   Timer? _refreshTimer;
 
-
   void _refreshData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
@@ -136,7 +135,7 @@ class HomeScreenState extends State<HomeScreen> {
       });
     });
 
-    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       _refreshData();
     });
   }
@@ -244,7 +243,6 @@ class HomeScreenState extends State<HomeScreen> {
                             ))))
               ],
             ),
-
 
             // Trends
             Text(strings?.get('liveBets') ?? 'Trends',
@@ -354,13 +352,13 @@ class HomeScreenState extends State<HomeScreen> {
 
             // Favorites
             Row(
-                children: [
-                  Text(strings?.get('favs') ?? 'Favs',
-                      style: GoogleFonts.syncopate(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w300,
-                      )),
-                ],
+              children: [
+                Text(strings?.get('favs') ?? 'Favs',
+                    style: GoogleFonts.syncopate(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w300,
+                    )),
+              ],
             ),
             Divider(color: Colors.white, thickness: 0.5, height: 0.5),
             Expanded(
@@ -507,60 +505,92 @@ class HomeScreenState extends State<HomeScreen> {
                         final priceBets = data.priceBets;
 
                         if (bets.isEmpty && priceBets.isEmpty) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    strings!.get('noLiveBets') ??
-                                        'You have no live bets at the moment, go to the markets tab to create a new one',
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.white70,
-                                    ),
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SizedBox(
-                                        width: 40,
-                                        child:
-                                            Image.asset('assets/new_icon.png'),
+                          return Scaffold(
+                            backgroundColor: Colors.transparent,
+                            body: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      strings!.get('noLiveBets') ??
+                                          'You have no live bets at the moment, go to the markets tab to create a new one',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.white70,
                                       ),
-                                      SizedBox(width: 5.0),
-                                      Icon(Icons.arrow_downward_rounded,
-                                          size: 50, color: Colors.grey),
-                                    ],
-                                  )
-                                ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                            width: 40,
+                                            child: Image.asset(
+                                                'assets/new_icon.png')),
+                                        const SizedBox(width: 5.0),
+                                        const Icon(Icons.arrow_downward_rounded,
+                                            size: 50, color: Colors.grey),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
+                            floatingActionButton: FloatingActionButton(
+                              backgroundColor: Colors.grey,
+                              splashColor: Colors.grey,
+                              onPressed: () {}, //TODO: add history page
+                              child: const Icon(FontAwesomeIcons.clockRotateLeft),
+                            ),
+                            floatingActionButtonLocation:
+                                FloatingActionButtonLocation.endFloat,
                           );
                         }
 
                         _bets = bets;
                         _priceBets = priceBets;
 
-                        return ListView(
-                          children: [
-                            ...bets.reversed.map((b) => RecentBetContainer(
-                                  necessaryGain: b.necessaryGain,
-                                  bet: b,
-                                  onDelete: () => _deleteBet(b.id),
-                                  controller: widget.controller,
-                                )),
-                            ...priceBets.reversed
-                                .map((p) => RecentPriceBetContainer(
-                                      priceBet: p,
-                                      onDelete: () => _deletePriceBet(p.id),
-                                      controller: widget.controller,
-                                      isForex: Common().isTickerForex(p.ticker),
-                                    )),
-                          ],
+                        return Scaffold(
+                          backgroundColor: Colors.transparent,
+                          body: SafeArea(
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: ListView(
+                                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom+50,
+                                ),
+                                children: [
+                                  ...bets.reversed
+                                      .map((b) => RecentBetContainer(
+                                            necessaryGain: b.necessaryGain,
+                                            bet: b,
+                                            onDelete: () => _deleteBet(b.id),
+                                            controller: widget.controller,
+                                          )),
+                                  ...priceBets.reversed
+                                      .map((p) => RecentPriceBetContainer(
+                                            priceBet: p,
+                                            onDelete: () =>
+                                                _deletePriceBet(p.id),
+                                            controller: widget.controller,
+                                            isForex: Common()
+                                                .isTickerForex(p.ticker),
+                                          )),
+                                ],
+                              ),
+                            ),
+                          ),
+                          floatingActionButton: FloatingActionButton(
+                            backgroundColor: Colors.grey,
+                            splashColor: Colors.grey,
+                            onPressed: () {}, //TODO: add history page
+                            child: const Icon(FontAwesomeIcons.clockRotateLeft),
+                          ),
+                          floatingActionButtonLocation:
+                              FloatingActionButtonLocation.endFloat,
                         );
                       },
                     ),
@@ -622,13 +652,13 @@ class _HourCountdownState extends State<HourCountdown> {
             color: Colors.white70, size: 16),
         const SizedBox(width: 4),
         Text(
-              formattedDate,
-              textAlign: TextAlign.right,
-              style: GoogleFonts.syncopate(
-                fontSize: 14,
-                fontWeight: FontWeight.w200,
-                color: Colors.white,
-              ),
+          formattedDate,
+          textAlign: TextAlign.right,
+          style: GoogleFonts.syncopate(
+            fontSize: 14,
+            fontWeight: FontWeight.w200,
+            color: Colors.white,
+          ),
         )
       ],
     );

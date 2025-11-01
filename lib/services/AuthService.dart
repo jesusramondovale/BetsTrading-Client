@@ -122,9 +122,10 @@ class AuthService {
                             {'username': token, 'password' : newPass, 'current': currentPassword});
     if (response['statusCode'] == 200) {
       return 0; // SUCCESS
-    } else {
-      return 1; // ERROR
+    } else if (response['statusCode'] == 404) {
+      return 1; // NOT FOUND
     }
+    else return 2; // ERROR
   }
 
   Future<bool> _googleQuickRegister(GoogleSignInAccount user, String country,DateTime birthday) async {

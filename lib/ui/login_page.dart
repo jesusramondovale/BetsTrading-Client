@@ -215,8 +215,14 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
                           strings?.get('successPassword') ??
                               "Password changed successfully");
 
+                    } else if (response['statusCode'] == 404){
+                      Common().showFloatingSnack(
+                          context,
+                          strings?.get('userOrEmailNotFound') ??
+                              "Mail not found",
+                          backgroundColor: Colors.red);
+
                     } else {
-                      Navigator.of(dialogContext).pop(true);
                       Common().showFloatingSnack(
                           context,
                           strings?.get('errorChangingPassword') ??

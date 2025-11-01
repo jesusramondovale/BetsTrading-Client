@@ -12,6 +12,9 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // Inglés
+      'betWon': 'Bet won',
+      'betLost': 'Bet lost',
+      'history': 'History',
       'hours': 'Hour/s',
       'send': 'Send',
       'enterVerificationCodeMsg': 'Enter the verification code sent to your email',
@@ -295,6 +298,9 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'betWon': 'Apuesta ganada',
+      'betLost': 'Apuesta perdida',
+      'history': 'Historial',
       'hours': 'Hora/s',
       'send': 'Enviar',
       'enterVerificationCodeMsg': 'Introduce el código de verificación enviado a tu correo',
@@ -576,6 +582,9 @@ class LocalizedStrings {
     },
     'fr': {
       // Francés
+      'betWon': 'Pari gagné',
+      'betLost': 'Pari perdu',
+      'history': 'Historique',
       'hours': 'Heure/s',
       'send': 'Envoyer',
       'enterVerificationCodeMsg': 'Entrez le code de vérification envoyé à votre adresse e-mail',
@@ -860,6 +869,9 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'betWon': 'Scommessa vinta',
+      'betLost': 'Scommessa persa',
+      'history': 'Storico',
       'hours': 'Ora/e',
       'send': 'Invia',
       'enterVerificationCodeMsg': 'Inserisci il codice di verifica inviato alla tua email',
@@ -1142,6 +1154,9 @@ class LocalizedStrings {
     },
     'de': {
       // Alemán
+      'betWon': 'Wette gewonnen',
+      'betLost': 'Wette verloren',
+      'history': 'Verlauf',
       'hours': 'Stunde/n',
       'send': 'Senden',
       'enterVerificationCodeMsg': 'Geben Sie den Bestätigungscode ein, der an Ihre E-Mail gesendet wurde',

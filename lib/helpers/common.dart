@@ -497,8 +497,8 @@ class Common {
         latestDate = zone.endDate;
       }
     }
-    int daysUntil = latestDate.difference(lastCandleDateTime).inHours;
-    return daysUntil > 0 ? daysUntil : 0;
+    int hoursUntil = latestDate.difference(lastCandleDateTime).inHours;
+    return hoursUntil > 0 ? hoursUntil -1 : 0;
   }
 
   List<RectangleZone> getRectangleZonesFromBetZones(

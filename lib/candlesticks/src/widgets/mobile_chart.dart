@@ -445,7 +445,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                             candleWidth: widget.candleWidth,
                                             topPrice: painterTop,
                                             bottomPrice: painterBottom,
-                                            index: widget.index,
+                                            index: widget.index-1,
                                             timeframe: painterTimeframe,
                                             priceColumnWidth: PRICE_BAR_WIDTH,
                                             noBetsText: noBetsText,
