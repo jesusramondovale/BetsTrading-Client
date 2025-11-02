@@ -299,7 +299,7 @@ class LocalizedStrings {
     'es': {
       // Español
       'betWon': 'Apuesta ganada',
-      'betLost': 'Apuesta perdida',
+      'betLost': 'Apuesta fallida',
       'history': 'Historial',
       'hours': 'Hora/s',
       'send': 'Enviar',

@@ -225,7 +225,8 @@ Future<Future<Object?>> showZoneDialogAnimated(
     double currentValue,
     String iconPath,
     Rect originRect,
-    bool dollarCurrency
+    bool dollarCurrency,
+    { bool fromInactive = false }
     ) async {
   final durationHours = zone.endDate.difference(zone.startDate).inHours.abs();
   final ui.Image? image = await _loadImage(iconPath);
@@ -239,7 +240,6 @@ Future<Future<Object?>> showZoneDialogAnimated(
     transitionBuilder: (context, animation, secondaryAnimation, child) {
       final fade = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
       final scale = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
-
       final screenSize = MediaQuery.of(context).size;
       final originCenter = Offset(
         originRect.left + originRect.width / 2,
@@ -273,24 +273,28 @@ Future<Future<Object?>> showZoneDialogAnimated(
                   scale: scale.value,
                   child: GestureDetector(
                     onTap: () {
-                      Common().vibrate();
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => BetConfirmationPage(
-                            name: assetName,
-                            zone: zone,
-                            currentValue: currentValue,
-                            iconPath: iconPath,
-                            onCancel: () {
-                              Common().vibrate();
-                              Navigator.pop(context);
-                            },
+                      if (!fromInactive) {
+                        Common().vibrate();
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (_, __, ___) =>
+                                BetConfirmationPage(
+                                  name: assetName,
+                                  zone: zone,
+                                  currentValue: currentValue,
+                                  iconPath: iconPath,
+                                  onCancel: () {
+                                    Common().vibrate();
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                            transitionsBuilder: (_, animation, __, child) =>
+                                FadeTransition(
+                                    opacity: animation, child: child),
                           ),
-                          transitionsBuilder: (_, animation, __, child) =>
-                              FadeTransition(opacity: animation, child: child),
-                        ),
-                      );
+                        );
+                      }
                     },
                     child: CustomPaint(
                       size: const Size(250, 260),

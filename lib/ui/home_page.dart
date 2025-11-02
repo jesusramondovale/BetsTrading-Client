@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/BetsService.dart';
+import 'package:betrader/ui/betshistory_page.dart';
 import 'package:betrader/ui/settings_view.dart';
 import 'package:betrader/ui/store_page.dart';
 import 'package:flutter/material.dart';
@@ -135,7 +136,7 @@ class HomeScreenState extends State<HomeScreen> {
       });
     });
 
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       _refreshData();
     });
   }
@@ -543,7 +544,16 @@ class HomeScreenState extends State<HomeScreen> {
                             floatingActionButton: FloatingActionButton(
                               backgroundColor: Colors.grey,
                               splashColor: Colors.grey,
-                              onPressed: () {}, //TODO: add history page
+                              onPressed: () {
+                                Common().vibrate();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => BetsHistoryPage()
+                                  ),
+                                );
+
+                              },
                               child: const Icon(FontAwesomeIcons.clockRotateLeft),
                             ),
                             floatingActionButtonLocation:
@@ -586,7 +596,15 @@ class HomeScreenState extends State<HomeScreen> {
                           floatingActionButton: FloatingActionButton(
                             backgroundColor: Colors.grey,
                             splashColor: Colors.grey,
-                            onPressed: () {}, //TODO: add history page
+                            onPressed: () {
+                              Common().vibrate();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => BetsHistoryPage()
+                                ),
+                              );
+                            },
                             child: const Icon(FontAwesomeIcons.clockRotateLeft),
                           ),
                           floatingActionButtonLocation:

@@ -165,9 +165,9 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
       final tf = _mapTimeframe(_currentRangeTime);
       final zones = await BetsService().fetchBetZones(widget.ticker, tf, null);
       final candles = await BetsService().fetchCandles(widget.ticker, tf);
-      final rectangleZones = Common().getRectangleZonesFromBetZones(zones, candles.isNotEmpty ? candles.first.close : 0.0);
+      final rectangleZones = Common().getRectangleZonesFromBetZones(
+          zones, candles.isNotEmpty ? candles.first.close : 0.0);
       widget.rectangleZones.value = rectangleZones;
-
     } catch (e) {
       print("Error loading initial bet zones: $e");
     }
@@ -175,18 +175,25 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
 
   int _mapTimeframe(String tf) {
     switch (tf) {
-      case '1H': return 1;
-      case '2H': return 2;
-      case '4H': return 4;
-      case '1D': return 24;
-      default: return 1;
+      case '1H':
+        return 1;
+      case '2H':
+        return 2;
+      case '4H':
+        return 4;
+      case '1D':
+        return 24;
+      default:
+        return 1;
     }
   }
 
   Future<void> _reloadData(int timeframe) async {
     try {
-      final zones = await BetsService().fetchBetZones(widget.ticker, timeframe, null);
-      final candles = await BetsService().fetchCandles(widget.ticker, timeframe);
+      final zones =
+          await BetsService().fetchBetZones(widget.ticker, timeframe, null);
+      final candles =
+          await BetsService().fetchCandles(widget.ticker, timeframe);
       final rectangleZones = Common().getRectangleZonesFromBetZones(
         zones,
         candles.isNotEmpty ? candles.first.close : 0.0,
@@ -207,10 +214,11 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     if (widget.candles.isEmpty) return;
 
     final RenderBox? renderBox =
-    _customPaintKey.currentContext?.findRenderObject() as RenderBox?;
+        _customPaintKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
-    final double maxWidth = renderBox.size.width - PRICE_BAR_WIDTH + widget.candleWidth * 2;
+    final double maxWidth =
+        renderBox.size.width - PRICE_BAR_WIDTH + widget.candleWidth * 2;
 
     final int candlesStartIndex = widget.candles.isEmpty
         ? 0
@@ -219,9 +227,9 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     final int candlesEndIndex = widget.candles.isEmpty
         ? 0
         : min(
-      (maxWidth ~/ widget.candleWidth) + candlesStartIndex,
-      widget.candles.length - 1,
-    );
+            (maxWidth ~/ widget.candleWidth) + candlesStartIndex,
+            widget.candles.length - 1,
+          );
 
     if (candlesEndIndex <= candlesStartIndex) return;
 
@@ -238,14 +246,14 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final noBetsText =
-        LocalizedStrings.of(context)!.get('noBetsAvailable') ?? "No Bets available!";
+    final noBetsText = LocalizedStrings.of(context)!.get('noBetsAvailable') ??
+        "No Bets available!";
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double maxWidth = constraints.maxWidth - PRICE_BAR_WIDTH + widget.candleWidth * 2;
+        final double maxWidth =
+            constraints.maxWidth - PRICE_BAR_WIDTH + widget.candleWidth * 2;
         final double maxHeight = constraints.maxHeight - DATE_BAR_HEIGHT;
 
         final int candlesStartIndex = widget.candles.isEmpty
@@ -255,15 +263,15 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
         final int candlesEndIndex = widget.candles.isEmpty
             ? 0
             : min(
-          (maxWidth ~/ widget.candleWidth) + candlesStartIndex,
-          widget.candles.length - 1,
-        );
+                (maxWidth ~/ widget.candleWidth) + candlesStartIndex,
+                widget.candles.length - 1,
+              );
 
         List<Candle> inRangeCandles = widget.candles.isEmpty
             ? []
             : widget.candles
-            .getRange(candlesStartIndex, candlesEndIndex + 1)
-            .toList();
+                .getRange(candlesStartIndex, candlesEndIndex + 1)
+                .toList();
 
         double candlesHighPrice = 0;
         double candlesLowPrice = 0;
@@ -321,22 +329,23 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
         final double painterBottomPrice = tweenBegin;
         final double painterTopPrice = tweenEnd;
         final RangePainter Function() buildHitTestPainter = () => RangePainter(
-          zones: widget.rectangleZones,
-          candles: widget.candles,
-          candleWidth: widget.candleWidth,
-          topPrice: painterTopPrice,
-          bottomPrice: painterBottomPrice,
-          index: widget.index,
-          timeframe: _mapTimeframe(_currentRangeTime),
-          priceColumnWidth: PRICE_BAR_WIDTH,
-          noBetsText: noBetsText,
-          noIcon: widget.iconPath == "null",
-        );
+              zones: widget.rectangleZones,
+              candles: widget.candles,
+              candleWidth: widget.candleWidth,
+              topPrice: painterTopPrice,
+              bottomPrice: painterBottomPrice,
+              index: widget.index,
+              timeframe: _mapTimeframe(_currentRangeTime),
+              priceColumnWidth: PRICE_BAR_WIDTH,
+              noBetsText: noBetsText,
+              noIcon: widget.iconPath == "null",
+            );
 
         RectangleZone? hitTestZone(Offset localPosition, Size size) {
           return buildHitTestPainter()
               .hit(localPosition.dx, localPosition.dy, size);
         }
+
         return TweenAnimationBuilder(
           tween: Tween(begin: tweenBegin, end: tweenEnd),
           duration: Duration(milliseconds: manualScaleHigh == null ? 300 : 0),
@@ -346,15 +355,18 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
               duration:
                   Duration(milliseconds: manualScaleHigh == null ? 300 : 0),
               builder: (context, double low, _) {
-                final currentCandle = (longPressX == null || widget.candles.isEmpty)
-                    ? null
-                    : widget.candles[min(
-                  max(
-                    (maxWidth - longPressX!) ~/ widget.candleWidth + widget.index - 1,
-                    0,
-                  ),
-                  widget.candles.length - 1,
-                )];
+                final currentCandle =
+                    (longPressX == null || widget.candles.isEmpty)
+                        ? null
+                        : widget.candles[min(
+                            max(
+                              (maxWidth - longPressX!) ~/ widget.candleWidth +
+                                  widget.index -
+                                  1,
+                              0,
+                            ),
+                            widget.candles.length - 1,
+                          )];
 
                 return Container(
                   color: widget.style.background,
@@ -379,13 +391,13 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   gaplessPlayback: true,
                                   errorBuilder: (context, error, stackTrace) =>
                                       Text(
-                                        widget.chartTitle,
-                                        maxLines: 1,
-                                        style: GoogleFonts.roboto(
-                                            fontSize: 36,
-                                            fontWeight: FontWeight.w100),
-                                        textAlign: TextAlign.center,
-                                      ),
+                                    widget.chartTitle,
+                                    maxLines: 1,
+                                    style: GoogleFonts.roboto(
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.w100),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               )
                             ] else if (widget.iconPath.contains("http")) ...[
@@ -398,13 +410,13 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   gaplessPlayback: true,
                                   errorBuilder: (context, error, stackTrace) =>
                                       Text(
-                                        widget.chartTitle,
-                                        maxLines: 1,
-                                        style: GoogleFonts.roboto(
-                                            fontSize: 36,
-                                            fontWeight: FontWeight.w100),
-                                        textAlign: TextAlign.center,
-                                      ),
+                                    widget.chartTitle,
+                                    maxLines: 1,
+                                    style: GoogleFonts.roboto(
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.w100),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               )
                             ] else ...[
@@ -430,61 +442,6 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             flex: 3,
                             child: Stack(
                               children: [
-                                Positioned.fill(
-                                  child: LayoutBuilder(
-                                    builder: (context, boxConstraints) {
-                                      final double painterTop = tweenEnd;     // topPrice
-                                      final double painterBottom = tweenBegin; // bottomPrice
-                                      final int painterTimeframe = _mapTimeframe(_currentRangeTime);
-
-                                      return CustomPaint(
-                                          key: _customPaintKey,
-                                          painter: RangePainter(
-                                            zones: widget.rectangleZones,
-                                            candles: widget.candles,
-                                            candleWidth: widget.candleWidth,
-                                            topPrice: painterTop,
-                                            bottomPrice: painterBottom,
-                                            index: widget.index-1,
-                                            timeframe: painterTimeframe,
-                                            priceColumnWidth: PRICE_BAR_WIDTH,
-                                            noBetsText: noBetsText,
-                                            noIcon: widget.iconPath == "null",
-                                          ),
-                                        );
-
-                                    },
-                                  ),
-                                ),
-
-                                PriceColumn(
-                                  style: widget.style,
-                                  low: tweenBegin,
-                                  high: tweenEnd,
-                                  width: constraints.maxWidth,
-                                  chartHeight: chartHeight,
-                                  lastCandle: widget.candles[min(max(widget.index, 0), widget.candles.length - 1)],
-                                  onScale: (delta) {
-                                    if (manualScaleHigh == null ||
-                                        manualScaleLow == null) {
-                                      manualScaleHigh = candlesHighPrice;
-                                      manualScaleLow = candlesLowPrice;
-                                    }
-                                    setState(() {
-                                      double deltaPrice = delta /
-                                          chartHeight *
-                                          (manualScaleHigh! - manualScaleLow!);
-
-                                      double newManualScaleHigh =
-                                          manualScaleHigh! + deltaPrice;
-                                      double newManualScaleLow =
-                                          manualScaleLow! - deltaPrice;
-
-                                      manualScaleHigh = newManualScaleHigh;
-                                      manualScaleLow = newManualScaleLow;
-                                    });
-                                  },
-                                ),
                                 Row(
                                   children: [
                                     Expanded(
@@ -539,6 +496,71 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                     ),
                                   ],
                                 ),
+                                Positioned.fill(
+                                  child: LayoutBuilder(
+                                    builder: (context, boxConstraints) {
+                                      final double painterTop =
+                                          tweenEnd; // topPrice
+                                      final double painterBottom =
+                                          tweenBegin; // bottomPrice
+                                      final int painterTimeframe =
+                                          _mapTimeframe(_currentRangeTime);
+
+                                      return CustomPaint(
+                                        key: _customPaintKey,
+                                        painter: RangePainter(
+                                          zones: widget.rectangleZones,
+                                          candles: widget.candles,
+                                          candleWidth: widget.candleWidth,
+                                          topPrice: painterTop,
+                                          bottomPrice: painterBottom,
+                                          index: widget.index - 1,
+                                          timeframe: painterTimeframe,
+                                          priceColumnWidth: PRICE_BAR_WIDTH,
+                                          noBetsText: noBetsText,
+                                          noIcon: widget.iconPath == "null",
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: SizedBox(
+                                    width: PRICE_BAR_WIDTH,
+                                    child: PriceColumn(
+                                      style: widget.style,
+                                      low: tweenBegin,
+                                      high: tweenEnd,
+                                      width: PRICE_BAR_WIDTH,
+                                      chartHeight: chartHeight,
+                                      lastCandle: widget.candles[min(
+                                          max(widget.index, 0),
+                                          widget.candles.length - 1)],
+                                      onScale: (delta) {
+                                        if (manualScaleHigh == null ||
+                                            manualScaleLow == null) {
+                                          manualScaleHigh = candlesHighPrice;
+                                          manualScaleLow = candlesLowPrice;
+                                        }
+                                        setState(() {
+                                          double deltaPrice = delta /
+                                              chartHeight *
+                                              (manualScaleHigh! -
+                                                  manualScaleLow!);
+
+                                          double newManualScaleHigh =
+                                              manualScaleHigh! + deltaPrice;
+                                          double newManualScaleLow =
+                                              manualScaleLow! - deltaPrice;
+
+                                          manualScaleHigh = newManualScaleHigh;
+                                          manualScaleLow = newManualScaleLow;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                )
                               ],
                             ),
                           ),
@@ -617,14 +639,18 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           ),
                         ),
                       Padding(
-                        padding: const EdgeInsets.only(right: 50, bottom: 20),
+                        padding: EdgeInsets.only(
+                          right: PRICE_BAR_WIDTH,
+                          bottom: 20,
+                        ),
                         child: GestureDetector(
                           onScaleUpdate: (details) {
                             if (details.scale == 1) {
                               widget.onHorizontalDragUpdate(details);
                               _autoAdjustVerticalRange();
                             } else {
-                              widget.onScaleUpdate(1 + (details.scale - 1) * 0.05);
+                              widget.onScaleUpdate(
+                                  1 + (details.scale - 1) * 0.05);
                             }
                           },
                           onScaleStart: (details) {
@@ -634,9 +660,9 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             widget.onPanEnd();
                           },
                           onLongPressStart: (LongPressStartDetails details) {
-                            final RenderBox? renderBox =
-                            _customPaintKey.currentContext?.findRenderObject()
-                            as RenderBox?;
+                            final RenderBox? renderBox = _customPaintKey
+                                .currentContext
+                                ?.findRenderObject() as RenderBox?;
                             if (renderBox == null) {
                               return;
                             }
@@ -647,10 +673,33 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                               size,
                             );
 
-                            if (zoneLongPressed != null && !widget.inactiveZone) {
+                            if (zoneLongPressed != null) {
                               Common().vibrate();
-                              final originRect = Rect.fromLTWH(details.globalPosition.dx, details.globalPosition.dy, 50, 50);
-                              showZoneDialogAnimated(context, zoneLongPressed,  widget.chartTitle, widget.candles.last.close, widget.iconPath, originRect, dollarCurrency);
+                              final originRect = Rect.fromLTWH(
+                                  details.globalPosition.dx,
+                                  details.globalPosition.dy,
+                                  50,
+                                  50);
+                              if (widget.inactiveZone) {
+                                showZoneDialogAnimated(
+                                    context,
+                                    zoneLongPressed,
+                                    widget.chartTitle,
+                                    widget.candles.last.close,
+                                    widget.iconPath,
+                                    originRect,
+                                    dollarCurrency,
+                                    fromInactive: true);
+                              } else {
+                                showZoneDialogAnimated(
+                                    context,
+                                    zoneLongPressed,
+                                    widget.chartTitle,
+                                    widget.candles.last.close,
+                                    widget.iconPath,
+                                    originRect,
+                                    dollarCurrency);
+                              }
                               return;
                             }
 
@@ -665,14 +714,18 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             longPressY = null;
                           },
                           behavior: HitTestBehavior.translucent,
-                          onLongPressMoveUpdate: (LongPressMoveUpdateDetails details) {
+                          onLongPressMoveUpdate:
+                              (LongPressMoveUpdateDetails details) {
                             setState(() {
                               longPressX = details.localPosition.dx;
                               longPressY = details.localPosition.dy;
 
                               int currentCandleIndex = min(
                                 max(
-                                  (maxWidth - longPressX!) ~/ widget.candleWidth + widget.index - 1,
+                                  (maxWidth - longPressX!) ~/
+                                          widget.candleWidth +
+                                      widget.index -
+                                      1,
                                   0,
                                 ),
                                 widget.candles.length - 1,
@@ -686,33 +739,32 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           },
                         ),
                       ),
-
                       Positioned(
-                        top: (constraints.maxHeight/2),
+                        top: (constraints.maxHeight / 2),
                         left: 40.0,
-                        child:
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 4, horizontal: 12),
-                            child: TopPanel(
-                              style: widget.style,
-                              onRemoveIndicator: widget.onRemoveIndicator,
-                              currentCandle: currentCandle,
-                              indicators: widget.mainWindowDataContainer.indicators,
-                              toggleIndicatorVisibility: (indicatorName) {
-                                setState(() {
-                                  longPressX = null;
-                                  longPressY = null;
-                                });
-                                setState(() {
-                                  widget.mainWindowDataContainer
-                                      .toggleIndicatorVisibility(indicatorName);
-                                });
-                              },
-                              unvisibleIndicators: widget
-                                  .mainWindowDataContainer.unvisibleIndicators,
-                            ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 4, horizontal: 12),
+                          child: TopPanel(
+                            style: widget.style,
+                            onRemoveIndicator: widget.onRemoveIndicator,
+                            currentCandle: currentCandle,
+                            indicators:
+                                widget.mainWindowDataContainer.indicators,
+                            toggleIndicatorVisibility: (indicatorName) {
+                              setState(() {
+                                longPressX = null;
+                                longPressY = null;
+                              });
+                              setState(() {
+                                widget.mainWindowDataContainer
+                                    .toggleIndicatorVisibility(indicatorName);
+                              });
+                            },
+                            unvisibleIndicators: widget
+                                .mainWindowDataContainer.unvisibleIndicators,
                           ),
+                        ),
                       ),
                       GestureDetector(
                         onTapUp: (TapUpDetails details) {
@@ -726,8 +778,26 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             size,
                           );
 
-                          if (zoneClicked != null && !widget.inactiveZone) {
-                            _openZone(zoneClicked);
+                          if (zoneClicked != null) {
+                            if (!widget.inactiveZone) {
+                              _openZone(zoneClicked);
+                            }
+                            else {
+                              Common().vibrate();
+                              showZoneDialogAnimated(
+                                  context,
+                                  zoneClicked,
+                                  widget.chartTitle,
+                                  widget.candles.last.close,
+                                  widget.iconPath,
+                                  Rect.fromLTWH(
+                                      details.globalPosition.dx,
+                                      details.globalPosition.dy,
+                                      50,
+                                      50),
+                                  dollarCurrency,
+                                  fromInactive: true);
+                            }
                           }
                         },
                       ),
@@ -763,7 +833,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                     ticker: widget.ticker,
                                     currentValue: widget.candles.first.close,
                                     iconPath: widget.iconPath,
-                                    isForex: Common().isTickerForex(widget.ticker),
+                                    isForex:
+                                        Common().isTickerForex(widget.ticker),
                                   ),
                                 ),
                               );
@@ -772,7 +843,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                         ),
                       ),
                       Positioned(
-                        top: (constraints.maxHeight/2)*0.97,
+                        top: (constraints.maxHeight / 2) * 0.97,
                         left: 4.0,
                         child: Container(
                           decoration: BoxDecoration(
@@ -781,8 +852,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           ),
                           height: 50.0,
                           width: 50.0,
-                          child:  TextButton(child:
-                          Text(
+                          child: TextButton(
+                            child: Text(
                               _currentRangeTime,
                               style: GoogleFonts.montserrat(
                                 fontSize: 16,
@@ -793,17 +864,21 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                             onPressed: () async {
                               Common().vibrate();
                               setState(() {
-                                _currentIndex = (_currentIndex + 1) % options.length;
+                                _currentIndex =
+                                    (_currentIndex + 1) % options.length;
                                 _currentRangeTime = options[_currentIndex];
                               });
 
-                              final timeframe = _mapTimeframe(_currentRangeTime);
+                              final timeframe =
+                                  _mapTimeframe(_currentRangeTime);
                               TimeframeManager.set(timeframe);
                               await _reloadData(timeframe);
 
                               if (widget.candles.isNotEmpty) {
-                                final highs = widget.candles.map((c) => c.high).toList();
-                                final lows = widget.candles.map((c) => c.low).toList();
+                                final highs =
+                                    widget.candles.map((c) => c.high).toList();
+                                final lows =
+                                    widget.candles.map((c) => c.low).toList();
 
                                 final double newHigh = highs.reduce(max);
                                 final double newLow = lows.reduce(min);
@@ -842,11 +917,12 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
       BetZoneRefresher().stop();
     } else if (state == AppLifecycleState.resumed) {
       BetZoneRefresher().start(widget.ticker, widget.rectangleZones);
     }
   }
-
 }

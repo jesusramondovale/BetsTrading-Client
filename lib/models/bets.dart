@@ -73,12 +73,13 @@ class Bet {
         targetOdds = json['target_odds'].toDouble(),
         targetWon = json['target_won'],
         finished = json['finished'],
-        profitLoss = DateTime.parse(json['target_date']).isAfter(DateTime.now())
-            ? json['bet_amount'].toDouble()
-            : json['target_won'] == true
-                ? (json['bet_amount'].toDouble()) *
-                    (json['target_odds'].toDouble())
-                : json['bet_amount'].toDouble() * (-1),
+        profitLoss =
+            DateTime.parse(json['target_date']).isAfter(DateTime.now().toUtc())
+                ? json['bet_amount'].toDouble()
+                : json['target_won'] == true
+                    ? (json['bet_amount'].toDouble()) *
+                        (json['target_odds'].toDouble())
+                    : json['bet_amount'].toDouble() * (-1),
         bet_zone = json['bet_zone'];
 }
 
@@ -888,12 +889,12 @@ class RecentBetContainerState extends State<RecentBetContainer> {
         widget.bet.endDate.difference(DateTime.now().toUtc()).inHours;
     int minutesUntilFinal =
         widget.bet.endDate.difference(DateTime.now().toUtc()).inMinutes;
-    bool isActive = widget.bet.targetDate.isBefore(DateTime.now().toUtc()) &&
-        widget.bet.endDate.isAfter(DateTime.now().toUtc());
+    bool isActive = widget.bet.targetDate.isBefore(DateTime.now().toUtc());
 
     bool isFinished = widget.bet.endDate.isBefore(DateTime.now().toUtc());
 
-    bool isAlreadyLost = isActive && widget.necessaryGain != 0.0;
+    bool isAlreadyLost = (isActive && widget.bet.finished == true) ||
+        (isActive && widget.bet.necessaryGain != 0.0);
 
     final strings = LocalizedStrings.of(context);
     String? betAmountText =
@@ -904,42 +905,49 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                 .replaceFirst(RegExp(r'\.?0+$'), '')
             : '¿?';
     String? betMultiplierText = " x${widget.bet.targetOdds}";
-    String prizeText = "${(widget.bet.betAmount * widget.bet.targetOdds).toStringAsPrecision(2)}";
-
+    final num prizeNum = widget.bet.betAmount * widget.bet.targetOdds;
+    String prizeText = NumberFormat('0.##', 'en').format(prizeNum);
 
     return Column(
       children: <Widget>[
         Slidable(
           key: Key(widget.bet.id.toString()),
-          endActionPane: (isFinished || isAlreadyLost) ?
-            ActionPane(
-              extentRatio: 0.2,
-              motion: const ScrollMotion(),
-              children: [
-                SlidableAction(
-                    onPressed: (context) async {
+          endActionPane: (isAlreadyLost || DateTime.now().toUtc().isAfter(widget.bet.endDate))
+              ? ActionPane(
+                  motion: const ScrollMotion(),
+                  extentRatio: 0.3,
+                  dismissible: DismissiblePane(
+                    dismissThreshold: 0.3,
+                    closeOnCancel: false,
+                    onDismissed: () async {
                       Common().vibrate();
-
-                      final result = await BetsService()
+                      final ok = await BetsService()
                           .deleteRecentBet(widget.bet.id.toString());
-                      if (result) {
+                      if (ok) {
                         Common().showFloatingSnack(
-                            context,
-                            LocalizedStrings.of(context)!
-                                    .get('deletedSuccessfully') ??
-                                "Deleted successfully!");
+                          context,
+                          LocalizedStrings.of(context)!
+                                  .get('deletedSuccessfully') ??
+                              "Deleted successfully!",
+                        );
                         widget.onDelete();
                       } else {
                         Common().showFloatingSnack(context, "Error!",
                             backgroundColor: Colors.red);
                       }
                     },
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    icon: Icons.delete,
                   ),
-              ],
-            ) : null,
+                  children: [
+                    CustomSlidableAction(
+                      onPressed: (_) {},
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: const FaIcon(FontAwesomeIcons.trash, size: 30),
+                    ),
+                  ],
+                )
+              : null,
           child: ListTile(
               contentPadding:
                   const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
@@ -956,14 +964,11 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                         top: Radius.circular(25.0),
                       ),
                       child: Container(
-                        color: Theme.of(context)
-                            .scaffoldBackgroundColor,
-                        height: MediaQuery.of(context).size.height *
-                            0.55,
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        height: MediaQuery.of(context).size.height * 0.55,
                         child: OverflowBox(
                           alignment: Alignment.topCenter,
-                          maxHeight:
-                          MediaQuery.of(context).size.height,
+                          maxHeight: MediaQuery.of(context).size.height,
                           child: Column(
                             children: [
                               Expanded(
@@ -1065,19 +1070,17 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                       children: [
                         if (isAlreadyLost) ...[
                           Text(
-                            strings?.get('betLost')?.toUpperCase() ??
-                                "BET LOST",
+                            strings?.get('betLost') ?? "Bet failed",
                             style: GoogleFonts.rajdhani(
                               fontSize: 16,
                               fontWeight: FontWeight.w400,
                               color: Colors.red,
                             ),
                           ),
-                        ]
-                        else if (isFinished && widget.bet.targetWon == true) ...[
+                        ] else if (isFinished &&
+                            widget.bet.targetWon == true) ...[
                           Text(
-                            "${strings?.get('betWon')?.toUpperCase() ??
-                                "BET WON"}!",
+                            "${strings?.get('betWon')?.toUpperCase() ?? "BET WON"}!",
                             style: GoogleFonts.rajdhani(
                               fontSize: 16,
                               fontWeight: FontWeight.w400,
@@ -1186,15 +1189,14 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (isFinished && widget.bet.targetWon == true)... [
+                            if (isFinished && widget.bet.targetWon == true) ...[
                               Text(
                                 prizeText,
                                 maxLines: 1,
                                 style: GoogleFonts.montserrat(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.green
-                                ),
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.green),
                               ),
                               const SizedBox(width: 6),
                               Image.asset(
@@ -1203,11 +1205,9 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                 height: 20,
                                 fit: BoxFit.contain,
                               ),
-
-                            ]
-                            else ...[
+                            ] else ...[
                               Text(
-                                "${betAmountText}${((isAlreadyLost) ? "" : betMultiplierText)}",
+                                "${(isAlreadyLost ? "-" : "")}${betAmountText}${((isAlreadyLost) ? "" : betMultiplierText)}",
                                 maxLines: 1,
                                 style: GoogleFonts.montserrat(
                                   fontSize: 22,
@@ -1215,8 +1215,8 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                   color: !isFinished && !isAlreadyLost
                                       ? Colors.grey
                                       : widget.bet.targetWon == true
-                                      ? Colors.green
-                                      : Colors.red,
+                                          ? Colors.green
+                                          : Colors.red,
                                 ),
                               ),
                               const SizedBox(width: 6),
@@ -1230,7 +1230,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                           ],
                         ),
                         Container(
-                          width: MediaQuery.of(context).size.height*0.1,
+                          width: MediaQuery.of(context).size.height * 0.1,
                           child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -1241,7 +1241,8 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                         ? (hoursUntilFinal > 0
                                             ? "$hoursUntilFinal ${strings?.get('hours') ?? "hour/s"}"
                                             : "${minutesUntilFinal}min.")
-                                        : strings?.get('finished') ?? "Finished"),
+                                        : strings?.get('finished') ??
+                                            "Finished"),
                                     style: GoogleFonts.rajdhani(
                                       fontSize: 14,
                                       color: Colors.white,
@@ -1367,57 +1368,41 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
       children: <Widget>[
         Slidable(
           key: Key(widget.priceBet.id.toString()),
-          endActionPane: DateTime.now().isAfter(widget.priceBet.endDate) ?
-            ActionPane(
-              extentRatio: 0.2 ,
-              motion: const ScrollMotion(),
-              children: [
-                SlidableAction(
-                    onPressed: (_) async {
+          endActionPane: DateTime.now().toUtc().isAfter(widget.priceBet.endDate)
+              ? ActionPane(
+                  motion: const ScrollMotion(),
+                  extentRatio: 0.3,
+                  dismissible: DismissiblePane(
+                    dismissThreshold: 0.3,
+                    closeOnCancel: true,
+                    onDismissed: () async {
                       Common().vibrate();
-                      final candles = await BetsService().fetchCandles(
-                          widget.priceBet.ticker, TimeframeManager.current.value);
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ExactPricePage(
-                            name: widget.priceBet.name,
-                            ticker: widget.priceBet.ticker,
-                            currentValue: candles.first.close,
-                            iconPath: widget.priceBet.iconPath,
-                            isForex: widget.isForex,
-                          ),
-                        ),
-                      );
-                    },
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    icon: FontAwesomeIcons.crosshairs),
-                if (DateTime.now().isAfter(widget.priceBet.endDate)) ...[
-                  SlidableAction(
-                    onPressed: (context) async {
-                      Common().vibrate();
-                      final result = await BetsService()
+                      final ok = await BetsService()
                           .deleteRecentPriceBet(widget.priceBet.id.toString());
-                      if (result) {
+                      if (ok) {
                         Common().showFloatingSnack(
-                            context,
-                            LocalizedStrings.of(context)!
-                                    .get('deletedSuccessfully') ??
-                                "Deleted successfully!");
+                          context,
+                          LocalizedStrings.of(context)!
+                                  .get('deletedSuccessfully') ??
+                              "Deleted successfully!",
+                        );
                         widget.onDelete();
                       } else {
                         Common().showFloatingSnack(context, "Error!",
                             backgroundColor: Colors.red);
                       }
                     },
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    icon: Icons.delete,
                   ),
-                ]
-              ],
-            ) : null,
+                  children: [
+                    SlidableAction(
+                      onPressed: (_) {},
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      icon: Icons.delete,
+                    ),
+                  ],
+                )
+              : null,
           child: ListTile(
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),

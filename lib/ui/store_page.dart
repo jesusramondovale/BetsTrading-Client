@@ -44,7 +44,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     _progressController = AnimationController(
       upperBound: 0.9,
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 3),
     )..forward();
     MobileAds.instance.initialize();
     _loadRewardedAd();

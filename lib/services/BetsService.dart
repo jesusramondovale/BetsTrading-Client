@@ -43,7 +43,7 @@ class BetsService {
     final betsResponse =
     await Common().postRequestWrapper('Bet', 'UserBets', {'id': userId});
     final priceBetsResponse =
-    await Common().postRequestWrapper('Bet', 'UserPriceBets', {'id': userId});
+    await Common().postRequestWrapper('Bet', 'PriceBets', {'id': userId});
 
     final List<Bet> bets = (betsResponse['statusCode'] == 200 &&
         betsResponse['body']?['bets'] is List)
