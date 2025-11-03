@@ -12,6 +12,8 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // English
+      'noBetsYet': 'No bets yet',
+      'betsAppearHere': 'Your bets will appear here',
       'howItWorks': 'How does it work?',
       'toWin': 'To earn',
       'selectPriceMargin': 'Select the price margin',
@@ -301,6 +303,8 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'noBetsYet': 'Aún no hay apuestas',
+      'betsAppearHere': 'Tus apuestas aparecerán aquí',
       'howItWorks': '¿Cómo funciona?',
       'toWin': 'Para ganar',
       'selectPriceMargin': 'Seleccione el margen de precio',
@@ -588,6 +592,8 @@ class LocalizedStrings {
     },
     'fr': {
       // Français
+      'noBetsYet': 'Pas encore de paris',
+      'betsAppearHere': 'Vos paris apparaîtront ici',
       'howItWorks': 'Comment ça fonctionne ?',
       'toWin': 'Pour gagner',
       'selectPriceMargin': 'Sélectionnez la marge de prix',
@@ -878,6 +884,8 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'noBetsYet': 'Nessuna scommessa ancora',
+      'betsAppearHere': 'Le tue scommesse appariranno qui',
       'howItWorks': 'Come funziona?',
       'toWin': 'Per guadagnare',
       'selectPriceMargin': 'Seleziona il margine di prezzo',
@@ -1166,6 +1174,8 @@ class LocalizedStrings {
     },
     'de': {
       // Deutsch
+      'noBetsYet': 'Noch keine Wetten',
+      'betsAppearHere': 'Deine Wetten erscheinen hier',
       'howItWorks': 'Wie funktioniert das?',
       'toWin': 'Zum Geld verdienen',
       'selectPriceMargin': 'Wählen Sie die Preisspanne',

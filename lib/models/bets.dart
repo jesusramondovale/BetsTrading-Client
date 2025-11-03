@@ -457,7 +457,7 @@ class RecentBetDialog extends StatelessWidget {
                                     color: Theme.of(context)
                                         .scaffoldBackgroundColor,
                                     height: MediaQuery.of(context).size.height *
-                                        0.55,
+                                        0.56,
                                     child: OverflowBox(
                                       alignment: Alignment.topCenter,
                                       maxHeight:
@@ -911,13 +911,14 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                     closeOnCancel: false,
                     onDismissed: () async {
                       Common().vibrate();
-                      final ok = await BetsService()
-                          .deleteRecentBet(widget.bet.id.toString());
-                      if (ok) {
-                        widget.onDelete();
-                      } else {
-                        Common().showFloatingSnack(context, "Error!",
-                            backgroundColor: Colors.red);
+                      widget.onDelete();
+                      try {
+                        final ok = await BetsService().deleteRecentBet(widget.bet.id.toString());
+                        if (!ok) {
+                          Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+                        }
+                      } catch (_) {
+                        Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
                       }
                     },
                   ),
@@ -949,7 +950,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                       ),
                       child: Container(
                         color: Theme.of(context).scaffoldBackgroundColor,
-                        height: MediaQuery.of(context).size.height * 0.55,
+                        height: MediaQuery.of(context).size.height * 0.56,
                         child: OverflowBox(
                           alignment: Alignment.topCenter,
                           maxHeight: MediaQuery.of(context).size.height,
@@ -1361,13 +1362,14 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                     closeOnCancel: true,
                     onDismissed: () async {
                       Common().vibrate();
-                      final ok = await BetsService()
-                          .deleteRecentPriceBet(widget.priceBet.id.toString());
-                      if (ok) {
-                        widget.onDelete();
-                      } else {
-                        Common().showFloatingSnack(context, "Error!",
-                            backgroundColor: Colors.red);
+                      widget.onDelete();
+                      try {
+                        final ok = await BetsService().deleteRecentPriceBet(widget.priceBet.id.toString());
+                        if (!ok) {
+                          Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+                        }
+                      } catch (_) {
+                        Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
                       }
                     },
                   ),

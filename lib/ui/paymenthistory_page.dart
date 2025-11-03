@@ -335,6 +335,7 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
                       : _rows.isEmpty
                       ? const _EmptyState()
                       : ListView.builder(
+                      padding: EdgeInsets.fromLTRB(0, 35, 0, 0),
                     itemCount: _rows.length,
                       itemBuilder: (context, index) {
                         final row = _rows[index];

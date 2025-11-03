@@ -28,6 +28,8 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  Future<BetsAndPriceBets>? _investmentFuture;
+  bool _investInited = false;
   List<Bet> _bets = [];
   List<PriceBet> _priceBets = [];
   String? _userId;
@@ -58,43 +60,41 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
+
     setState(() {
       _userId = userId != "none" ? userId : null;
       _userPoints = double.tryParse(userPoints) ?? 0;
       _trendsFuture = BetsService().fetchTrendsData(_userId ?? "none");
-      _favsFuture = BetsService().fetchFavouritesData(_userId ?? "none");
+      _favsFuture   = BetsService().fetchFavouritesData(_userId ?? "none");
+      _investmentFuture = BetsService().fetchInvestmentData(_userId ?? "none"); // ← una vez
     });
 
-    _loadBets(userId);
-  }
-
-  Future<void> _loadBets(String userId) async {
-    final betsData = await BetsService().fetchInvestmentData(userId);
-    setState(() {
-      _bets = betsData.bets.investList;
-      _priceBets = betsData.priceBets;
+    _investmentFuture!.then((data) {
+      if (!mounted) return;
+      setState(() {
+        _bets = List.from(data.bets.investList);
+        _priceBets = List.from(data.priceBets);
+        _investInited = true;
+      });
     });
-  }
-
-  void _deleteBet(int betId) {
-    _bets.removeWhere((bet) => bet.id == betId);
-    if (_bets.isEmpty) {
-      setState(() { });
-    }
-  }
-
-  void _deletePriceBet(int priceBetId) {
-    _priceBets.removeWhere((bet) => bet.id == priceBetId);
-    if (_priceBets.isEmpty){
-      setState(() {});
-    }
-
   }
 
   void refreshFavorites() {
     setState(() {
       _favsFuture = BetsService().fetchFavouritesData(_userId ?? "none");
     });
+  }
+
+  Future<void> refreshInvestments() async {
+    if (!mounted || _userId == null) return;
+    try {
+      final data = await BetsService().fetchInvestmentData(_userId!);
+      if (!mounted) return;
+      setState(() {
+        _bets      = List.from(data.bets.investList);
+        _priceBets = List.from(data.priceBets);
+      });
+    } catch (_) { }
   }
 
   void _delayedAutoScrollInit() async {
@@ -139,8 +139,10 @@ class HomeScreenState extends State<HomeScreen> {
       });
     });
 
-    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
       _refreshData();
+      await refreshInvestments();
+
     });
   }
 
@@ -479,143 +481,151 @@ class HomeScreenState extends State<HomeScreen> {
               flex: 12,
               child: _userId == null
                   ? ListView(
+                children: const [
+                  SkeletonRecentBetContainer(),
+                  SkeletonRecentBetContainer(),
+                ],
+              )
+                  : FutureBuilder<BetsAndPriceBets>(
+                future: _investmentFuture,
+                builder: (context, snapshot) {
+                  if (!_investInited &&
+                      snapshot.connectionState == ConnectionState.waiting) {
+                    return ListView(
                       children: const [
                         SkeletonRecentBetContainer(),
                         SkeletonRecentBetContainer(),
                       ],
-                    )
-                  : FutureBuilder<BetsAndPriceBets>(
-                      future:
-                          BetsService().fetchInvestmentData(_userId ?? "none"),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return ListView(
-                            children: const [
-                              SkeletonRecentBetContainer(),
-                              SkeletonRecentBetContainer(),
-                            ],
-                          );
-                        }
-                        if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        }
-                        if (!snapshot.hasData) {
-                          return const SizedBox.shrink();
-                        }
+                    );
+                  }
 
-                        final data = snapshot.data!;
-                        final bets = data.bets.investList;
-                        final priceBets = data.priceBets;
+                  if (!_investInited && snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  }
 
-                        if (bets.isEmpty && priceBets.isEmpty) {
-                          return Scaffold(
-                            backgroundColor: Colors.transparent,
-                            body: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      strings!.get('noLiveBets') ??
-                                          'You have no live bets at the moment, go to the markets tab to create a new one',
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.white70,
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                            width: 40,
-                                            child: Image.asset(
-                                                'assets/new_icon.png')),
-                                        const SizedBox(width: 5.0),
-                                        const Icon(Icons.arrow_downward_rounded,
-                                            size: 50, color: Colors.grey),
-                                      ],
-                                    ),
-                                  ],
+                  if (_bets.isEmpty && _priceBets.isEmpty) {
+                    return Scaffold(
+                      backgroundColor: Colors.transparent,
+                      body: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                LocalizedStrings.of(context)!
+                                    .get('noLiveBets') ??
+                                    'You have no live bets at the moment, go to the markets tab to create a new one',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white70,
                                 ),
                               ),
-                            ),
-                            floatingActionButton: FloatingActionButton(
-                              backgroundColor: Colors.white70,
-                              splashColor: Colors.grey,
-                              onPressed: () {
-                                Common().vibrate();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => BetsHistoryPage()
-                                  ),
-                                );
-
-                              },
-                              child: const Icon(FontAwesomeIcons.clockRotateLeft),
-                            ),
-                            floatingActionButtonLocation:
-                                FloatingActionButtonLocation.endFloat,
-                          );
-                        }
-
-                        _bets = bets;
-                        _priceBets = priceBets;
-
-                        return Scaffold(
-                          backgroundColor: Colors.transparent,
-                          body: SafeArea(
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: ListView(
-                                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom+50,
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  ...bets.reversed
-                                      .map((b) => RecentBetContainer(
-                                            necessaryGain: b.necessaryGain,
-                                            bet: b,
-                                            onDelete: () => _deleteBet(b.id),
-                                            controller: widget.controller,
-                                          )),
-                                  ...priceBets.reversed
-                                      .map((p) => RecentPriceBetContainer(
-                                            priceBet: p,
-                                            onDelete: () =>
-                                                _deletePriceBet(p.id),
-                                            controller: widget.controller,
-                                            isForex: Common()
-                                                .isTickerForex(p.ticker),
-                                          )),
+                                  SizedBox(
+                                    width: 40,
+                                    child: Image.asset('assets/new_icon.png'),
+                                  ),
+                                  const SizedBox(width: 5.0),
+                                  const Icon(
+                                    Icons.arrow_downward_rounded,
+                                    size: 50,
+                                    color: Colors.grey,
+                                  ),
                                 ],
                               ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      floatingActionButton: FloatingActionButton(
+                          backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+                          splashColor: Colors.grey,
+                          onPressed: () {
+                            Common().vibrate();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BetsHistoryPage(),
+                              ),
+                            );
+                          },
+                          child: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
+                        ),
+                      floatingActionButtonLocation:
+                      FloatingActionButtonLocation.endFloat,
+                    );
+                  }
+
+                  return Scaffold(
+                    backgroundColor: Colors.transparent,
+                    body: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: ListView(
+                          padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).padding.bottom + 50,
+                          ),
+                          children: [
+                            // Bets
+                            ..._bets.reversed.map(
+                                  (b) => RecentBetContainer(
+                                necessaryGain: b.necessaryGain,
+                                bet: b,
+                                onDelete: () => setState(() {
+                                  _bets.removeWhere((x) => x.id == b.id);
+                                }),
+                                controller: widget.controller,
+                              ),
                             ),
-                          ),
-                          floatingActionButton: FloatingActionButton(
-                            backgroundColor: Colors.white70,
-                            splashColor: Colors.grey,
-                            onPressed: () {
-                              Common().vibrate();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => BetsHistoryPage()
-                                ),
-                              );
-                            },
-                            child: const Icon(FontAwesomeIcons.clockRotateLeft),
-                          ),
-                          floatingActionButtonLocation:
-                              FloatingActionButtonLocation.endFloat,
-                        );
-                      },
+                            // Price Bets
+                            ..._priceBets.reversed.map(
+                                  (p) => RecentPriceBetContainer(
+                                priceBet: p,
+                                onDelete: () => setState(() {
+                                  _priceBets.removeWhere((x) => x.id == p.id);
+                                }),
+                                controller: widget.controller,
+                                isForex: Common().isTickerForex(p.ticker),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-            ),
+
+                    floatingActionButton: Transform.translate(
+                        offset: const Offset(14, 14),
+                        child: FloatingActionButton(
+                          backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+                          splashColor: Colors.grey,
+                          onPressed: () {
+                            Common().vibrate();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BetsHistoryPage(),
+                              ),
+                            );
+                          },
+                          child: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
+                        ),
+
+                    ),
+                    floatingActionButtonLocation:
+                    FloatingActionButtonLocation.endFloat,
+                  );
+                },
+              ),
+            )
+
+
+
+
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -48,9 +49,7 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
     }
 
     try {
-      final resp = await Common()
-          .postRequestWrapper('Bets', 'HistoricUserBets', {'id': userId});
-
+      final resp = await Common().postRequestWrapper('Bet', 'HistoricUserBets', {'id': userId});
       if ((resp['statusCode'] ?? 500) == 200 && resp['body'] is Map) {
         final body = resp['body'] as Map<String, dynamic>;
         final bets = body['bets'] as List? ?? [];
@@ -197,7 +196,9 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
                       children: [
                         Center(
                           child: icon.isNotEmpty
-                              ? Image.network(icon, width: 60, height: 60)
+                              ? (icon.startsWith("http") ?
+                                  Image.network(icon, width: 60, height: 60) :
+                                  Image.memory(base64Decode(icon), width: 60, height: 60))
                               : const Icon(FontAwesomeIcons.coins, size: 60, color: Colors.white70),
                         ),
                         const SizedBox(height: 12),
@@ -279,7 +280,7 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          strings?.get('betsHistory') ?? 'Bets History',
+          strings?.get('history') ?? 'History',
           style: GoogleFonts.montserrat(fontWeight: FontWeight.w300, fontSize: 30),
         ),
         leading: IconButton(
@@ -301,28 +302,29 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
           Padding(
             padding: EdgeInsets.fromLTRB(
               16,
-              MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+              MediaQuery.of(context).padding.top + kToolbarHeight ,
               16,
               16,
             ),
             child: Column(
               children: [
+                const SizedBox(height: 10),
                 Text(
                   strings?.get('recentBets') ?? 'Recent Bets',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.roboto(
-                    fontSize: 22,
+                    fontSize: 30,
                     color: Colors.white70,
                     fontWeight: FontWeight.w300,
                   ),
                 ),
-                const SizedBox(height: 6),
                 Expanded(
                   child: _loading
                       ? const Center(child: CircularProgressIndicator())
                       : _rows.isEmpty
                       ? const _EmptyStateBets()
                       : ListView.builder(
+                    padding: EdgeInsets.fromLTRB(0, 35, 0, 0),
                     itemCount: _rows.length,
                     itemBuilder: (context, index) {
                       final row = _rows[index];
@@ -362,7 +364,10 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
                                   radius: 22,
                                   backgroundColor: Colors.white.withAlpha(32),
                                   child: icon.isNotEmpty
-                                      ? ClipOval(child: Image.network(icon, fit: BoxFit.cover, width: 32, height: 32))
+                                      ? ClipOval(child: (icon.startsWith("http") ?
+                                          Image.network(icon, fit: BoxFit.cover, width: 32, height: 32) :
+                                          Image.memory(base64Decode(icon), fit: BoxFit.cover, width: 32, height: 32))
+                                        )
                                       : const Icon(FontAwesomeIcons.coins, color: Colors.white, size: 20),
                                 ),
                                 const SizedBox(width: 12),
@@ -433,7 +438,7 @@ class _EmptyStateBets extends StatelessWidget {
           Text(
             strings?.get('noBetsYet') ?? 'No bets yet',
             style: GoogleFonts.montserrat(
-              fontSize: 18,
+              fontSize: 22,
               fontWeight: FontWeight.w300,
               color: Colors.white,
             ),
@@ -442,7 +447,7 @@ class _EmptyStateBets extends StatelessWidget {
           Text(
             strings?.get('betsAppearHere') ?? 'Your bets will appear here',
             style: GoogleFonts.roboto(
-              fontSize: 14,
+              fontSize: 16,
               color: Colors.white70,
             ),
           ),

@@ -274,7 +274,7 @@ class _TrendDialogState extends State<TrendDialog> {
                                               height: MediaQuery.of(context)
                                                   .size
                                                   .height *
-                                                  0.55,
+                                                  0.56,
                                               child: OverflowBox(
                                                 alignment: Alignment.topCenter,
                                                 maxHeight: MediaQuery.of(context)
@@ -419,7 +419,7 @@ class TrendContainerState extends State<TrendContainer> {
                     return ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
                       child: Container(
-                        height: MediaQuery.of(context).size.height * 0.55,
+                        height: MediaQuery.of(context).size.height * 0.56,
                         child: OverflowBox(
 
                           alignment: Alignment.topCenter,

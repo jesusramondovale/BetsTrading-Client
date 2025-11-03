@@ -1,3 +1,4 @@
+import 'package:betrader/candlesticks/candlesticks.dart';
 import 'package:betrader/models/betZone.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:flutter/material.dart';
@@ -77,7 +78,9 @@ class CandlesticksViewState extends State<CandlesticksView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CandleSticksStyle.dark().background,
       body: SafeArea(
+        top: false,
         child: Center(
           child: Stack(
             children: <Widget>[
@@ -92,7 +95,8 @@ class CandlesticksViewState extends State<CandlesticksView> {
                         else
                           Candlesticks(
                               candles: _candles,
-                              displayZoomActions: false,
+                              displayZoomActions: true,
+
                               onScaleUpdate: (double scale) {
                                 candleScaleNotifier.value = scale;
                               },
