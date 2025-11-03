@@ -63,7 +63,7 @@ class MobileChart extends StatefulWidget {
     required this.chartTitle,
     required this.ticker,
     required this.iconPath,
-    required this.inactiveZone,
+    required this.inactiveZone
   });
 
   @override

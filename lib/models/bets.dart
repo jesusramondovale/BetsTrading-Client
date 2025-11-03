@@ -99,6 +99,7 @@ class PriceBet {
   final String ticker;
   final double priceBet;
   final bool? paid;
+  final int prize;
   final double margin;
   final String userId;
   final DateTime betDate;
@@ -111,6 +112,7 @@ class PriceBet {
     required this.ticker,
     required this.priceBet,
     required this.paid,
+    required this.prize,
     required this.margin,
     required this.userId,
     required this.betDate,
@@ -124,6 +126,7 @@ class PriceBet {
         ticker = json['ticker'],
         priceBet = json['price_bet'].toDouble(),
         paid = json['paid'],
+        prize = json['prize'],
         margin = json['margin'].toDouble(),
         userId = json['user_id'],
         betDate = DateTime.parse(json['bet_date']),
@@ -881,29 +884,16 @@ class RecentBetContainerState extends State<RecentBetContainer> {
 
   @override
   Widget build(BuildContext context) {
-    int hoursUntilTarget =
-        widget.bet.targetDate.difference(DateTime.now().toUtc()).inHours;
-    int minutesUntilTarget =
-        widget.bet.targetDate.difference(DateTime.now().toUtc()).inMinutes;
-    int hoursUntilFinal =
-        widget.bet.endDate.difference(DateTime.now().toUtc()).inHours;
-    int minutesUntilFinal =
-        widget.bet.endDate.difference(DateTime.now().toUtc()).inMinutes;
-    bool isActive = widget.bet.targetDate.isBefore(DateTime.now().toUtc());
-
-    bool isFinished = widget.bet.endDate.isBefore(DateTime.now().toUtc());
-
-    bool isAlreadyLost = (isActive && widget.bet.finished == true) ||
-        (isActive && widget.bet.necessaryGain != 0.0);
-
     final strings = LocalizedStrings.of(context);
-    String? betAmountText =
-        (widget.bet.profitLoss != null && widget.bet.profitLoss != 0.0)
-            ? widget.bet.profitLoss
-                ?.abs()
-                .toStringAsFixed(2)
-                .replaceFirst(RegExp(r'\.?0+$'), '')
-            : '¿?';
+    int hoursUntilTarget = widget.bet.targetDate.difference(DateTime.now().toUtc()).inHours;
+    int minutesUntilTarget = widget.bet.targetDate.difference(DateTime.now().toUtc()).inMinutes;
+    int hoursUntilFinal = widget.bet.endDate.difference(DateTime.now().toUtc()).inHours;
+    int minutesUntilFinal = widget.bet.endDate.difference(DateTime.now().toUtc()).inMinutes;
+    bool isActive = widget.bet.targetDate.isBefore(DateTime.now().toUtc());
+    bool isFinished = widget.bet.endDate.isBefore(DateTime.now().toUtc());
+    bool isAlreadyLost = (isActive && widget.bet.finished == true) || (isActive && widget.bet.necessaryGain != 0.0);
+    double? betAmount = widget.bet.betAmount;
+    String betAmountText = NumberFormat('0.##', 'en').format(betAmount);
     String? betMultiplierText = " x${widget.bet.targetOdds}";
     final num prizeNum = widget.bet.betAmount * widget.bet.targetOdds;
     String prizeText = NumberFormat('0.##', 'en').format(prizeNum);
@@ -924,12 +914,6 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                       final ok = await BetsService()
                           .deleteRecentBet(widget.bet.id.toString());
                       if (ok) {
-                        Common().showFloatingSnack(
-                          context,
-                          LocalizedStrings.of(context)!
-                                  .get('deletedSuccessfully') ??
-                              "Deleted successfully!",
-                        );
                         widget.onDelete();
                       } else {
                         Common().showFloatingSnack(context, "Error!",
@@ -950,7 +934,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
               : null,
           child: ListTile(
               contentPadding:
-                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
               onLongPress: _triggerBetButtons,
               onTap: () {
                 (_showEditButtons) ? _triggerBetButtons() : Common().vibrate();
@@ -1352,8 +1336,8 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
     final now = DateTime.now().toUtc();
     final hoursUntilFinal = widget.priceBet.endDate.difference(now).inHours;
     final minutesUntilFinal = widget.priceBet.endDate.difference(now).inMinutes;
-    final amountText = widget.priceBet.priceBet.toStringAsFixed(2);
-    final marginText = '${widget.priceBet.margin.toStringAsFixed(2)}%';
+    final prizeText = NumberFormat('#,##0', 'es').format(widget.priceBet.prize);
+    final marginText = '${widget.priceBet.margin}%';
     final betDateStr = DateFormat('dd-MM-yyyy').format(widget.priceBet.betDate);
     final endDateStr = DateFormat('dd-MM-yyyy').format(widget.priceBet.endDate);
     final paidStr = widget.priceBet.paid == true
@@ -1361,7 +1345,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
         : (strings?.get('unpaid') ?? 'Unpaid');
 
     final statusColor = now.isBefore(widget.priceBet.endDate)
-        ? Colors.grey
+        ? Colors.amber
         : (widget.priceBet.paid == true ? Colors.green : Colors.red);
 
     return Column(
@@ -1380,12 +1364,6 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                       final ok = await BetsService()
                           .deleteRecentPriceBet(widget.priceBet.id.toString());
                       if (ok) {
-                        Common().showFloatingSnack(
-                          context,
-                          LocalizedStrings.of(context)!
-                                  .get('deletedSuccessfully') ??
-                              "Deleted successfully!",
-                        );
                         widget.onDelete();
                       } else {
                         Common().showFloatingSnack(context, "Error!",
@@ -1405,7 +1383,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
               : null,
           child: ListTile(
             contentPadding:
-                const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+                const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
             onLongPress: _triggerBetButtons,
             onTap: () {
               (_showEditButtons) ? _triggerBetButtons() : Common().vibrate();
@@ -1490,7 +1468,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                     children: [
                       const SizedBox(height: 6),
                       Text(
-                        '${widget.priceBet.ticker} • ${amountText}🪙 • ± $marginText',
+                        '${widget.priceBet.ticker} • ${prizeText}🪙 • ± $marginText',
                         maxLines: 1,
                         style: GoogleFonts.montserrat(
                           fontSize: 14,
@@ -1510,7 +1488,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                     ],
                   )
                 : Text(
-                    '${widget.priceBet.ticker} • ± $marginText',
+                    '${widget.priceBet.priceBet}${(_currency == 'eur' ? "€" : "\$")} ± $marginText',
                     maxLines: 1,
                     style: GoogleFonts.rajdhani(
                       fontSize: 16,
@@ -1526,7 +1504,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            amountText,
+                            prizeText,
                             maxLines: 1,
                             style: GoogleFonts.montserrat(
                               fontSize: 22,
@@ -1536,12 +1514,9 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                           ),
                           const SizedBox(width: 6),
                           Image.asset(
-                            _currency == 'eur'
-                                ? 'assets/euro.png'
-                                : 'assets/dollar.png',
+                            'assets/coin.png',
                             width: 20,
                             height: 20,
-                            fit: BoxFit.contain,
                           ),
                         ],
                       ),
@@ -1596,7 +1571,7 @@ class SkeletonRecentBetContainer extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding:
-            const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+            const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         leading: Container(
           width: 50,
           height: 50,

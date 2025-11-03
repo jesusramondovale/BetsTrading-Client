@@ -11,7 +11,10 @@ class LocalizedStrings {
 
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
-      // Inglés
+      // English
+      'howItWorks': 'How does it work?',
+      'toWin': 'To earn',
+      'selectPriceMargin': 'Select the price margin',
       'betWon': 'Bet won',
       'betLost': 'Bet lost',
       'history': 'History',
@@ -298,6 +301,9 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'howItWorks': '¿Cómo funciona?',
+      'toWin': 'Para ganar',
+      'selectPriceMargin': 'Seleccione el margen de precio',
       'betWon': 'Apuesta ganada',
       'betLost': 'Apuesta fallida',
       'history': 'Historial',
@@ -581,7 +587,10 @@ class LocalizedStrings {
       'confirmBet': 'Deslice para confirmar la operación',
     },
     'fr': {
-      // Francés
+      // Français
+      'howItWorks': 'Comment ça fonctionne ?',
+      'toWin': 'Pour gagner',
+      'selectPriceMargin': 'Sélectionnez la marge de prix',
       'betWon': 'Pari gagné',
       'betLost': 'Pari perdu',
       'history': 'Historique',
@@ -869,6 +878,9 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'howItWorks': 'Come funziona?',
+      'toWin': 'Per guadagnare',
+      'selectPriceMargin': 'Seleziona il margine di prezzo',
       'betWon': 'Scommessa vinta',
       'betLost': 'Scommessa persa',
       'history': 'Storico',
@@ -1153,7 +1165,10 @@ class LocalizedStrings {
       'confirmBet': 'Scorri per confermare l\'operazione',
     },
     'de': {
-      // Alemán
+      // Deutsch
+      'howItWorks': 'Wie funktioniert das?',
+      'toWin': 'Zum Geld verdienen',
+      'selectPriceMargin': 'Wählen Sie die Preisspanne',
       'betWon': 'Wette gewonnen',
       'betLost': 'Wette verloren',
       'history': 'Verlauf',

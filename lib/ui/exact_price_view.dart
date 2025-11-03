@@ -8,10 +8,12 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/BetsService.dart';
+import '../config/config.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../services/FirebaseService.dart';
 import 'layout_page.dart';
+import 'package:intl/src/intl/number_format.dart';
 
 class ExactPricePage extends StatefulWidget {
   final double currentValue;
@@ -26,7 +28,7 @@ class ExactPricePage extends StatefulWidget {
     required this.currentValue,
     required this.ticker,
     required this.iconPath,
-    required this.isForex,
+    required this.isForex
   });
 
   @override
@@ -38,7 +40,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
   DateTime _selectedDate = DateTime.now();
   Timer? _holdTimer;
   DateTime? _holdStart;
-  String _selectedMargin = "0%";
+  String _selectedMargin = "±0%";
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   double _userPoints = 0.0;
   String _currency = "eur";
@@ -59,16 +61,16 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
   int _getBetAmountFromMargin(String margin) {
     switch (margin) {
-      case "0%":
+      case "±0%":
+        return 50;
+      case "±0.01%":
         return 200;
-      case "1%":
-        return 350;
-      case "5%":
-        return 500;
-      case "7.5%":
-        return 800;
-      case "10%":
+      case "±0.05%":
+        return 1000;
+      case "±0.075%":
         return 1500;
+      case "±0.1%":
+        return 5000;
       default:
         return 0;
     }
@@ -76,15 +78,15 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
   double _getMarginAsDouble(String margin) {
     switch (margin) {
-      case "0%":
+      case "±0%":
         return 0.0;
-      case "1%":
+      case "±0.01%":
         return 0.01;
-      case "5%":
+      case "±0.05%":
         return 0.05;
-      case "7.5%":
+      case "±0.075%":
         return 0.075;
-      case "10%":
+      case "±0.1%":
         return 0.1;
       default:
         return 0.0;
@@ -103,10 +105,10 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
   Widget _buildMarginButtons(
       BuildContext context, void Function(String) onMarginChanged) {
-    final List<String> options = ["0%", "1%", "5%", "7.5%", "10%"];
+    final List<String> options = ["±0%", "±0.01%", "±0.05%", "±0.075%", "±0.1%"];
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+      padding: const EdgeInsets.only(left: 10, right: 10, bottom: 12),
       child: StatefulBuilder(
         builder: (context, setStateMargin) {
           return Row(
@@ -191,7 +193,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                               context,
                               _getBetAmountFromMargin(_selectedMargin)
                                   .toDouble(),
-                              widget.iconPath);
+                              widget. iconPath);
                       if (confirmed == true) {
                         String? userId =
                             await _storage.read(key: 'sessionToken');
@@ -320,7 +322,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      "${LocalizedStrings.of(context)?.get('nowLabel') ?? 'Now:'}",
+                      "${LocalizedStrings.of(context)?.get('nowLabel')!.toUpperCase() ?? 'NOW:'}",
                       style: GoogleFonts.montserrat(
                           fontSize: 18,
                           fontWeight: FontWeight.w200,
@@ -528,6 +530,71 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 20),
+                Text(
+                  ("${LocalizedStrings.of(context)?.get('toWin') ?? 'To earn'}")
+                      .toUpperCase(),
+                  style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white),
+                ),
+                const SizedBox(height: 2),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xCCFFE082), Color(0xCCFFB300)],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x55000000),
+                        blurRadius: 14,
+                        offset: Offset(0, 6),
+                      ),
+                    ],
+                    border: Border.all(color: Colors.white24, width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(width: 10),
+                      Text(
+                        '${NumberFormat('#,##0', 'es').format(Config.PRICE_BET_PRIZE)}',
+                        style: GoogleFonts.syncopate(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Image(
+                        image: AssetImage('assets/coin.png'),
+                        width: 50,
+                        height: 50,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () {
+                    //TODO: add price bet tutorial
+                  },
+                  child: Text(
+                    ("${LocalizedStrings.of(context)?.get('howItWorks') ?? 'How does it work?'}")
+                        .toUpperCase(),
+                    style: GoogleFonts.syncopate(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
                 const Spacer(),
                 StatefulBuilder(
                   builder: (context, setAcceptState) {
@@ -542,14 +609,24 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
                     return Column(
                       children: [
+                        Text(
+                          (LocalizedStrings.of(context)!.get('selectPriceMargin') ?? "Select the price margin "),
+                          style: GoogleFonts.syncopate(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w200,
+                            color:  Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        _buildMarginButtons(context, updateMargin),
                         Text.rich(
                           TextSpan(
                             children: [
                               TextSpan(
                                 text:
-                                    "${LocalizedStrings.of(context)?.get('enterBetAmount') ?? 'Bet amount'}: ",
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 20,
+                                "${LocalizedStrings.of(context)?.get('enterBetAmount') ?? 'Bet amount'}: ",
+                                style: GoogleFonts.syncopate(
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w200,
                                   color: _isAcceptEnabled
                                       ? Colors.white
@@ -559,10 +636,13 @@ class _ExactPricePageState extends State<ExactPricePage> {
                               TextSpan(
                                 text: _getBetAmountFromMargin(_selectedMargin)
                                     .toString(),
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 20,
+                                style: GoogleFonts.syncopate(
+                                  decoration: _isAcceptEnabled ? TextDecoration.none : TextDecoration.underline,
+                                  decorationColor: Colors.red,
+                                  decorationThickness: 1,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.green,
+                                  color: _isAcceptEnabled ? Colors.green : Colors.red,
                                 ),
                               ),
                               const WidgetSpan(
@@ -579,8 +659,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 5),
-                        _buildMarginButtons(context, updateMargin),
+
                         const SizedBox(height: 5),
                         _buildSecondaryButtons(context, _isAcceptEnabled),
                       ],

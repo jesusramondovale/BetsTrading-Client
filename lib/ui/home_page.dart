@@ -77,15 +77,18 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   void _deleteBet(int betId) {
-    setState(() {
-      _bets.removeWhere((bet) => bet.id == betId);
-    });
+    _bets.removeWhere((bet) => bet.id == betId);
+    if (_bets.isEmpty) {
+      setState(() { });
+    }
   }
 
   void _deletePriceBet(int priceBetId) {
-    setState(() {
-      _priceBets.removeWhere((bet) => bet.id == priceBetId);
-    });
+    _priceBets.removeWhere((bet) => bet.id == priceBetId);
+    if (_priceBets.isEmpty){
+      setState(() {});
+    }
+
   }
 
   void refreshFavorites() {
@@ -542,7 +545,7 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             floatingActionButton: FloatingActionButton(
-                              backgroundColor: Colors.grey,
+                              backgroundColor: Colors.white70,
                               splashColor: Colors.grey,
                               onPressed: () {
                                 Common().vibrate();
@@ -594,7 +597,7 @@ class HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           floatingActionButton: FloatingActionButton(
-                            backgroundColor: Colors.grey,
+                            backgroundColor: Colors.white70,
                             splashColor: Colors.grey,
                             onPressed: () {
                               Common().vibrate();

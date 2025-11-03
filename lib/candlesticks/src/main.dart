@@ -67,6 +67,7 @@ class Candlesticks extends StatefulWidget {
   final bool inactiveZone;
 
 
+
   Candlesticks({
     super.key,
     required this.ticker,
