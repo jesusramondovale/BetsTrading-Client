@@ -50,12 +50,13 @@ class _ExactPricePageState extends State<ExactPricePage> {
   Future<void> _loadUserPoints() async {
     final String? pointsStr = await _storage.read(key: 'points');
     final prefs = await SharedPreferences.getInstance();
-    String currency = (await prefs.getBool('dollarCurrency') == false ? "eur" : "usd");
     setState(() {
       _userPoints = double.tryParse(pointsStr ?? '0') ?? 0.0;
       _isAcceptEnabled =
           _getBetAmountFromMargin(_selectedMargin) <= _userPoints;
-      _currency = currency;
+      if (prefs.getBool('dollarCurrency') ?? false) {
+        _currency = 'usd';
+      }
     });
   }
 
@@ -95,7 +96,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
   double _calculateTextWidth(String text, TextStyle style) {
     final TextPainter textPainter = TextPainter(
-      text: TextSpan(text: (_currency == "eur" ? '€ ' : '\$ ')+text, style: style),
+      text: TextSpan(text: (_currency == "eur" ? '€' : '\$ ')+text, style: style),
       maxLines: 1,
       textDirection: TextDirection.ltr,
     )..layout();

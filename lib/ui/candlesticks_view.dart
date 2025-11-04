@@ -2,8 +2,6 @@ import 'package:betrader/candlesticks/candlesticks.dart';
 import 'package:betrader/models/betZone.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:flutter/material.dart';
-import '../candlesticks/src/main.dart';
-import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 import '../models/rectangle_zone.dart';
 import '../services/BetZoneRefresher.dart';
@@ -32,26 +30,26 @@ class CandlesticksView extends StatefulWidget {
 class CandlesticksViewState extends State<CandlesticksView> {
   final ValueNotifier<double> candleScaleNotifier = ValueNotifier<double>(1.0);
   final ValueNotifier<List<RectangleZone>> _zonesNotifier = ValueNotifier([]);
+  late ValueNotifier<List<RectangleZone>> _frozenZonesNotifier= ValueNotifier([]);
+
   late final List<RectangleZone> _initialZones;
-  late final ValueNotifier<List<RectangleZone>> _frozenZonesNotifier;
   List<Candle> _candles = [];
   bool _isLoading = true;
   late bool _inactive_zone;
+  late int _extraHours;
+
 
   Future<void> _loadData() async {
     try {
       final List<Candle> candles;
-
-     final List<BetZone> betZones =
-        await BetsService().fetchBetZones(widget.ticker, TimeframeManager.current.value, widget.betId);
-
+      final List<BetZone> betZones = await BetsService().fetchBetZones(widget.ticker, TimeframeManager.current.value, widget.betId);
       candles = await BetsService().fetchCandles(widget.ticker, TimeframeManager.current.value);
-
       List<RectangleZone> rectangleZones = Common()
           .getRectangleZonesFromBetZones(
               betZones, candles.isNotEmpty ? candles.first.close : 0.0);
       _initialZones = rectangleZones;
       _frozenZonesNotifier = ValueNotifier(_initialZones);
+
       setState(() {
         _isLoading = false;
         if (!_inactive_zone) {
@@ -72,6 +70,26 @@ class CandlesticksViewState extends State<CandlesticksView> {
     super.initState();
     TimeframeManager.set(1);
     _inactive_zone = widget.betId != null;
+    _extraHours = Common().hoursUntilLatestEndDate(
+        _inactive_zone ? _frozenZonesNotifier.value : _zonesNotifier.value,
+        _candles.isNotEmpty ? _candles.first.date : DateTime.now().toUtc(),
+        TimeframeManager.current.value) + 1;
+
+    _zonesNotifier.addListener(() {
+      if (!_inactive_zone) {
+        int newExtraHours = Common().hoursUntilLatestEndDate(
+            _zonesNotifier.value,
+            _candles.isNotEmpty ? _candles.first.date : DateTime.now().toUtc(),
+            TimeframeManager.current.value
+        );
+        if (_extraHours != newExtraHours){
+          setState(() {
+            _extraHours = newExtraHours;
+          });
+        }
+
+      }
+    });
     _loadData();
   }
 
@@ -106,8 +124,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                               chartTitle: widget.name,
                               ticker: widget.ticker,
                               iconPath: widget.iconPath,
-                              extraHours: (Common().hoursUntilLatestEndDate(_inactive_zone ? _frozenZonesNotifier.value : _zonesNotifier.value,
-                                  _candles.first.date)/TimeframeManager.current.value).ceil()
+                              extraHours: _extraHours,
                             ),
                         Positioned(
                           top: 10.0,

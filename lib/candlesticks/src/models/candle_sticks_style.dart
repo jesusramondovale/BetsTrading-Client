@@ -57,16 +57,14 @@ class CandleSticksStyle {
     return CandleSticksStyle(
       borderColor: borderColor ?? const Color(0xFF848E9C),
       background: background ?? const Color(0xFF191B20),
-      primaryBull: primaryBull ?? const Color(0xFF26A69A),
+      primaryBull: primaryBull ?? const Color(0xFF16C784),
       secondaryBull: secondaryBull ?? const Color(0xFF005940),
-      primaryBear: primaryBear ?? const Color(0xFFEF5350),
+      primaryBear: primaryBear ?? const Color(0xFFEA3943),
       secondaryBear: secondaryBear ?? const Color(0xFF82122B),
-      hoverIndicatorBackgroundColor:
-          hoverIndicatorBackgroundColor ?? const Color(0xFF4C525E),
+      hoverIndicatorBackgroundColor: hoverIndicatorBackgroundColor ?? const Color(0xFF4C525E),
       primaryTextColor: primaryTextColor ?? const Color(0xFF848E9C),
       secondaryTextColor: secondaryTextColor ?? const Color(0XFFFFFFFF),
-      mobileCandleHoverColor:
-          mobileCandleHoverColor ?? const Color(0xFFF0B90A).withValues(alpha: 0.2),
+      mobileCandleHoverColor: mobileCandleHoverColor ?? const Color(0xFFF0B90A).withValues(alpha: 0.2),
       loadingColor: loadingColor ?? const Color(0xFFF0B90A),
       toolBarColor: toolBarColor ?? const Color(0xFF191B20),
     );

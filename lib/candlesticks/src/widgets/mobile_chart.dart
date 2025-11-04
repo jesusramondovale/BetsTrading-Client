@@ -248,8 +248,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final noBetsText = LocalizedStrings.of(context)!.get('noBetsAvailable') ??
-        "No Bets available!";
+    final noBetsText = LocalizedStrings.of(context)!.get('noBetsAvailable') ?? "No Bets available!";
     return LayoutBuilder(
       builder: (context, constraints) {
         final double maxWidth =
@@ -877,6 +876,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                               TimeframeManager.set(timeframe);
                               await _reloadData(timeframe);
 
+
+
                               if (widget.candles.isNotEmpty) {
                                 final highs =
                                     widget.candles.map((c) => c.high).toList();
@@ -901,9 +902,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                 final extra = (Common().hoursUntilLatestEndDate(
                                           widget.rectangleZones.value,
                                           widget.candles.first.date,
-                                        ) /
-                                        timeframe)
-                                    .ceil();
+                                          timeframe
+                                        ));
 
                                 final nuevoIndex = extra;
                                 widget.onHorizontalDragUpdate(

@@ -542,7 +542,8 @@ class HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                      floatingActionButton: FloatingActionButton(
+                      floatingActionButton: FloatingActionButton.extended(
+                          extendedPadding: EdgeInsets.fromLTRB(6,6,6,6),
                           backgroundColor: Colors.transparent.withValues(alpha: 0.1),
                           splashColor: Colors.grey,
                           onPressed: () {
@@ -554,7 +555,15 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           },
-                          child: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
+                          icon: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
+                          label: Text(
+                            strings!.get('history') ?? "History",
+                            style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w400,
+                              fontSize: 16
+                            ),
+                          ),
                         ),
                       floatingActionButtonLocation:
                       FloatingActionButtonLocation.endFloat,

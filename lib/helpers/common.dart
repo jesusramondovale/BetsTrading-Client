@@ -486,7 +486,7 @@ class Common {
         bet_zone: 999);
   }
 
-  int hoursUntilLatestEndDate(List<RectangleZone> rectangleZones, DateTime lastCandleDateTime) {
+  int hoursUntilLatestEndDate(List<RectangleZone> rectangleZones, DateTime lastCandleDate, int timeframeHours) {
     if (rectangleZones.isEmpty) {
       return 10;
     }
@@ -497,8 +497,8 @@ class Common {
         latestDate = zone.endDate;
       }
     }
-    int hoursUntil = latestDate.difference(lastCandleDateTime).inHours;
-    return hoursUntil > 0 ? hoursUntil -1 : 0;
+    int hoursUntil = latestDate.difference(lastCandleDate).inHours;
+    return hoursUntil > 0 ? ((hoursUntil)/timeframeHours.ceil()).toInt() - 1 : 0;
   }
 
   List<RectangleZone> getRectangleZonesFromBetZones(
@@ -531,6 +531,7 @@ class Common {
         strokeColor: strokeColor,
         odds: betZone.targetOdds,
         ticker: betZone.ticker,
+        type: betZone.type
       );
     }).toList();
   }

@@ -12,6 +12,7 @@ class RectangleZone {
   Color fillColor, strokeColor;
   double odds;
   String ticker;
+  int type;
 
   RectangleZone({
     required this.id,
@@ -24,8 +25,7 @@ class RectangleZone {
     required this.strokeColor,
     required this.odds,
     required this.ticker,
-
-
+    this.type = 0
   })
       : centerPrice = (highPrice + lowPrice) / 2, targetPrice = (highPrice + lowPrice) / 2;
 

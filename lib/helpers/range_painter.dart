@@ -12,6 +12,7 @@ import '../ui/bets_page.dart';
 import 'common.dart';
 import '../models/rectangle_zone.dart';
 
+
 class RangePainter extends CustomPainter {
   final ValueNotifier<List<RectangleZone>> zones;
   final List<Candle> candles;
@@ -100,6 +101,31 @@ class RangePainter extends CustomPainter {
     ).createShader(rect);
   }
 
+  void drawDashedRRect(
+      Canvas canvas,
+      RRect rrect,
+      Paint paint, {
+        double dashWidth = 5,
+        double dashSpace = 3,
+      }) {
+    final Path path = Path()..addRRect(rrect);
+    final Path dashedPath = Path();
+
+    for (final PathMetric metric in path.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final double next = distance + dashWidth;
+        dashedPath.addPath(
+          metric.extractPath(distance, next),
+          Offset.zero,
+        );
+        distance += dashWidth + dashSpace;
+      }
+    }
+
+    canvas.drawPath(dashedPath, paint);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     if (zones.value.isEmpty){
@@ -117,45 +143,46 @@ class RangePainter extends CustomPainter {
       );
       textPainter.layout(minWidth: 0, maxWidth: size.width);
       final double offsetX = (size.width - textPainter.width) / 2;
-      final double offsetY = size.height * (noIcon ? 0.12 : 0.3);
+      final double offsetY = size.height * (noIcon ? 0.12 : 0.25);
 
       textPainter.paint(canvas, Offset(offsetX , offsetY));
 
     }
-
-    DateTime maxCandleDate = candles
-        .map((candle) => candle.date)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    DateTime maxCandleDate = candles.map((candle) => candle.date).reduce((a, b) => a.isAfter(b) ? a : b);
 
     for (final zone in zones.value) {
 
       double startX = hoursToX(zone.startDate, index, candleWidth, maxCandleDate, size, timeframe);
       double endX = hoursToX(zone.endDate, index, candleWidth, maxCandleDate, size, timeframe);
-
       final durationHours = zone.endDate.difference(zone.startDate).inHours.abs();
       final widthFactor = (durationHours / timeframe).clamp(1, double.infinity);
-
       endX = startX + widthFactor * candleWidth;
       startX = startX.clamp(0.0, size.width - PRICE_BAR_WIDTH);
       endX = endX.clamp(0.0, size.width);
-
       double startY = priceToY(zone.highPrice, topPrice, bottomPrice, size);
       double endY = priceToY(zone.lowPrice, topPrice, bottomPrice, size);
 
+      final Rect  rect   = Rect.fromLTRB(startX, startY, endX, endY);
+      final rrectRadius  = Radius.circular(8);
+      final RRect rrect  = RRect.fromRectAndRadius(rect, rrectRadius);
+
       final paintFill = Paint()
-        ..shader = buildZoneShader(zone.fillColor, zone.odds, Rect.fromLTRB(startX, startY, endX, endY))
-        ..color = oddsToColor(zone.odds, zone.fillColor)
-        ..style = PaintingStyle.fill;
-      canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintFill);
+        ..isAntiAlias = true
+        ..shader = buildZoneShader(zone.fillColor, zone.odds, rect)
+        ..color  = oddsToColor(zone.odds, zone.fillColor)
+        ..style  = PaintingStyle.fill;
+      canvas.drawRRect(rrect, paintFill);
 
-      final paintStroke = Paint()
-        ..color = Colors.white.withValues(alpha: 0.8)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.5;
-      canvas.drawRect(Rect.fromLTRB(startX, startY, endX, endY), paintStroke);
+      if (zone.type == 1) {
+        final paintStroke = Paint()
+          ..color = Colors.white.withAlpha(200)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5;
 
-      double fontSize = Common()
-          .calculateMaxFontSize('x${zone.odds.toStringAsFixed(2)}', FontWeight.bold, endX - startX);
+        drawDashedRRect(canvas, rrect, paintStroke, dashWidth: 5, dashSpace: 3);
+      }
+
+      double fontSize = Common().calculateMaxFontSize('x${zone.odds.toStringAsFixed(2)}', FontWeight.bold, endX - startX);
       final oddsTextSpan = TextSpan(
         text: 'x${zone.odds.toStringAsFixed(2)}',
         style: GoogleFonts.montserrat(
@@ -345,10 +372,36 @@ class _ZoneDialogPainter extends CustomPainter {
     return "${date.year}-${twoDigits(date.month)}-${twoDigits(date.day)} @ ${twoDigits(date.hour)}:${twoDigits(date.minute)} UTC";
   }
 
+  void drawDashedRRect(
+      Canvas canvas,
+      RRect rrect,
+      Paint paint, {
+        double dashWidth = 6,
+        double dashSpace = 3,
+      }) {
+    final Path path = Path()..addRRect(rrect);
+    final Path dashedPath = Path();
+
+    for (final PathMetric metric in path.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final double next = distance + dashWidth;
+        dashedPath.addPath(
+          metric.extractPath(distance, next),
+          Offset.zero,
+        );
+        distance += dashWidth + dashSpace;
+      }
+    }
+    canvas.drawPath(dashedPath, paint);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(14));
 
+    // Relleno degradado
     final fill = Paint()
       ..shader = LinearGradient(
         colors: [
@@ -364,19 +417,22 @@ class _ZoneDialogPainter extends CustomPainter {
       ).createShader(rect)
       ..style = PaintingStyle.fill;
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(14)),
-      fill,
-    );
+    canvas.drawRRect(rrect, fill);
 
     final border = Paint()
       ..color = Colors.white.withValues(alpha: .9)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.8;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(14)),
-      border,
-    );
+    canvas.drawRRect(rrect, border);
+
+    if (zone.type == 1) {
+      final dashedPaint = Paint()
+        ..color = Colors.white.withValues(alpha: .9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4;
+
+      drawDashedRRect(canvas, rrect, dashedPaint, dashWidth: 6, dashSpace: 4);
+    }
 
     final oddsText = 'x${zone.odds.toStringAsFixed(2)}';
     final oddsSpan = TextSpan(
@@ -429,8 +485,6 @@ class _ZoneDialogPainter extends CustomPainter {
       );
       canvas.restore();
     }
-
-
 
     final highSpan = TextSpan(
       children: [
