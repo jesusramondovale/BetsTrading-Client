@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // English
+      'awards': 'Awards',
       'noBetsYet': 'No bets yet',
       'betsAppearHere': 'Your bets will appear here',
       'howItWorks': 'How does it work?',
@@ -303,6 +304,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'awards': 'Premios',
       'noBetsYet': 'Aún no hay apuestas',
       'betsAppearHere': 'Tus apuestas aparecerán aquí',
       'howItWorks': '¿Cómo funciona?',
@@ -592,6 +594,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Français
+      'awards': 'Récompenses',
       'noBetsYet': 'Pas encore de paris',
       'betsAppearHere': 'Vos paris apparaîtront ici',
       'howItWorks': 'Comment ça fonctionne ?',
@@ -884,6 +887,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'awards': 'Premi',
       'noBetsYet': 'Nessuna scommessa ancora',
       'betsAppearHere': 'Le tue scommesse appariranno qui',
       'howItWorks': 'Come funziona?',
@@ -1174,6 +1178,7 @@ class LocalizedStrings {
     },
     'de': {
       // Deutsch
+      'awards': 'Auszeichnungen',
       'noBetsYet': 'Noch keine Wetten',
       'betsAppearHere': 'Deine Wetten erscheinen hier',
       'howItWorks': 'Wie funktioniert das?',

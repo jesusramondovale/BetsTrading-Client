@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/markets_page.dart';
-import 'package:betrader/ui/topusers_page.dart';
+import 'package:betrader/ui/awards_page.dart';
 import 'package:betrader/ui/tutorial_page.dart';
 import 'package:betrader/ui/userinfo_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -158,7 +158,7 @@ class MainMenuPageState extends State<MainMenuPage> {
         controller: _controller,
       ),
       // TOP USERS
-      TopUsersPage(),
+      AwardsPage(),
       // MARKETS
       MarketsView(
         key: marketsPageKey,
