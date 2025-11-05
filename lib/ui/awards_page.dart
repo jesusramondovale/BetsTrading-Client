@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../helpers/common.dart';
-import '../models/RiffleItems.dart';
+import '../models/raffle_items.dart';
 
 class AwardsPage extends StatefulWidget {
   const AwardsPage({super.key});
@@ -286,7 +286,7 @@ class _AwardsPageState extends State<AwardsPage>
                     ],
                   ),
                   Divider(color: Colors.white, thickness: 0.5, height: 0.5),
-                  //TODO: AwardsBuilder(),
+                  //TODO: RafflesBuilder(),
                 ],
               )
             )
@@ -304,7 +304,7 @@ class _AwardsPageState extends State<AwardsPage>
 }
 
 //TODO
-class AwardsBuilder { }
+class RafflesBuilder { }
 
 class _FolderTabs extends StatelessWidget {
   final TabController controller;
