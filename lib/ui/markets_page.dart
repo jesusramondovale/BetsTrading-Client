@@ -40,7 +40,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       strings?.get('shares') ?? 'Shares',
       'Crypto',
       'Forex',
-      strings?.get('commodities') ?? 'Commodities',
     ];
   }
 
@@ -55,7 +54,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       0: 'Shares',
       1: 'Cryptos',
       2: 'Forex',
-      3: 'Commodities',
     };
 
     for (int id = 0; id < groups.length; id++) {
@@ -322,8 +320,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       return strings?.get('shares') ?? 'Shares';
     } else if (g.contains('forex') || g == 'forex') {
       return 'Forex';
-    } else if (g.contains('commodities') || g == 'commodities') {
-      return strings?.get('commodities') ?? 'Commodities';
     }
     return group;
   }
@@ -364,12 +360,12 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
           isScrollable: true,
           controller: _tabController,
           labelStyle: GoogleFonts.montserrat(
-            fontSize: 22,
+            fontSize: 26,
             fontWeight: FontWeight.w400,
           ),
           labelPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
           unselectedLabelStyle: GoogleFonts.montserrat(
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: FontWeight.w300,
           ),
           tabs: groups.map((String group) => Tab(text: group)).toList(),

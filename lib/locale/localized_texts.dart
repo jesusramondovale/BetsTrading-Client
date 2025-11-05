@@ -12,6 +12,8 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // English
+      'next': 'Next',
+      'raffles': 'Raffles',
       'awards': 'Awards',
       'noBetsYet': 'No bets yet',
       'betsAppearHere': 'Your bets will appear here',
@@ -247,7 +249,6 @@ class LocalizedStrings {
       'staked': 'Staked',
       'indexes': 'Indexes',
       'shares': 'Shares',
-      'commodities': 'Commodities',
       'googleSignIn': 'Continue with Google',
       'appleSignIn': 'Continue with Apple ID',
       'commonSignIn': 'E-mail log-in',
@@ -304,6 +305,8 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'next': 'Próximo',
+      'raffles': 'Sorteos',
       'awards': 'Premios',
       'noBetsYet': 'Aún no hay apuestas',
       'betsAppearHere': 'Tus apuestas aparecerán aquí',
@@ -536,7 +539,6 @@ class LocalizedStrings {
       'staked': 'Apostado',
       'indexes': 'Índices',
       'shares': 'Acciones',
-      'commodities': 'Futuros',
       'googleSignIn': 'Continuar con Google',
       'appleSignIn': 'Continuar con Apple ID',
       'commonSignIn': 'Inicio de sesión con e-mail',
@@ -594,6 +596,8 @@ class LocalizedStrings {
     },
     'fr': {
       // Français
+      'next': 'Prochain',
+      'raffles': 'Tirages',
       'awards': 'Récompenses',
       'noBetsYet': 'Pas encore de paris',
       'betsAppearHere': 'Vos paris apparaîtront ici',
@@ -829,7 +833,6 @@ class LocalizedStrings {
       'staked': 'Misé',
       'indexes': 'Indices',
       'shares': ' Actions',
-      'commodities': 'Matières premières',
       'googleSignIn': 'Connexion avec Google',
       'appleSignIn': 'Connexion avec Apple ID',
       'commonSignIn': 'Connexion avec e-mail',
@@ -887,6 +890,8 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'next': 'Prossimo',
+      'raffles': 'Sorteggi',
       'awards': 'Premi',
       'noBetsYet': 'Nessuna scommessa ancora',
       'betsAppearHere': 'Le tue scommesse appariranno qui',
@@ -1120,7 +1125,6 @@ class LocalizedStrings {
       'staked': 'Scommeso',
       'indexes': 'Indici',
       'shares': 'Azioni',
-      'commodities': 'Materie prime',
       'googleSignIn': 'Accesso con Google',
       'appleSignIn': 'Accesso con Apple ID',
       'commonSignIn': 'Accesso con e-mail',
@@ -1178,6 +1182,8 @@ class LocalizedStrings {
     },
     'de': {
       // Deutsch
+      'next': 'Nächster',
+      'raffles': 'Verlosungen',
       'awards': 'Auszeichnungen',
       'noBetsYet': 'Noch keine Wetten',
       'betsAppearHere': 'Deine Wetten erscheinen hier',
@@ -1412,7 +1418,6 @@ class LocalizedStrings {
       'staked': 'Gewettet',
       'indexes': 'Indizes',
       'shares': 'Unternehmensaktien',
-      'commodities': 'Rohstoffe',
       'googleSignIn': 'Anmeldung mit Google',
       'appleSignIn': 'Anmeldung mit Apple ID',
       'commonSignIn': 'Allgemeine Anmeldung',

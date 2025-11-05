@@ -1,14 +1,15 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:flutter/material.dart';
 import 'package:betrader/services/TopService.dart';
 import 'package:betrader/models/users.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-
 import '../helpers/common.dart';
-import '../models/raffle_items.dart';
 
 class AwardsPage extends StatefulWidget {
   const AwardsPage({super.key});
@@ -30,6 +31,7 @@ class _AwardsPageState extends State<AwardsPage>
   static const double _LABEL_HEIGHT = 5;
   static const double _VERTICAL_PADDING = 6;
   static const int _VISIBLE_ITEMS = 5;
+  //TODO: get REWARDS from backend
   static const List<String> _REWARDS = [
     r'+$2,500', r'+$1,500', r'$+1,000', r'+$750', r'+$500'
   ];
@@ -49,8 +51,8 @@ class _AwardsPageState extends State<AwardsPage>
     final userCountry = await _storage.read(key: "country") ?? "none";
     final raffleItemsResponse = await Common().postRequestWrapper(
       'Info',
-      'RiffleItems',
-      {'user_id': userId},
+      'RaffleItems',
+      {'id': userId},
     );
     if (!mounted) return;
     setState(() {
@@ -158,7 +160,7 @@ class _AwardsPageState extends State<AwardsPage>
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white.withValues(alpha:0.95),
+                        color: Colors.green,
                       ),
                     ),
                   ],
@@ -258,7 +260,7 @@ class _AwardsPageState extends State<AwardsPage>
                         strings?.get('worldwide') ?? 'Worldwide',
                         strings?.get('yourCountry') ?? 'Your Region',
                       ],
-                      leadingLabel: strings?.get('awards') ?? 'Awards',
+                      leadingLabel: strings?.get('raffles') ?? 'Raffles',
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -278,15 +280,16 @@ class _AwardsPageState extends State<AwardsPage>
                   Row(
                     children: [
                       Text(
-                        strings?.get('awards') ?? 'Awards',
+                        strings?.get('raffles') ?? 'Raffles',
                         style: GoogleFonts.syncopate(
                             fontSize: 18, fontWeight: FontWeight.w200),
                       ),
                       Spacer(),
+                      const DaysToMinutesCountDown()
                     ],
                   ),
                   Divider(color: Colors.white, thickness: 0.5, height: 0.5),
-                  //TODO: RafflesBuilder(),
+                  RafflesBuilder(raffleItems: _raffleItems),
                 ],
               )
             )
@@ -302,9 +305,6 @@ class _AwardsPageState extends State<AwardsPage>
     super.dispose();
   }
 }
-
-//TODO
-class RafflesBuilder { }
 
 class _FolderTabs extends StatelessWidget {
   final TabController controller;
@@ -490,6 +490,201 @@ class MedalBadge extends StatelessWidget {
           color: Colors.black.withValues(alpha:0.80),
         ),
       ),
+    );
+  }
+}
+
+class DaysToMinutesCountDown extends StatefulWidget {
+  const DaysToMinutesCountDown({super.key});
+
+  @override
+  State<DaysToMinutesCountDown> createState() => _DaysToMinutesCountDownState();
+}
+
+class _DaysToMinutesCountDownState extends State<DaysToMinutesCountDown> {
+  late Timer _timer;
+  late String formattedRemaining;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTime();
+    _timer = Timer.periodic(const Duration(minutes: 1), (_) => _updateTime());
+  }
+
+  void _updateTime() {
+
+    final now = DateTime.now().toUtc();
+    final nextFirstOfMonth = DateTime(now.year, now.month + 1, 1);
+    final diff = nextFirstOfMonth.difference(now);
+
+    final remainingDays = diff.inDays;
+    final remainingHours = diff.inHours % 24;
+    final remainingMinutes = diff.inMinutes % 60;
+
+    setState(() {
+      formattedRemaining = '${remainingDays}D ${remainingHours}h ${remainingMinutes}m';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
+    return Row(
+      children: [
+        Text(
+          '${strings!.get('next') ?? "Next"}: $formattedRemaining',
+          textAlign: TextAlign.right,
+          style: GoogleFonts.montserrat(
+            fontSize: 14,
+            fontWeight: FontWeight.w300,
+            color: Colors.white,
+          ),
+        ),
+        SizedBox(width: 4),
+        Icon(FontAwesomeIcons.clock, size: 16, color: Colors.white)
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+}
+
+//------------------------------------------------------------
+
+class RafflesBuilder extends StatelessWidget {
+  final List<Map<String, dynamic>> raffleItems;
+  const RafflesBuilder({Key? key, required this.raffleItems}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (raffleItems.isEmpty) {
+      return const Center(child: CircularProgressIndicator(color: Colors.grey));
+    }
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      itemCount: raffleItems.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 1.5,
+      ),
+      itemBuilder: (context, index) {
+        final item = raffleItems[index];
+        final name = item['name'] ?? '';
+        final shortName = item['short_name'] ?? '';
+        final coins = item['coins'] ?? 50;
+        final image = item['icon'] ?? '';
+        final borderRadius = BorderRadius.circular(14);
+
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: borderRadius,
+            onTap: () {
+              Common().vibrate();
+              showDialog(
+                context: Navigator.of(context, rootNavigator: true).context,
+                builder: (ctx) => AlertDialog(
+                  content: SingleChildScrollView(
+                    child: ListBody(
+                      children: [
+                        if ((item['icon'] as String?)?.isNotEmpty == true)
+                          Image.memory(base64Decode(item['icon']), height: 120, fit: BoxFit.fill),
+                        Text('${item['name'] ?? ''}'),
+                        Text('FECHA: ${item['raffle_date'] ?? '-'}'),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            child: Ink(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                borderRadius: borderRadius,
+                border: Border.all(color: Colors.white.withValues(alpha: 0.10), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (image.isNotEmpty)
+                    Image.memory(base64Decode(image), height: 74, fit: BoxFit.fitHeight),
+                  if (name.isNotEmpty) ...[
+                    if (image.isNotEmpty) const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          shortName,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.montserrat(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.95),
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(text: " ("),
+                              TextSpan(text: NumberFormat.compact().format(coins)),
+                              const TextSpan(text: ""),
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: Padding(
+                                  padding: EdgeInsets.zero,
+                                  child: Image.asset(
+                                    'assets/coin.png',
+                                    width: 16,
+                                    height: 16,
+                                  ),
+                                ),
+                              ),
+                              const TextSpan(text: ")"),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.montserrat(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.95),
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+
+                      ],
+                    )
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+
+      },
     );
   }
 }

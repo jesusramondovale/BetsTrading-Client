@@ -40,7 +40,6 @@ class HomeScreenState extends State<HomeScreen> {
   final ScrollController _trendScrollController = ScrollController();
   Ticker? _ticker;
   double _direction = 1;
-  Timer? _clockTimer;
   Timer? _refreshTimer;
 
   void _refreshData() async {
@@ -472,8 +471,6 @@ class HomeScreenState extends State<HomeScreen> {
                   style: GoogleFonts.syncopate(
                       fontSize: 16, fontWeight: FontWeight.w200),
                 ),
-                Spacer(),
-                const HourCountdown(),
               ],
             ),
             Divider(color: Colors.white, thickness: 0.5, height: 0.5),
@@ -646,67 +643,7 @@ class HomeScreenState extends State<HomeScreen> {
     _trendScrollController.dispose();
     _ticker?.dispose;
     _refreshTimer?.cancel();
-    _clockTimer?.cancel();
     super.dispose();
   }
 }
 
-class HourCountdown extends StatefulWidget {
-  const HourCountdown({super.key});
-
-  @override
-  State<HourCountdown> createState() => _HourCountdownState();
-}
-
-class _HourCountdownState extends State<HourCountdown> {
-  late Timer _timer;
-  late String formattedDate;
-
-  @override
-  void initState() {
-    super.initState();
-    _updateTime();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
-  }
-
-  void _updateTime() {
-    final now = DateTime.now();
-    final nextHour = DateTime(now.year, now.month, now.day, now.hour + 1);
-    final remaining = nextHour.difference(now);
-
-    final minutes = remaining.inMinutes % 60;
-    final seconds = remaining.inSeconds % 60;
-
-    setState(() {
-      formattedDate = '$minutes:${seconds.toString().padLeft(2, '0')}';
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(FontAwesomeIcons.rotateRight,
-            color: Colors.white70, size: 10),
-        const Icon(FontAwesomeIcons.hourglassHalf,
-            color: Colors.white70, size: 16),
-        const SizedBox(width: 4),
-        Text(
-          formattedDate,
-          textAlign: TextAlign.right,
-          style: GoogleFonts.syncopate(
-            fontSize: 14,
-            fontWeight: FontWeight.w200,
-            color: Colors.white,
-          ),
-        )
-      ],
-    );
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-}

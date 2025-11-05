@@ -175,7 +175,6 @@ class MainMenuPageState extends State<MainMenuPage> {
       return Scaffold(
         extendBody: true,
         body: Stack(children: [
-          // Fondo
           Positioned.fill(
             child: Image.asset(
               'assets/android12splash.png',
@@ -240,7 +239,7 @@ class MainMenuPageState extends State<MainMenuPage> {
                 valueListenable: _controller.selectedIndexNotifier,
                 builder: (context, index, _) {
                   return Container(
-                    height: 60, // Ajusta la altura aquí
+                    height: 60,
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
@@ -264,8 +263,8 @@ class MainMenuPageState extends State<MainMenuPage> {
                           label: strings?.get('home') ?? "Home",
                         ),
                         BottomNavigationBarItem(
-                          icon: Icon(FontAwesomeIcons.earthAmericas),
-                          label: "Social",
+                          icon: Icon(FontAwesomeIcons.trophy),
+                          label: strings!.get('awards') ?? "Awards",
                         ),
                         BottomNavigationBarItem(
                           icon: SizedBox(
@@ -276,7 +275,7 @@ class MainMenuPageState extends State<MainMenuPage> {
                             width: 34,
                             child: Image.asset('assets/new_icon.png'),
                           ),
-                          label: strings?.get('liveMarkets') ?? 'Live Markets',
+                          label: strings.get('liveMarkets') ?? 'Live Markets',
                         ),
                         BottomNavigationBarItem(
                           icon: Icon(FontAwesomeIcons.landmark),
@@ -287,17 +286,17 @@ class MainMenuPageState extends State<MainMenuPage> {
                               ? CircleAvatar(
                                   backgroundImage:
                                       MemoryImage(_profilePicBytes!),
-                                  radius: 20, // Reducción del tamaño del avatar
+                                  radius: 20,
                                 )
                               : Icon(Icons.account_circle_outlined)),
                           activeIcon: (_profilePicBytes != null
                               ? CircleAvatar(
                             backgroundImage:
                             MemoryImage(_profilePicBytes!),
-                            radius: 15, // Reducción del tamaño del avatar
+                            radius: 15,
                           )
                               : Icon(Icons.account_circle_outlined)),
-                          label: strings!.get('profileTitle') ?? "Your profile",
+                          label: strings.get('profileTitle') ?? "Your profile",
                         ),
                       ],
                       currentIndex: _controller.selectedIndexNotifier.value,
@@ -316,7 +315,7 @@ class MainMenuPageState extends State<MainMenuPage> {
                   );
                 },
               )
-            : null, // Oculta la barra inferior si el tutorial está activo.
+            : null
       );
     }
   }
