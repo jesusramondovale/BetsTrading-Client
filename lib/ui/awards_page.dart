@@ -642,185 +642,125 @@ class RafflesBuilder extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.02),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white70.withValues(alpha: 0.12),
-                      width: 1.2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.18),
-                        blurRadius: 14,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
-
-                  child: Stack(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white70.withValues(alpha: 0.12), width: 1.2),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 14, offset: Offset(0, 4)),
+                ],
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.memory(base64Decode(raffleItem.icon), height: 140, fit: BoxFit.fill),
-                          const SizedBox(height: 6),
-                          Text(
-                            raffleItem.name,
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            style: GoogleFonts.montserrat(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            LocalizedStrings.of(context)!.get('nextRaffleIn') ??
-                                "The next raffle will take place in",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.montserrat(
-                              fontSize: 18,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          StreamBuilder<DateTime>(
-                            initialData: DateTime.now().toUtc(),
-                            stream: Stream<DateTime>.periodic(
-                              const Duration(minutes: 1),
-                                  (_) => DateTime.now().toUtc(),
-                            ),
-                            builder: (context, snapshot) {
-                              final now = snapshot.data ?? DateTime.now().toUtc();
-                              final target = raffleItem.raffleDate.toUtc();
-                              var diff = target.difference(now);
-                              if (diff.isNegative) diff = Duration.zero;
-
-                              final d = diff.inDays;
-                              final h = diff.inHours % 24;
-                              final m = diff.inMinutes % 60;
-
-                              return Text(
-                                '${d}D ${h}h ${m}m',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 6),
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.white70.withValues(alpha: 0.12),
-                                  width: 1.0,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.18),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(LocalizedStrings.of(context)?.get('participants') ??
-                                      "Participants:" ,
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      )),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    NumberFormat.compact().format(raffleItem.participants),
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  const Icon(FontAwesomeIcons.ticket, size: 26, color: Colors.white),
-
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Divider(thickness: 1.0, color: Colors.white24, height: 0.2),
-                          const SizedBox(height: 16),
-                          Text(
-                            LocalizedStrings.of(context)
-                                ?.get('slideToParticipate') ??
-                                'Slide to participate',
-                            maxLines: 1,
-                            style: GoogleFonts.syncopate(
-                              fontSize: 16,
-                              color: Colors.white60,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Align(
-                            alignment: Alignment.center,
-                            child: SlideToConfirm(
-                              disabled: raffleItem.coins > userPoints ,
-                              icon: betraderIconBase64,
-                              betAmount: raffleItem.coins.toDouble(),
-                              onSlideComplete: () async {
-                                final response = await Common().postRequestWrapper(
-                                    'Info',
-                                    'NewRaffle',
-                                    {'user_id' : userId ,
-                                    'token' : raffleItem.id.toString()});
-
-                                if (response['statusCode'] == 200) {
-                                  Common().vibrate(100,100);
-                                  await BetsService().getUserInfo(userId);
-                                  if (onRaffleSuccess != null) await onRaffleSuccess!();
-
-                                  Common().showFloatingSnack(
-                                      context,
-                                      LocalizedStrings.of(context)!.get('raffleParticipated') ?? "Raffle participated successfully!"
-                                  );
-                                  Navigator.pop(context);
-                                }
-                                else {
-                                  Common().vibrate(100,100);
-                                  Common().showFloatingSnack(
-                                      context,
-                                      "Oops... error",
-                                      backgroundColor: Colors.red);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
+                      if (raffleItem.icon.isNotEmpty)
+                        Image.memory(base64Decode(raffleItem.icon), height: 140, fit: BoxFit.cover),
+                      const SizedBox(height: 6),
+                      Text(
+                        raffleItem.name,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w600, color: Colors.white),
                       ),
-
+                      const SizedBox(height: 10),
+                      Text(
+                        LocalizedStrings.of(context)!.get('nextRaffleIn') ?? "The next raffle will take place in",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.montserrat(fontSize: 18, color: Colors.white70),
+                      ),
+                      StreamBuilder<DateTime>(
+                        initialData: DateTime.now().toUtc(),
+                        stream: Stream<DateTime>.periodic(const Duration(minutes: 1), (_) => DateTime.now().toUtc()),
+                        builder: (context, snapshot) {
+                          final now = snapshot.data ?? DateTime.now().toUtc();
+                          final target = raffleItem.raffleDate.toUtc();
+                          var diff = target.difference(now);
+                          if (diff.isNegative) diff = Duration.zero;
+                          final d = diff.inDays;
+                          final h = diff.inHours % 24;
+                          final m = diff.inMinutes % 60;
+                          return Text('${d}D ${h}h ${m}m',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white70.withValues(alpha: 0.12), width: 1.0),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 10, offset: Offset(0, 3))],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              (LocalizedStrings.of(context)?.get('participants') ?? "Participants:"),
+                              style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              NumberFormat.compact().format(raffleItem.participants),
+                              style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(FontAwesomeIcons.ticket, size: 20, color: Colors.white),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(thickness: 1.0, color: Colors.white24, height: 0.2),
+                      const SizedBox(height: 8),
+                      Text(
+                        LocalizedStrings.of(context)?.get('slideToParticipate') ?? 'Slide to participate',
+                        maxLines: 1,
+                        style: GoogleFonts.syncopate(fontSize: 16, color: Colors.white60, fontWeight: FontWeight.w500),
+                      ),
+                      Align(
+                        alignment: Alignment.center,
+                        child: SlideToConfirm(
+                          disabled: raffleItem.coins > userPoints,
+                          icon: betraderIconBase64,
+                          betAmount: raffleItem.coins.toDouble(),
+                          onSlideComplete: () async {
+                            final response = await Common().postRequestWrapper('Info','NewRaffle', {
+                              'user_id': userId,
+                              'token': raffleItem.id.toString(),
+                            });
+                            if (response['statusCode'] == 200) {
+                              Common().vibrate(100,100);
+                              await BetsService().getUserInfo(userId);
+                              if (onRaffleSuccess != null) await onRaffleSuccess!();
+                              Common().showFloatingSnack(context,
+                                  LocalizedStrings.of(context)!.get('raffleParticipated') ?? "Raffle participated successfully!"
+                              );
+                              Navigator.pop(context);
+                            } else {
+                              Common().vibrate(100,100);
+                              Common().showFloatingSnack(context, "Oops... error", backgroundColor: Colors.red);
+                            }
+                          },
+                        ),
+                      ),
                     ],
                   ),
-
-                ),
+                ],
               ),
             ),
           ),
+        ),
+
+        ),
         );
       },
     );
