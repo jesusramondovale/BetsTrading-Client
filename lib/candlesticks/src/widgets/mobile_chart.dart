@@ -45,6 +45,7 @@ class MobileChart extends StatefulWidget {
   final String ticker;
   final String iconPath;
   final bool inactiveZone;
+  final int finishedIcon;
 
   const MobileChart(
       {super.key,
@@ -64,7 +65,9 @@ class MobileChart extends StatefulWidget {
       required this.chartTitle,
       required this.ticker,
       required this.iconPath,
-      required this.inactiveZone});
+      required this.inactiveZone,
+      this.finishedIcon = 0
+      });
 
   @override
   State<MobileChart> createState() => MobileChartState();
@@ -338,6 +341,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
               priceColumnWidth: PRICE_BAR_WIDTH,
               noBetsText: noBetsText,
               noIcon: widget.iconPath == "null",
+              finishedIcon: widget.finishedIcon
             );
 
         RectangleZone? hitTestZone(Offset localPosition, Size size) {
@@ -529,6 +533,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                         priceColumnWidth: PRICE_BAR_WIDTH,
                                         noBetsText: noBetsText,
                                         noIcon: widget.iconPath == "null",
+                                        finishedIcon: widget.finishedIcon
                                       ),
                                     );
                                   },

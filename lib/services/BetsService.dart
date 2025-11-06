@@ -10,6 +10,25 @@ import '../models/trends.dart';
 class BetsService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
+
+  Future<Bet?> fetchBet(String betId) async {
+    String? userId = await _storage.read(key: "sessionToken");
+    final response = await Common().postRequestWrapper(
+      'Bet',
+      'UserBet',
+      {'user_id': userId, 'token': betId},
+    );
+
+    if (response['statusCode'] == 200) {
+      Bet bet = (response['body']['bet'] as List).map((json) => Bet.fromJson(json)).first;
+      return bet;
+    } else {
+      return null;
+    }
+
+  }
+
+
   Future<List<BetZone>> fetchBetZones(String ticker, int hoursTimeframe, int? betId) async {
     if (null != betId) {
       final response =
@@ -214,7 +233,7 @@ class BetsService {
         high: (c['high'] as num).toDouble(),
         low: (c['low'] as num).toDouble(),
         close: (c['close'] as num).toDouble(),
-        volume: 0, // la API no da volumen
+        volume: 0,
       );
     }).toList();
 

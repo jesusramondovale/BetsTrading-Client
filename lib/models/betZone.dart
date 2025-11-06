@@ -7,7 +7,7 @@ class BetZone {
   DateTime startDate;
   DateTime? endDate;
   double targetOdds;
-  int type;
+  int bet_type;
 
   BetZone({
     required this.id,
@@ -17,7 +17,7 @@ class BetZone {
     required this.startDate,
     this.endDate,
     required this.targetOdds,
-    required this.type
+    required this.bet_type
   });
 
   BetZone.fromJson(Map<String, dynamic> json)
@@ -28,6 +28,6 @@ class BetZone {
       startDate = DateTime.parse(json['start_date']),
       endDate = json['end_date'] != null ? DateTime.parse(json['end_date']) : null,
       targetOdds = (json['target_odds'] as num).toDouble(),
-      type = (json['type'] as num).toInt();
+        bet_type = (json['bet_type'] as num).toInt();
 
 }

@@ -891,7 +891,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
     int minutesUntilFinal = widget.bet.endDate.difference(DateTime.now().toUtc()).inMinutes;
     bool isActive = widget.bet.targetDate.isBefore(DateTime.now().toUtc());
     bool isFinished = widget.bet.endDate.isBefore(DateTime.now().toUtc());
-    bool isAlreadyLost = (isActive && widget.bet.finished == true) || (isActive && widget.bet.necessaryGain != 0.0);
+    bool isAlreadyLost = (isActive && widget.bet.finished == true && widget.bet.targetWon == false) || (isActive && widget.bet.necessaryGain != 0.0);
     double? betAmount = widget.bet.betAmount;
     String betAmountText = NumberFormat('0.##', 'en').format(betAmount);
     String? betMultiplierText = " x${widget.bet.targetOdds}";
@@ -1065,7 +1065,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                         ] else if (isFinished &&
                             widget.bet.targetWon == true) ...[
                           Text(
-                            "${strings?.get('betWon')?.toUpperCase() ?? "BET WON"}!",
+                            "${strings?.get('betWon') ?? "Bet won"}!",
                             style: GoogleFonts.rajdhani(
                               fontSize: 16,
                               fontWeight: FontWeight.w400,

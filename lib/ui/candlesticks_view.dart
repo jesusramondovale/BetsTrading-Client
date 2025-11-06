@@ -3,6 +3,7 @@ import 'package:betrader/models/betZone.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:flutter/material.dart';
 import '../helpers/common.dart';
+import '../models/bets.dart';
 import '../models/rectangle_zone.dart';
 import '../services/BetZoneRefresher.dart';
 import 'layout_page.dart';
@@ -37,12 +38,29 @@ class CandlesticksViewState extends State<CandlesticksView> {
   bool _isLoading = true;
   late bool _inactive_zone;
   late int _extraHours;
+  int _finishedIcon = 0;
 
 
   Future<void> _loadData() async {
     try {
       final List<Candle> candles;
       final List<BetZone> betZones = await BetsService().fetchBetZones(widget.ticker, TimeframeManager.current.value, widget.betId);
+      int finishedIcon = 0;
+      if (_inactive_zone){
+        final Bet? theBet = await BetsService().fetchBet(widget.betId.toString());
+        if (theBet != null) {
+          if (theBet.finished == true && theBet.targetWon == true) {
+            finishedIcon = 1;
+          }
+          else if (theBet.finished == true && theBet.targetWon == false) {
+            finishedIcon = -1;
+          }
+
+        }
+
+
+      }
+
       candles = await BetsService().fetchCandles(widget.ticker, TimeframeManager.current.value);
       List<RectangleZone> rectangleZones = Common()
           .getRectangleZonesFromBetZones(
@@ -54,6 +72,10 @@ class CandlesticksViewState extends State<CandlesticksView> {
         _isLoading = false;
         if (!_inactive_zone) {
           _zonesNotifier.value = _initialZones;
+          _finishedIcon = 0;
+        }
+        else{
+          _finishedIcon = finishedIcon;
         }
         _candles = candles;
 
@@ -125,6 +147,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                               ticker: widget.ticker,
                               iconPath: widget.iconPath,
                               extraHours: _extraHours,
+                              finishedIcon: _finishedIcon
                             ),
                         Positioned(
                           top: 10.0,

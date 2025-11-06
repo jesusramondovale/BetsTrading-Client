@@ -24,6 +24,7 @@ class RangePainter extends CustomPainter {
   final String noBetsText;
   final bool noIcon;
   final int timeframe ;
+  final int finishedIcon ;
 
   RangePainter( {
     required this.zones,
@@ -36,6 +37,7 @@ class RangePainter extends CustomPainter {
     required this.noBetsText,
     required this.noIcon,
     this.timeframe = 1,
+    this.finishedIcon = 0
   }) : super(repaint: zones);
 
   double hoursToX(DateTime date, int index, double candleWidth, DateTime lastCandleDate, Size size, int timeframe) {
@@ -172,6 +174,59 @@ class RangePainter extends CustomPainter {
         ..color  = oddsToColor(zone.odds, zone.fillColor)
         ..style  = PaintingStyle.fill;
       canvas.drawRRect(rrect, paintFill);
+
+      if (finishedIcon != 0) {
+        const double padding = 4.0;
+        const double radius  = 9.0;
+
+        final Offset center = Offset(
+          rrect.right - padding - radius,
+          rrect.top   + padding + radius,
+        );
+
+        final Paint badgePaint = Paint()
+          ..isAntiAlias = true
+          ..style = PaintingStyle.fill
+          ..color = finishedIcon == 1 ? Colors.green : Colors.redAccent;
+
+        canvas.drawCircle(center, radius, badgePaint);
+
+        final Paint ringPaint = Paint()
+          ..isAntiAlias = true
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5
+          ..color = Colors.white.withValues(alpha: .9);
+
+        canvas.drawCircle(center, radius, ringPaint);
+
+        final Paint glyphPaint = Paint()
+          ..isAntiAlias = true
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..strokeWidth = 2.0
+          ..color = Colors.white;
+
+        final Path glyph = Path();
+
+        if (finishedIcon == 1) {
+          // Check ✓
+          final double s = radius;
+          glyph.moveTo(center.dx - 0.6 * s, center.dy - 0.1 * s);
+          glyph.lineTo(center.dx - 0.15 * s, center.dy + 0.45 * s);
+          glyph.lineTo(center.dx + 0.7 * s, center.dy - 0.55 * s);
+          canvas.drawPath(glyph, glyphPaint);
+        } else {
+          // Cross ✕
+          final double s = radius * 0.6;
+          glyph.moveTo(center.dx - s, center.dy - s);
+          glyph.lineTo(center.dx + s, center.dy + s);
+          glyph.moveTo(center.dx + s, center.dy - s);
+          glyph.lineTo(center.dx - s, center.dy + s);
+          canvas.drawPath(glyph, glyphPaint);
+        }
+      }
+
 
       if (zone.type == 1) {
         final paintStroke = Paint()
@@ -401,7 +456,6 @@ class _ZoneDialogPainter extends CustomPainter {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
     final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(14));
 
-    // Relleno degradado
     final fill = Paint()
       ..shader = LinearGradient(
         colors: [

@@ -531,7 +531,7 @@ class Common {
         strokeColor: strokeColor,
         odds: betZone.targetOdds,
         ticker: betZone.ticker,
-        type: betZone.type
+        type: betZone.bet_type
       );
     }).toList();
   }

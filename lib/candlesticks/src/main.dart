@@ -33,39 +33,26 @@ class Candlesticks extends StatefulWidget {
 
   /// This callback calls when the last candle gets visible
   final Future<void> Function()? onLoadMoreCandles;
-
   /// List of buttons you what to add on top tool bar
   final List<ToolBarAction> actions;
-
   /// List of indicators to draw
   final List<Indicator>? indicators;
-
   /// This callback calls when ever user clicks a specific indicator close button (X)
   final void Function(String)? onRemoveIndicator;
-
   /// How chart price range will be adjusted when moving chart
   final ChartAdjust chartAdjust;
-
   /// Will zoom buttons be displayed in toolbar
   final bool displayZoomActions;
-
   /// Custom loading widget
   final Widget? loadingWidget;
-
   final CandleSticksStyle? style;
-
   final Function(double scale) onScaleUpdate;
-
   ValueNotifier<List<RectangleZone>> rectangleZones = ValueNotifier([]);
-
   final String chartTitle;
-
   final String iconPath;
-
   final int extraHours;
-
   final bool inactiveZone;
-
+  final int finishedIcon;
 
 
   Candlesticks({
@@ -87,6 +74,7 @@ class Candlesticks extends StatefulWidget {
     required this.chartTitle,
     required this.iconPath,
     required this.extraHours,
+    this.finishedIcon = 0
 
   });
 
@@ -324,7 +312,8 @@ class CandlesticksState extends State<Candlesticks> {
                       rectangleZones: widget.rectangleZones,
                       inactiveZone: widget.inactiveZone,
                       chartTitle: widget.chartTitle,
-                      iconPath: widget.iconPath,);
+                      iconPath: widget.iconPath,
+                      finishedIcon: widget.finishedIcon);
                 }
               },
             ),
