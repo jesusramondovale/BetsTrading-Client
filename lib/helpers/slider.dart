@@ -16,6 +16,8 @@ class SlideToConfirm extends StatefulWidget {
   final String icon;
   final VoidCallback onSlideComplete;
   final bool transformThumb;
+  final bool scaleUp;
+  final bool disabled;
 
   const SlideToConfirm({
     Key? key,
@@ -23,20 +25,20 @@ class SlideToConfirm extends StatefulWidget {
     this.transformedAmount,
     required this.icon,
     required this.onSlideComplete,
+    this.scaleUp = false,
     this.transformThumb = false,
+    this.disabled = false,
   }) : super(key: key);
 
   @override
   _SlideToConfirmState createState() => _SlideToConfirmState();
 }
 
-
 class _SlideToConfirmState extends State<SlideToConfirm> {
   double _sliderValue = 0.0;
   ui.Image? _thumbImage;
   ui.Image? _euroImage;
   String _currency = 'eur';
-
 
   @override
   void initState() {
@@ -122,6 +124,8 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
     final bothImagesLoaded =
         _thumbImage != null && (!widget.transformThumb || _euroImage != null);
 
+    final amountColor = widget.disabled ? Colors.red : null;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -142,7 +146,7 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (widget.betAmount == -1) ...[
-                        Icon(Icons.double_arrow, size: 30)
+                        Icon(Icons.double_arrow, size: 30, color: amountColor ?? Colors.black)
                       ]
                       else ...[
                         Text(
@@ -155,6 +159,7 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                           style: GoogleFonts.montserrat(
                             fontSize: 24,
                             fontWeight: FontWeight.w500,
+                            color: amountColor,
                           ),
                         ),
                         const SizedBox(width: 5),
@@ -164,7 +169,6 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                           height: 28,
                         ),
                       ]
-
                     ],
                   ),
                   secondChild: Row(
@@ -175,6 +179,7 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                         style: GoogleFonts.montserrat(
                           fontSize: 24,
                           fontWeight: FontWeight.w500,
+                          color: amountColor,
                         ),
                       ),
                       const SizedBox(width: 5),
@@ -193,16 +198,16 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                   secondCurve: Curves.easeOutBack,
                 ),
               ),
-
             ),
             if (bothImagesLoaded)
               SliderTheme(
                 data: SliderThemeData(
                   thumbShape: _FadeThumbShape(
-                    baseImage: _thumbImage!,
-                    transformImage: _euroImage,
-                    transformProgress: _sliderValue,
-                    useFade: widget.transformThumb,
+                      baseImage: _thumbImage!,
+                      transformImage: _euroImage,
+                      transformProgress: _sliderValue,
+                      useFade: widget.transformThumb,
+                      scaleUpIcon: widget.scaleUp
                   ),
                   trackHeight: 40.0,
                   thumbColor: Colors.transparent,
@@ -212,12 +217,19 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                 child: Slider(
                   divisions: 50,
                   value: _sliderValue,
-                  onChanged: (value) {
+                  onChanged: widget.disabled
+                      ? (value) {
+                    Common().vibrate(400, 100);
+                    setState(() => _sliderValue = 0);
+                    }
+                      : (value) {
                     int intensity = (10 + (95 * value)).round();
                     Common().vibrate(40, intensity);
                     setState(() => _sliderValue = value);
                   },
-                  onChangeEnd: (value) {
+                  onChangeEnd: widget.disabled
+                      ? null
+                      : (value) {
                     if (value == 1.0) {
                       widget.onSlideComplete();
                       Future.delayed(const Duration(milliseconds: 50), () {
@@ -234,12 +246,12 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
               )
             else
               const Center(child: CircularProgressIndicator()),
+
           ],
         ),
       ],
     );
   }
-
 }
 
 class _FadeThumbShape extends SliderComponentShape {
@@ -247,12 +259,14 @@ class _FadeThumbShape extends SliderComponentShape {
   final ui.Image? transformImage;
   final double transformProgress;
   final bool useFade;
+  final bool scaleUpIcon;
 
   _FadeThumbShape({
     required this.baseImage,
     this.transformImage,
     required this.transformProgress,
     required this.useFade,
+    required this.scaleUpIcon
   });
 
   @override
@@ -275,10 +289,10 @@ class _FadeThumbShape extends SliderComponentShape {
       }) {
 
     final Canvas canvas = context.canvas;
-
-    // Caja del pulgar y caja interna con padding
-    final thumbRect = Rect.fromCenter(center: center, width: 80, height: 80);
-    final inner = thumbRect.deflate(8); // padding de 8 px
+    final thumbRect = Rect.fromCenter(center: center,
+        width: scaleUpIcon ? 120.0 : 80.0,
+        height: scaleUpIcon ? 120.0 : 80.0 );
+    final inner = thumbRect.deflate(8);
 
     if (useFade && transformImage != null) {
       final t = transformProgress.clamp(0.0, 1.0);
@@ -289,7 +303,7 @@ class _FadeThumbShape extends SliderComponentShape {
         rect: inner,
         fit: BoxFit.contain,
         filterQuality: FilterQuality.high,
-        opacity: 1.0 - t*1.1, // OJO: 0–1
+        opacity: 1.0 - t*1.1,
       );
       paintImage(
         canvas: canvas,
@@ -297,7 +311,7 @@ class _FadeThumbShape extends SliderComponentShape {
         rect: inner,
         fit: BoxFit.contain,
         filterQuality: FilterQuality.high,
-        opacity: t*1.1,       // 0–1
+        opacity: t*1.1,
       );
       canvas.restore();
     } else {
@@ -311,4 +325,3 @@ class _FadeThumbShape extends SliderComponentShape {
     }
   }
 }
-

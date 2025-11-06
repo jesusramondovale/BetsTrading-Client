@@ -44,6 +44,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   void _refreshData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
+    await BetsService().getUserInfo(userId);
     final userPoints = await _storage.read(key: "points") ?? "0";
 
     if (!mounted) return;

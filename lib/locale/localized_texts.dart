@@ -12,6 +12,10 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // English
+      'raffleParticipated': 'Raffle participated successfully!',
+      'participants': 'Participants:',
+      'slideToParticipate': 'Slide to participate',
+      'nextRaffleIn': 'The next raffle will take place in',
       'next': 'Next',
       'raffles': 'Raffles',
       'awards': 'Awards',
@@ -290,7 +294,7 @@ class LocalizedStrings {
           'Account successfully verified.\nPlease log in again',
       'accountVerificationError': 'Error verifying account',
       'worldwide': 'Worldwide',
-      'yourCountry': 'Your Country',
+      'yourCountry': 'Country',
       'enterBetAmount': 'Bet Amount',
       'potentialPrize': 'Potential Prize',
       'multiplier': 'Multiplier',
@@ -305,6 +309,10 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'raffleParticipated': '¡Te uniste al sorteo!',
+      'participants': 'Inscritos:',
+      'slideToParticipate': 'Desliza para participar',
+      'nextRaffleIn': 'El próximo sorteo se realizará en',
       'next': 'Próximo',
       'raffles': 'Sorteos',
       'awards': 'Premios',
@@ -596,6 +604,10 @@ class LocalizedStrings {
     },
     'fr': {
       // Français
+      'raffleParticipated': 'Saisie au tirage !',
+      'participants': 'Participants:',
+      'slideToParticipate': 'Faites glisser pour participer',
+      'nextRaffleIn': 'Le prochain tirage aura lieu dans',
       'next': 'Prochain',
       'raffles': 'Tirages',
       'awards': 'Récompenses',
@@ -875,7 +887,7 @@ class LocalizedStrings {
           'Compte vérifié avec succès.\nVeuillez vous reconnecter',
       'accountVerificationError': 'Erreur de vérification du compte',
       'worldwide': 'Mondial',
-      'yourCountry': 'Votre Pays',
+      'yourCountry': 'Pays',
       'enterBetAmount': 'Montant de la Mise',
       'potentialPrize': 'Gain Potentiel',
       'multiplier': 'Multiplicateur',
@@ -890,6 +902,10 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'raffleParticipated': 'Entrato nel sorteggio!',
+      'participants': 'Partecipanti:',
+      'slideToParticipate': 'Scorri per partecipare',
+      'nextRaffleIn': 'La prossima estrazione avverrà tra',
       'next': 'Prossimo',
       'raffles': 'Sorteggi',
       'awards': 'Premi',
@@ -1167,7 +1183,7 @@ class LocalizedStrings {
           'Account verificato con successo.\nEffettua nuovamente l\'accesso',
       'accountVerificationError': 'Errore nella verifica dell\'account',
       'worldwide': 'Mondiale',
-      'yourCountry': 'Il Tuo Paese',
+      'yourCountry': 'Tuo Paese',
       'enterBetAmount': 'Importo della Scommessa',
       'potentialPrize': 'Premio Potenziale',
       'multiplier': 'Moltiplicatore',
@@ -1182,6 +1198,10 @@ class LocalizedStrings {
     },
     'de': {
       // Deutsch
+      'raffleParticipated': 'Am Gewinnspiel teilgenommen!',
+      'participants': 'Teilnehmer:',
+      'slideToParticipate': 'Zum Teilnehmen nach rechts ziehen',
+      'nextRaffleIn': 'Die nächste Verlosung findet statt in',
       'next': 'Nächster',
       'raffles': 'Verlosungen',
       'awards': 'Auszeichnungen',

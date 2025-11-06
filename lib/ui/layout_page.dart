@@ -22,6 +22,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'notifications_page.dart';
 
 final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
+final GlobalKey<AwardsPageState> awardsScreenKey = GlobalKey<AwardsPageState>();
 final GlobalKey<MarketsViewState> marketsPageKey = GlobalKey<MarketsViewState>();
 final GlobalKey<ExchangePageState> exchangePageKey= GlobalKey<ExchangePageState>();
 
@@ -158,7 +159,7 @@ class MainMenuPageState extends State<MainMenuPage> {
         controller: _controller,
       ),
       // TOP USERS
-      AwardsPage(),
+      AwardsPage(key: awardsScreenKey),
       // MARKETS
       MarketsView(
         key: marketsPageKey,

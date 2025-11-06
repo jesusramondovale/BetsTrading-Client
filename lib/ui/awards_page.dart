@@ -1,64 +1,87 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:ui';
 import 'package:betrader/locale/localized_texts.dart';
+import 'package:betrader/models/raffle_items.dart';
+import 'package:betrader/ui/layout_page.dart';
 import 'package:flutter/material.dart';
 import 'package:betrader/services/TopService.dart';
 import 'package:betrader/models/users.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../Services/BetsService.dart';
 import '../helpers/common.dart';
+import '../helpers/slider.dart';
+import 'home_page.dart';
 
 class AwardsPage extends StatefulWidget {
   const AwardsPage({super.key});
 
   @override
-  State<AwardsPage> createState() => _AwardsPageState();
+  State<AwardsPage> createState() => AwardsPageState();
 }
 
-class _AwardsPageState extends State<AwardsPage>
+class AwardsPageState extends State<AwardsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String? _userId;
+  double _userPoints = 0;
   String _userCountry = "none";
-  List<Map<String, dynamic>> _raffleItems = [];
+  List<RaffleItem> _raffleItems = [];
   static const double _ROW_EXTENT = 45;
   static const double _ROW_GAP = 8;
-  static const double _TABS_BLOCK = kTextTabBarHeight + 8;
-  static const double _LABEL_HEIGHT = 5;
-  static const double _VERTICAL_PADDING = 6;
   static const int _VISIBLE_ITEMS = 5;
-  //TODO: get REWARDS from backend
   static const List<String> _REWARDS = [
     r'+$2,500', r'+$1,500', r'$+1,000', r'+$750', r'+$500'
   ];
+  Timer? _refreshTimer;
 
-  double _adaptiveAwardsHeight(BuildContext context) {
-    final screenH = MediaQuery.of(context).size.height;
-    final desired = _VERTICAL_PADDING
-        + _LABEL_HEIGHT
-        + _TABS_BLOCK
-        + (_ROW_EXTENT * _VISIBLE_ITEMS)
-        + (_ROW_GAP * (_VISIBLE_ITEMS - 1));
-    return desired.clamp(0, screenH * 0.9);
-  }
-
-  Future<void> _loadUserIdAndData() async {
+  Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
+    await BetsService().getUserInfo(userId);
     final userCountry = await _storage.read(key: "country") ?? "none";
+    final points = await _storage.read(key: 'points') ?? '0';
+
     final raffleItemsResponse = await Common().postRequestWrapper(
       'Info',
       'RaffleItems',
       {'id': userId},
     );
-    if (!mounted) return;
+    final body = raffleItemsResponse['body'];
+
+    List<RaffleItem> parsedRaffleItems = [];
+    if (body is List) {
+      parsedRaffleItems = body
+          .whereType<Map<String, dynamic>>()
+          .map(RaffleItem.fromJson)
+          .toList();
+    } else if (body is Map && body['items'] is List) {
+      parsedRaffleItems = (body['items'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map(RaffleItem.fromJson)
+          .toList();
+    }
+
+    if(mounted)
     setState(() {
       _userId = userId;
       _userCountry = userCountry;
-      _raffleItems = List<Map<String, dynamic>>.from(raffleItemsResponse['body'] as Iterable);
+      _raffleItems = parsedRaffleItems;
+      _userPoints = double.tryParse(points) ?? 0;
+    });
+  }
+
+  Future<void> _reloadPointsFromStorage() async {
+    final points = await _storage.read(key: 'points') ?? '0';
+    homeScreenKey.currentState?.loadUserIdAndData();
+    if (!mounted) return;
+    setState(() {
+      _userPoints = double.tryParse(points) ?? 0;
     });
   }
 
@@ -113,7 +136,6 @@ class _AwardsPageState extends State<AwardsPage>
                 ),
               ),
 
-              // Centro: username
               Expanded(
                 child: Text(
                   user.username,
@@ -174,17 +196,40 @@ class _AwardsPageState extends State<AwardsPage>
   }
 
   Widget _buildTopUsersView({userCountry = null}) {
-    return _userId == null
-        ? const Center(child: CircularProgressIndicator(color: Colors.grey))
-        : FutureBuilder<List<User>>(
-      future: (userCountry != null ? TopService().fetchTopUsersByCountry(userCountry) : TopService().fetchTopUsers(_userId ?? "none")),
+    final double blockHeight = _ROW_EXTENT * _VISIBLE_ITEMS + _ROW_GAP * (_VISIBLE_ITEMS - 1);
+
+    if (_userId == null) {
+      return SizedBox(
+        height: blockHeight,
+        child: _TopUsersSkeleton(count: _VISIBLE_ITEMS, rowExtent: _ROW_EXTENT, gap: _ROW_GAP),
+      );
+    }
+
+    return FutureBuilder<List<User>>(
+      future: (userCountry != null
+          ? TopService().fetchTopUsersByCountry(userCountry)
+          : TopService().fetchTopUsers(_userId ?? "none")),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return SizedBox(
+            height: blockHeight,
+            child: _TopUsersSkeleton(count: _VISIBLE_ITEMS, rowExtent: _ROW_EXTENT, gap: _ROW_GAP),
+          );
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return SizedBox(
+            height: blockHeight,
+            child: Center(
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: GoogleFonts.montserrat(color: Colors.white70),
+              ),
+            ),
+          );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Icon(Icons.no_accounts, size: 120));
+          return SizedBox(
+            height: blockHeight,
+            child: const Center(child: Icon(Icons.no_accounts, size: 120, color: Colors.white54)),
+          );
         } else {
           final users = snapshot.data!;
           final count = min(_VISIBLE_ITEMS, users.length);
@@ -230,68 +275,73 @@ class _AwardsPageState extends State<AwardsPage>
   @override
   void initState() {
     super.initState();
-    _loadUserIdAndData();
+    loadUserIdAndData();
     _tabController = TabController(length: 2, vsync: this);
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) loadUserIdAndData();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
-    final topHeight = _adaptiveAwardsHeight(context);
 
-    return SizedBox(
-      height: topHeight,
+    return SingleChildScrollView(
+      physics: NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Material(
         color: Colors.transparent,
         child: Column(
           children: [
             const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsetsGeometry.fromLTRB(6,0,6,0),
-              child:  Column(
-                mainAxisSize: MainAxisSize.min,
-
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: _FolderTabs(
-                      controller: _tabController,
-                      tabs: [
-                        strings?.get('worldwide') ?? 'Worldwide',
-                        strings?.get('yourCountry') ?? 'Your Region',
-                      ],
-                      leadingLabel: strings?.get('raffles') ?? 'Raffles',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: _ROW_EXTENT * _VISIBLE_ITEMS
-                        + _ROW_GAP * (_VISIBLE_ITEMS - 1),
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildTopUsersView(),
-                        _buildTopUsersView(userCountry: _userCountry),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  // ---------------------
-                  Row(
-                    children: [
-                      Text(
-                        strings?.get('raffles') ?? 'Raffles',
-                        style: GoogleFonts.syncopate(
-                            fontSize: 18, fontWeight: FontWeight.w200),
+                padding: EdgeInsetsGeometry.fromLTRB(6,0,6,0),
+                child:  Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: _FolderTabs(
+                        controller: _tabController,
+                        tabs: [
+                          strings?.get('worldwide') ?? 'Worldwide',
+                          strings?.get('yourCountry') ?? 'Your Region',
+                        ],
+                        leadingLabel: strings?.get('raffles') ?? 'Raffles',
                       ),
-                      Spacer(),
-                      const DaysToMinutesCountDown()
-                    ],
-                  ),
-                  Divider(color: Colors.white, thickness: 0.5, height: 0.5),
-                  RafflesBuilder(raffleItems: _raffleItems),
-                ],
-              )
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: _ROW_EXTENT * _VISIBLE_ITEMS
+                          + _ROW_GAP * (_VISIBLE_ITEMS - 1),
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildTopUsersView(),
+                          _buildTopUsersView(userCountry: _userCountry),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Text(
+                          strings?.get('raffles') ?? 'Raffles',
+                          style: GoogleFonts.syncopate(
+                              fontSize: 18, fontWeight: FontWeight.w200),
+                        ),
+                        Spacer(),
+                        DaysToMinutesCountDown()
+                      ],
+                    ),
+                    Divider(color: Colors.white, thickness: 0.5, height: 0.5),
+                    RafflesBuilder(
+                        raffleItems: _raffleItems,
+                        userPoints: _userPoints,
+                        userId: _userId ?? '0',
+                        onRaffleSuccess: () => _reloadPointsFromStorage()),
+                  ],
+                )
             )
           ],
         ),
@@ -302,6 +352,7 @@ class _AwardsPageState extends State<AwardsPage>
   @override
   void dispose() {
     _tabController.dispose();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 }
@@ -344,11 +395,11 @@ class _FolderTabs extends StatelessWidget {
               child: IgnorePointer(
                 ignoring: true,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  padding: EdgeInsets.zero,
                   child: Text(
                     'Top-5',
                     style: GoogleFonts.syncopate(
-                      fontSize: 26,
+                      fontSize: 28,
                       fontWeight: FontWeight.w300,
                       color: Colors.white70,
                       letterSpacing: 0.5,
@@ -408,13 +459,11 @@ class _FolderTabs extends StatelessWidget {
     );
   }
 }
-
 class _FolderIndicator extends Decoration {
   const _FolderIndicator();
   @override
   BoxPainter createBoxPainter([VoidCallback? onChanged]) => _FolderPainter();
 }
-
 class _FolderPainter extends BoxPainter {
   @override
   void paint(Canvas canvas, Offset offset, ImageConfiguration cfg) {
@@ -439,7 +488,7 @@ class _FolderPainter extends BoxPainter {
       ..close();
 
     final shadowPaint = Paint()
-      ..color = const Color(0x33000000)   // más tenue
+      ..color = const Color(0x33000000)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
     canvas.drawPath(path, shadowPaint);
 
@@ -453,7 +502,6 @@ class _FolderPainter extends BoxPainter {
     canvas.drawPath(path, strokePaint);
   }
 }
-
 class MedalBadge extends StatelessWidget {
   final int rank;
   final double size;
@@ -493,14 +541,13 @@ class MedalBadge extends StatelessWidget {
     );
   }
 }
-
 class DaysToMinutesCountDown extends StatefulWidget {
-  const DaysToMinutesCountDown({super.key});
+  DaysToMinutesCountDown({super.key, this.showLabel = true});
+  final bool showLabel;
 
   @override
   State<DaysToMinutesCountDown> createState() => _DaysToMinutesCountDownState();
 }
-
 class _DaysToMinutesCountDownState extends State<DaysToMinutesCountDown> {
   late Timer _timer;
   late String formattedRemaining;
@@ -520,20 +567,26 @@ class _DaysToMinutesCountDownState extends State<DaysToMinutesCountDown> {
 
     final remainingDays = diff.inDays;
     final remainingHours = diff.inHours % 24;
-    final remainingMinutes = diff.inMinutes % 60;
 
     setState(() {
-      formattedRemaining = '${remainingDays}D ${remainingHours}h ${remainingMinutes}m';
+      formattedRemaining = '${remainingDays}D ${remainingHours}h';
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
+    String labelText = '';
+    if (widget.showLabel) {
+      labelText = '${strings!.get('next') ?? "Next"}: $formattedRemaining';
+    }
+    else {
+      labelText = formattedRemaining;
+    }
     return Row(
       children: [
         Text(
-          '${strings!.get('next') ?? "Next"}: $formattedRemaining',
+          labelText,
           textAlign: TextAlign.right,
           style: GoogleFonts.montserrat(
             fontSize: 14,
@@ -554,17 +607,229 @@ class _DaysToMinutesCountDownState extends State<DaysToMinutesCountDown> {
   }
 }
 
-//------------------------------------------------------------
-
 class RafflesBuilder extends StatelessWidget {
-  final List<Map<String, dynamic>> raffleItems;
-  const RafflesBuilder({Key? key, required this.raffleItems}) : super(key: key);
+  final List<RaffleItem> raffleItems;
+  final double userPoints;
+  final String userId;
+  final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
+  final Future<void> Function()? onRaffleSuccess;
+
+  RafflesBuilder({Key? key,
+    required this.raffleItems,
+    required this.userPoints,
+    required this.userId,
+    this.onRaffleSuccess,}) : super(key: key);
+
+  Future<bool?> _showConfirmRaffleDialog(
+      BuildContext aContext, RaffleItem raffleItem, double userPoints) async {
+    final betraderIcon = await rootBundle.load('assets/new_icon.png');
+    final betraderIconBase64 = base64Encode(betraderIcon.buffer.asUint8List());
+    return await showDialog<bool>(
+      context: aContext,
+      builder: (BuildContext context) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) {
+              Navigator.of(context).pop(false);
+            }
+          },
+          child:
+          Dialog(
+            elevation: 0,
+            backgroundColor: Colors.transparent.withValues(alpha: .15),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.02),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white70.withValues(alpha: 0.12),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+
+                  child: Stack(
+                    children: [
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.memory(base64Decode(raffleItem.icon), height: 140, fit: BoxFit.fill),
+                          const SizedBox(height: 6),
+                          Text(
+                            raffleItem.name,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            LocalizedStrings.of(context)!.get('nextRaffleIn') ??
+                                "The next raffle will take place in",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 18,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          StreamBuilder<DateTime>(
+                            initialData: DateTime.now().toUtc(),
+                            stream: Stream<DateTime>.periodic(
+                              const Duration(minutes: 1),
+                                  (_) => DateTime.now().toUtc(),
+                            ),
+                            builder: (context, snapshot) {
+                              final now = snapshot.data ?? DateTime.now().toUtc();
+                              final target = raffleItem.raffleDate.toUtc();
+                              var diff = target.difference(now);
+                              if (diff.isNegative) diff = Duration.zero;
+
+                              final d = diff.inDays;
+                              final h = diff.inHours % 24;
+                              final m = diff.inMinutes % 60;
+
+                              return Text(
+                                '${d}D ${h}h ${m}m',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 6),
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white70.withValues(alpha: 0.12),
+                                  width: 1.0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.18),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(LocalizedStrings.of(context)?.get('participants') ??
+                                      "Participants:" ,
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      )),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    NumberFormat.compact().format(raffleItem.participants),
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  const Icon(FontAwesomeIcons.ticket, size: 26, color: Colors.white),
+
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Divider(thickness: 1.0, color: Colors.white24, height: 0.2),
+                          const SizedBox(height: 16),
+                          Text(
+                            LocalizedStrings.of(context)
+                                ?.get('slideToParticipate') ??
+                                'Slide to participate',
+                            maxLines: 1,
+                            style: GoogleFonts.syncopate(
+                              fontSize: 16,
+                              color: Colors.white60,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.center,
+                            child: SlideToConfirm(
+                              disabled: raffleItem.coins > userPoints ,
+                              icon: betraderIconBase64,
+                              betAmount: raffleItem.coins.toDouble(),
+                              onSlideComplete: () async {
+                                final response = await Common().postRequestWrapper(
+                                    'Info',
+                                    'NewRaffle',
+                                    {'user_id' : userId ,
+                                    'token' : raffleItem.id.toString()});
+
+                                if (response['statusCode'] == 200) {
+                                  Common().vibrate(100,100);
+                                  await BetsService().getUserInfo(userId);
+                                  if (onRaffleSuccess != null) await onRaffleSuccess!();
+
+                                  Common().showFloatingSnack(
+                                      context,
+                                      LocalizedStrings.of(context)!.get('raffleParticipated') ?? "Raffle participated successfully!"
+                                  );
+                                  Navigator.pop(context);
+                                }
+                                else {
+                                  Common().vibrate(100,100);
+                                  Common().showFloatingSnack(
+                                      context,
+                                      "Oops... error",
+                                      backgroundColor: Colors.red);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    ],
+                  ),
+
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     if (raffleItems.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: Colors.grey));
-    }
+      return _RafflesSkeletonGrid();    }
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -577,40 +842,20 @@ class RafflesBuilder extends StatelessWidget {
         childAspectRatio: 1.5,
       ),
       itemBuilder: (context, index) {
-        final item = raffleItems[index];
-        final name = item['name'] ?? '';
-        final shortName = item['short_name'] ?? '';
-        final coins = item['coins'] ?? 50;
-        final image = item['icon'] ?? '';
+        RaffleItem raffleItem = raffleItems[index];
+        final name =  raffleItem.name;
+        final shortName = raffleItem.shortName;
+        final coins = raffleItem.coins;
+        final image = raffleItem.icon;
         final borderRadius = BorderRadius.circular(14);
 
         return Material(
           color: Colors.transparent,
           child: InkWell(
             borderRadius: borderRadius,
-            onTap: () {
+            onTap: () async {
               Common().vibrate();
-              showDialog(
-                context: Navigator.of(context, rootNavigator: true).context,
-                builder: (ctx) => AlertDialog(
-                  content: SingleChildScrollView(
-                    child: ListBody(
-                      children: [
-                        if ((item['icon'] as String?)?.isNotEmpty == true)
-                          Image.memory(base64Decode(item['icon']), height: 120, fit: BoxFit.fill),
-                        Text('${item['name'] ?? ''}'),
-                        Text('FECHA: ${item['raffle_date'] ?? '-'}'),
-                      ],
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Close'),
-                    ),
-                  ],
-                ),
-              );
+              _showConfirmRaffleDialog(context, raffleItem, userPoints);
             },
             child: Ink(
               decoration: BoxDecoration(
@@ -630,9 +875,9 @@ class RafflesBuilder extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (image.isNotEmpty)
-                    Image.memory(base64Decode(image), height: 74, fit: BoxFit.fitHeight),
+                    Image.memory(base64Decode(image), height: MediaQuery.of(context).size.height * 0.09, fit: BoxFit.fill),
                   if (name.isNotEmpty) ...[
-                    if (image.isNotEmpty) const SizedBox(height: 8),
+                    SizedBox(height: 3),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -687,5 +932,208 @@ class RafflesBuilder extends StatelessWidget {
       },
     );
   }
+
 }
 
+
+//-------------------------- S K E L E T O N S --------------------------
+
+class _TopUsersSkeleton extends StatelessWidget {
+  final int count;
+  final double rowExtent;
+  final double gap;
+
+  const _TopUsersSkeleton({
+    required this.count,
+    required this.rowExtent,
+    required this.gap,
+  });
+
+  static const _pool = <String>[
+    'donsuso','estacionvictoria','Ovu','rokusso','pepe',
+    'cryptogato','lunaTrader','moriarty','neonbyte','alfaWolf',
+    'pixelito','kiwix','zenith','solanito','nox','bitmaria',
+    'ramenking','asturcoin','pampamon','quarky'
+  ];
+
+  static const List<String> _REWARDS = [
+    r'+$2,500', r'+$1,500', r'+$1,000', r'+$750', r'+$500'
+  ];
+
+  String _nameFor(int i) {
+    final r = Random(i + 13);
+    final base = _pool[i % _pool.length];
+    if (r.nextBool() && base.length > 10) {
+      return base.substring(0, 12) + '...';
+    }
+    return base;
+  }
+
+  String _coinsFor(int i) {
+    final r = Random(1000 + i);
+    final value = r.nextInt(900000) + 8000;
+    return NumberFormat.compact().format(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double sigmaName = 3;
+    return ListView.separated(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      itemCount: count,
+      separatorBuilder: (_, __) => SizedBox(height: gap),
+      itemBuilder: (_, index) {
+        final rank = index + 1;
+        final prize = rank <= _REWARDS.length ? _REWARDS[rank - 1] : '';
+
+        return Container(
+          height: rowExtent,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.10), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 45,
+                child: (rank <= 3)
+                    ? MedalBadge(rank: rank, size: 30)
+                    : Text(
+                  '$rank',
+                  style: GoogleFonts.syncopate(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ),
+
+              Expanded(
+                child: ClipRect(
+                  child: ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: sigmaName, sigmaY: sigmaName),
+                    child: Text(
+                      _nameFor(index),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.95),
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              Container(
+                width: 1,
+                height: 24,
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                color: Colors.white.withValues(alpha: 0.12),
+              ),
+
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _coinsFor(index),
+                    style: GoogleFonts.montserrat(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white.withValues(alpha: 0.95),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Image.asset('assets/coin.png', width: 18, height: 18),
+                  Container(
+                    width: 1,
+                    height: 24,
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
+                  if (prize.isNotEmpty)
+                    Text(
+                      prize,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.green,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _RafflesSkeletonGrid extends StatelessWidget {
+  const _RafflesSkeletonGrid();
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      itemCount: 4, // 2x2 placeholder
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 1.5,
+      ),
+      itemBuilder: (_, __) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.10), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: MediaQuery.of(_).size.height * 0.09,
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(width: 80, height: 14, color: Colors.white.withValues(alpha: 0.08)),
+                  const SizedBox(width: 6),
+                  Container(width: 50, height: 14, color: Colors.white.withValues(alpha: 0.08)),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

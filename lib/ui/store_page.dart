@@ -248,6 +248,8 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
         Navigator.pop(context);
         Common().showFloatingSnack(context, localizedWarning, showIcon: true);
         homeScreenKey.currentState?.loadUserIdAndData();
+        awardsScreenKey.currentState?.loadUserIdAndData();
+
       }
     } catch (e) {
       debugPrint('show rewarded error: $e');
@@ -289,6 +291,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
       await BetsService().getUserInfo(userId);
       Navigator.pop(context);
       homeScreenKey.currentState?.loadUserIdAndData();
+      awardsScreenKey.currentState?.loadUserIdAndData();
       Common().showFloatingSnack(
         context,
         Common().interpolate(
