@@ -61,14 +61,28 @@ class TrendDialog extends StatefulWidget {
   State<TrendDialog> createState() => _TrendDialogState();
 }
 
-class _TrendDialogState extends State<TrendDialog> {
+class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStateMixin {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool isFavorite = false;
+  late final AnimationController _pulseCtrl;
 
   @override
   void initState() {
     super.initState();
     isFavorite = marketsPageKey.currentState?.isFavorite(widget.trend.ticker) ?? false;
+
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+      lowerBound: 0.0,
+      upperBound: 1.0,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -166,12 +180,13 @@ class _TrendDialogState extends State<TrendDialog> {
                                     onPressed: () async {
                                       final newState = !isFavorite;
 
-                                      bool ok = await BetsService().postNewFavorite(
+                                      final ok = await BetsService().postNewFavorite(
                                         await _storage.read(key: "sessionToken") ?? "none",
                                         widget.trend.ticker,
                                       );
 
                                       if (ok) {
+                                        if (!mounted) return;
                                         setState(() {
                                           isFavorite = newState;
                                         });
@@ -217,7 +232,7 @@ class _TrendDialogState extends State<TrendDialog> {
                               Text(
                                 ' ${widget.trend.dailyGain.abs().toStringAsFixed(2)}%',
                                 style: GoogleFonts.montserrat(
-                                  fontSize: 22,
+                                  fontSize: 28,
                                   fontWeight: FontWeight.w500,
                                   color: widget.trend.dailyGain >= 0
                                       ? Colors.green
@@ -226,87 +241,77 @@ class _TrendDialogState extends State<TrendDialog> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            '${strings?.get('close') ?? 'Close'}: ${widget.trend.close.toStringAsFixed(2)}${widget.currency}',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 22),
+
                           Row(
                             children: [
-                              Text(
-                                '${strings?.get('current') ?? 'Current'}: ${widget.trend.current.toStringAsFixed(2)}${widget.currency}',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: widget.trend.dailyGain >= 0
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
-                              ),
-                              const Spacer(),
                               Column(
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      FontAwesomeIcons.chartLine,
-                                      size: 38,
+                                  Text(
+                                    '${strings?.get('close') ?? 'Close'}: ${widget.trend.close.toStringAsFixed(2)}${widget.currency}',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: ( widget.trend.close < 1000 ? 22 : 18),
+                                      fontWeight: FontWeight.w500,
                                       color: Colors.white70,
                                     ),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: Colors.transparent,
-                                        builder: (BuildContext context) {
-                                          return ClipRRect(
-                                            borderRadius: const BorderRadius.vertical(
-                                              top: Radius.circular(25),
-                                            ),
-                                            child: Container(
-                                              color: Theme.of(context)
-                                                  .scaffoldBackgroundColor,
-                                              height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                                  0.56,
-                                              child: OverflowBox(
-                                                alignment: Alignment.topCenter,
-                                                maxHeight: MediaQuery.of(context)
-                                                    .size
-                                                    .height,
-                                                child: Column(
-                                                  children: [
-                                                    Expanded(
-                                                      child: CandlesticksView(
-                                                        ticker: widget.trend.ticker,
-                                                        name: widget.trend.name,
-                                                        controller: widget.controller,
-                                                        iconPath: widget.trend.icon,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
                                   ),
                                   Text(
-                                    strings!.get('viewChart') ?? "View chart",
+                                    '${strings?.get('current') ?? 'Current'}: ${widget.trend.current.toStringAsFixed(2)}${widget.currency}',
                                     style: GoogleFonts.montserrat(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w200),
-                                  )
+                                      fontSize:  ( widget.trend.current < 1000 ? 24 : 20),
+                                      fontWeight: FontWeight.w600,
+                                      color: widget.trend.dailyGain >= 0
+                                          ? Colors.green
+                                          : Colors.red,
+                                    ),
+                                  ),
                                 ],
-                              )
+                              ),
+                              const Spacer(),
+                              _ViewChartCTA(
+                                controller: _pulseCtrl,
+                                label: strings!.get('viewChart') ?? "View chart",
+                                heroTag: 'chart-${widget.trend.ticker}',
+                                onTap: () {
+                                  Common().vibrate(20, 60);
+                                  Navigator.of(context).pop();
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (BuildContext context) {
+                                      return ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(25),
+                                        ),
+                                        child: Container(
+                                          color: Theme.of(context).scaffoldBackgroundColor,
+                                          height: MediaQuery.of(context).size.height * 0.56,
+                                          child: OverflowBox(
+                                            alignment: Alignment.topCenter,
+                                            maxHeight: MediaQuery.of(context).size.height,
+                                            child: Column(
+                                              children: [
+                                                Expanded(
+                                                  child: Hero(
+                                                    tag: 'chart-${widget.trend.ticker}',
+                                                    child: CandlesticksView(
+                                                      ticker: widget.trend.ticker,
+                                                      name: widget.trend.name,
+                                                      controller: widget.controller,
+                                                      iconPath: widget.trend.icon,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                             ],
                           ),
                         ],
@@ -323,6 +328,128 @@ class _TrendDialogState extends State<TrendDialog> {
   }
 }
 
+class _ViewChartCTA extends StatefulWidget {
+  final AnimationController controller;
+  final VoidCallback onTap;
+  final String label;
+  final String heroTag;
+
+  const _ViewChartCTA({
+    required this.controller,
+    required this.onTap,
+    required this.label,
+    required this.heroTag,
+  });
+
+  @override
+  State<_ViewChartCTA> createState() => _ViewChartCTAState();
+}
+
+class _ViewChartCTAState extends State<_ViewChartCTA> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = CurvedAnimation(parent: widget.controller, curve: Curves.easeInOut);
+    const double size = 80;
+
+    return Column(
+      children: [
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTapDown: (_) => setState(() => _pressed = true),
+            onTapCancel: () => setState(() => _pressed = false),
+            onTapUp: (_) => setState(() => _pressed = false),
+            onTap: widget.onTap,
+            child: AnimatedBuilder(
+              animation: t,
+              builder: (_, __) {
+                final glow = 6 + 10 * (t.value);
+                final scale = _pressed ? 0.96 : (1.0 + 0.02 * (t.value - 0.5));
+
+                return Transform.scale(
+                  scale: scale,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Halo “breathing”
+                      Container(
+                        width: size + 18,
+                        height: size + 18,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.greenAccent.withValues(alpha: 0.18),
+                              blurRadius: 24 + glow,
+                              spreadRadius: 2 + t.value * 2,
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Anillo exterior translúcido
+                      Container(
+                        width: size + 8,
+                        height: size + 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.20),
+                            width: 1.2,
+                          ),
+                        ),
+                      ),
+                      // Botón principal con Hero
+                      Hero(
+                        tag: widget.heroTag,
+                        child: Container(
+                          width: size,
+                          height: size,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.08),
+                            border: Border.all(
+                              color: Colors.white70.withValues(alpha: 0.18),
+                              width: 1.1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.25),
+                                blurRadius: 14,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              FontAwesomeIcons.chartLine,
+                              size: 28,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          widget.label,
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w200,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class TrendContainer extends StatefulWidget {
   final Trend trend;

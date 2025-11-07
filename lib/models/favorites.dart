@@ -67,9 +67,27 @@ class FavoriteDialog extends StatefulWidget {
   State<FavoriteDialog> createState() => _FavoriteDialogState();
 }
 
-class _FavoriteDialogState extends State<FavoriteDialog> {
+class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProviderStateMixin {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool isFavorite = true;
+  late final AnimationController _pulseCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+      lowerBound: 0.0,
+      upperBound: 1.0,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,34 +149,32 @@ class _FavoriteDialogState extends State<FavoriteDialog> {
                                     height: 130,
                                     width: 130,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, _) =>
-                                        Text(
-                                          widget.favorite.name,
-                                          maxLines: 1,
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 36,
-                                            fontWeight: FontWeight.w100,
-                                            color: Colors.white,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
+                                    errorBuilder: (context, error, _) => Text(
+                                      widget.favorite.name,
+                                      maxLines: 1,
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.w100,
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
                                   )
                                       : Image.memory(
                                     base64Decode(widget.favorite.icon),
                                     height: 130,
                                     width: 130,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, _) =>
-                                        Text(
-                                          widget.favorite.name,
-                                          maxLines: 1,
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 36,
-                                            fontWeight: FontWeight.w100,
-                                            color: Colors.white,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
+                                    errorBuilder: (context, error, _) => Text(
+                                      widget.favorite.name,
+                                      maxLines: 1,
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.w100,
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
                                   ),
                                 ),
                               ] else ...[
@@ -180,31 +196,22 @@ class _FavoriteDialogState extends State<FavoriteDialog> {
                                     iconSize: 50,
                                     onPressed: () async {
                                       final newState = !isFavorite;
-                                      bool ok =
-                                      await BetsService().postNewFavorite(
-                                        await _storage.read(
-                                            key: "sessionToken") ??
-                                            "none",
+                                      bool ok = await BetsService().postNewFavorite(
+                                        await _storage.read(key: "sessionToken") ?? "none",
                                         widget.favorite.ticker,
                                       );
-
                                       if (ok) {
-                                        setState(() {
-                                          isFavorite = newState;
-                                        });
-                                        homeScreenKey.currentState
-                                            ?.refreshFavorites();
-                                        marketsPageKey.currentState
-                                            ?.toggleFavorite(
+                                        if (!mounted) return;
+                                        setState(() => isFavorite = newState);
+                                        homeScreenKey.currentState?.refreshFavorites();
+                                        marketsPageKey.currentState?.toggleFavorite(
                                           widget.favorite.ticker,
                                           onlyLocal: true,
                                         );
                                       }
                                     },
                                     icon: Icon(
-                                      isFavorite
-                                          ? FontAwesomeIcons.solidStar
-                                          : FontAwesomeIcons.star,
+                                      isFavorite ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
                                       color: Colors.yellow,
                                       size: 36,
                                     ),
@@ -227,108 +234,84 @@ class _FavoriteDialogState extends State<FavoriteDialog> {
                           Row(
                             children: [
                               (widget.favorite.dailyGain >= 0.0)
-                                  ? const Icon(FontAwesomeIcons.arrowTrendUp,
-                                  color: Colors.green, size: 20)
-                                  : const Icon(FontAwesomeIcons.arrowTrendDown,
-                                  color: Colors.red, size: 20),
+                                  ? const Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.green, size: 20)
+                                  : const Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 20),
                               Text(
                                 ' ${(widget.favorite.dailyGain).abs().toStringAsFixed(2)}%',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 25,
                                   fontWeight: FontWeight.w400,
-                                  color: widget.favorite.dailyGain >= 0.0
-                                      ? Colors.green
-                                      : Colors.red,
+                                  color: widget.favorite.dailyGain >= 0.0 ? Colors.green : Colors.red,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${strings?.get('close') ?? 'Close'}: ${widget.favorite.close.toStringAsFixed(2)}${widget.currency}',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ),
-                          ),
+                          const SizedBox(height: 22),
+
                           Row(
                             children: [
-                              Text(
-                                '${strings?.get('current') ?? 'Current'}: ${widget.favorite.current.toStringAsFixed(2)}${widget.currency}',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: widget.favorite.dailyGain >= 0.0
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
-                              ),
-                              const Spacer(),
                               Column(
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      FontAwesomeIcons.chartLine,
-                                      size: 42,
-                                      color: Colors.white70,
+                                  Text(
+                                    '${strings?.get('close') ?? 'Close'}: ${widget.favorite.close.toStringAsFixed(2)}${widget.currency}',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: ( widget.favorite.close < 1000 ? 22 : 18),
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white,
                                     ),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: Colors.transparent,
-                                        builder: (BuildContext context) {
-                                          return ClipRRect(
-                                            borderRadius:
-                                            const BorderRadius.vertical(
-                                              top: Radius.circular(25),
-                                            ),
-                                            child: Container(
-                                              color: Theme.of(context)
-                                                  .scaffoldBackgroundColor,
-                                              height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                                  0.56,
-                                              child: OverflowBox(
-                                                alignment: Alignment.topCenter,
-                                                maxHeight:
-                                                MediaQuery.of(context)
-                                                    .size
-                                                    .height,
-                                                child: Column(
-                                                  children: [
-                                                    Expanded(
-                                                      child: CandlesticksView(
-                                                        ticker:
-                                                        widget.favorite.ticker,
-                                                        name: widget.favorite.name,
-                                                        controller:
-                                                        widget.controller,
-                                                        iconPath:
-                                                        widget.favorite.icon,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
                                   ),
                                   Text(
-                                    strings!.get('viewChart') ?? "View chart",
+                                    '${strings?.get('current') ?? 'Current'}: ${widget.favorite.current.toStringAsFixed(2)}${widget.currency}',
                                     style: GoogleFonts.montserrat(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w200,
-                                      color: Colors.white70,
+                                      fontSize:  ( widget.favorite.current < 1000 ? 24 : 20),
+                                      fontWeight: FontWeight.w500,
+                                      color: widget.favorite.dailyGain >= 0.0 ? Colors.green : Colors.red,
                                     ),
                                   )
                                 ],
+                              ),
+                              const Spacer(),
+                              _ViewChartCTA(
+                                controller: _pulseCtrl,
+                                label: strings!.get('viewChart') ?? "View chart",
+                                heroTag: 'chart-${widget.favorite.ticker}',
+                                onTap: () {
+                                  Common().vibrate(20, 60);
+                                  Navigator.of(context).pop();
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (BuildContext context) {
+                                      return ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+                                        child: Container(
+                                          color: Theme.of(context).scaffoldBackgroundColor,
+                                          height: MediaQuery.of(context).size.height * 0.56,
+                                          child: OverflowBox(
+                                            alignment: Alignment.topCenter,
+                                            maxHeight: MediaQuery.of(context).size.height,
+                                            child: Column(
+                                              children: [
+                                                Expanded(
+                                                  child: Hero(
+                                                    tag: 'chart-${widget.favorite.ticker}',
+                                                    child: CandlesticksView(
+                                                      ticker: widget.favorite.ticker,
+                                                      name: widget.favorite.name,
+                                                      controller: widget.controller,
+                                                      iconPath: widget.favorite.icon,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
                               ),
                             ],
                           ),
@@ -346,6 +329,124 @@ class _FavoriteDialogState extends State<FavoriteDialog> {
   }
 }
 
+class _ViewChartCTA extends StatefulWidget {
+  final AnimationController controller;
+  final VoidCallback onTap;
+  final String label;
+  final String heroTag;
+
+  const _ViewChartCTA({
+    required this.controller,
+    required this.onTap,
+    required this.label,
+    required this.heroTag,
+  });
+
+  @override
+  State<_ViewChartCTA> createState() => _ViewChartCTAState();
+}
+
+class _ViewChartCTAState extends State<_ViewChartCTA> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = CurvedAnimation(parent: widget.controller, curve: Curves.easeInOut);
+    const double size = 80;
+
+    return Column(
+      children: [
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTapDown: (_) => setState(() => _pressed = true),
+            onTapCancel: () => setState(() => _pressed = false),
+            onTapUp: (_) => setState(() => _pressed = false),
+            onTap: widget.onTap,
+            child: AnimatedBuilder(
+              animation: t,
+              builder: (_, __) {
+                final glow = 6 + 10 * (t.value);
+                final scale = _pressed ? 0.96 : (1.0 + 0.02 * (t.value - 0.5));
+                return Transform.scale(
+                  scale: scale,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: size + 18,
+                        height: size + 18,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.greenAccent.withValues(alpha: 0.18),
+                              blurRadius: 24 + glow,
+                              spreadRadius: 2 + t.value * 2,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: size + 8,
+                        height: size + 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.20),
+                            width: 1.2,
+                          ),
+                        ),
+                      ),
+                      Hero(
+                        tag: widget.heroTag,
+                        child: Container(
+                          width: size,
+                          height: size,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.08),
+                            border: Border.all(
+                              color: Colors.white70.withValues(alpha: 0.18),
+                              width: 1.1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.25),
+                                blurRadius: 14,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              FontAwesomeIcons.chartLine,
+                              size: 28,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          widget.label,
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w200,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class FavoriteContainer extends StatefulWidget {
   final Favorite favorite;
@@ -612,10 +713,10 @@ class SkeletonFavoriteContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-      width: 100,
+      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
+      width: (Random().nextBool() ? 80 : 110),
       decoration: BoxDecoration(
-        color: Colors.white12,
+        color: (Random().nextBool() ? Colors.green.withValues(alpha: 0.35) : Colors.red.withValues(alpha: 0.35)) ,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),

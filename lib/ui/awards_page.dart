@@ -13,7 +13,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/BetsService.dart';
+import '../config/config.dart';
 import '../helpers/common.dart';
 import '../helpers/slider.dart';
 import 'home_page.dart';
@@ -29,31 +31,35 @@ class AwardsPageState extends State<AwardsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+
   String? _userId;
   double _userPoints = 0;
   String _userCountry = "none";
+  String _currency = "eur";
   List<RaffleItem> _raffleItems = [];
   static const double _ROW_EXTENT = 45;
   static const double _ROW_GAP = 8;
   static const int _VISIBLE_ITEMS = 5;
-  static const List<String> _REWARDS = [
-    r'+$2,500', r'+$1,500', r'$+1,000', r'+$750', r'+$500'
-  ];
   Timer? _refreshTimer;
 
   Future<void> loadUserIdAndData() async {
+    final prefs = await SharedPreferences.getInstance();
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     await BetsService().getUserInfo(userId);
     final userCountry = await _storage.read(key: "country") ?? "none";
     final points = await _storage.read(key: 'points') ?? '0';
-
     final raffleItemsResponse = await Common().postRequestWrapper(
       'Info',
       'RaffleItems',
       {'id': userId},
     );
     final body = raffleItemsResponse['body'];
-
+    if (prefs.getBool('dollarCurrency') ?? false) {
+      _currency = "usd";
+    } else {
+      _currency = "eur";
+    }
     List<RaffleItem> parsedRaffleItems = [];
     if (body is List) {
       parsedRaffleItems = body
@@ -71,24 +77,13 @@ class AwardsPageState extends State<AwardsPage>
     setState(() {
       _userId = userId;
       _userCountry = userCountry;
-      _raffleItems = parsedRaffleItems;
+       _raffleItems = parsedRaffleItems;
       _userPoints = double.tryParse(points) ?? 0;
     });
   }
 
-  Future<void> _reloadPointsFromStorage() async {
-    final points = await _storage.read(key: 'points') ?? '0';
-    homeScreenKey.currentState?.loadUserIdAndData();
-    if (!mounted) return;
-    setState(() {
-      _userPoints = double.tryParse(points) ?? 0;
-    });
-  }
-
-  Widget _buildUserRow(User user, int index) {
-    final rank = index + 1;
-    final prize = (rank <= _REWARDS.length) ? _REWARDS[rank - 1] : '';
-
+  Widget _buildUserRow(User user, int rank, String prize) {
+    
     final borderRadius = BorderRadius.circular(14);
 
     return Material(
@@ -195,7 +190,7 @@ class AwardsPageState extends State<AwardsPage>
     );
   }
 
-  Widget _buildTopUsersView({userCountry = null}) {
+  Widget _buildTopUsersView(List<String> rewards, {userCountry = null}) {
     final double blockHeight = _ROW_EXTENT * _VISIBLE_ITEMS + _ROW_GAP * (_VISIBLE_ITEMS - 1);
 
     if (_userId == null) {
@@ -242,7 +237,7 @@ class AwardsPageState extends State<AwardsPage>
             separatorBuilder: (_, __) => SizedBox(height: _ROW_GAP),
             itemBuilder: (_, i) => SizedBox(
               height: _ROW_EXTENT,
-              child: _buildUserRow(users[i], i),
+              child: _buildUserRow(users[i], i+1 , rewards.elementAt(i)),
             ),
           );
         }
@@ -317,8 +312,8 @@ class AwardsPageState extends State<AwardsPage>
                       child: TabBarView(
                         controller: _tabController,
                         children: [
-                          _buildTopUsersView(),
-                          _buildTopUsersView(userCountry: _userCountry),
+                          _buildTopUsersView(_currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD),
+                          _buildTopUsersView(_currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD, userCountry: _userCountry),
                         ],
                       ),
                     ),
@@ -339,7 +334,11 @@ class AwardsPageState extends State<AwardsPage>
                         raffleItems: _raffleItems,
                         userPoints: _userPoints,
                         userId: _userId ?? '0',
-                        onRaffleSuccess: () => _reloadPointsFromStorage()),
+                        onRaffleSuccess: () async => {
+                          loadUserIdAndData(),
+                          homeScreenKey.currentState?.loadUserIdAndData()
+                        }
+      ),
                   ],
                 )
             )
@@ -661,19 +660,19 @@ class RafflesBuilder extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (raffleItem.icon.isNotEmpty)
-                        Image.memory(base64Decode(raffleItem.icon), height: 140, fit: BoxFit.cover),
+                        Image.memory(base64Decode(raffleItem.icon), height: 140, fit: BoxFit.fill),
                       const SizedBox(height: 6),
                       Text(
                         raffleItem.name,
                         textAlign: TextAlign.center,
                         maxLines: 1,
-                        style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w600, color: Colors.white),
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white),
                       ),
                       const SizedBox(height: 10),
                       Text(
                         LocalizedStrings.of(context)!.get('nextRaffleIn') ?? "The next raffle will take place in",
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.montserrat(fontSize: 18, color: Colors.white70),
+                        style: GoogleFonts.montserrat(fontSize: 16, color: Colors.white70),
                       ),
                       StreamBuilder<DateTime>(
                         initialData: DateTime.now().toUtc(),
@@ -714,7 +713,7 @@ class RafflesBuilder extends StatelessWidget {
                               style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(FontAwesomeIcons.ticket, size: 20, color: Colors.white),
+                            const Icon(FontAwesomeIcons.user, size: 20, color: Colors.white),
                           ],
                         ),
                       ),
@@ -826,7 +825,7 @@ class RafflesBuilder extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.montserrat(
                             fontSize: 17,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w300,
                             color: Colors.white.withValues(alpha: 0.95),
                             letterSpacing: 0.2,
                           ),
@@ -854,7 +853,7 @@ class RafflesBuilder extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.montserrat(
                             fontSize: 17,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w300,
                             color: Colors.white.withValues(alpha: 0.95),
                             letterSpacing: 0.2,
                           ),
@@ -872,7 +871,6 @@ class RafflesBuilder extends StatelessWidget {
       },
     );
   }
-
 }
 
 
@@ -896,9 +894,7 @@ class _TopUsersSkeleton extends StatelessWidget {
     'ramenking','asturcoin','pampamon','quarky'
   ];
 
-  static const List<String> _REWARDS = [
-    r'+$2,500', r'+$1,500', r'+$1,000', r'+$750', r'+$500'
-  ];
+
 
   String _nameFor(int i) {
     final r = Random(i + 13);
@@ -925,7 +921,7 @@ class _TopUsersSkeleton extends StatelessWidget {
       separatorBuilder: (_, __) => SizedBox(height: gap),
       itemBuilder: (_, index) {
         final rank = index + 1;
-        final prize = rank <= _REWARDS.length ? _REWARDS[rank - 1] : '';
+        final prize = rank <= Config.TOP5_REWARDS_EUR.length ? Config.TOP5_REWARDS_EUR[rank - 1] : '';
 
         return Container(
           height: rowExtent,

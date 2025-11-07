@@ -1405,7 +1405,6 @@ class _FloatingSnackState extends State<_FloatingSnack> with SingleTickerProvide
 }
 
 
-
 class BlankImageWidget extends StatelessWidget {
   const BlankImageWidget({super.key});
 

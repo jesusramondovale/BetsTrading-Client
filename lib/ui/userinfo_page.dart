@@ -233,14 +233,6 @@ class _UserInfoPageState extends State<UserInfoPage> {
                                   "Profile picture uploaded successfully",
                               context);
                         });
-                      } else {
-                        setState(() {
-                          Common().popDialog(
-                              "Oops!",
-                              strings?.get('errorUploadingProfilePic') ??
-                                  "An error has occurred while uploading the profile pic",
-                              context);
-                        });
                       }
                     },
                   ),

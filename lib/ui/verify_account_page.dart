@@ -196,7 +196,7 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
                       label: Text(
                         strings?.get('verify') ?? 'Verify',
                         style: GoogleFonts.syncopate(
-                            fontSize: 16, fontWeight: FontWeight.w200),
+                            fontSize: 20, fontWeight: FontWeight.w200),
                       ),
                     ),
                   ),

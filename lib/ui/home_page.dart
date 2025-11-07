@@ -397,14 +397,13 @@ class HomeScreenState extends State<HomeScreen> {
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
-                                    SizedBox(width: 8),
                                     SkeletonFavoriteContainer(),
-                                    SizedBox(width: 8),
                                     SkeletonFavoriteContainer(),
-                                    SizedBox(width: 8),
                                     SkeletonFavoriteContainer(),
-                                    SizedBox(width: 8),
+                                    SkeletonFavoriteContainer(),
+                                    SkeletonFavoriteContainer(),
                                   ],
                                 ),
                               ),
@@ -442,18 +441,17 @@ class HomeScreenState extends State<HomeScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    LocalizedStrings.of(context)!
-                                            .get('noFavsYet') ??
-                                        "No favorites yet!",
-                                    style: GoogleFonts.dosis(
-                                      fontSize: 18,
+                                    strings!.get('noFavsYet') ?? "No favorites yet!",
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.syncopate(
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w200,
                                     ),
                                   ),
                                   SizedBox(height: 10),
                                   Icon(
-                                    Icons.star_border,
-                                    size: 50,
+                                    FontAwesomeIcons.star,
+                                    size: 30,
                                     color: Colors.grey,
                                   ),
                                 ],
@@ -511,16 +509,15 @@ class HomeScreenState extends State<HomeScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                LocalizedStrings.of(context)!
-                                    .get('noLiveBets') ??
-                                    'You have no live bets at the moment, go to the markets tab to create a new one',
+                                strings!.get('noLiveBets') ?? 'You have no live bets at the moment, go to the markets tab to create a new one',
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 20,
+                                style: GoogleFonts.syncopate(
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w400,
-                                  color: Colors.white70,
+                                  color: Colors.white,
                                 ),
                               ),
+                              SizedBox(height: 10),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -528,10 +525,9 @@ class HomeScreenState extends State<HomeScreen> {
                                     width: 40,
                                     child: Image.asset('assets/new_icon.png'),
                                   ),
-                                  const SizedBox(width: 5.0),
                                   const Icon(
                                     Icons.arrow_downward_rounded,
-                                    size: 50,
+                                    size: 40,
                                     color: Colors.grey,
                                   ),
                                 ],
@@ -555,16 +551,15 @@ class HomeScreenState extends State<HomeScreen> {
                           },
                           icon: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
                           label: Text(
-                            strings!.get('history') ?? "History",
+                            strings.get('history') ?? "History",
                             style: GoogleFonts.montserrat(
                               color: Colors.white,
                               fontWeight: FontWeight.w400,
-                              fontSize: 16
+                              fontSize: 14
                             ),
                           ),
                         ),
-                      floatingActionButtonLocation:
-                      FloatingActionButtonLocation.endFloat,
+                      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
                     );
                   }
 
