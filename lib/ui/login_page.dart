@@ -11,7 +11,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../config/config.dart';
 import '../services/BetsService.dart';
-import 'fist_time_page.dart';
+import 'first_time_page.dart';
 import 'layout_page.dart';
 
 class LoginPage extends StatelessWidget {

@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/markets_page.dart';
 import 'package:betrader/ui/awards_page.dart';
-import 'package:betrader/ui/tutorial_page.dart';
 import 'package:betrader/ui/userinfo_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -159,7 +158,9 @@ class MainMenuPageState extends State<MainMenuPage> {
         controller: _controller,
       ),
       // TOP USERS
-      AwardsPage(key: awardsScreenKey),
+      AwardsPage(
+          key: awardsScreenKey,
+          controller: _controller),
       // MARKETS
       MarketsView(
         key: marketsPageKey,
@@ -167,7 +168,7 @@ class MainMenuPageState extends State<MainMenuPage> {
       ),
       ExchangePage(key: exchangePageKey, controller: _controller),
       // PERSONAL INFO
-      const UserInfoPage()
+      UserInfoPage(controller: _controller)
     ];
 
     if (_isLoading) {
@@ -193,16 +194,8 @@ class MainMenuPageState extends State<MainMenuPage> {
           ),
 
           Positioned.fill(
-            child: _showTutorial
-                ? TutorialScreen(
-                    onDone: () {
-                      setState(() {
-                        _showTutorial = false;
-                      });
-                    },
-                  )
-                : SafeArea(
-                    child: Column(
+            child: SafeArea(
+                child: Column(
                       children: [
                         Container(
                           height: 1.0,
@@ -230,8 +223,7 @@ class MainMenuPageState extends State<MainMenuPage> {
                                 ),
                         ),
                       ],
-                    ),
-                  ),
+                    )),
           )
         ]),
 

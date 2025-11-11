@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:betrader/ui/paymenthistory_page.dart';
 import 'package:betrader/ui/verify_account_page.dart';
@@ -7,6 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/services/BetsService.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../helpers/common.dart';
 import '../services/AuthService.dart';
 import 'package:country_flags/country_flags.dart';
@@ -14,22 +17,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'dart:typed_data';
+import 'layout_page.dart';
 import 'login_page.dart';
 
 class UserInfoPage extends StatefulWidget {
-  const UserInfoPage({super.key});
+  final MainMenuPageController controller;
+  const UserInfoPage({super.key, required this.controller});
 
   @override
   _UserInfoPageState createState() => _UserInfoPageState();
 }
 
 class _UserInfoPageState extends State<UserInfoPage> {
+  final GlobalKey _kFirstSixTiles = GlobalKey();
+  final GlobalKey _kProfileCamera = GlobalKey();
+  final GlobalKey _kVerifyAccount = GlobalKey();
+  final GlobalKey _kPaymentHistory = GlobalKey();
+  final GlobalKey _kWithdrawalHistory = GlobalKey();
+  final Completer<void> _builtOnce = Completer<void>();
+  final GlobalKey _kLogout = GlobalKey();
+  static const _SEEN_KEY = '__tutorial_seen__userinfo_v1';
+  static const _PENDING_KEY = '__tutorial_pending__userinfo_v1';
   bool userVerified = false;
   late String countryCode = '';
   late String _userId = '';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Uint8List? _profilePicBytes;
   bool isDark = true;
+  TutorialCoachMark? _coach;
+  bool _tutorialQueued = false;
+
 
   Future<void> _loadProfilePic() async {
     String? profilePicString = await _storage.read(key: 'profilepic');
@@ -87,10 +104,37 @@ class _UserInfoPageState extends State<UserInfoPage> {
     return userInfo;
   }
 
+  void _onIndexChange() {
+    if (!mounted) return;
+    if (widget.controller.selectedIndexNotifier.value == 4) {
+      widget.controller.selectedIndexNotifier.removeListener(_onIndexChange);
+      scheduleMicrotask(() async {
+        await _builtOnce.future;
+        if (!mounted) return;
+        startUserInfoTutorial();
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _loadProfilePic();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final p = await SharedPreferences.getInstance();
+      final pending = p.getBool(_PENDING_KEY) ?? false;
+      final seen = await _hasSeen();
+
+      if (!(pending || !seen)) return;
+
+      if (widget.controller.selectedIndexNotifier.value == 4) {
+        await _builtOnce.future;
+        if (mounted) startUserInfoTutorial();
+      } else {
+        widget.controller.selectedIndexNotifier.addListener(_onIndexChange);
+      }
+    });
   }
 
   @override
@@ -98,16 +142,17 @@ class _UserInfoPageState extends State<UserInfoPage> {
     final strings = LocalizedStrings.of(context);
     return FutureBuilder<Map<String, String>>(
       future: _readUserInfo(context),
-      builder:
-          (BuildContext context, AsyncSnapshot<Map<String, String>> snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<Map<String, String>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           userVerified = snapshot.data?['isverified'] == 'true' ? true : false;
-          List<Widget> listItems = [];
-          listItems.addAll(snapshot.data!.entries.where((entry) => entry.key != 'isverified').map((entry) {
+
+          final baseTiles = snapshot.data!.entries
+              .where((entry) => entry.key != 'isverified')
+              .map((entry) {
             String title = '';
             switch (entry.key) {
               case "lastsession":
@@ -131,7 +176,6 @@ class _UserInfoPageState extends State<UserInfoPage> {
               case "birthday":
                 title = strings?.get('birthday') ?? 'Birthday';
                 break;
-
               default:
                 title = Common().capitalizeFirstLetter(entry.key.toString());
             }
@@ -148,202 +192,323 @@ class _UserInfoPageState extends State<UserInfoPage> {
                     height: 18,
                     width: 25,
                   ),
-                  if (!userVerified)... [
-                    SizedBox(width: 10, height: 1),
-                    Text(strings!.get('pendingVerification') ?? '(Pending verification)',
-                      style: TextStyle(color: Colors.redAccent),)
-                  ]
-                  else ... [
-                    SizedBox(width: 5, height: 1),
-                    Icon(Icons.verified, size: 18)
+                  if (!userVerified) ...[
+                    const SizedBox(width: 10, height: 1),
+                    Text(strings!.get('pendingVerification') ?? '(Pending verification)', style: const TextStyle(color: Colors.redAccent)),
+                  ] else ...[
+                    const SizedBox(width: 5, height: 1),
+                    const Icon(Icons.verified, size: 18),
                   ]
                 ],
               );
-            }
-            else if (entry.key == 'fullname') {
-              if (!userVerified){
-                subtitle = Column (
+            } else if (entry.key == 'fullname') {
+              if (!userVerified) {
+                subtitle = Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(entry.value, textAlign: TextAlign.start),
-                    SizedBox(width: 10, height: 1),
-                    Text(strings!.get('pendingVerification') ?? '(Pending verification)',
-                        style: TextStyle(color: Colors.redAccent),)
+                    const SizedBox(width: 10, height: 1),
+                    Text(strings!.get('pendingVerification') ?? '(Pending verification)', style: const TextStyle(color: Colors.redAccent)),
                   ],
                 );
-              }
-              else {
-                subtitle = Row (
+              } else {
+                subtitle = Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(entry.value, textAlign: TextAlign.start),
-                    SizedBox(width: 5, height: 1),
-                    Icon(Icons.verified, size: 20)
+                    const SizedBox(width: 5, height: 1),
+                    const Icon(Icons.verified, size: 20),
                   ],
                 );
               }
-
-            }
-            else if (entry.key == 'birthday') {
+            } else if (entry.key == 'birthday') {
               Locale locale = Localizations.localeOf(context);
               String localeCode = "${locale.languageCode}_${locale.countryCode}";
               final parsed = DateFormat("d MMMM yyyy", "en_US").parse(entry.value);
               String localizedDate = DateFormat("d MMMM yyyy", localeCode).format(parsed);
-              subtitle = Row (
+              subtitle = Row(
                 children: [
                   Text(localizedDate),
-                  if (!userVerified)... [
-                    SizedBox(width: 8, height: 1),
-                    Text(strings!.get('pendingVerification') ?? '(Pending verification)',
-                      style: TextStyle(color: Colors.redAccent),)
-                  ]
-                  else ... [
-                    SizedBox(width: 5, height: 1),
-                    Icon(Icons.verified, size: 16)
+                  if (!userVerified) ...[
+                    const SizedBox(width: 8, height: 1),
+                    Text(strings!.get('pendingVerification') ?? '(Pending verification)', style: const TextStyle(color: Colors.redAccent)),
+                  ] else ...[
+                    const SizedBox(width: 5, height: 1),
+                    const Icon(Icons.verified, size: 16),
                   ]
                 ],
               );
-            }
-            else {
+            } else {
               subtitle = Text(entry.value);
             }
+
             if (entry.key == 'fullname') {
-              return TouchableTile(child:
-                ListTile(
-                  leading: (_profilePicBytes != null ? CircleAvatar(
-                    radius: 28,
-                      backgroundImage: MemoryImage(_profilePicBytes!)) :
-                  Common().getIconForUserInfo(entry.key)),
-                  title: Text(title,
-                      style: GoogleFonts.syncopate(fontSize: 12, fontWeight: FontWeight.w500)),
+              return TouchableTile(
+                child: ListTile(
+                  leading: (_profilePicBytes != null
+                      ? CircleAvatar(radius: 28, backgroundImage: MemoryImage(_profilePicBytes!))
+                      : Common().getIconForUserInfo(entry.key)),
+                  title: Text(title, style: GoogleFonts.syncopate(fontSize: 12, fontWeight: FontWeight.w500)),
                   subtitle: subtitle,
                   trailing: IconButton(
+                    key: _kProfileCamera,
                     icon: const Icon(FontAwesomeIcons.camera),
                     onPressed: () async {
-                      String? sessionToken =
-                      await _storage.read(key: 'sessionToken');
+                      String? sessionToken = await _storage.read(key: 'sessionToken');
                       bool result = await BetsService().uploadProfilePic(
                           sessionToken, await Common().pickImageFromGallery());
                       if (result) {
                         _loadProfilePic();
                         setState(() {
                           Common().popDialog(
-                              strings?.get('success') ?? "Success!",
-                              strings?.get('profilePictureUploadedSuccessfully') ??
-                                  "Profile picture uploaded successfully",
-                              context);
+                            strings?.get('success') ?? "Success!",
+                            strings?.get('profilePictureUploadedSuccessfully') ?? "Profile picture uploaded successfully",
+                            context,
+                          );
                         });
                       }
                     },
                   ),
                   onTap: () => Common().vibrate(),
-                )
+                ),
               );
             } else {
-              return TouchableTile(child:
-              ListTile(
-                leading: Common().getIconForUserInfo(entry.key),
-                title: Text(title, style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-                subtitle: subtitle,
-                onTap: () => Common().vibrate(),
-              ));
-            }
-          }).toList());
-
-          if (userVerified) {
-            listItems.add(TouchableTile(child:
-                ListTile(
-                  leading: const Icon(Icons.verified),
-                  title: Text(strings?.get('verified') ?? 'Account verified!',
-                    style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+              return TouchableTile(
+                child: ListTile(
+                  leading: Common().getIconForUserInfo(entry.key),
+                  title: Text(title, style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+                  subtitle: subtitle,
                   onTap: () => Common().vibrate(),
                 ),
-              )
+              );
+            }
+          }).toList();
+
+          final firstSix = baseTiles.take(6).toList();
+          final restAfterSix = baseTiles.skip(6).toList();
+
+          final List<Widget> listItems = [
+            KeyedSubtree(
+              key: _kFirstSixTiles,
+              child: Column(children: firstSix),
+            ),
+            ...restAfterSix,
+          ];
+
+          if (userVerified) {
+            listItems.add(
+              TouchableTile(
+                child: ListTile(
+                  leading: const Icon(Icons.verified),
+                  title: Text(strings?.get('verified') ?? 'Account verified!', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+                  onTap: () => Common().vibrate(),
+                ),
+              ),
             );
           } else {
-            listItems.add(TouchableTile(child:
-              ListTile(
-                leading: const Icon(Icons.verified_outlined, color: Colors.redAccent,),
-                title: Text(strings?.get('verify') ?? 'Verify Account',
-                    style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500,),
+            listItems.add(
+              TouchableTile(
+                child: ListTile(
+                  key: _kVerifyAccount,
+                  leading: const Icon(Icons.verified_outlined, color: Colors.redAccent),
+                  title: Text(strings?.get('verify') ?? 'Verify Account', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+                  onTap: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyAccountPage(userId: _userId)));
+                  },
                 ),
-                onTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          VerifyAccountPage(userId: _userId,),
-                    ),
-                  );
-                },
-              )),
+              ),
             );
           }
-          listItems.add(TouchableTile(child: ListTile(
-              leading: const Icon(FontAwesomeIcons.creditCard),
-              title: Text(strings?.get('paymentHistory') ?? 'Payment History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-              onTap: () {
-                Common().vibrate();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => PaymentHistoryPage()
-                  ),
-                );
 
-              },
-            )
-          )
-
-          );
-
-          listItems.add(TouchableTile(child: ListTile(
-              leading: const Icon(FontAwesomeIcons.moneyBillTransfer),
-              title: Text(strings?.get('withdrawalHistory') ?? 'Withdrawal History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-              onTap: () {
-                Common().vibrate();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => WithdrawalHistoryPage()
-                  ),
-                );
-
-              },
-            ))
-          );
           listItems.add(
-            TouchableTile(child: ListTile(
-              leading: const Icon(FontAwesomeIcons.arrowRightFromBracket),
-              title: Text(strings?.get('logOut') ?? 'Log Out', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-              onTap: () async {
-                final response = await AuthService().logOut();
-                if (response['success']) {
-                  await _storage.deleteAll();
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                        builder: (context) => const LoginPage()),
-                        (Route<dynamic> route) => false,
-                  );
-                } else {
-                  setState(() {
-                    Common().popDialog(
-                        "Oops...", "${response['message']}", context);
-                  });
-                }
-              },
-            ))
-
+            TouchableTile(
+              child: ListTile(
+                key: _kPaymentHistory,
+                leading: const Icon(FontAwesomeIcons.creditCard),
+                title: Text(strings?.get('paymentHistory') ?? 'Payment History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+                onTap: () {
+                  Common().vibrate();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentHistoryPage()));
+                },
+              ),
+            ),
           );
+
+          listItems.add(
+            TouchableTile(
+              child: ListTile(
+                key: _kWithdrawalHistory,
+                leading: const Icon(FontAwesomeIcons.moneyBillTransfer),
+                title: Text(strings?.get('withdrawalHistory') ?? 'Withdrawal History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+                onTap: () {
+                  Common().vibrate();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => WithdrawalHistoryPage()));
+                },
+              ),
+            ),
+          );
+
+          listItems.add(
+            TouchableTile(
+              child: ListTile(
+                key: _kLogout,
+                leading: const Icon(FontAwesomeIcons.arrowRightFromBracket),
+                title: Text(strings?.get('logOut') ?? 'Log Out', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+                onTap: () async {
+                  final response = await AuthService().logOut();
+                  if (response['success']) {
+                    await _storage.deleteAll();
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                          (Route<dynamic> route) => false,
+                    );
+                  } else {
+                    setState(() {
+                      Common().popDialog("Oops...", "${response['message']}", context);
+                    });
+                  }
+                },
+              ),
+            ),
+          );
+
+          if (!_tutorialQueued) {
+            _tutorialQueued = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!_builtOnce.isCompleted) _builtOnce.complete();
+            });
+          }
 
           return ListView(children: listItems);
         } else {
-          return Center(
-              child: Text(strings?.get('noInfoAvailable') ?? 'No info available!'));
+          return Center(child: Text(strings?.get('noInfoAvailable') ?? 'No info available!'));
         }
       },
     );
   }
+
+  @override
+  void dispose() {
+    widget.controller.selectedIndexNotifier.removeListener(_onIndexChange);
+    super.dispose();
+  }
+
+  //-----   T U T O R I A L      M E T H O D S ------
+  Widget _bubble(String title, String body) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: .9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: .1)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
+      ),
+      child: DefaultTextStyle(
+        style: const TextStyle(color: Colors.white),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 6),
+            Text(body),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<TargetFocus> _buildUserInfoTargets() {
+    final targets = <TargetFocus>[
+      TargetFocus(
+        identify: 'first_six',
+        keyTarget: _kFirstSixTiles,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [TargetContent(align: ContentAlign.bottom, builder: (_, __) => _bubble('Tu perfil', 'Estos son tus datos principales.'))],
+      ),
+      TargetFocus(
+        identify: 'camera',
+        keyTarget: _kProfileCamera,
+        shape: ShapeLightFocus.Circle,
+        contents: [TargetContent(align: ContentAlign.bottom, builder: (_, __) => _bubble('Foto', 'Actualiza tu foto de perfil aquí.'))],
+      ),
+      TargetFocus(
+        identify: 'verify',
+        keyTarget: _kVerifyAccount,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => _bubble('Verifica tu cuenta', 'Completa el KYC para desbloquear todo.'))],
+      ),
+      TargetFocus(
+        identify: 'payments',
+        keyTarget: _kPaymentHistory,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => _bubble('Pagos', 'Consulta tus pagos aquí.'))],
+      ),
+      TargetFocus(
+        identify: 'withdrawals',
+        keyTarget: _kWithdrawalHistory,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => _bubble('Retiros', 'Historial de retiros y estados.'))],
+      ),
+      TargetFocus(
+        identify: 'logout',
+        keyTarget: _kLogout,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => _bubble('Cerrar sesión', 'Desde aquí sales de tu cuenta.'))],
+      ),
+    ];
+    return targets.where((t) => t.keyTarget?.currentContext != null).toList();
+  }
+
+  Future<void> startUserInfoTutorial() async {
+    if (!mounted) return;
+    for (int i = 0; i < 100; i++) {
+      if (!mounted) return;
+      final ready = _kFirstSixTiles.currentContext != null &&
+          _kProfileCamera.currentContext != null &&
+          _kPaymentHistory.currentContext != null &&
+          _kWithdrawalHistory.currentContext != null &&
+          _kLogout.currentContext != null;
+      if (ready) break;
+      await Future.delayed(const Duration(milliseconds: 80));
+    }
+    final targets = _buildUserInfoTargets();
+    if (targets.isEmpty) return;
+    _coach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.65,
+      textSkip: 'Skip',
+      hideSkip: false,
+      useSafeArea: true,
+      pulseEnable: true,
+      onSkip: () { _markSeen(); _clearPending(); return true; },
+      onFinish: () async { await _markSeen(); await _clearPending(); },
+    );
+    _coach!.show(context: context);
+  }
+
+  Future<void> _clearPending() async {
+    final p = await SharedPreferences.getInstance();
+    await p.remove(_PENDING_KEY);
+  }
+
+  Future<void> _markSeen() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_SEEN_KEY, true);
+  }
+
+  Future<bool> _hasSeen() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getBool(_SEEN_KEY) ?? false;
+  }
+
+  //-----   T U T O R I A L      M E T H O D S ------
+
 }
 
 class TouchableTile extends StatefulWidget {

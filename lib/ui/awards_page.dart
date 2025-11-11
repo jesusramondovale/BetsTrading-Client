@@ -14,6 +14,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../Services/BetsService.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
@@ -21,18 +22,19 @@ import '../helpers/slider.dart';
 import 'home_page.dart';
 
 class AwardsPage extends StatefulWidget {
-  const AwardsPage({super.key});
+  final MainMenuPageController controller;
+  const AwardsPage({super.key, required this.controller});
+
 
   @override
   State<AwardsPage> createState() => AwardsPageState();
 }
 
-class AwardsPageState extends State<AwardsPage>
-    with SingleTickerProviderStateMixin {
+class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-
-
+  final _kTopList = GlobalKey();
+  final _kRaffles  = GlobalKey();
   String? _userId;
   double _userPoints = 0;
   String _userCountry = "none";
@@ -42,6 +44,11 @@ class AwardsPageState extends State<AwardsPage>
   static const double _ROW_GAP = 8;
   static const int _VISIBLE_ITEMS = 5;
   Timer? _refreshTimer;
+  TutorialCoachMark? _coach;
+  static const _PENDING_FLAG  = '__tutorial_pending__awards_v1';
+  static const _SEEN_FLAG     = '__tutorial_seen__awards_v1';
+  bool _awardsTutorialStarted = false;
+  late final VoidCallback _tabListener;
 
   Future<void> loadUserIdAndData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -267,6 +274,144 @@ class AwardsPageState extends State<AwardsPage>
     );
   }
 
+  // -------- T U T O R I A L      M E T H O D S ---------
+  Future<void> _markSeen() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_SEEN_FLAG, true);
+  }
+
+  Future<void> _clearPending() async {
+    final p = await SharedPreferences.getInstance();
+    await p.remove(_PENDING_FLAG);
+  }
+
+  Future<void> _waitForTargetsReady() async {
+    for (int i = 0; i < 30; i++) {
+      if (!mounted) return;
+      final ready =
+              _kTopList.currentContext != null &&
+              _kRaffles.currentContext != null;
+      if (ready) break;
+      await Future.delayed(const Duration(milliseconds: 10));
+    }
+  }
+
+  List<TargetFocus> _buildAwardsTargets() {
+    return [
+      TargetFocus(
+        identify: 'aw_toplist',
+        keyTarget: _kTopList,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (_, __) => _bubble('Ranking', 'Aquí ves los 5 primeros y sus premios. Puedes cammbiar entre el ranking mundial o tú pais exclusivamente'),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'aw_raffles',
+        keyTarget: _kRaffles,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (_, __) => _bubble('Sorteos', 'Elige un premio para participar con tus monedas.'),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Widget _bubble(String title, String body) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: .9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: .1)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
+      ),
+      child: DefaultTextStyle(
+        style: const TextStyle(color: Colors.white),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 6),
+            Text(body),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _tryStartAwardsTutorial() async {
+    if (!mounted || _awardsTutorialStarted) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final pending = prefs.getBool(_PENDING_FLAG) ?? false;
+
+    if (!pending) return;
+
+    await _waitForTargetsReady();
+    if (!mounted) return;
+
+    if (widget.controller.selectedIndexNotifier.value != 1) return;
+
+    _awardsTutorialStarted = true;
+    await _startAwardsTutorial();
+  }
+
+  Future<void> _startAwardsTutorial() async {
+    if (!mounted) return;
+
+    final targets = _buildAwardsTargets()
+        .where((t) => t.keyTarget?.currentContext != null)
+        .toList();
+
+    if (targets.isEmpty) {
+      await _clearPending();
+      return;
+    }
+
+    _coach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.65,
+      textSkip: 'Skip',
+      hideSkip: false,
+      useSafeArea: true,
+      pulseEnable: true,
+      alignSkip: Alignment.bottomRight,
+      initialFocus: 0,
+      disableBackButton: true,
+      onSkip: () {
+        _clearPending();
+        _markSeen();
+        return true;
+      },
+      onFinish: () async {
+        await _clearPending();
+        await _markSeen();
+
+        final p = await SharedPreferences.getInstance();
+        await p.setBool('__tutorial_pending__markets_v1', true);
+
+        if (!mounted) return;
+        Future.delayed(const Duration(milliseconds: 10), () {
+          if (!mounted) return;
+          widget.controller.updateIndex(2);
+        });
+
+      },
+    );
+
+    _coach!.show(context: context);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -275,6 +420,21 @@ class AwardsPageState extends State<AwardsPage>
     _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) loadUserIdAndData();
     });
+
+    _tabListener = () {
+      if (widget.controller.selectedIndexNotifier.value == 1) {
+        _tryStartAwardsTutorial();
+      }
+    };
+    widget.controller.selectedIndexNotifier.addListener(_tabListener);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.controller.selectedIndexNotifier.value == 1) {
+        _tryStartAwardsTutorial();
+      }
+    });
+
+
   }
 
   @override
@@ -294,51 +454,72 @@ class AwardsPageState extends State<AwardsPage>
                 child:  Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: _FolderTabs(
-                        controller: _tabController,
-                        tabs: [
-                          strings?.get('worldwide') ?? 'Worldwide',
-                          strings?.get('yourCountry') ?? 'Your Region',
-                        ],
-                        leadingLabel: strings?.get('raffles') ?? 'Raffles',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: _ROW_EXTENT * _VISIBLE_ITEMS
-                          + _ROW_GAP * (_VISIBLE_ITEMS - 1),
-                      child: TabBarView(
-                        controller: _tabController,
+
+                    Container(
+                      key: _kTopList,
+                      child: Column(
                         children: [
-                          _buildTopUsersView(_currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD),
-                          _buildTopUsersView(_currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD, userCountry: _userCountry),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: _FolderTabs(
+                              controller: _tabController,
+                              tabs: [
+                                strings?.get('worldwide') ?? 'Worldwide',
+                                strings?.get('yourCountry') ?? 'Your Region',
+                              ],
+                              leadingLabel: strings?.get('raffles') ?? 'Raffles',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+
+                            height: _ROW_EXTENT * _VISIBLE_ITEMS
+                                + _ROW_GAP * (_VISIBLE_ITEMS - 1),
+                            child: Container(
+                              child: TabBarView(
+                                controller: _tabController,
+                                children: [
+                                  _buildTopUsersView(_currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD),
+                                  _buildTopUsersView(_currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD, userCountry: _userCountry),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 16),
+
+                          ]
+                      ),
+                    ),
+
+                    // RAFFLES
+                    Container(
+                      child: Column(
+                        key: _kRaffles,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                strings?.get('raffles') ?? 'Raffles',
+                                style: GoogleFonts.syncopate(
+                                    fontSize: 18, fontWeight: FontWeight.w200),
+                              ),
+                              Spacer(),
+                              DaysToMinutesCountDown()
+                            ],
+                          ),
+                          Divider(color: Colors.white, thickness: 0.5, height: 0.5),
+                          RafflesBuilder(
+                              raffleItems: _raffleItems,
+                              userPoints: _userPoints,
+                              userId: _userId ?? '0',
+                              onRaffleSuccess: () async => {
+                                loadUserIdAndData(),
+                                homeScreenKey.currentState?.loadUserIdAndData()
+                              }
+                          )
                         ],
                       ),
                     ),
-                    SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Text(
-                          strings?.get('raffles') ?? 'Raffles',
-                          style: GoogleFonts.syncopate(
-                              fontSize: 18, fontWeight: FontWeight.w200),
-                        ),
-                        Spacer(),
-                        DaysToMinutesCountDown()
-                      ],
-                    ),
-                    Divider(color: Colors.white, thickness: 0.5, height: 0.5),
-                    RafflesBuilder(
-                        raffleItems: _raffleItems,
-                        userPoints: _userPoints,
-                        userId: _userId ?? '0',
-                        onRaffleSuccess: () async => {
-                          loadUserIdAndData(),
-                          homeScreenKey.currentState?.loadUserIdAndData()
-                        }
-      ),
                   ],
                 )
             )
@@ -872,7 +1053,6 @@ class RafflesBuilder extends StatelessWidget {
     );
   }
 }
-
 
 //-------------------------- S K E L E T O N S --------------------------
 

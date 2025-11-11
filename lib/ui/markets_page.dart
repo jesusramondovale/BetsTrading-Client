@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../Services/BetsService.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../enums/financial_assets.dart';
@@ -26,13 +28,20 @@ class MarketsView extends StatefulWidget {
 
 class MarketsViewState extends State<MarketsView> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
+  final _kTabs = GlobalKey();
+  final _kAnyAsset = GlobalKey();
+  FinancialAsset? _anyAssetRef;
   List<String> groups = [];
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Map<int, List<FinancialAsset>> assetsPerTab = {};
   bool _isLoading = true;
   Set<String> _favTickers = {};
   bool _isFavTicker(String t) => _favTickers.contains(t.toUpperCase().trim());
-
+  static const  _PENDING_FLAG = '__tutorial_pending__markets_v1';
+  static const _SEEN_FLAG = '__tutorial_seen__markets_v1';
+  TutorialCoachMark? _coach;
+  bool _marketsTutorialStarted = false;
+  late final VoidCallback _tabListener;
 
   void _initGroups() {
     final strings = LocalizedStrings.of(context);
@@ -330,11 +339,26 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 4, vsync: this, initialIndex: 1);
+
+    _tabListener = () {
+      if (widget.controller.selectedIndexNotifier.value == 2) {
+        _tryStartMarketsTutorial();
+      }
+    };
+    widget.controller.selectedIndexNotifier.addListener(_tabListener);
+
+    // Por si ya estás visible al montar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.controller.selectedIndexNotifier.value == 2) {
+        _tryStartMarketsTutorial();
+      }
+    });
   }
 
   @override
   void dispose() {
+    widget.controller.selectedIndexNotifier.removeListener(_tabListener);
     _tabController.dispose();
     super.dispose();
   }
@@ -353,6 +377,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       verticalDirection: VerticalDirection.up,
       children: [
         TabBar(
+          key: _kTabs,
           indicatorColor: Colors.purple,
           labelColor: Colors.white,
           dividerColor: Colors.white30,
@@ -376,8 +401,33 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
           height: 1,
         ),
         Expanded(
-          child: _isLoading
-              ? GridView.builder(
+          child:  _isLoading
+                ? GridView.builder(
+              padding: const EdgeInsets.all(6),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 5.0,
+                mainAxisSpacing: 7.0,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: 15,
+              itemBuilder: (_, __) => const SkeletonAssetContainer(),
+            )
+                : TabBarView(
+              controller: _tabController,
+              children: List.generate(groups.length, (index) {
+                final List<FinancialAsset> assets = assetsPerTab[index] ?? [];
+
+                assets.sort((a, b) {
+                  final af = _isFavTicker(a.ticker);
+                  final bf = _isFavTicker(b.ticker);
+                  if (af != bf) return af ? -1 : 1;
+                  final byName = a.name.compareTo(b.name);
+                  if (byName != 0) return byName;
+                  return a.ticker.compareTo(b.ticker);
+                });
+
+                return GridView.builder(
                   padding: const EdgeInsets.all(6),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -385,263 +435,414 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                     mainAxisSpacing: 7.0,
                     childAspectRatio: 1.0,
                   ),
-                  itemCount: 15,
-                  itemBuilder: (_, __) => const SkeletonAssetContainer(),
-                )
-              : TabBarView(
-            controller: _tabController,
-            children: List.generate(groups.length, (index) {
-              final List<FinancialAsset> assets = assetsPerTab[index] ?? [];
+                  itemCount: assets.length,
+                  itemBuilder: (context, assetIndex) {
+                    final asset = assets[assetIndex];
+                    final isFav = _favTickers.contains(asset.ticker.toUpperCase().trim());
 
-              assets.sort((a, b) {
-                final af = _isFavTicker(a.ticker);
-                final bf = _isFavTicker(b.ticker);
-                if (af != bf) return af ? -1 : 1;
-                final byName = a.name.compareTo(b.name);
-                if (byName != 0) return byName;
-                return a.ticker.compareTo(b.ticker);
-              });
-
-              return GridView.builder(
-                padding: const EdgeInsets.all(6),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 5.0,
-                  mainAxisSpacing: 7.0,
-                  childAspectRatio: 1.0,
-                ),
-                itemCount: assets.length,
-                itemBuilder: (context, assetIndex) {
-                  final asset = assets[assetIndex];
-                  final isFav = _favTickers.contains(asset.ticker.toUpperCase().trim());
-
-                  return Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Material(
-                          clipBehavior: Clip.antiAlias,
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
-                          child: InkWell(
+                    Widget tile = Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Material(
+                            clipBehavior: Clip.antiAlias,
+                            color: Colors.transparent,
                             borderRadius: BorderRadius.circular(20),
-                            highlightColor: Colors.white.withValues(alpha: .18),
-                            splashColor: Colors.white.withValues(alpha: .10),
-                            onTap: () {
-                              Common().vibrate();
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (BuildContext context) {
-                                  return ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
-                                    child: Container(
-                                      height: MediaQuery.of(context).size.height * 0.56,
-                                      child: OverflowBox(
-
-                                        alignment: Alignment.topCenter,
-                                        maxHeight: MediaQuery.of(context).size.height,
-                                        child: Column(
-                                          children: [
-                                            Expanded(
-                                              child: CandlesticksView(
-                                                ticker: asset.ticker,
-                                                name: asset.name,
-                                                controller: widget.controller,
-                                                iconPath: asset.icon,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                            onLongPress: () {
-                              Common().vibrate();
-                              showModalBottomSheet(
-                                context: context,
-                                backgroundColor: Colors.black.withValues(alpha: 0.75),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                                ),
-                                builder: (BuildContext context) {
-                                  return Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      ListTile(
-                                        leading: Icon(
-                                          isFav ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
-                                          color: Colors.white70,
-                                        ),
-                                        title: Text(
-                                          (isFav
-                                              ? LocalizedStrings.of(context)!.get('removeFromFavorites')!
-                                              : LocalizedStrings.of(context)!.get('addToFavorites')!),
-                                          style: GoogleFonts.montserrat(),
-                                        ),
-                                        onTap: () {
-                                          Navigator.pop(context);
-                                          toggleFavorite(asset.ticker);
-                                        },
-                                      ),
-                                      ListTile(
-                                        leading: const Icon(FontAwesomeIcons.crosshairs),
-                                        title: Text(
-                                          LocalizedStrings.of(context)!.get('exactPriceBets') ?? "Exact price bets",
-                                          style: GoogleFonts.montserrat(),
-                                        ),
-                                        onTap: () async {
-                                          List<Candle> candles = await BetsService().fetchCandles(asset.ticker,1);
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => ExactPricePage(
-                                                name: asset.name,
-                                                ticker: asset.ticker,
-                                                currentValue: candles.first.close,
-                                                iconPath: asset.icon,
-                                                isForex: asset.group.toLowerCase() == "forex",
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                      ListTile(
-                                        leading: const Icon(Icons.notifications_none),
-                                        title: Text(
-                                          LocalizedStrings.of(context)!.get('createAlert') ?? "Create alert",
-                                          style: GoogleFonts.montserrat(),
-                                        ),
-                                        onTap: () {
-                                          Common().showFloatingSnack(context, "Unimplemented action!" , backgroundColor: Colors.black54);
-                                          Navigator.pop(context);
-
-                                        }
-                                      ),
-                                      ListTile(
-                                        leading: const Icon(Icons.info_outline),
-                                        title: Text(
-                                            LocalizedStrings.of(context)!.get('viewDetails') ?? "View details",
-                                            style: GoogleFonts.montserrat()),
-                                        onTap: () {
-                                          Navigator.pop(context);
-                                          _showAssetDetails(context, asset);
-                                        }
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                            child: Ink(
-                              decoration: BoxDecoration(
-                                color: Colors.transparent.withValues(alpha: .3),
-                                borderRadius: BorderRadius.circular(20.0),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.white10,
-                                    blurRadius: 5.0,
-                                    spreadRadius: 2.0,
-                                    offset: Offset(0, 0),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(20),
+                              highlightColor: Colors.white.withValues(alpha: .18),
+                              splashColor: Colors.white.withValues(alpha: .10),
+                              onTap: () {
+                                _openAssetChart(asset);
+                              },
+                              onLongPress: () {
+                                Common().vibrate();
+                                showModalBottomSheet(
+                                  context: context,
+                                  backgroundColor: Colors.black.withValues(alpha: 0.75),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                                   ),
-                                ],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if (asset.icon.isNotEmpty &&
-                                          asset.icon != "null" &&
-                                          !asset.icon.contains("http")) ...[
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(6),
-                                          child: Image.memory(
-                                            base64Decode(asset.icon),
-                                            height: 55,
-                                            alignment: Alignment.center,
-                                            errorBuilder: (_, __, ___) => Text(
-                                              asset.name,
-                                              maxLines: 1,
-                                              textAlign: TextAlign.center,
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 36,
-                                                fontWeight: FontWeight.w100,
+                                  builder: (BuildContext context) {
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        ListTile(
+                                          leading: Icon(
+                                            isFav ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
+                                            color: Colors.white70,
+                                          ),
+                                          title: Text(
+                                            (isFav
+                                                ? LocalizedStrings.of(context)!.get('removeFromFavorites')!
+                                                : LocalizedStrings.of(context)!.get('addToFavorites')!),
+                                            style: GoogleFonts.montserrat(),
+                                          ),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            toggleFavorite(asset.ticker);
+                                          },
+                                        ),
+                                        ListTile(
+                                          leading: const Icon(FontAwesomeIcons.crosshairs),
+                                          title: Text(
+                                            LocalizedStrings.of(context)!.get('exactPriceBets') ?? "Exact price bets",
+                                            style: GoogleFonts.montserrat(),
+                                          ),
+                                          onTap: () async {
+                                            List<Candle> candles = await BetsService().fetchCandles(asset.ticker,1);
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => ExactPricePage(
+                                                  name: asset.name,
+                                                  ticker: asset.ticker,
+                                                  currentValue: candles.first.close,
+                                                  iconPath: asset.icon,
+                                                  isForex: asset.group.toLowerCase() == "forex",
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                        ListTile(
+                                            leading: const Icon(Icons.notifications_none),
+                                            title: Text(
+                                              LocalizedStrings.of(context)!.get('createAlert') ?? "Create alert",
+                                              style: GoogleFonts.montserrat(),
+                                            ),
+                                            onTap: () {
+                                              Common().showFloatingSnack(context, "Unimplemented action!" , backgroundColor: Colors.black54);
+                                              Navigator.pop(context);
+
+                                            }
+                                        ),
+                                        ListTile(
+                                            leading: const Icon(Icons.info_outline),
+                                            title: Text(
+                                                LocalizedStrings.of(context)!.get('viewDetails') ?? "View details",
+                                                style: GoogleFonts.montserrat()),
+                                            onTap: () {
+                                              Navigator.pop(context);
+                                              _showAssetDetails(context, asset);
+                                            }
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              child: Ink(
+                                decoration: BoxDecoration(
+                                  color: Colors.transparent.withValues(alpha: .3),
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.white10,
+                                      blurRadius: 5.0,
+                                      spreadRadius: 2.0,
+                                      offset: Offset(0, 0),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        if (asset.icon.isNotEmpty &&
+                                            asset.icon != "null" &&
+                                            !asset.icon.contains("http")) ...[
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(6),
+                                            child: Image.memory(
+                                              base64Decode(asset.icon),
+                                              height: 55,
+                                              alignment: Alignment.center,
+                                              errorBuilder: (_, __, ___) => Text(
+                                                asset.name,
+                                                maxLines: 1,
+                                                textAlign: TextAlign.center,
+                                                style: GoogleFonts.roboto(
+                                                  fontSize: 36,
+                                                  fontWeight: FontWeight.w100,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        )
-                                      ] else if (asset.icon.isNotEmpty &&
-                                          asset.icon.contains("http")) ...[
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(6),
-                                          child: Image.network(
-                                            asset.icon,
-                                            height: 55,
-                                            alignment: Alignment.center,
-                                            errorBuilder: (_, __, ___) => Text(
-                                              Common().createTrendViewNameFromName(asset.name),
-                                              maxLines: 1,
-                                              textAlign: TextAlign.center,
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 36,
-                                                fontWeight: FontWeight.w100,
+                                          )
+                                        ] else if (asset.icon.isNotEmpty &&
+                                            asset.icon.contains("http")) ...[
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(6),
+                                            child: Image.network(
+                                              asset.icon,
+                                              height: 55,
+                                              alignment: Alignment.center,
+                                              errorBuilder: (_, __, ___) => Text(
+                                                Common().createTrendViewNameFromName(asset.name),
+                                                maxLines: 1,
+                                                textAlign: TextAlign.center,
+                                                style: GoogleFonts.roboto(
+                                                  fontSize: 36,
+                                                  fontWeight: FontWeight.w100,
+                                                ),
                                               ),
                                             ),
+                                          )
+                                        ] else ...[
+                                          Text(
+                                            Common().createTrendViewNameFromName(asset.name),
+                                            maxLines: 1,
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.roboto(
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.w100,
+                                            ),
                                           ),
-                                        )
-                                      ] else ...[
+                                        ],
+                                        const SizedBox(height: 10),
                                         Text(
-                                          Common().createTrendViewNameFromName(asset.name),
+                                          asset.name,
                                           maxLines: 1,
                                           textAlign: TextAlign.center,
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 36,
-                                            fontWeight: FontWeight.w100,
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
                                           ),
                                         ),
                                       ],
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        asset.name,
-                                        maxLines: 1,
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        if (isFav)
-                          Positioned(
-                            //TODO
-                            top: -7,
-                            left: -10,
-                            child: _buildFavBadge(),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            }),
-          ),
+                          if (isFav)
+                            Positioned(
+                              //TODO
+                              top: -7,
+                              left: -10,
+                              child: _buildFavBadge(),
+                            ),
+                        ],
+                      ),
+                    );
+
+                    if (assetIndex == 0 && _kAnyAsset.currentContext == null) {
+                      _anyAssetRef ??= asset;
+                      tile = KeyedSubtree(key: _kAnyAsset, child: tile);
+                    }
+
+                    return tile;
+
+                  },
+                );
+              }),
+
+            )
+          ,
         ),
       ],
     );
+  }
+
+  //------ T U T O R I A L      M E T H O D S -----
+  Future<void> _markSeen() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_SEEN_FLAG, true);
+  }
+
+  Future<void> _clearPending() async {
+    final p = await SharedPreferences.getInstance();
+    await p.remove(_PENDING_FLAG);
+  }
+
+  Future<void> _waitForTargetsReady() async {
+    for (int i = 0; i < 30; i++) {
+      if (!mounted) return;
+      final ready = _kTabs.currentContext != null && _kAnyAsset.currentContext != null;
+      if (ready) break;
+      await Future.delayed(const Duration(milliseconds: 80));
+    }
+  }
+
+  Widget _bubble(String title, String body) {
+    return IgnorePointer(
+      ignoring: true,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: .9),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: .1)),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
+        ),
+        child: DefaultTextStyle(
+          style: const TextStyle(color: Colors.white),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+              const SizedBox(height: 6),
+              Text(body),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  List<TargetFocus> _buildMarketsTargets(LocalizedStrings? strings) {
+    return [
+      TargetFocus(
+        identify: 'mv_tabs',
+        keyTarget: _kTabs,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (_, __) => _bubble(
+              'Diferentes mercados',
+              'Cambia entre los mercados de acciones, crypto o forex.'
+            ),
+          ),
+        ],
+      ),
+
+      TargetFocus(
+        identify: 'mv_anyasset',
+        keyTarget: _kAnyAsset,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (_, __) => _bubble(
+                'Asset',
+                'Pulsa para ver el gráfico de velas del activo seleccionado'
+            ),
+          ),
+        ],
+      ),
+
+    ];
+  }
+
+  Future<void> _tryStartMarketsTutorial() async {
+    if (!mounted || _marketsTutorialStarted) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final pending = prefs.getBool(_PENDING_FLAG) ?? false;
+    if (!pending) return;
+
+    await _waitForTargetsReady();
+    if (!mounted) return;
+
+    if (widget.controller.selectedIndexNotifier.value != 2) return;
+
+    _marketsTutorialStarted = true;
+    await _startMarketsTutorial();
+  }
+
+  Future<void> _openAssetChart(FinancialAsset asset, {bool tutorialMode = false}) async {
+    Common().vibrate();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.56,
+            child: OverflowBox(
+
+              alignment: Alignment.topCenter,
+              maxHeight: MediaQuery.of(context).size.height,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: CandlesticksView(
+                      ticker: asset.ticker,
+                      name: asset.name,
+                      controller: widget.controller,
+                      iconPath: asset.icon,
+                      tutorialMode: tutorialMode
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+  }
+
+
+  Future<void> _startMarketsTutorial() async {
+    if (!mounted) return;
+
+    final strings = LocalizedStrings.of(context);
+    final targets = _buildMarketsTargets(strings)
+        .where((t) => t.keyTarget?.currentContext != null)
+        .toList();
+
+    if (targets.isEmpty) {
+      await _clearPending();
+      return;
+    }
+
+    _coach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.65,
+      textSkip: 'Skip',
+      hideSkip: false,
+      useSafeArea: true,
+      pulseEnable: true,
+      alignSkip: Alignment.bottomRight,
+      initialFocus: 0,
+      disableBackButton: true,
+      onClickTarget: (target) async {
+        try {
+          if (target.identify == 'mv_anyasset' && _anyAssetRef != null) {
+            final p = await SharedPreferences.getInstance();
+            await p.setBool('__tutorial_pending__candles_v1', true);
+
+            try { _coach?.finish(); } catch (_) {}
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _anyAssetRef != null) {
+                _openAssetChart(_anyAssetRef!, tutorialMode: true);
+              }
+            });
+          }
+        } catch (_) {}
+      },
+      onClickOverlay: (_) {},
+      onSkip: () {
+        _clearPending();
+        _markSeen();
+        return true;
+      },
+      onFinish: () async {
+        await _clearPending();
+        await _markSeen();
+
+        // Si quieres encadenar a otra pestaña, marca aquí su pending:
+        // final p = await SharedPreferences.getInstance();
+        // await p.setBool('__tutorial_pending__exchange_v1', true);
+        // if (mounted) widget.controller.updateIndex(3);
+      },
+    );
+
+    _coach!.show(context: context);
   }
 
 }

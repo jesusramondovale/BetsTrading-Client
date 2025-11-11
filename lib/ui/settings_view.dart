@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:app_settings/app_settings.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/retire_methods.dart';
-import 'package:betrader/ui/tutorial_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -14,25 +13,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../config/config.dart';
 import '../services/AuthService.dart';
+import 'layout_page.dart';
 
 class SettingsView extends StatefulWidget {
 
   final VoidCallback onPersonalInfoTap;
   final VoidCallback onShowNotifications;
-
+  final MainMenuPageController controller;
   const SettingsView({super.key,
     required this.onPersonalInfoTap,
-    required this.onShowNotifications,});
+    required this.onShowNotifications,
+    required this.controller,});
 
   @override
   SettingsViewState createState() => SettingsViewState();
 }
 
 class SettingsViewState extends State<SettingsView> {
+  static const _START_TUTORIAL_FLAG = 'START_TUTORIAL';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool enableVibration = false;
   bool dollarCurrency = false;
   bool _loaded = false;
+
 
   Future<bool?> showChangePasswordDialog(
       BuildContext context,
@@ -458,8 +461,20 @@ class SettingsViewState extends State<SettingsView> {
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () async {
                       Common().vibrate();
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => TutorialScreen(onDone: () => Navigator.pop(context))));
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove(_START_TUTORIAL_FLAG);
+                      for (var k in prefs.getKeys()) {
+                        if (k.startsWith('__tutorial_seen__')) {
+                          await prefs.remove(k);
+                        }
+                      }
+                      widget.controller.updateIndex(0);
+
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        homeScreenKey.currentState?.startHomeTutorial();
+                      });
+
+                      if (Navigator.canPop(context)) Navigator.of(context).pop();
                     },
                     child: ListTile(
                       title: Text(

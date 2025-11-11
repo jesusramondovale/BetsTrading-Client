@@ -11,6 +11,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../helpers/common.dart';
 import '../models/bets.dart';
@@ -22,11 +24,13 @@ class HomeScreen extends StatefulWidget {
   final MainMenuPageController controller;
   const HomeScreen({super.key, required this.controller});
 
+
   @override
   HomeScreenState createState() => HomeScreenState();
 }
 
 class HomeScreenState extends State<HomeScreen> {
+  static const _START_TUTORIAL_FLAG = 'START_TUTORIAL';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Future<BetsAndPriceBets>? _investmentFuture;
   bool _investInited = false;
@@ -41,6 +45,15 @@ class HomeScreenState extends State<HomeScreen> {
   Ticker? _ticker;
   double _direction = 1;
   Timer? _refreshTimer;
+  final GlobalKey _kSettings = GlobalKey();
+  final GlobalKey _kStore = GlobalKey();
+  final GlobalKey _kTrends = GlobalKey();
+  final GlobalKey _kFavorites = GlobalKey();
+  final GlobalKey _kBets = GlobalKey();
+  final GlobalKey _kHistory = GlobalKey();
+
+  TutorialCoachMark? _coach;
+
 
   void _refreshData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
@@ -129,10 +142,24 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _delayedAutoScrollInit();
+
+      final prefs = await SharedPreferences.getInstance();
+      final alreadyShown = prefs.getBool(_START_TUTORIAL_FLAG) ?? false;
+
+      if (!alreadyShown) {
+        await prefs.setBool(_START_TUTORIAL_FLAG, true);
+
+        if (mounted) {
+          startHomeTutorial();
+        }
+      }
     });
+
     loadUserIdAndData().then((_) {
+      if (!mounted) return;
       setState(() {
         _trendsFuture = BetsService().fetchTrendsData(_userId ?? "none");
         _favsFuture = BetsService().fetchFavouritesData(_userId ?? "none");
@@ -142,9 +169,205 @@ class HomeScreenState extends State<HomeScreen> {
     _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
       _refreshData();
       await refreshInvestments();
-
     });
   }
+
+
+
+  // ------------- T U T O R I A L    M E T H O D S -------------------
+
+  Future<bool> _hasSeen(String key) async {
+    final p = await SharedPreferences.getInstance();
+    return p.getBool('__tutorial_seen__$key') ?? false;
+  }
+
+  Future<void> _markSeen(String key) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool('__tutorial_seen__$key', true);
+  }
+
+  List<TargetFocus> _buildTargets() {
+    return [
+      TargetFocus(
+        identify: 'settings',
+        keyTarget: _kSettings,
+        shape: ShapeLightFocus.RRect,
+        radius: 10,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (ctx, ctrl) => _bubble(
+              'Ajustes',
+              'Configura la app aquí. Pulsa para continuar.',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'store',
+        keyTarget: _kStore,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (ctx, ctrl) => _bubble(
+              'Tienda',
+              'Tus monedas y recompensas. Toca para abrir más tarde… y seguir el tour.',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'trends',
+        keyTarget: _kTrends,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (ctx, ctrl) => _bubble(
+              'Tendencia',
+              'Este es tu primer activo en tendencia. Pulsa para ver su detalle.',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'favorites',
+        keyTarget: _kFavorites,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (ctx, ctrl) => _bubble(
+              'Favoritos',
+              'Estos son tus favoritos.',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'bets',
+        keyTarget: _kBets,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (ctx, ctrl) => _bubble(
+              'Apuestas recientes',
+              'Tus apuestas recientes.',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'history',
+        keyTarget: _kHistory,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (ctx, ctrl) => _bubble(
+              'Historial de apuestas',
+              'Aquí accederás a tu historial de apuestas recientes.',
+            ),
+          ),
+        ],
+      )
+    ];
+  }
+
+  Widget _bubble(String title, String body) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: .9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: .1)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
+      ),
+      child: DefaultTextStyle(
+        style: const TextStyle(color: Colors.white),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 6),
+            Text(body),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> startHomeTutorial() async {
+    if (!mounted) return;
+
+    if (await _hasSeen('home_onboarding_v1')) return;
+
+    for (int i = 0; i < 25; i++) {
+      if (!mounted) return;
+      final trendReady   = _kTrends.currentContext != null || _userId == null;
+      final settingsReady = _kSettings.currentContext != null;
+      final storeReady    = _kStore.currentContext != null;
+      final favsReady    = _kFavorites.currentContext != null;
+      final betsReady    = _kBets.currentContext != null;
+      final historyReady    = _kHistory.currentContext != null;
+      if (trendReady && settingsReady && storeReady && favsReady && betsReady && historyReady) break;
+      await Future.delayed(const Duration(milliseconds: 80));
+    }
+
+    final targets = _buildTargets()
+        .where((t) => t.keyTarget?.currentContext != null)
+        .toList();
+    if (targets.isEmpty) return;
+
+    _coach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.65,
+      textSkip: 'Skip',
+      hideSkip: false,
+      useSafeArea: true,
+      pulseEnable: true,
+      alignSkip: Alignment.bottomRight,
+      initialFocus: 0,
+      disableBackButton: true,
+
+      onClickTarget: (target) async {
+        if (target.identify == 'trends') {
+
+        }
+      },
+      onClickOverlay: (target) { },
+      onSkip: () {
+        _markSeen('home_onboarding_v1');
+        return true;
+      },
+      onFinish: () async {
+        await _markSeen('home_onboarding_v1');
+
+        final p = await SharedPreferences.getInstance();
+        await p.setBool('__tutorial_pending__awards_v1', true);
+
+        if (!mounted) return;
+        Future.delayed(const Duration(milliseconds: 150), () {
+          if (!mounted) return;
+          widget.controller.updateIndex(1);
+        });
+      },
+    );
+
+    _coach!.show(context: context);
+  }
+
+
+  // ------------- T U T O R I A L    M E T H O D S -------------------
+
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +386,7 @@ class HomeScreenState extends State<HomeScreen> {
               children: [
                 IconButton(
                   padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                  icon: Icon(FontAwesomeIcons.gear),
+                  icon: Icon(key: _kSettings, FontAwesomeIcons.gear),
                   iconSize: 25,
                   color: Colors.white70,
                   onPressed: () {
@@ -189,6 +412,7 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           },
+                          controller: widget.controller,
                         ),
                       ),
                     );
@@ -206,6 +430,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 Spacer(flex: 4),
                 IconButton(
+                    key: _kStore,
                     padding: const EdgeInsets.all(2.5),
                     onPressed: () async {
                       Common().vibrate();
@@ -250,39 +475,42 @@ class HomeScreenState extends State<HomeScreen> {
               ],
             ),
 
-            // Trends
-            Text(strings?.get('liveBets') ?? 'Trends',
-                style: GoogleFonts.syncopate(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w200,
-                )),
-            Divider(color: Colors.white, thickness: 0.5, height: 0.5),
+            //TRENDS
             Expanded(
               flex: 9,
-              child: _userId == null
-                  ? Center(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            SizedBox(width: 8),
-                            SkeletonTrendContainer(),
-                            SizedBox(width: 8),
-                            SkeletonTrendContainer(),
-                            SizedBox(width: 8),
-                            SkeletonTrendContainer(),
-                            SizedBox(width: 8),
-                          ],
+              child: Container(
+                key: _kTrends,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      strings?.get('trends') ?? 'Trends',
+                      style: GoogleFonts.syncopate(fontSize: 18, fontWeight: FontWeight.w200),
+                    ),
+                    const Divider(color: Colors.white, thickness: 0.5, height: 0.5),
+
+                    Expanded(
+                      child: _userId == null
+                          ? Center(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: const [
+                              SizedBox(width: 8),
+                              SkeletonTrendContainer(),
+                              SizedBox(width: 8),
+                              SkeletonTrendContainer(),
+                              SizedBox(width: 8),
+                              SkeletonTrendContainer(),
+                              SizedBox(width: 8),
+                            ],
+                          ),
                         ),
-                      ),
-                    )
-                  : Expanded(
-                      flex: 9,
-                      child: FutureBuilder<Trends>(
+                      )
+                          : FutureBuilder<Trends>(
                         future: _trendsFuture,
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
                             return Center(
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
@@ -301,17 +529,12 @@ class HomeScreenState extends State<HomeScreen> {
                             );
                           } else if (snapshot.hasError) {
                             return Text('Error: ${snapshot.error}');
-                          } else if (snapshot.hasData &&
-                              snapshot.data!.trends.isNotEmpty) {
+                          } else if (snapshot.hasData && snapshot.data!.trends.isNotEmpty) {
                             final data = snapshot.data!;
-
                             return Listener(
-                              onPointerDown: (_) {
-                                _userIsInteracting = true;
-                              },
+                              onPointerDown: (_) => _userIsInteracting = true,
                               onPointerUp: (_) async {
-                                await Future.delayed(
-                                    const Duration(seconds: 2));
+                                await Future.delayed(const Duration(seconds: 2));
                                 _userIsInteracting = false;
                               },
                               child: ListView.builder(
@@ -321,8 +544,7 @@ class HomeScreenState extends State<HomeScreen> {
                                 itemBuilder: (context, index) {
                                   final sortedTrends = List.from(data.trends)
                                     ..sort((a, b) => a.id.compareTo(b.id));
-                                  final sortedIndex =
-                                      sortedTrends[index].id - 1;
+                                  final sortedIndex = sortedTrends[index].id - 1;
 
                                   return TrendContainer(
                                     trend: sortedTrends[index],
@@ -354,280 +576,307 @@ class HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                     ),
+                  ],
+                ),
+              ),
             ),
 
-            // Favorites
-            Row(
-              children: [
-                Text(strings?.get('favs') ?? 'Favs',
-                    style: GoogleFonts.syncopate(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w300,
-                    )),
-              ],
-            ),
-            Divider(color: Colors.white, thickness: 0.5, height: 0.5),
+            //FAVORITES
             Expanded(
               flex: 8,
-              child: _userId == null
-                  ? Center(
-                      child: Center(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            SizedBox(width: 8),
-                            SkeletonTrendContainer(),
-                            SizedBox(width: 8),
-                            SkeletonTrendContainer(),
-                            SizedBox(width: 8),
-                            SkeletonTrendContainer(),
-                            SizedBox(width: 8),
-                          ],
+              child: Container(
+                key: _kFavorites,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(strings?.get('favs') ?? 'Favs',
+                            style: GoogleFonts.syncopate(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w300,
+                            )),
+                      ],
+                    ),
+                    Divider(color: Colors.white, thickness: 0.5, height: 0.5),
+                    Expanded(
+                      flex: 8,
+                      child: _userId == null
+                          ? Center(
+                          child: Center(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  SizedBox(width: 8),
+                                  SkeletonTrendContainer(),
+                                  SizedBox(width: 8),
+                                  SkeletonTrendContainer(),
+                                  SizedBox(width: 8),
+                                  SkeletonTrendContainer(),
+                                  SizedBox(width: 8),
+                                ],
+                              ),
+                            ),
+                          ))
+                          : FutureBuilder<Favorites>(
+                          future: _favsFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(
+                                child: Center(
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      children: [
+                                        SkeletonFavoriteContainer(),
+                                        SkeletonFavoriteContainer(),
+                                        SkeletonFavoriteContainer(),
+                                        SkeletonFavoriteContainer(),
+                                        SkeletonFavoriteContainer(),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (snapshot.hasData &&
+                                snapshot.data!.favorites.isNotEmpty) {
+                              final data = snapshot.data!;
+                              return ScrollConfiguration(
+                                behavior: ScrollConfiguration.of(context).copyWith(
+                                  overscroll: false,
+                                ),
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const BouncingScrollPhysics(
+                                      decelerationRate:
+                                      ScrollDecelerationRate.fast),
+                                  itemCount: data.length,
+                                  itemBuilder: (context, index) {
+                                    return FavoriteContainer(
+                                      favorite: data.favorites[index],
+                                      onFavoriteUpdated: refreshFavorites,
+                                      controller: widget.controller,
+                                    );
+                                  },
+                                ),
+                              );
+                            } else {
+                              return Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        strings!.get('noFavsYet') ?? "No favorites yet!",
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.syncopate(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w200,
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Icon(
+                                        FontAwesomeIcons.star,
+                                        size: 30,
+                                        color: Colors.grey,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+                          }),
+                    )
+
+                  ],
+                ),
+
+              ) ,
+            ),
+
+            // RECENT BETS
+            Expanded(
+              flex: 12,
+              child: Container(
+                key: _kBets,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          strings?.get('recentBets') ?? 'Recent Bets',
+                          style: GoogleFonts.syncopate(
+                              fontSize: 16, fontWeight: FontWeight.w200),
                         ),
-                      ),
-                    ))
-                  : FutureBuilder<Favorites>(
-                      future: _favsFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(
-                            child: Center(
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                      ],
+                    ),
+                    Divider(color: Colors.white, thickness: 0.5, height: 0.5),
+                    Expanded(
+                      flex: 12,
+                      child: _userId == null
+                          ? ListView(
+                        children: const [
+                          SkeletonRecentBetContainer(),
+                          SkeletonRecentBetContainer(),
+                        ],
+                      )
+                          : FutureBuilder<BetsAndPriceBets>(
+                        future: _investmentFuture,
+                        builder: (context, snapshot) {
+                          if (!_investInited &&
+                              snapshot.connectionState == ConnectionState.waiting) {
+                            return ListView(
+                              children: const [
+                                SkeletonRecentBetContainer(),
+                                SkeletonRecentBetContainer(),
+                              ],
+                            );
+                          }
+
+                          if (!_investInited && snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          }
+
+                          if (_bets.isEmpty && _priceBets.isEmpty) {
+                            return Scaffold(
+                              backgroundColor: Colors.transparent,
+                              body: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        strings!.get('noLiveBets') ?? 'You have no live bets at the moment, go to the markets tab to create a new one',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.syncopate(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w400,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 40,
+                                            child: Image.asset('assets/new_icon.png'),
+                                          ),
+                                          const Icon(
+                                            Icons.arrow_downward_rounded,
+                                            size: 40,
+                                            color: Colors.grey,
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              floatingActionButton: KeyedSubtree(
+                                  key: _kHistory,
+                                  child: FloatingActionButton.extended(
+                                    extendedPadding: EdgeInsets.fromLTRB(6,6,6,6),
+                                    backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+                                    splashColor: Colors.grey,
+                                    onPressed: () {
+                                      Common().vibrate();
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => BetsHistoryPage(),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
+                                    label: Text(
+                                      strings.get('history') ?? "History",
+                                      style: GoogleFonts.montserrat(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 14
+                                      ),
+                                    ),
+                                  )),
+                              floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+                            );
+                          }
+
+                          return Scaffold(
+                            backgroundColor: Colors.transparent,
+                            body: SafeArea(
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: ListView(
+                                  padding: EdgeInsets.only(
+                                    bottom: MediaQuery.of(context).padding.bottom + 50,
+                                  ),
                                   children: [
-                                    SkeletonFavoriteContainer(),
-                                    SkeletonFavoriteContainer(),
-                                    SkeletonFavoriteContainer(),
-                                    SkeletonFavoriteContainer(),
-                                    SkeletonFavoriteContainer(),
+                                    // Bets
+                                    ..._bets.reversed.map(
+                                          (b) => RecentBetContainer(
+                                        necessaryGain: b.necessaryGain,
+                                        bet: b,
+                                        onDelete: () => setState(() {
+                                          _bets.removeWhere((x) => x.id == b.id);
+                                        }),
+                                        controller: widget.controller,
+                                      ),
+                                    ),
+                                    // Price Bets
+                                    ..._priceBets.reversed.map(
+                                          (p) => RecentPriceBetContainer(
+                                        priceBet: p,
+                                        onDelete: () => setState(() {
+                                          _priceBets.removeWhere((x) => x.id == p.id);
+                                        }),
+                                        controller: widget.controller,
+                                        isForex: Common().isTickerForex(p.ticker),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                             ),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        } else if (snapshot.hasData &&
-                            snapshot.data!.favorites.isNotEmpty) {
-                          final data = snapshot.data!;
-                          return ScrollConfiguration(
-                            behavior: ScrollConfiguration.of(context).copyWith(
-                              overscroll: false,
-                            ),
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(
-                                  decelerationRate:
-                                      ScrollDecelerationRate.fast),
-                              itemCount: data.length,
-                              itemBuilder: (context, index) {
-                                return FavoriteContainer(
-                                  favorite: data.favorites[index],
-                                  onFavoriteUpdated: refreshFavorites,
-                                  controller: widget.controller,
-                                );
-                              },
-                            ),
-                          );
-                        } else {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    strings!.get('noFavsYet') ?? "No favorites yet!",
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.syncopate(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w200,
+
+                            floatingActionButton: Transform.translate(
+                              offset: const Offset(14, 14),
+                              child: FloatingActionButton(
+                                backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+                                splashColor: Colors.grey,
+                                onPressed: () {
+                                  Common().vibrate();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => BetsHistoryPage(),
                                     ),
-                                  ),
-                                  SizedBox(height: 10),
-                                  Icon(
-                                    FontAwesomeIcons.star,
-                                    size: 30,
-                                    color: Colors.grey,
-                                  ),
-                                ],
+                                  );
+                                },
+                                child: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
                               ),
+
                             ),
+                            floatingActionButtonLocation:
+                            FloatingActionButtonLocation.endFloat,
                           );
-                        }
-                      }),
-            ),
+                        },
+                      ),
+                    )
 
-            // Recent bets
-            Row(
-              children: [
-                Text(
-                  strings?.get('recentBets') ?? 'Recent Bets',
-                  style: GoogleFonts.syncopate(
-                      fontSize: 16, fontWeight: FontWeight.w200),
-                ),
-              ],
-            ),
-            Divider(color: Colors.white, thickness: 0.5, height: 0.5),
-            Expanded(
-              flex: 12,
-              child: _userId == null
-                  ? ListView(
-                children: const [
-                  SkeletonRecentBetContainer(),
-                  SkeletonRecentBetContainer(),
-                ],
+                  ],
               )
-                  : FutureBuilder<BetsAndPriceBets>(
-                future: _investmentFuture,
-                builder: (context, snapshot) {
-                  if (!_investInited &&
-                      snapshot.connectionState == ConnectionState.waiting) {
-                    return ListView(
-                      children: const [
-                        SkeletonRecentBetContainer(),
-                        SkeletonRecentBetContainer(),
-                      ],
-                    );
-                  }
-
-                  if (!_investInited && snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  }
-
-                  if (_bets.isEmpty && _priceBets.isEmpty) {
-                    return Scaffold(
-                      backgroundColor: Colors.transparent,
-                      body: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                strings!.get('noLiveBets') ?? 'You have no live bets at the moment, go to the markets tab to create a new one',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.syncopate(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 40,
-                                    child: Image.asset('assets/new_icon.png'),
-                                  ),
-                                  const Icon(
-                                    Icons.arrow_downward_rounded,
-                                    size: 40,
-                                    color: Colors.grey,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      floatingActionButton: FloatingActionButton.extended(
-                          extendedPadding: EdgeInsets.fromLTRB(6,6,6,6),
-                          backgroundColor: Colors.transparent.withValues(alpha: 0.1),
-                          splashColor: Colors.grey,
-                          onPressed: () {
-                            Common().vibrate();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => BetsHistoryPage(),
-                              ),
-                            );
-                          },
-                          icon: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
-                          label: Text(
-                            strings.get('history') ?? "History",
-                            style: GoogleFonts.montserrat(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w400,
-                              fontSize: 14
-                            ),
-                          ),
-                        ),
-                      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-                    );
-                  }
-
-                  return Scaffold(
-                    backgroundColor: Colors.transparent,
-                    body: SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: ListView(
-                          padding: EdgeInsets.only(
-                            bottom: MediaQuery.of(context).padding.bottom + 50,
-                          ),
-                          children: [
-                            // Bets
-                            ..._bets.reversed.map(
-                                  (b) => RecentBetContainer(
-                                necessaryGain: b.necessaryGain,
-                                bet: b,
-                                onDelete: () => setState(() {
-                                  _bets.removeWhere((x) => x.id == b.id);
-                                }),
-                                controller: widget.controller,
-                              ),
-                            ),
-                            // Price Bets
-                            ..._priceBets.reversed.map(
-                                  (p) => RecentPriceBetContainer(
-                                priceBet: p,
-                                onDelete: () => setState(() {
-                                  _priceBets.removeWhere((x) => x.id == p.id);
-                                }),
-                                controller: widget.controller,
-                                isForex: Common().isTickerForex(p.ticker),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    floatingActionButton: Transform.translate(
-                        offset: const Offset(14, 14),
-                        child: FloatingActionButton(
-                          backgroundColor: Colors.transparent.withValues(alpha: 0.1),
-                          splashColor: Colors.grey,
-                          onPressed: () {
-                            Common().vibrate();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => BetsHistoryPage(),
-                              ),
-                            );
-                          },
-                          child: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
-                        ),
-
-                    ),
-                    floatingActionButtonLocation:
-                    FloatingActionButtonLocation.endFloat,
-                  );
-                },
-              ),
+              ,
             )
-
-
-
-
+            )
           ],
         ),
       ),
@@ -637,7 +886,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _trendScrollController.dispose();
-    _ticker?.dispose;
+    _ticker?.dispose();
     _refreshTimer?.cancel();
     super.dispose();
   }

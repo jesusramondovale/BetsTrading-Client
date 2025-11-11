@@ -9,8 +9,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../helpers/common.dart';
-import 'fist_time_page.dart';
+import 'first_time_page.dart';
 import 'layout_page.dart';
 
 class ExchangePage extends StatefulWidget {
@@ -30,6 +31,17 @@ class ExchangePageState extends State<ExchangePage> {
   Timer? _refreshTimer;
   bool _isVerified = false;
   String _userId = '';
+  final _kCoinsTag        = GlobalKey();
+  final _kGetMoreBtn      = GlobalKey();
+  final _kWithdrawGroup   = GlobalKey();
+  final _kPendingBalance  = GlobalKey();
+  static const _PENDING_FLAG = '__tutorial_pending__exchange_v1';
+  static const _SEEN_FLAG    = '__tutorial_seen__exchange_v1';
+  TutorialCoachMark? _coach;
+  bool _exchangeTutorialStarted = false;
+  late final VoidCallback _tabListener;
+
+
 
   Future<void> loadData() async {
     final userId = await _storage.read(key: 'sessionToken') ?? '';
@@ -143,20 +155,235 @@ class ExchangePageState extends State<ExchangePage> {
     );
   }
 
+  // --------- T U T O R I A L     M E T H O D S    -------------
+  Future<void> _markSeen() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_SEEN_FLAG, true);
+  }
+
+  Future<void> _clearPending() async {
+    final p = await SharedPreferences.getInstance();
+    await p.remove(_PENDING_FLAG);
+  }
+
+  Future<void> _waitForTargetsReady() async {
+    for (int i = 0; i < 40; i++) {
+      if (!mounted) return;
+      final ready =
+          _kCoinsTag.currentContext != null &&
+              _kGetMoreBtn.currentContext != null &&
+              _kWithdrawGroup.currentContext != null &&
+              _kPendingBalance.currentContext != null;
+      if (ready) break;
+      await Future.delayed(const Duration(milliseconds: 80));
+    }
+  }
+
+  Widget _bubble(String title, String body) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: .9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: .1)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
+      ),
+      child: DefaultTextStyle(
+        style: const TextStyle(color: Colors.white),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 6),
+            Text(body),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<TargetFocus> _buildExchangeTargets() {
+    final s = LocalizedStrings.of(context);
+    return [
+      TargetFocus(
+        identify: 'ex_coins',
+        keyTarget: _kCoinsTag,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (_, __) => _bubble(
+              s?.get('yourCoins') ?? 'Tus monedas',
+              s?.get('tourYourCoinsBody') ?? 'Aquí ves cuántas monedas tienes ahora mismo.',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'ex_getmore',
+        keyTarget: _kGetMoreBtn,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (_, __) => _bubble(
+              s?.get('getMoreCoins') ?? 'Obtener más monedas',
+              s?.get('tourGetMoreCoinsBody') ?? 'Pulsa para conseguir más monedas.',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'ex_withdraw',
+        keyTarget: _kWithdrawGroup,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (_, __) => _bubble(
+              s?.get('withdraw') ?? 'Retirar',
+              s?.get('tourWithdrawBody') ?? 'Elige una opción para retirar tus monedas.',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'ex_pending',
+        keyTarget: _kPendingBalance,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (_, __) => _bubble(
+              s?.get('pendingBalance') ?? 'Saldo pendiente',
+              s?.get('tourPendingBalanceBody') ?? 'Pagos en curso y verificaciones.',
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Future<void> _tryStartExchangeTutorial() async {
+    if (!mounted || _exchangeTutorialStarted) return;
+    final p = await SharedPreferences.getInstance();
+    final pending = p.getBool(_PENDING_FLAG) ?? false;
+    if (!pending) return;
+
+    await _waitForTargetsReady();
+    if (!mounted) return;
+    if (widget.controller.selectedIndexNotifier.value != 3) return;
+
+    _exchangeTutorialStarted = true;
+    await _startExchangeTutorial();
+  }
+
+  Future<void> _startExchangeTutorial() async {
+    final targets = _buildExchangeTargets()
+        .where((t) => t.keyTarget?.currentContext != null)
+        .toList();
+
+    if (targets.isEmpty) {
+      await _clearPending();
+      return;
+    }
+
+    _coach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.65,
+      textSkip: 'Skip',
+      hideSkip: false,
+      useSafeArea: true,
+      pulseEnable: true,
+      alignSkip: Alignment.bottomRight,
+      initialFocus: 0,
+      disableBackButton: true,
+      onClickTarget: (target) async {
+        try {
+          switch (target.identify) {
+            case 'ex_getmore':
+            // Simula la acción normal del botón si quieres
+            // _onGetMoreCoins();
+              break;
+            case 'ex_withdraw':
+            // Puedes abrir el primer método de retirada, si procede
+            // _openWithdrawOption(0);
+              break;
+            case 'ex_pending':
+            // Fin del tour aquí: pasamos al UserInfo
+              await _clearPending();
+              await _markSeen();
+
+              final p = await SharedPreferences.getInstance();
+              await p.setBool('__tutorial_pending__userinfo_v1', true);
+
+              try { _coach?.finish(); } catch (_) {}
+              if (!mounted) return;
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) widget.controller.updateIndex(4);
+              });
+              break;
+          }
+        } catch (_) {}
+      },
+      onClickOverlay: (_) {},
+      onSkip: () {
+        _clearPending();
+        _markSeen();
+        return true;
+      },
+      onFinish: () async {
+        await _clearPending();
+        await _markSeen();
+
+        final p = await SharedPreferences.getInstance();
+        await p.setBool('__tutorial_pending__userinfo_v1', true);
+
+        if (!mounted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) widget.controller.updateIndex(4);
+        });
+      },
+    );
+
+    _coach!.show(context: context);
+  }
+
+
+
+  // --------- T U T O R I A L     M E T H O D S    -------------
 
   @override
   void initState() {
     super.initState();
+
     loadData();
 
-    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      loadData();
-    });
+    _tabListener = () async {
+      if (widget.controller.selectedIndexNotifier.value == 3) {
+        await loadData();
+        _tryStartExchangeTutorial();
+      }
+    };
+    widget.controller.selectedIndexNotifier.addListener(_tabListener);
 
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (widget.controller.selectedIndexNotifier.value == 3) {
+        await loadData();
+        _tryStartExchangeTutorial();
+      }
+    });
   }
 
   @override
   void dispose() {
+    widget.controller.selectedIndexNotifier.removeListener(_tabListener);
     _refreshTimer?.cancel();
     super.dispose();
   }
@@ -175,44 +402,49 @@ class ExchangePageState extends State<ExchangePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  strings?.get('yourCoins') ?? 'Your coins',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w200,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            Center(
+            Container(key: _kCoinsTag,
               child: Column(
                 children: [
                   Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        userPoints,
-                        style: GoogleFonts.roboto(
-                          fontSize: 42,
+                        strings?.get('yourCoins') ?? 'Your coins',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 25,
                           fontWeight: FontWeight.w200,
-                          color: _isUserPointsHighlighted ? Colors.red : Colors.white,
+                          color: Colors.white,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Image.asset(
-                        'assets/coin.png',
-                        width: 35,
-                        height: 35,
                       ),
                     ],
                   ),
-
+                  Center(
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              userPoints,
+                              style: GoogleFonts.roboto(
+                                fontSize: 42,
+                                fontWeight: FontWeight.w200,
+                                color: _isUserPointsHighlighted ? Colors.red : Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Image.asset(
+                              'assets/coin.png',
+                              width: 35,
+                              height: 35,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                   ElevatedButton(
-
+                    key: _kGetMoreBtn,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent.withValues(alpha: 0.3),
                       padding: const EdgeInsets.symmetric(
@@ -256,6 +488,7 @@ class ExchangePageState extends State<ExchangePage> {
               ],
             ),
             Expanded(
+              key: _kWithdrawGroup,
               child: ListView.builder(
                 itemCount: _exchangeOptions.length,
                 itemBuilder: (context, index) {
@@ -357,6 +590,7 @@ class ExchangePageState extends State<ExchangePage> {
             ),
             Center(
               child: Container(
+                key: _kPendingBalance,
                 margin: const EdgeInsetsGeometry.fromLTRB(0, 10, 0, 10),
                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 decoration: BoxDecoration(

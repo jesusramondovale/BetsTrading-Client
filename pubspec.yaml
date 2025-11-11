@@ -74,6 +74,8 @@ dependencies:
   web3dart: ^2.7.1
   font_awesome_flutter: ^10.9.1
   flutter_inappwebview: ^6.0.0
+  tutorial_coach_mark: ^1.0.0
+
 
 
 flutter_launcher_icons:
