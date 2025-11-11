@@ -255,7 +255,7 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                                   Text(
                                     '${strings?.get('close') ?? 'Close'}: ${widget.favorite.close.toStringAsFixed(2)}${widget.currency}',
                                     style: GoogleFonts.montserrat(
-                                      fontSize: ( widget.favorite.close < 1000 ? 22 : 18),
+                                      fontSize: ( widget.favorite.close < 1000 ? 20 : 15),
                                       fontWeight: FontWeight.w500,
                                       color: Colors.white,
                                     ),
@@ -263,7 +263,7 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                                   Text(
                                     '${strings?.get('current') ?? 'Current'}: ${widget.favorite.current.toStringAsFixed(2)}${widget.currency}',
                                     style: GoogleFonts.montserrat(
-                                      fontSize:  ( widget.favorite.current < 1000 ? 24 : 20),
+                                      fontSize:  ( widget.favorite.current < 1000 ? 20 : 15),
                                       fontWeight: FontWeight.w500,
                                       color: widget.favorite.dailyGain >= 0.0 ? Colors.green : Colors.red,
                                     ),

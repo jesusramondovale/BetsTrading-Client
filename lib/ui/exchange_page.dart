@@ -179,29 +179,6 @@ class ExchangePageState extends State<ExchangePage> {
     }
   }
 
-  Widget _bubble(String title, String body) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: .9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: .1)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
-      ),
-      child: DefaultTextStyle(
-        style: const TextStyle(color: Colors.white),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-            const SizedBox(height: 6),
-            Text(body),
-          ],
-        ),
-      ),
-    );
-  }
-
   List<TargetFocus> _buildExchangeTargets() {
     final s = LocalizedStrings.of(context);
     return [
@@ -213,9 +190,9 @@ class ExchangePageState extends State<ExchangePage> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (_, __) => _bubble(
-              s?.get('yourCoins') ?? 'Tus monedas',
-              s?.get('tourYourCoinsBody') ?? 'Aquí ves cuántas monedas tienes ahora mismo.',
+            builder: (_, __) => Common().bubble(
+              s?.get('ex_coins_title') ?? 'Your coins',
+              s?.get('ex_coins_body') ?? 'This shows your coin balance, Betstrading’s in-app token used for bets, raffles and prize distribution. The amount updates after purchases, wins or refunds.',
             ),
           ),
         ],
@@ -227,10 +204,10 @@ class ExchangePageState extends State<ExchangePage> {
         radius: 12,
         contents: [
           TargetContent(
-            align: ContentAlign.top,
-            builder: (_, __) => _bubble(
-              s?.get('getMoreCoins') ?? 'Obtener más monedas',
-              s?.get('tourGetMoreCoinsBody') ?? 'Pulsa para conseguir más monedas.',
+            align: ContentAlign.bottom,
+            builder: (_, __) => Common().bubble(
+              s?.get('ex_getmore_title') ?? 'Get more coins',
+              s?.get('ex_getmore_body') ?? 'Open the store to get more coins. Choose from different packs or, when available, watch ads to earn some for free.',
             ),
           ),
         ],
@@ -243,9 +220,9 @@ class ExchangePageState extends State<ExchangePage> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            builder: (_, __) => _bubble(
-              s?.get('withdraw') ?? 'Retirar',
-              s?.get('tourWithdrawBody') ?? 'Elige una opción para retirar tus monedas.',
+            builder: (_, __) => Common().bubble(
+              s?.get('ex_withdraw_title') ?? 'Withdraw',
+              s?.get('ex_withdraw_body') ??  'Choose a withdrawal option and follow the steps. Review limits, processing times and any applicable fees before confirming.',
             ),
           ),
         ],
@@ -258,9 +235,9 @@ class ExchangePageState extends State<ExchangePage> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            builder: (_, __) => _bubble(
-              s?.get('pendingBalance') ?? 'Saldo pendiente',
-              s?.get('tourPendingBalanceBody') ?? 'Pagos en curso y verificaciones.',
+            builder: (_, __) => Common().bubble(
+              s?.get('ex_pending_title') ?? 'Pending balance',
+              s?.get('ex_pending_body') ?? 'Withdrawals waiting to be transferred to their destination. Transfers are processed every 15 days: on the first business day of the month and the business day following the 15th.',
             ),
           ),
         ],
@@ -283,6 +260,7 @@ class ExchangePageState extends State<ExchangePage> {
   }
 
   Future<void> _startExchangeTutorial() async {
+    LocalizedStrings? strings = LocalizedStrings.of(context);
     final targets = _buildExchangeTargets()
         .where((t) => t.keyTarget?.currentContext != null)
         .toList();
@@ -295,8 +273,9 @@ class ExchangePageState extends State<ExchangePage> {
     _coach = TutorialCoachMark(
       targets: targets,
       colorShadow: Colors.black,
-      opacityShadow: 0.65,
-      textSkip: 'Skip',
+      opacityShadow: 0.75,
+      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
       hideSkip: false,
       useSafeArea: true,
       pulseEnable: true,

@@ -1,4 +1,5 @@
 import 'package:betrader/candlesticks/candlesticks.dart';
+import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/betZone.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:flutter/material.dart';
@@ -141,6 +142,8 @@ class CandlesticksViewState extends State<CandlesticksView> {
 
   // --------- TUTORIAL: helpers ---------
   Future<void> _maybeStartTutorial() async {
+    LocalizedStrings? strings = LocalizedStrings.of(context);
+
     if (_started || !mounted) return;
     final prefs = await SharedPreferences.getInstance();
     final pending = prefs.getBool(_PENDING_FLAG) ?? false;
@@ -161,10 +164,11 @@ class CandlesticksViewState extends State<CandlesticksView> {
     _coach = TutorialCoachMark(
       targets: targets,
       colorShadow: Colors.black,
-      opacityShadow: 0.65,
+      opacityShadow: 0.75,
       useSafeArea: true,
       pulseEnable: true,
-      textSkip: 'Skip',
+      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
       alignSkip: Alignment.bottomRight,
       onClickTarget: (t) async {
         try {
@@ -243,7 +247,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
         ),
       ),
     );
-
+    LocalizedStrings? strings = LocalizedStrings.of(context);
     return [
 
       TargetFocus(
@@ -254,7 +258,10 @@ class CandlesticksViewState extends State<CandlesticksView> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (_, __) => bubble('Zoom', 'Toca aquí para cambiar el nivel de zoom.'),
+            builder: (_, __) => bubble(
+                strings!.get('cv_zoom_title') ?? 'Zoom',
+                strings.get('cv_zoom_body') ??
+                    'Tap here to change the horizontal time zoom level. Useful to see more candles at once or focus on recent action.'),
           ),
         ],
       ),
@@ -266,7 +273,10 @@ class CandlesticksViewState extends State<CandlesticksView> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (_, __) => bubble('Precio exacto', 'Toca aquí para realizar apuestas al cierre de precio exacto.'),
+            builder: (_, __) => bubble(
+                strings!.get('cv_exactprice_title') ?? 'Exact price',
+                strings.get('cv_exactprice_body') ??
+                    'Place exact-close bets from here. Pick a target close price; if the candle closes exactly at that value, you can win prizes up to €100,000.'),
           ),
         ],
       ),
@@ -278,7 +288,10 @@ class CandlesticksViewState extends State<CandlesticksView> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            builder: (_, __) => bubble('Timemframe', 'Cambia el intervalo de tiempo de cada vela. Los rectángulos de apuesta también cambiarán.'),
+            builder: (_, __) => bubble(
+                strings!.get('cv_timeframe_title') ?? 'Timeframe',
+                strings.get('cv_timeframe_body') ??
+                    'Change the duration of each candle (e.g., 1H, 2H, 4H). Bet rectangles adapt to the selected timeframe.' ),
           ),
         ],
       ),
@@ -290,8 +303,9 @@ class CandlesticksViewState extends State<CandlesticksView> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            builder: (_, __) => bubble('Gráfico', 'Arrastra para moverte. Pellizca horizontalmente para zoom. Desliza el dedo verticalmente sobre la columna de precios para hacer zoom vertical. '
-                'Manten pulsado para ver detalles. Pulsa los rectángulos de apuesta para crear una nueva.'),
+            builder: (_, __) => bubble(
+                strings!.get('cv_chart_title') ?? 'Chart',
+                strings.get('cv_chart_body') ?? 'Drag with one finger to pan. Pinch horizontally to zoom; slide vertically over the right price axis for vertical zoom. Long press a candle to see OHLC details. Dashed bet zones allow bounces inside but not breaks; solid zones require every price to stay within to win.'),
           ),
         ],
       ),
@@ -303,7 +317,9 @@ class CandlesticksViewState extends State<CandlesticksView> {
         contents: [
           TargetContent(
             align: ContentAlign.right,
-            builder: (_, __) => bubble('Volver', 'Cierra el gráfico y regresa. También puedes pulsar fuera de él'),
+            builder: (_, __) => bubble(
+                strings!.get('cv_back_title') ?? 'Back',
+                strings.get('cv_back_body') ?? 'Close the candlestick view and return. You can also tap outside the sheet to go back.'),
           ),
         ],
       ),

@@ -25,8 +25,6 @@ final GlobalKey<AwardsPageState> awardsScreenKey = GlobalKey<AwardsPageState>();
 final GlobalKey<MarketsViewState> marketsPageKey = GlobalKey<MarketsViewState>();
 final GlobalKey<ExchangePageState> exchangePageKey= GlobalKey<ExchangePageState>();
 
-bool _showTutorial = false;
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -110,9 +108,7 @@ class MainMenuPageState extends State<MainMenuPage> {
 
     if (isFirstRun) {
       Permission.notification.request();
-      setState(() {
-        _showTutorial = true;
-      });
+      setState(() {});
       await prefs.setBool('first_run', false);
     }
   }
@@ -227,8 +223,8 @@ class MainMenuPageState extends State<MainMenuPage> {
           )
         ]),
 
-        bottomNavigationBar: !_showTutorial
-            ? ValueListenableBuilder<int>(
+        bottomNavigationBar:
+            ValueListenableBuilder<int>(
                 valueListenable: _controller.selectedIndexNotifier,
                 builder: (context, index, _) {
                   return Container(
@@ -308,7 +304,7 @@ class MainMenuPageState extends State<MainMenuPage> {
                   );
                 },
               )
-            : null
+
       );
     }
   }

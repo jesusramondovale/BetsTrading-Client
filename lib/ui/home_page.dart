@@ -187,6 +187,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   List<TargetFocus> _buildTargets() {
+    final LocalizedStrings? strings = LocalizedStrings.of(context);
     return [
       TargetFocus(
         identify: 'settings',
@@ -196,9 +197,10 @@ class HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (ctx, ctrl) => _bubble(
-              'Ajustes',
-              'Configura la app aquí. Pulsa para continuar.',
+            builder: (ctx, ctrl) => Common().bubble(
+              strings!.get('settings') ?? 'Settings',
+              strings.get('tutorial_settings_body') ??
+                'Manage your account, notifications, security, and app preferences. Open it later to fine-tune details without leaving the tour.'
             ),
           ),
         ],
@@ -211,9 +213,9 @@ class HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (ctx, ctrl) => _bubble(
-              'Tienda',
-              'Tus monedas y recompensas. Toca para abrir más tarde… y seguir el tour.',
+            builder: (ctx, ctrl) => Common().bubble(
+              strings!.get('tutorial_store_title') ?? 'Store',
+              strings.get('tutorial_store_body') ?? 'Check your coin balance, redeem rewards, and browse offers. We’ll open it afterwards so you don’t miss the rest of the tour.',
             ),
           ),
         ],
@@ -226,9 +228,9 @@ class HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (ctx, ctrl) => _bubble(
-              'Tendencia',
-              'Este es tu primer activo en tendencia. Pulsa para ver su detalle.',
+            builder: (ctx, ctrl) => Common().bubble(
+              strings!.get('trends') ?? 'Trends',
+              strings.get('tutorial_trends_body') ?? 'Your first trending asset shows up here with live movement and key stats. Tap to open the detail view and learn how to place a bet on it.',
             ),
           ),
         ],
@@ -241,9 +243,9 @@ class HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (ctx, ctrl) => _bubble(
-              'Favoritos',
-              'Estos son tus favoritos.',
+            builder: (ctx, ctrl) => Common().bubble(
+              strings!.get('favorites') ?? 'Favorites',
+              strings.get('tutorial_favorites_body') ?? 'Pinned assets you follow closely. Add or remove favorites to keep this section clean and quick to access.',
             ),
           ),
         ],
@@ -256,9 +258,9 @@ class HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            builder: (ctx, ctrl) => _bubble(
-              'Apuestas recientes',
-              'Tus apuestas recientes.',
+            builder: (ctx, ctrl) => Common().bubble(
+              strings!.get('tutorial_bets_title') ?? 'Recent bets',
+              strings.get('tutorial_bets_body') ??  'A quick snapshot of your most recent bets, updated in real time. Use it to review outcomes or jump back into an asset.',
             ),
           ),
         ],
@@ -271,9 +273,9 @@ class HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            builder: (ctx, ctrl) => _bubble(
-              'Historial de apuestas',
-              'Aquí accederás a tu historial de apuestas recientes.',
+            builder: (ctx, ctrl) => Common().bubble(
+              strings!.get('tutorial_history_title') ?? 'Bet history',
+              strings.get('tutorial_history_body') ?? 'A complete log of past bets with results and timestamps. Open it to filter, inspect details, and learn from previous moves.',
             ),
           ),
         ],
@@ -281,30 +283,9 @@ class HomeScreenState extends State<HomeScreen> {
     ];
   }
 
-  Widget _bubble(String title, String body) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: .9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: .1)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
-      ),
-      child: DefaultTextStyle(
-        style: const TextStyle(color: Colors.white),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-            const SizedBox(height: 6),
-            Text(body),
-          ],
-        ),
-      ),
-    );
-  }
 
   Future<void> startHomeTutorial() async {
+    LocalizedStrings? strings = LocalizedStrings.of(context);
     if (!mounted) return;
 
     if (await _hasSeen('home_onboarding_v1')) return;
@@ -329,8 +310,9 @@ class HomeScreenState extends State<HomeScreen> {
     _coach = TutorialCoachMark(
       targets: targets,
       colorShadow: Colors.black,
-      opacityShadow: 0.65,
-      textSkip: 'Skip',
+      opacityShadow: 0.75,
+      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
       hideSkip: false,
       useSafeArea: true,
       pulseEnable: true,

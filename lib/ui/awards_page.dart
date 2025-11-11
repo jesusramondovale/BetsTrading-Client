@@ -297,6 +297,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   }
 
   List<TargetFocus> _buildAwardsTargets() {
+    LocalizedStrings? strings = LocalizedStrings.of(context);
     return [
       TargetFocus(
         identify: 'aw_toplist',
@@ -306,7 +307,10 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (_, __) => _bubble('Ranking', 'Aquí ves los 5 primeros y sus premios. Puedes cammbiar entre el ranking mundial o tú pais exclusivamente'),
+            builder: (_, __) => Common().bubble(
+                strings!.get('aw_toplist_title') ?? 'Ranking',
+                strings.get('aw_toplist_body') ??
+                    'See the top 5 users and their prizes. Switch between the worldwide board or your country to compare positions and rewards.'),
           ),
         ],
       ),
@@ -318,34 +322,14 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            builder: (_, __) => _bubble('Sorteos', 'Elige un premio para participar con tus monedas.'),
+            builder: (_, __) => Common().bubble(
+                strings!.get('aw_raffles_title') ?? 'Raffles',
+                strings.get('aw_raffles_body') ??
+                    'Pick a prize and join using your coins. Check cost and remaining time; entries are summed as participants update live.'),
           ),
         ],
       ),
     ];
-  }
-
-  Widget _bubble(String title, String body) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: .9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: .1)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
-      ),
-      child: DefaultTextStyle(
-        style: const TextStyle(color: Colors.white),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-            const SizedBox(height: 6),
-            Text(body),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _tryStartAwardsTutorial() async {
@@ -366,6 +350,8 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   }
 
   Future<void> _startAwardsTutorial() async {
+    LocalizedStrings? strings = LocalizedStrings.of(context);
+
     if (!mounted) return;
 
     final targets = _buildAwardsTargets()
@@ -380,8 +366,9 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     _coach = TutorialCoachMark(
       targets: targets,
       colorShadow: Colors.black,
-      opacityShadow: 0.65,
-      textSkip: 'Skip',
+      opacityShadow: 0.75,
+      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
       hideSkip: false,
       useSafeArea: true,
       pulseEnable: true,

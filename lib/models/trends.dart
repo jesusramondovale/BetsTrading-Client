@@ -250,7 +250,7 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                                   Text(
                                     '${strings?.get('close') ?? 'Close'}: ${widget.trend.close.toStringAsFixed(2)}${widget.currency}',
                                     style: GoogleFonts.montserrat(
-                                      fontSize: ( widget.trend.close < 1000 ? 22 : 18),
+                                      fontSize: ( widget.trend.close < 1000 ? 20 : 15),
                                       fontWeight: FontWeight.w500,
                                       color: Colors.white70,
                                     ),
@@ -258,7 +258,7 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                                   Text(
                                     '${strings?.get('current') ?? 'Current'}: ${widget.trend.current.toStringAsFixed(2)}${widget.currency}',
                                     style: GoogleFonts.montserrat(
-                                      fontSize:  ( widget.trend.current < 1000 ? 24 : 20),
+                                      fontSize:  ( widget.trend.current < 1000 ? 20 : 15),
                                       fontWeight: FontWeight.w600,
                                       color: widget.trend.dailyGain >= 0
                                           ? Colors.green

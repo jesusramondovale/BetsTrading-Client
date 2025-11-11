@@ -394,77 +394,70 @@ class _UserInfoPageState extends State<UserInfoPage> {
   }
 
   //-----   T U T O R I A L      M E T H O D S ------
-  Widget _bubble(String title, String body) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: .9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: .1)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
-      ),
-      child: DefaultTextStyle(
-        style: const TextStyle(color: Colors.white),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-            const SizedBox(height: 6),
-            Text(body),
-          ],
-        ),
-      ),
-    );
-  }
 
   List<TargetFocus> _buildUserInfoTargets() {
+    LocalizedStrings? strings = LocalizedStrings.of(context);
     final targets = <TargetFocus>[
       TargetFocus(
         identify: 'first_six',
         keyTarget: _kFirstSixTiles,
         shape: ShapeLightFocus.RRect,
         radius: 12,
-        contents: [TargetContent(align: ContentAlign.bottom, builder: (_, __) => _bubble('Tu perfil', 'Estos son tus datos principales.'))],
+        contents: [TargetContent(align: ContentAlign.bottom, builder: (_, __) => Common().bubble(
+            strings!.get('pf_profile_title') ?? 'Your profile',
+            strings.get('pf_profile_body') ?? 'These are your personal details. Until your identity is verified, some fields may appear highlighted in red as pending.'))],
       ),
       TargetFocus(
         identify: 'camera',
         keyTarget: _kProfileCamera,
         shape: ShapeLightFocus.Circle,
-        contents: [TargetContent(align: ContentAlign.bottom, builder: (_, __) => _bubble('Foto', 'Actualiza tu foto de perfil aquí.'))],
+        contents: [TargetContent(align: ContentAlign.bottom, builder: (_, __) => Common().bubble(
+            strings!.get('pf_camera_title') ?? 'Photo',
+            strings.get('pf_camera_body') ?? 'Upload a new profile picture here. Make sure it meets content and privacy guidelines.'))],
       ),
       TargetFocus(
         identify: 'verify',
         keyTarget: _kVerifyAccount,
         shape: ShapeLightFocus.RRect,
         radius: 12,
-        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => _bubble('Verifica tu cuenta', 'Completa el KYC para desbloquear todo.'))],
+        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => Common().bubble(
+            strings!.get('pf_verify_title') ?? 'Verify your account',
+            strings.get('pf_verify_body') ?? 'Complete the KYC verification to unlock withdrawals and monthly prize features.'))],
       ),
       TargetFocus(
         identify: 'payments',
         keyTarget: _kPaymentHistory,
         shape: ShapeLightFocus.RRect,
         radius: 12,
-        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => _bubble('Pagos', 'Consulta tus pagos aquí.'))],
+        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => Common().bubble(
+            strings!.get('pf_payments_title') ?? 'Payments',
+            strings.get('pf_payments_body') ?? 'Review your coin purchase history here.'))],
       ),
       TargetFocus(
         identify: 'withdrawals',
         keyTarget: _kWithdrawalHistory,
         shape: ShapeLightFocus.RRect,
         radius: 12,
-        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => _bubble('Retiros', 'Historial de retiros y estados.'))],
+        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => Common().bubble(
+            strings!.get('pf_withdrawals_title') ?? 'Withdrawals',
+            strings.get('pf_withdrawals_body') ?? 'Review your coin withdrawal history here.'))],
       ),
       TargetFocus(
         identify: 'logout',
         keyTarget: _kLogout,
         shape: ShapeLightFocus.RRect,
         radius: 12,
-        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => _bubble('Cerrar sesión', 'Desde aquí sales de tu cuenta.'))],
+        contents: [TargetContent(align: ContentAlign.top, builder: (_, __) => Common().bubble(
+            strings!.get('pf_logout_title') ?? 'Sign out',
+            strings.get('pf_logout_body') ?? 'Sign out of the app. If you will stop using this device, clear the app’s stored data in system settings and remove any linked sessions.'))],
       ),
     ];
     return targets.where((t) => t.keyTarget?.currentContext != null).toList();
   }
 
   Future<void> startUserInfoTutorial() async {
+    LocalizedStrings? strings = LocalizedStrings.of(context);
+
     if (!mounted) return;
     for (int i = 0; i < 100; i++) {
       if (!mounted) return;
@@ -481,8 +474,9 @@ class _UserInfoPageState extends State<UserInfoPage> {
     _coach = TutorialCoachMark(
       targets: targets,
       colorShadow: Colors.black,
-      opacityShadow: 0.65,
-      textSkip: 'Skip',
+      opacityShadow: 0.75,
+      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
       hideSkip: false,
       useSafeArea: true,
       pulseEnable: true,

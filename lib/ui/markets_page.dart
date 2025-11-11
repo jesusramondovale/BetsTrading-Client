@@ -669,33 +669,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     }
   }
 
-  Widget _bubble(String title, String body) {
-    return IgnorePointer(
-      ignoring: true,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: .9),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: .1)),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
-        ),
-        child: DefaultTextStyle(
-          style: const TextStyle(color: Colors.white),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-              const SizedBox(height: 6),
-              Text(body),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-
   List<TargetFocus> _buildMarketsTargets(LocalizedStrings? strings) {
     return [
       TargetFocus(
@@ -706,9 +679,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            builder: (_, __) => _bubble(
-              'Diferentes mercados',
-              'Cambia entre los mercados de acciones, crypto o forex.'
+            builder: (_, __) => Common().bubble(
+                strings!.get('mv_tabs_title') ?? 'Different markets',
+                strings.get('mv_tabs_body') ??
+                    'Switch between different markets: Shares, Crypto, and Forex. Tabs are scrollable and remember your last selection. Favorites appear first in each category, and data refreshes automatically during the session.'
             ),
           ),
         ],
@@ -722,9 +696,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (_, __) => _bubble(
-                'Asset',
-                'Pulsa para ver el gráfico de velas del activo seleccionado'
+            builder: (_, __) => Common().bubble(
+                strings!.get('mv_anyasset_title') ?? 'Asset',
+                strings.get('mv_anyasset_body') ??
+                    'Tap to open the candlestick chart with full timeframe control. Long press for quick actions like adding to favorites, placing exact-price bets, setting alerts, or viewing details.'
             ),
           ),
         ],
@@ -785,7 +760,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   }
 
-
   Future<void> _startMarketsTutorial() async {
     if (!mounted) return;
 
@@ -802,8 +776,9 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     _coach = TutorialCoachMark(
       targets: targets,
       colorShadow: Colors.black,
-      opacityShadow: 0.65,
-      textSkip: 'Skip',
+      opacityShadow: 0.75,
+      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
       hideSkip: false,
       useSafeArea: true,
       pulseEnable: true,

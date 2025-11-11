@@ -1326,6 +1326,28 @@ class Common {
     }
   }
 
+  Widget bubble(String title, String body) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: .9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: .1)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 10)],
+      ),
+      child: DefaultTextStyle(
+        style: const TextStyle(color: Colors.white),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+            const SizedBox(height: 6),
+            Text(body, style: const TextStyle(fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
 
 }
 
@@ -1368,40 +1390,51 @@ class _FloatingSnackState extends State<_FloatingSnack> with SingleTickerProvide
   Widget build(BuildContext context) {
     return Positioned(
       top: 30,
-      left: 20,
-      right: 20,
+      left: 0,
+      right: 0, // centramos con Center
       child: FadeTransition(
         opacity: _opacity,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: widget.bg,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  widget.text,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.montserrat(color: Colors.white),
-                  maxLines: 2
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320), // más estrecho
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  color: widget.bg,
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Texto flexible para no romper el layout
+                    Flexible(
+                      child: Text(
+                        widget.text,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.montserrat(color: Colors.white),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
 
-                ...[
-                  if (widget.mustShowIcon)
-                    Image.asset('assets/coin.png', width: 20)
-                ],
-
-              ],
-            )
+                    // Espaciado + icono solo si procede
+                    if (widget.mustShowIcon) ...[
+                      const SizedBox(width: 8),
+                      Image.asset('assets/coin.png', width: 20, height: 20),
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
     );
   }
+
 }
 
 
