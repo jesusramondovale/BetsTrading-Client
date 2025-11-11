@@ -244,7 +244,7 @@ class HomeScreenState extends State<HomeScreen> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (ctx, ctrl) => Common().bubble(
-              strings!.get('favorites') ?? 'Favorites',
+              strings!.get('favs') ?? 'Favorites',
               strings.get('tutorial_favorites_body') ?? 'Pinned assets you follow closely. Add or remove favorites to keep this section clean and quick to access.',
             ),
           ),
