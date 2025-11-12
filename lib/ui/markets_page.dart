@@ -728,15 +728,14 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     Common().vibrate();
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      enableDrag: !tutorialMode,
       builder: (BuildContext context) {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
           child: Container(
             height: MediaQuery.of(context).size.height * 0.56,
             child: OverflowBox(
-
               alignment: Alignment.topCenter,
               maxHeight: MediaQuery.of(context).size.height,
               child: Column(

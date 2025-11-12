@@ -52,6 +52,7 @@ class Candlesticks extends StatefulWidget {
   final String iconPath;
   final int extraHours;
   final bool inactiveZone;
+  final bool isTutorial;
   final int finishedIcon;
 
 
@@ -74,7 +75,8 @@ class Candlesticks extends StatefulWidget {
     required this.chartTitle,
     required this.iconPath,
     required this.extraHours,
-    this.finishedIcon = 0
+    this.finishedIcon = 0,
+    required this.isTutorial
 
   });
 

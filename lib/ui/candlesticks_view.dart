@@ -26,14 +26,14 @@ class CandlesticksView extends StatefulWidget {
     required this.ticker,
     this.betId,
     required this.name,
-    this.tutorialMode = false
+    this.tutorialMode = false,
   });
 
   @override
   CandlesticksViewState createState() => CandlesticksViewState();
 }
 
-class CandlesticksViewState extends State<CandlesticksView> {
+class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingObserver {
   final ValueNotifier<double> candleScaleNotifier = ValueNotifier<double>(1.0);
   final ValueNotifier<List<RectangleZone>> _zonesNotifier = ValueNotifier([]);
   late ValueNotifier<List<RectangleZone>> _frozenZonesNotifier = ValueNotifier([]);
@@ -45,30 +45,31 @@ class CandlesticksViewState extends State<CandlesticksView> {
   late int _extraHours;
   int _finishedIcon = 0;
 
-  // --------- TUTORIAL: flags/keys/coach ---------
   static const _PENDING_FLAG = '__tutorial_pending__candles_v1';
-  static const _SEEN_FLAG    = '__tutorial_seen__candles_v1';
-
+  static const _SEEN_FLAG = '__tutorial_seen__candles_v1';
   final _kChart = GlobalKey();
-  final _kBack  = GlobalKey();
+  final _kBack = GlobalKey();
   final _kZoom = GlobalKey();
   final _kExactPrice = GlobalKey();
   final _kTimeframe = GlobalKey();
   TutorialCoachMark? _coach;
   bool _started = false;
-  // ----------------------------------------------
+
+  OverlayEntry? _hintEntry;
+  final GlobalKey _kBubble = GlobalKey();
+  double _bubbleHeight = 0;
 
   Future<void> _loadData() async {
     try {
       final List<Candle> candles;
       final List<BetZone> betZones = await BetsService().fetchBetZones(
-          widget.ticker,
-          TimeframeManager.current.value,
-          widget.betId
+        widget.ticker,
+        TimeframeManager.current.value,
+        widget.betId,
       );
 
       int finishedIcon = 0;
-      if (_inactive_zone){
+      if (_inactive_zone) {
         final Bet? theBet = await BetsService().fetchBet(widget.betId.toString());
         if (theBet != null) {
           if (theBet.finished == true && theBet.targetWon == true) {
@@ -80,9 +81,10 @@ class CandlesticksViewState extends State<CandlesticksView> {
       }
 
       candles = await BetsService().fetchCandles(widget.ticker, TimeframeManager.current.value);
-      List<RectangleZone> rectangleZones = Common()
-          .getRectangleZonesFromBetZones(
-          betZones, candles.isNotEmpty ? candles.first.close : 0.0);
+      List<RectangleZone> rectangleZones = Common().getRectangleZonesFromBetZones(
+        betZones,
+        candles.isNotEmpty ? candles.first.close : 0.0,
+      );
       _initialZones = rectangleZones;
       _frozenZonesNotifier = ValueNotifier(_initialZones);
 
@@ -98,14 +100,12 @@ class CandlesticksViewState extends State<CandlesticksView> {
         _candles = candles;
       });
 
-      // intenta arrancar tutorial tras datos cargados
       _maybeStartTutorial();
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
-      // aunque falle la carga, intenta tutorial por si al menos se renderiza algo
       _maybeStartTutorial();
     }
   }
@@ -113,21 +113,24 @@ class CandlesticksViewState extends State<CandlesticksView> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     TimeframeManager.set(1);
     _inactive_zone = widget.betId != null;
     _extraHours = Common().hoursUntilLatestEndDate(
-        _inactive_zone ? _frozenZonesNotifier.value : _zonesNotifier.value,
-        _candles.isNotEmpty ? _candles.first.date : DateTime.now().toUtc(),
-        TimeframeManager.current.value) + 1;
+      _inactive_zone ? _frozenZonesNotifier.value : _zonesNotifier.value,
+      _candles.isNotEmpty ? _candles.first.date : DateTime.now().toUtc(),
+      TimeframeManager.current.value,
+    ) +
+        1;
 
     _zonesNotifier.addListener(() {
       if (!_inactive_zone) {
         int newExtraHours = Common().hoursUntilLatestEndDate(
-            _zonesNotifier.value,
-            _candles.isNotEmpty ? _candles.first.date : DateTime.now().toUtc(),
-            TimeframeManager.current.value
+          _zonesNotifier.value,
+          _candles.isNotEmpty ? _candles.first.date : DateTime.now().toUtc(),
+          TimeframeManager.current.value,
         );
-        if (_extraHours != newExtraHours){
+        if (_extraHours != newExtraHours) {
           if (!mounted) return;
           setState(() {
             _extraHours = newExtraHours;
@@ -140,10 +143,160 @@ class CandlesticksViewState extends State<CandlesticksView> {
     _loadData();
   }
 
-  // --------- TUTORIAL: helpers ---------
-  Future<void> _maybeStartTutorial() async {
-    LocalizedStrings? strings = LocalizedStrings.of(context);
+  Rect _globalRectOf(GlobalKey key) {
+    final rb = key.currentContext?.findRenderObject() as RenderBox?;
+    if (rb == null) return Rect.zero;
+    final topLeft = rb.localToGlobal(Offset.zero);
+    return topLeft & rb.size;
+  }
 
+  void _continueFromChartHint() {
+    _removeChartHintOverlay();
+
+    final targets = _buildTargets(includeChartStep: false)
+        .where((t) => t.keyTarget?.currentContext != null)
+        .toList();
+    if (targets.isEmpty) return;
+
+    _coach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.75,
+      useSafeArea: true,
+      pulseEnable: true,
+      textSkip: LocalizedStrings.of(context)?.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
+      alignSkip: Alignment.bottomRight,
+      onSkip: () {
+        _clearFlags();
+        return true;
+      },
+      onFinish: () async {
+        await _clearFlags();
+        final p = await SharedPreferences.getInstance();
+        await p.setBool('__tutorial_pending__exact_v1', true);
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.of(context).pop();
+          if (mounted) widget.controller.updateIndex(3);
+        });
+
+      },
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _coach?.show(context: context);
+    });
+  }
+
+  void _showChartHintOverlay() {
+    if (_hintEntry != null) return;
+
+    final overlay = Overlay.of(context, rootOverlay: true);
+
+    final strings = LocalizedStrings.of(context);
+    final size = MediaQuery.of(context).size;
+    final safeTop = MediaQuery.of(context).viewPadding.top;
+
+    _hintEntry = OverlayEntry(
+      builder: (_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final rb = _kBubble.currentContext?.findRenderObject() as RenderBox?;
+          if (rb != null) {
+            final h = rb.size.height;
+            if (h != _bubbleHeight && mounted) {
+              setState(() => _bubbleHeight = h);
+              _hintEntry?.markNeedsBuild();
+            }
+          }
+        });
+
+        final topHalfRect = Rect.fromLTWH(0, 0, size.width, size.height * 0.5);
+        final chartRect = _globalRectOf(_kChart);
+        final hole = topHalfRect.intersect(chartRect);
+
+        return Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: size.height * 0.5,
+          child: Stack(
+            children: [
+              if (hole != Rect.zero) ...[
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  width: size.width,
+                  height: hole.top,
+                  child: AbsorbPointer(child: Container(color: Colors.transparent)),
+                ),
+                Positioned(
+                  left: 0,
+                  top: hole.top,
+                  width: hole.left,
+                  height: hole.height,
+                  child: AbsorbPointer(child: Container(color: Colors.transparent)),
+                ),
+                Positioned(
+                  left: hole.right,
+                  top: hole.top,
+                  width: size.width - hole.right,
+                  height: hole.height,
+                  child: AbsorbPointer(child: Container(color: Colors.transparent)),
+                ),
+                Positioned(
+                  left: 0,
+                  top: hole.bottom,
+                  width: size.width,
+                  height: size.height * 0.5 - hole.bottom,
+                  child: AbsorbPointer(child: Container(color: Colors.transparent)),
+                ),
+              ] else ...[
+                Positioned.fill(
+                  child: AbsorbPointer(child: Container(color: Colors.transparent)),
+                ),
+              ],
+
+              Positioned(
+                left: 16,
+                right: 16,
+                top: safeTop + 40,
+                child: IgnorePointer(
+                  key: _kBubble,
+                  ignoring: true,
+                  child: Common().bubble(
+                    strings?.get('cv_chart_title') ?? 'Chart',
+                    strings?.get('cv_chart_body') ?? '',
+                  ),
+                ),
+              ),
+
+              Positioned(
+                left: 16,
+                right: 16,
+                top: safeTop + 40 + _bubbleHeight + 12,
+                child: Center(
+                  child: ElevatedButton(
+                    onPressed: _continueFromChartHint,
+                    child: Text(strings?.get('tutorial_continue') ?? 'Continuar'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    overlay.insert(_hintEntry!);
+  }
+
+  void _removeChartHintOverlay() {
+    _hintEntry?..remove();
+    _hintEntry = null;
+  }
+
+  Future<void> _maybeStartTutorial() async {
     if (_started || !mounted) return;
     final prefs = await SharedPreferences.getInstance();
     final pending = prefs.getBool(_PENDING_FLAG) ?? false;
@@ -153,7 +306,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
     await _waitForTargetsReady();
     if (!mounted) return;
 
-    final targets = _buildTargets()
+    final targets = _buildTargets(includeChartStep: false)
         .where((t) => t.keyTarget?.currentContext != null)
         .toList();
     if (targets.isEmpty) {
@@ -161,69 +314,23 @@ class CandlesticksViewState extends State<CandlesticksView> {
       return;
     }
 
-    _coach = TutorialCoachMark(
-      targets: targets,
-      colorShadow: Colors.black,
-      opacityShadow: 0.75,
-      useSafeArea: true,
-      pulseEnable: true,
-      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
-      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
-      alignSkip: Alignment.bottomRight,
-      onClickTarget: (t) async {
-        try {
-          switch (t.identify) {
-            case 'cv_chart':
-              break;
-            case 'cv_timeframe':
-              break;
-            case 'cv_back':
-              await _clearFlags();
-
-              final p = await SharedPreferences.getInstance();
-              await p.setBool('__tutorial_pending__exchange_v1', true);
-
-              try { _coach?.finish(); } catch (_) {}
-              if (!mounted) return;
-              Navigator.pop(context);
-
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) widget.controller.updateIndex(3);
-              });
-              break;
-          }
-        } catch (_) {}
-      },
-      onClickOverlay: (_) {},
-      onSkip: () {
-        _clearFlags();
-        return true;
-      },
-      onFinish: () async {
-        await _clearFlags();
-        // encadenado opcional al siguiente tutorial
-        // final p = await SharedPreferences.getInstance();
-        // await p.setBool('__tutorial_pending__exact_v1', true);
-      },
-    );
-
-    _coach!.show(context: context);
+    _showChartHintOverlay();
   }
 
   Future<void> _waitForTargetsReady() async {
     for (int i = 0; i < 40; i++) {
       if (!mounted) return;
-      final ready =
-          _kChart.currentContext != null &&
-              _kBack.currentContext  != null &&
-              _kZoom.currentContext != null &&
-              _kTimeframe.currentContext != null;
-    if (ready) break;
+      final ready = _kChart.currentContext != null &&
+          _kBack.currentContext != null &&
+          _kZoom.currentContext != null &&
+          _kExactPrice.currentContext != null &&
+          _kTimeframe.currentContext != null;
+      if (ready) break;
       await Future.delayed(const Duration(milliseconds: 80));
     }
   }
 
-  List<TargetFocus> _buildTargets() {
+  List<TargetFocus> _buildTargets({bool includeChartStep = false}) {
     Widget bubble(String title, String body) => IgnorePointer(
       ignoring: true,
       child: Container(
@@ -249,7 +356,25 @@ class CandlesticksViewState extends State<CandlesticksView> {
     );
     LocalizedStrings? strings = LocalizedStrings.of(context);
     return [
-
+      if (includeChartStep)
+        TargetFocus(
+          identify: 'cv_chart',
+          keyTarget: _kChart,
+          shape: ShapeLightFocus.RRect,
+          radius: 12,
+          enableTargetTab: false,
+          enableOverlayTab: false,
+          contents: [
+            TargetContent(
+              align: ContentAlign.custom,
+              customPosition: CustomTargetContentPosition(top: -50),
+              builder: (_, __) => bubble(
+                strings!.get('cv_chart_title') ?? 'Chart',
+                strings.get('cv_chart_body') ?? '...',
+              ),
+            ),
+          ],
+        ),
       TargetFocus(
         identify: 'cv_zoom',
         keyTarget: _kZoom,
@@ -259,9 +384,10 @@ class CandlesticksViewState extends State<CandlesticksView> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (_, __) => bubble(
-                strings!.get('cv_zoom_title') ?? 'Zoom',
-                strings.get('cv_zoom_body') ??
-                    'Tap here to change the horizontal time zoom level. Useful to see more candles at once or focus on recent action.'),
+              strings!.get('cv_zoom_title') ?? 'Zoom',
+              strings.get('cv_zoom_body') ??
+                  'Tap here to change the horizontal time zoom level. Useful to see more candles at once or focus on recent action.',
+            ),
           ),
         ],
       ),
@@ -274,9 +400,10 @@ class CandlesticksViewState extends State<CandlesticksView> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (_, __) => bubble(
-                strings!.get('cv_exactprice_title') ?? 'Exact price',
-                strings.get('cv_exactprice_body') ??
-                    'Place exact-close bets from here. Pick a target close price; if the candle closes exactly at that value, you can win prizes up to €100,000.'),
+              strings!.get('cv_exactprice_title') ?? 'Exact price',
+              strings.get('cv_exactprice_body') ??
+                  'Place exact-close bets from here. Pick a target close price; if the candle closes exactly at that value, you can win prizes up to €100,000.',
+            ),
           ),
         ],
       ),
@@ -289,23 +416,10 @@ class CandlesticksViewState extends State<CandlesticksView> {
           TargetContent(
             align: ContentAlign.top,
             builder: (_, __) => bubble(
-                strings!.get('cv_timeframe_title') ?? 'Timeframe',
-                strings.get('cv_timeframe_body') ??
-                    'Change the duration of each candle (e.g., 1H, 2H, 4H). Bet rectangles adapt to the selected timeframe.' ),
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: 'cv_chart',
-        keyTarget: _kChart,
-        shape: ShapeLightFocus.RRect,
-        radius: 12,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (_, __) => bubble(
-                strings!.get('cv_chart_title') ?? 'Chart',
-                strings.get('cv_chart_body') ?? 'Drag with one finger to pan. Pinch horizontally to zoom; slide vertically over the right price axis for vertical zoom. Long press a candle to see OHLC details. Dashed bet zones allow bounces inside but not breaks; solid zones require every price to stay within to win.'),
+              strings!.get('cv_timeframe_title') ?? 'Timeframe',
+              strings.get('cv_timeframe_body') ??
+                  'Change the duration of each candle (e.g., 1H, 2H, 4H). Bet rectangles adapt to the selected timeframe.',
+            ),
           ),
         ],
       ),
@@ -318,8 +432,9 @@ class CandlesticksViewState extends State<CandlesticksView> {
           TargetContent(
             align: ContentAlign.right,
             builder: (_, __) => bubble(
-                strings!.get('cv_back_title') ?? 'Back',
-                strings.get('cv_back_body') ?? 'Close the candlestick view and return. You can also tap outside the sheet to go back.'),
+              strings!.get('cv_back_title') ?? 'Back',
+              strings.get('cv_back_body') ?? 'Close the candlestick view and return. You can also tap outside the sheet to go back.',
+            ),
           ),
         ],
       ),
@@ -332,7 +447,14 @@ class CandlesticksViewState extends State<CandlesticksView> {
     await p.setBool(_SEEN_FLAG, true);
   }
 
-  // ----------------------------------------------
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    if (_hintEntry != null) {
+      _removeChartHintOverlay();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showChartHintOverlay());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -362,6 +484,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                               },
                               rectangleZones: _inactive_zone ? _frozenZonesNotifier : _zonesNotifier,
                               inactiveZone: _inactive_zone,
+                              isTutorial: widget.tutorialMode,
                               controller: widget.controller,
                               chartTitle: widget.name,
                               ticker: widget.ticker,
@@ -370,8 +493,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                               finishedIcon: _finishedIcon,
                             ),
                           ),
-
-                        if (widget.tutorialMode) ... [
+                        if (widget.tutorialMode) ...[
                           Positioned(
                             right: 12,
                             top: 12,
@@ -392,7 +514,7 @@ class CandlesticksViewState extends State<CandlesticksView> {
                           ),
                           Positioned(
                             left: 18,
-                            top:  MediaQuery.of(context).size.height * 0.52 ,
+                            top: MediaQuery.of(context).size.height * 0.52,
                             child: GestureDetector(
                               key: _kTimeframe,
                               behavior: HitTestBehavior.opaque,
@@ -416,12 +538,11 @@ class CandlesticksViewState extends State<CandlesticksView> {
                                 ],
                               ),
                               onPressed: () {
-                                Navigator.pop(context);
+                                if (!widget.tutorialMode) Navigator.of(context).pop();
                               },
                             ),
                           ),
-                        ]
-
+                        ],
                       ],
                     ),
                   );
@@ -432,5 +553,12 @@ class CandlesticksViewState extends State<CandlesticksView> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _removeChartHintOverlay();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 }
