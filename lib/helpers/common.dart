@@ -1349,6 +1349,14 @@ class Common {
     );
   }
 
+  Future<void> markAllTutorialsSeen() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool('__tutorial_seen__home_onboarding_v1', true);
+    await p.setBool('__tutorial_seen__exchange_v1', true);
+    await p.setBool('__tutorial_seen__awards_v1', true);
+    await p.setBool('__tutorial_seen__candles_v1', true);
+    await p.setBool('__tutorial_seen__userinfo_v1', true);
+  }
 }
 
 /**********************************************************************************************/

@@ -818,7 +818,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                         width: PRICE_BAR_WIDTH,
                         child: IconButton(
                           icon: Icon(
-                            FontAwesomeIcons.crosshairs,
+                            FontAwesomeIcons.bullseye,
                             size: 32,
                             color: Colors.white70,
                             shadows: [
@@ -848,7 +848,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                    if (!widget.inactiveZone) ...[
+
                       Positioned(
                         top: (constraints.maxHeight / 2) * 0.97,
                         left: 4.0,
@@ -869,63 +869,61 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                               ),
                             ),
                             onPressed: () async {
-                              Common().vibrate();
-                              setState(() {
-                                _currentIndex =
-                                    (_currentIndex + 1) % options.length;
-                                _currentRangeTime = options[_currentIndex];
-                              });
-
-                              final timeframe =
-                                  _mapTimeframe(_currentRangeTime);
-                              TimeframeManager.set(timeframe);
-                              await _reloadData(timeframe);
-
-
-
-                              if (widget.candles.isNotEmpty) {
-                                final highs =
-                                    widget.candles.map((c) => c.high).toList();
-                                final lows =
-                                    widget.candles.map((c) => c.low).toList();
-
-                                final double newHigh = highs.reduce(max);
-                                final double newLow = lows.reduce(min);
-
+                              if (!widget.inactiveZone) {
+                                Common().vibrate();
                                 setState(() {
-                                  manualScaleHigh = newHigh;
-                                  manualScaleLow = newLow;
-                                  scaleX = 1.0;
-                                  scaleY = 1.0;
-                                  offsetX = 0.0;
-                                  offsetY = 0.0;
+                                  _currentIndex =
+                                      (_currentIndex + 1) % options.length;
+                                  _currentRangeTime = options[_currentIndex];
                                 });
-                                _ensureZonesVisible();
+                                final timeframe =
+                                _mapTimeframe(_currentRangeTime);
+                                TimeframeManager.set(timeframe);
+                                await _reloadData(timeframe);
+                                if (widget.candles.isNotEmpty) {
+                                  final highs =
+                                  widget.candles.map((c) => c.high).toList();
+                                  final lows =
+                                  widget.candles.map((c) => c.low).toList();
+
+                                  final double newHigh = highs.reduce(max);
+                                  final double newLow = lows.reduce(min);
+
+                                  setState(() {
+                                    manualScaleHigh = newHigh;
+                                    manualScaleLow = newLow;
+                                    scaleX = 1.0;
+                                    scaleY = 1.0;
+                                    offsetX = 0.0;
+                                    offsetY = 0.0;
+                                  });
+                                  _ensureZonesVisible();
+                                }
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                    _) {
+                                  final extra = (Common()
+                                      .hoursUntilLatestEndDate(
+                                      widget.rectangleZones.value,
+                                      widget.candles.first.date,
+                                      timeframe
+                                  ));
+
+                                  final nuevoIndex = extra;
+                                  widget.onHorizontalDragUpdate(
+                                    ScaleUpdateDetails(
+                                      focalPoint: Offset(
+                                          -nuevoIndex * widget.candleWidth, 0),
+                                      localFocalPoint: Offset.zero,
+                                      scale: 1.0,
+                                    ),
+                                  );
+                                });
                               }
-
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                final extra = (Common().hoursUntilLatestEndDate(
-                                          widget.rectangleZones.value,
-                                          widget.candles.first.date,
-                                          timeframe
-                                        ));
-
-                                final nuevoIndex = extra;
-                                widget.onHorizontalDragUpdate(
-                                  ScaleUpdateDetails(
-                                    focalPoint: Offset(
-                                        -nuevoIndex * widget.candleWidth, 0),
-                                    localFocalPoint: Offset.zero,
-                                    scale: 1.0,
-                                  ),
-                                );
-                              });
                             },
                           ),
                         ),
                       ),
-                    ],
-                  ]),
+                 ]),
                 );
               },
             );

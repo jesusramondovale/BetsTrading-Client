@@ -460,20 +460,19 @@ class SettingsViewState extends State<SettingsView> {
                     splashColor: Colors.white.withValues(alpha: 0.1),
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () async {
-                      Common().vibrate();
+
                       final prefs = await SharedPreferences.getInstance();
                       await prefs.remove(_START_TUTORIAL_FLAG);
                       for (var k in prefs.getKeys()) {
-                        if (k.startsWith('__tutorial_seen__')) {
+                        if (k.startsWith('__tutorial_seen__') || k.startsWith('__tutorial_pending__')) {
                           await prefs.remove(k);
                         }
                       }
                       widget.controller.updateIndex(0);
-
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         homeScreenKey.currentState?.startHomeTutorial();
                       });
-
+                      Common().vibrate();
                       if (Navigator.canPop(context)) Navigator.of(context).pop();
                     },
                     child: ListTile(

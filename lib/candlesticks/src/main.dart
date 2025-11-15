@@ -312,7 +312,7 @@ class CandlesticksState extends State<Candlesticks> {
                       candles: widget.candles,
                       index: index,
                       rectangleZones: widget.rectangleZones,
-                      inactiveZone: widget.inactiveZone,
+                      inactiveZone: widget.inactiveZone || widget.isTutorial,
                       chartTitle: widget.chartTitle,
                       iconPath: widget.iconPath,
                       finishedIcon: widget.finishedIcon);

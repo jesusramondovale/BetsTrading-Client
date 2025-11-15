@@ -446,13 +446,13 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.receipt_long, size: 56, color: Colors.white.withValues(alpha: .85)),
+          Icon(Icons.receipt_long, size: 70, color: Colors.white.withValues(alpha: .85)),
           const SizedBox(height: 12),
           Text(
             strings?.get('noPaymentsYet') ?? 'No payments yet',
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
-              fontSize: 18,
+              fontSize: 22,
               fontWeight: FontWeight.w300,
               color: Colors.white,
             ),

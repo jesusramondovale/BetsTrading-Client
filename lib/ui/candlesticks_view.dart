@@ -53,7 +53,6 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
   final _kExactPrice = GlobalKey();
   final _kTimeframe = GlobalKey();
   TutorialCoachMark? _coach;
-  bool _started = false;
 
   OverlayEntry? _hintEntry;
   final GlobalKey _kBubble = GlobalKey();
@@ -164,17 +163,20 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
       opacityShadow: 0.75,
       useSafeArea: true,
       pulseEnable: true,
+      disableBackButton: true,
       textSkip: LocalizedStrings.of(context)?.get('tutorial_skip') ?? 'Skip tutorial',
       textStyleSkip: const TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
       alignSkip: Alignment.bottomRight,
       onSkip: () {
         _clearFlags();
+        Common().markAllTutorialsSeen();
         return true;
       },
       onFinish: () async {
+        await Future.delayed(const Duration(milliseconds: 150));
         await _clearFlags();
         final p = await SharedPreferences.getInstance();
-        await p.setBool('__tutorial_pending__exact_v1', true);
+        await p.setBool('__tutorial_pending__exchange_v1', true);
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.of(context).pop();
@@ -278,7 +280,10 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
                 child: Center(
                   child: ElevatedButton(
                     onPressed: _continueFromChartHint,
-                    child: Text(strings?.get('tutorial_continue') ?? 'Continuar'),
+                    child: Text(
+                        strings?.get('tutorial_continue') ?? 'Continuar',
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
                   ),
                 ),
               ),
@@ -297,14 +302,11 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
   }
 
   Future<void> _maybeStartTutorial() async {
-    if (_started || !mounted) return;
     final prefs = await SharedPreferences.getInstance();
     final pending = prefs.getBool(_PENDING_FLAG) ?? false;
     if (!(pending || widget.tutorialMode)) return;
 
-    _started = true;
     await _waitForTargetsReady();
-    if (!mounted) return;
 
     final targets = _buildTargets(includeChartStep: false)
         .where((t) => t.keyTarget?.currentContext != null)
@@ -521,28 +523,28 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
                               onTap: () => {},
                               child: const SizedBox(width: 25, height: 25),
                             ),
-                          ),
-                          Positioned(
-                            top: 10.0,
-                            left: 10.0,
-                            child: IconButton(
-                              key: _kBack,
-                              icon: const Icon(
-                                Icons.arrow_back,
-                                shadows: [
-                                  Shadow(
-                                    blurRadius: 3.0,
-                                    color: Colors.black45,
-                                    offset: Offset(2.5, 2.5),
-                                  ),
-                                ],
-                              ),
-                              onPressed: () {
-                                if (!widget.tutorialMode) Navigator.of(context).pop();
-                              },
-                            ),
-                          ),
+                          )
                         ],
+                        Positioned(
+                          top: 10.0,
+                          left: 10.0,
+                          child: IconButton(
+                            key: _kBack,
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 3.0,
+                                  color: Colors.black45,
+                                  offset: Offset(2.5, 2.5),
+                                ),
+                              ],
+                            ),
+                            onPressed: () {
+                              if (!widget.tutorialMode) Navigator.of(context).pop();
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   );

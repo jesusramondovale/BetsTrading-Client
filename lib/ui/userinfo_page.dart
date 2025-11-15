@@ -105,13 +105,11 @@ class _UserInfoPageState extends State<UserInfoPage> {
   }
 
   void _onIndexChange() {
-    if (!mounted) return;
     if (widget.controller.selectedIndexNotifier.value == 4) {
-      widget.controller.selectedIndexNotifier.removeListener(_onIndexChange);
       scheduleMicrotask(() async {
         await _builtOnce.future;
-        if (!mounted) return;
         startUserInfoTutorial();
+        widget.controller.selectedIndexNotifier.removeListener(_onIndexChange);
       });
     }
   }
@@ -130,7 +128,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
       if (widget.controller.selectedIndexNotifier.value == 4) {
         await _builtOnce.future;
-        if (mounted) startUserInfoTutorial();
+        startUserInfoTutorial();
       } else {
         widget.controller.selectedIndexNotifier.addListener(_onIndexChange);
       }
@@ -251,8 +249,9 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   title: Text(title, style: GoogleFonts.syncopate(fontSize: 12, fontWeight: FontWeight.w500)),
                   subtitle: subtitle,
                   trailing: IconButton(
+                    padding: EdgeInsets.zero,
                     key: _kProfileCamera,
-                    icon: const Icon(FontAwesomeIcons.camera),
+                    icon: const Icon(FontAwesomeIcons.cameraRotate),
                     onPressed: () async {
                       String? sessionToken = await _storage.read(key: 'sessionToken');
                       bool result = await BetsService().uploadProfilePic(
@@ -458,16 +457,13 @@ class _UserInfoPageState extends State<UserInfoPage> {
   Future<void> startUserInfoTutorial() async {
     LocalizedStrings? strings = LocalizedStrings.of(context);
 
-    if (!mounted) return;
-    for (int i = 0; i < 100; i++) {
-      if (!mounted) return;
+    for (int i = 0; i < 50; i++) {
       final ready = _kFirstSixTiles.currentContext != null &&
           _kProfileCamera.currentContext != null &&
           _kPaymentHistory.currentContext != null &&
           _kWithdrawalHistory.currentContext != null &&
           _kLogout.currentContext != null;
       if (ready) break;
-      await Future.delayed(const Duration(milliseconds: 80));
     }
     final targets = _buildUserInfoTargets();
     if (targets.isEmpty) return;
@@ -480,8 +476,16 @@ class _UserInfoPageState extends State<UserInfoPage> {
       hideSkip: false,
       useSafeArea: true,
       pulseEnable: true,
-      onSkip: () { _markSeen(); _clearPending(); return true; },
-      onFinish: () async { await _markSeen(); await _clearPending(); },
+      disableBackButton: true,
+      onSkip: () {
+        _markSeen();
+        _clearPending();
+        Common().markAllTutorialsSeen();
+        return true;
+        },
+      onFinish: () async {
+        await _markSeen();
+        await _clearPending(); },
     );
     _coach!.show(context: context);
   }

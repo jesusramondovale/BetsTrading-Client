@@ -47,7 +47,6 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   TutorialCoachMark? _coach;
   static const _PENDING_FLAG  = '__tutorial_pending__awards_v1';
   static const _SEEN_FLAG     = '__tutorial_seen__awards_v1';
-  bool _awardsTutorialStarted = false;
   late final VoidCallback _tabListener;
 
   Future<void> loadUserIdAndData() async {
@@ -333,19 +332,15 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   }
 
   Future<void> _tryStartAwardsTutorial() async {
-    if (!mounted || _awardsTutorialStarted) return;
-
     final prefs = await SharedPreferences.getInstance();
     final pending = prefs.getBool(_PENDING_FLAG) ?? false;
 
     if (!pending) return;
 
     await _waitForTargetsReady();
-    if (!mounted) return;
 
     if (widget.controller.selectedIndexNotifier.value != 1) return;
 
-    _awardsTutorialStarted = true;
     await _startAwardsTutorial();
   }
 
@@ -378,6 +373,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
       onSkip: () {
         _clearPending();
         _markSeen();
+        Common().markAllTutorialsSeen();
         return true;
       },
       onFinish: () async {
@@ -388,7 +384,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         await p.setBool('__tutorial_pending__markets_v1', true);
 
         if (!mounted) return;
-        Future.delayed(const Duration(milliseconds: 10), () {
+        Future.delayed(const Duration(milliseconds: 150), () {
           if (!mounted) return;
           widget.controller.updateIndex(2);
         });
@@ -413,6 +409,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         _tryStartAwardsTutorial();
       }
     };
+
     widget.controller.selectedIndexNotifier.addListener(_tabListener);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

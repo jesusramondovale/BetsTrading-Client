@@ -319,20 +319,15 @@ class HomeScreenState extends State<HomeScreen> {
       alignSkip: Alignment.bottomRight,
       initialFocus: 0,
       disableBackButton: true,
-
-      onClickTarget: (target) async {
-        if (target.identify == 'trends') {
-
-        }
-      },
+      onClickTarget: (target) async {      },
       onClickOverlay: (target) { },
       onSkip: () {
-        _markSeen('home_onboarding_v1');
+        Common().markAllTutorialsSeen();
         return true;
       },
       onFinish: () async {
-        await _markSeen('home_onboarding_v1');
 
+        await _markSeen('home_onboarding_v1');
         final p = await SharedPreferences.getInstance();
         await p.setBool('__tutorial_pending__awards_v1', true);
 
@@ -368,7 +363,7 @@ class HomeScreenState extends State<HomeScreen> {
               children: [
                 IconButton(
                   padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                  icon: Icon(key: _kSettings, FontAwesomeIcons.gear),
+                  icon: Icon(key: _kSettings, Icons.settings),
                   iconSize: 25,
                   color: Colors.white70,
                   onPressed: () {
@@ -829,23 +824,25 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
 
-                            floatingActionButton: Transform.translate(
-                              offset: const Offset(14, 14),
-                              child: FloatingActionButton(
-                                backgroundColor: Colors.transparent.withValues(alpha: 0.1),
-                                splashColor: Colors.grey,
-                                onPressed: () {
-                                  Common().vibrate();
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => BetsHistoryPage(),
-                                    ),
-                                  );
-                                },
-                                child: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
-                              ),
-
+                            floatingActionButton: KeyedSubtree(
+                                key: _kHistory,
+                                child: Transform.translate(
+                                  offset: const Offset(14, 14),
+                                  child: FloatingActionButton(
+                                    backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+                                    splashColor: Colors.grey,
+                                    onPressed: () {
+                                      Common().vibrate();
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => BetsHistoryPage(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Icon(FontAwesomeIcons.clockRotateLeft, color: Colors.white),
+                                  ),
+                                )
                             ),
                             floatingActionButtonLocation:
                             FloatingActionButtonLocation.endFloat,

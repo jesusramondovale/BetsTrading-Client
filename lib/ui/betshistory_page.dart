@@ -436,6 +436,7 @@ class _EmptyStateBets extends StatelessWidget {
           Icon(Icons.history, size: 56, color: Colors.white.withValues(alpha: .85)),
           const SizedBox(height: 12),
           Text(
+            textAlign: TextAlign.center,
             strings?.get('noBetsYet') ?? 'No bets yet',
             style: GoogleFonts.montserrat(
               fontSize: 22,

@@ -40,7 +40,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   static const  _PENDING_FLAG = '__tutorial_pending__markets_v1';
   static const _SEEN_FLAG = '__tutorial_seen__markets_v1';
   TutorialCoachMark? _coach;
-  bool _marketsTutorialStarted = false;
   late final VoidCallback _tabListener;
 
   void _initGroups() {
@@ -662,10 +661,8 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   Future<void> _waitForTargetsReady() async {
     for (int i = 0; i < 30; i++) {
-      if (!mounted) return;
       final ready = _kTabs.currentContext != null && _kAnyAsset.currentContext != null;
       if (ready) break;
-      await Future.delayed(const Duration(milliseconds: 80));
     }
   }
 
@@ -709,18 +706,14 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   }
 
   Future<void> _tryStartMarketsTutorial() async {
-    if (!mounted || _marketsTutorialStarted) return;
 
     final prefs = await SharedPreferences.getInstance();
     final pending = prefs.getBool(_PENDING_FLAG) ?? false;
     if (!pending) return;
 
     await _waitForTargetsReady();
-    if (!mounted) return;
 
     if (widget.controller.selectedIndexNotifier.value != 2) return;
-
-    _marketsTutorialStarted = true;
     await _startMarketsTutorial();
   }
 
@@ -760,8 +753,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   }
 
   Future<void> _startMarketsTutorial() async {
-    if (!mounted) return;
-
     final strings = LocalizedStrings.of(context);
     final targets = _buildMarketsTargets(strings)
         .where((t) => t.keyTarget?.currentContext != null)
@@ -803,16 +794,13 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       onSkip: () {
         _clearPending();
         _markSeen();
+        Common().markAllTutorialsSeen();
         return true;
       },
       onFinish: () async {
+        await Future.delayed(const Duration(milliseconds: 150));
         await _clearPending();
         await _markSeen();
-
-        // Si quieres encadenar a otra pestaña, marca aquí su pending:
-        // final p = await SharedPreferences.getInstance();
-        // await p.setBool('__tutorial_pending__exchange_v1', true);
-        // if (mounted) widget.controller.updateIndex(3);
       },
     );
 

@@ -450,13 +450,13 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.account_balance_wallet, size: 56, color: Colors.white.withValues(alpha: .85)),
+          Icon(Icons.account_balance_wallet, size: 70, color: Colors.white.withValues(alpha: .85)),
           const SizedBox(height: 12),
           Text(
             strings?.get('noWithdrawalsYet') ?? 'No withdrawals yet',
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
-              fontSize: 18,
+              fontSize: 22,
               fontWeight: FontWeight.w300,
               color: Colors.white,
             ),

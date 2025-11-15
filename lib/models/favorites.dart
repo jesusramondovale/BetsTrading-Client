@@ -221,39 +221,39 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
                           AutoSizeText(
                             widget.favorite.name,
                             maxLines: 1,
-                            style: GoogleFonts.robotoCondensed(
-                              fontSize: 40,
-                              fontWeight: FontWeight.w500,
+                            style: GoogleFonts.syncopate(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w100,
                               color: Colors.white,
                             ),
                           ),
                           Row(
                             children: [
                               (widget.favorite.dailyGain >= 0.0)
-                                  ? const Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.green, size: 20)
-                                  : const Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 20),
+                                  ? const Icon(FontAwesomeIcons.arrowTrendUp, color: Colors.green, size: 22)
+                                  : const Icon(FontAwesomeIcons.arrowTrendDown, color: Colors.red, size: 22),
                               Text(
                                 ' ${(widget.favorite.dailyGain).abs().toStringAsFixed(2)}%',
                                 style: GoogleFonts.montserrat(
-                                  fontSize: 25,
+                                  fontSize: 28,
                                   fontWeight: FontWeight.w400,
                                   color: widget.favorite.dailyGain >= 0.0 ? Colors.green : Colors.red,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 22),
 
                           Row(
                             children: [
                               Column(
                                 children: [
                                   Text(
-                                    '${strings?.get('close') ?? 'Close'}: ${widget.favorite.close.toStringAsFixed(2)}${widget.currency}',
+                                    '${strings?.get('close') ?? 'Close'}: '
+                                        '${(widget.favorite.close > 1 ? '${widget.favorite.close.toStringAsFixed(2)}' : '${widget.favorite.close.toStringAsFixed(4)}')}'
+                                        '${widget.currency}',
                                     style: GoogleFonts.montserrat(
                                       fontSize: ( widget.favorite.close < 1000 ? 20 : 15),
                                       fontWeight: FontWeight.w500,
@@ -261,7 +261,9 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                                     ),
                                   ),
                                   Text(
-                                    '${strings?.get('current') ?? 'Current'}: ${widget.favorite.current.toStringAsFixed(2)}${widget.currency}',
+                                    '${strings?.get('current') ?? 'Current'}: '
+                                      '${(widget.favorite.current > 1 ? '${widget.favorite.current.toStringAsFixed(2)}' : '${widget.favorite.current.toStringAsFixed(4)}')}'
+                                        '${widget.currency}',
                                     style: GoogleFonts.montserrat(
                                       fontSize:  ( widget.favorite.current < 1000 ? 20 : 15),
                                       fontWeight: FontWeight.w500,
@@ -421,7 +423,7 @@ class _ViewChartCTAState extends State<_ViewChartCTA> {
                           child: const Center(
                             child: Icon(
                               FontAwesomeIcons.chartLine,
-                              size: 28,
+                              size: 32,
                               color: Colors.white70,
                             ),
                           ),

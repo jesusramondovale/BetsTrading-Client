@@ -38,7 +38,6 @@ class ExchangePageState extends State<ExchangePage> {
   static const _PENDING_FLAG = '__tutorial_pending__exchange_v1';
   static const _SEEN_FLAG    = '__tutorial_seen__exchange_v1';
   TutorialCoachMark? _coach;
-  bool _exchangeTutorialStarted = false;
   late final VoidCallback _tabListener;
 
 
@@ -246,16 +245,13 @@ class ExchangePageState extends State<ExchangePage> {
   }
 
   Future<void> _tryStartExchangeTutorial() async {
-    if (!mounted || _exchangeTutorialStarted) return;
     final p = await SharedPreferences.getInstance();
     final pending = p.getBool(_PENDING_FLAG) ?? false;
     if (!pending) return;
 
     await _waitForTargetsReady();
-    if (!mounted) return;
     if (widget.controller.selectedIndexNotifier.value != 3) return;
 
-    _exchangeTutorialStarted = true;
     await _startExchangeTutorial();
   }
 
@@ -282,52 +278,25 @@ class ExchangePageState extends State<ExchangePage> {
       alignSkip: Alignment.bottomRight,
       initialFocus: 0,
       disableBackButton: true,
-      onClickTarget: (target) async {
-        try {
-          switch (target.identify) {
-            case 'ex_getmore':
-            // Simula la acción normal del botón si quieres
-            // _onGetMoreCoins();
-              break;
-            case 'ex_withdraw':
-            // Puedes abrir el primer método de retirada, si procede
-            // _openWithdrawOption(0);
-              break;
-            case 'ex_pending':
-            // Fin del tour aquí: pasamos al UserInfo
-              await _clearPending();
-              await _markSeen();
-
-              final p = await SharedPreferences.getInstance();
-              await p.setBool('__tutorial_pending__userinfo_v1', true);
-
-              try { _coach?.finish(); } catch (_) {}
-              if (!mounted) return;
-
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) widget.controller.updateIndex(4);
-              });
-              break;
-          }
-        } catch (_) {}
-      },
       onClickOverlay: (_) {},
       onSkip: () {
         _clearPending();
         _markSeen();
+        Common().markAllTutorialsSeen();
         return true;
       },
       onFinish: () async {
+
         await _clearPending();
         await _markSeen();
 
         final p = await SharedPreferences.getInstance();
         await p.setBool('__tutorial_pending__userinfo_v1', true);
 
-        if (!mounted) return;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) widget.controller.updateIndex(4);
         });
+        await Future.delayed(const Duration(milliseconds: 150));
       },
     );
 

@@ -210,17 +210,15 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                               ),
                             ],
                           ),
-                          const SizedBox(height: 20),
                           AutoSizeText(
                             widget.trend.name,
                             maxLines: 2,
-                            style: GoogleFonts.robotoCondensed(
-                              fontSize: 42,
+                            style: GoogleFonts.syncopate(
+                              fontSize: 30,
                               fontWeight: FontWeight.w100,
                               color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 12),
                           Row(
                             children: [
                               (widget.trend.dailyGain >= 0)
@@ -233,7 +231,7 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                                 ' ${widget.trend.dailyGain.abs().toStringAsFixed(2)}%',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 28,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w400,
                                   color: widget.trend.dailyGain >= 0
                                       ? Colors.green
                                       : Colors.red,
@@ -248,7 +246,9 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                               Column(
                                 children: [
                                   Text(
-                                    '${strings?.get('close') ?? 'Close'}: ${widget.trend.close.toStringAsFixed(2)}${widget.currency}',
+                                    '${strings?.get('close') ?? 'Close'}: '
+                                        '${(widget.trend.close > 1 ? '${widget.trend.close.toStringAsFixed(2)}' : '${widget.trend.close.toStringAsFixed(4)}')}'
+                                        '${widget.currency}',
                                     style: GoogleFonts.montserrat(
                                       fontSize: ( widget.trend.close < 1000 ? 20 : 15),
                                       fontWeight: FontWeight.w500,
@@ -256,7 +256,9 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                                     ),
                                   ),
                                   Text(
-                                    '${strings?.get('current') ?? 'Current'}: ${widget.trend.current.toStringAsFixed(2)}${widget.currency}',
+                                    '${strings?.get('current') ?? 'Current'}: '
+                                        '${(widget.trend.current > 1 ? '${widget.trend.current.toStringAsFixed(2)}' : '${widget.trend.current.toStringAsFixed(4)}')}'
+                                        '${widget.currency}',
                                     style: GoogleFonts.montserrat(
                                       fontSize:  ( widget.trend.current < 1000 ? 20 : 15),
                                       fontWeight: FontWeight.w600,
@@ -424,7 +426,7 @@ class _ViewChartCTAState extends State<_ViewChartCTA> {
                           child: const Center(
                             child: Icon(
                               FontAwesomeIcons.chartLine,
-                              size: 28,
+                              size: 32,
                               color: Colors.white70,
                             ),
                           ),
