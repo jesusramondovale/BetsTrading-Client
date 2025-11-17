@@ -548,6 +548,10 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                     low: tweenBegin,
                                     high: tweenEnd,
                                     width: PRICE_BAR_WIDTH,
+                                    paintCurrency: (
+                                        widget.ticker.contains('/')
+                                          ? 0
+                                          : (dollarCurrency ? 2 : 1) ),
                                     chartHeight: chartHeight,
                                     lastCandle: widget.candles[min(
                                         max(widget.index, 0),
@@ -776,6 +780,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
+                    const Divider(thickness: 0.1),
                     GestureDetector(
                       onTapUp: (TapUpDetails details) {
                         final RenderBox renderBox =

@@ -338,7 +338,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this, initialIndex: 1);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 1);
 
     _tabListener = () {
       if (widget.controller.selectedIndexNotifier.value == 2) {
@@ -347,7 +347,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     };
     widget.controller.selectedIndexNotifier.addListener(_tabListener);
 
-    // Por si ya estás visible al montar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.controller.selectedIndexNotifier.value == 2) {
         _tryStartMarketsTutorial();

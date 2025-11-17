@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 class PriceColumn extends StatefulWidget {
   const PriceColumn({
     super.key,
+    this.paintCurrency = 0,
     required this.low,
     required this.high,
     required this.width,
@@ -23,6 +24,7 @@ class PriceColumn extends StatefulWidget {
   final Candle lastCandle;
   final void Function(double) onScale;
   final CandleSticksStyle style;
+  final int paintCurrency;
 
   @override
   State<PriceColumn> createState() => _PriceColumnState();
@@ -85,7 +87,8 @@ class _PriceColumnState extends State<PriceColumn> {
                           ),
                           Expanded(
                             child: Text(
-                              HelperFunctions.priceToString(newHigh - priceScale * i),
+                              HelperFunctions.priceToString(newHigh - priceScale * i,
+                                  currency: widget.paintCurrency),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: widget.style.primaryTextColor,
@@ -119,7 +122,7 @@ class _PriceColumnState extends State<PriceColumn> {
                     height: PRICE_INDICATOR_HEIGHT,
                     child: Center(
                       child: Text(
-                        HelperFunctions.priceToString(widget.lastCandle.close),
+                        HelperFunctions.priceToString(widget.lastCandle.close, currency: widget.paintCurrency),
                         style: TextStyle(
                           color: widget.style.secondaryTextColor,
                           fontSize: 11,

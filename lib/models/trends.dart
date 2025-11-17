@@ -354,7 +354,7 @@ class _ViewChartCTAState extends State<_ViewChartCTA> {
   @override
   Widget build(BuildContext context) {
     final t = CurvedAnimation(parent: widget.controller, curve: Curves.easeInOut);
-    const double size = 80;
+    const double size = 65;
 
     return Column(
       children: [

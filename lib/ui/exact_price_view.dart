@@ -117,7 +117,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
               final bool isSelected = _selectedMargin == text;
               return Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  padding: EdgeInsets.zero,
                   child: ElevatedButton(
                     onPressed: () {
                       onMarginChanged(text);
@@ -307,7 +307,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Spacer(),
+                const SizedBox(height: 40),
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -336,7 +336,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           fontWeight: FontWeight.w400,
                           color: Colors.white),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 30),
                     Text(
                       ("${LocalizedStrings.of(context)?.get('exactClosingValue') ?? 'Exact closing value'}")
                           .toUpperCase(),
@@ -592,7 +592,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     style: GoogleFonts.syncopate(
                       fontSize: 20,
                       fontWeight: FontWeight.w300,
-                      color: Colors.white,
+                      color: Colors.blue,
                     ),
                   ),
                 ),
@@ -613,7 +613,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                         Text(
                           (LocalizedStrings.of(context)!.get('selectPriceMargin') ?? "Select the price margin "),
                           style: GoogleFonts.syncopate(
-                            fontSize: 16,
+                            fontSize: 14,
+                            decoration: TextDecoration.underline,
                             fontWeight: FontWeight.w200,
                             color:  Colors.white,
                           ),

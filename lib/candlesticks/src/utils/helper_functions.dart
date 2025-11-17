@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:math' as math;
 
 import '../constant/view_constants.dart';
 
@@ -26,16 +27,53 @@ class HelperFunctions {
       return price.toStringAsFixed(0);
   }
 
-  static String priceToString(double price) {
-    return price.abs() > 1000
-        ? price.toStringAsFixed(2)
-        : price.abs() > 100
-            ? price.toStringAsFixed(2)
-            : price.abs() > 10
-                ? price.toStringAsFixed(2)
-                : price.abs() > 1
-                    ? price.toStringAsFixed(4)
-                    : price.toStringAsFixed(5);
+  static String priceToString(double price, {int currency = 0}) {
+    final abs = price.abs();
+
+    // límite superior de decimales según magnitud (tu misma lógica, pero centralizada)
+    final int maxDecimals =
+    abs > 1000 ? 2 :
+    abs > 100  ? 3 :
+    abs > 10   ? 4 :
+    abs > 1    ? 5 :
+    abs > 0.1  ? 6 :
+    7;
+
+    int decimals = _decimalsBySecondSignificant(abs, maxDecimals);
+
+    final formatted = price.toStringAsFixed(decimals);
+    final suffix = currency == 0 ? '' : (currency == 1 ? '€' : '\$');
+    return '$formatted$suffix';
+  }
+
+  static int _decimalsBySecondSignificant(double absPrice, int maxDecimals) {
+    if (absPrice == 0) return math.min(2, maxDecimals);
+
+    final s = absPrice.toStringAsFixed(maxDecimals);
+    final dot = s.indexOf('.');
+    if (dot < 0) {
+      return math.min(2, maxDecimals);
+    }
+
+    int firstNonZeroPos = -1;
+    for (int i = dot + 1; i < s.length; i++) {
+      final c = s[i];
+      if (c != '0') {
+        firstNonZeroPos = i - (dot + 1);
+        break;
+      }
+    }
+
+    if (firstNonZeroPos == -1) {
+      return math.min(2, maxDecimals);
+    }
+
+    int decimals = firstNonZeroPos + 2;
+
+    if (decimals < 2) decimals = 2;
+    if (decimals > maxDecimals) decimals = maxDecimals;
+
+    return decimals;
   }
 
   static double calculatePriceScale(double height, double high, double low) {

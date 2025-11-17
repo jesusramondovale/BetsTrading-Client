@@ -202,7 +202,9 @@ class CandlesticksState extends State<Candlesticks> {
                 ],
               ),
             ],
-          )
+          ),
+
+
         ],
         if (widget.candles.isEmpty || mainWindowDataContainer == null)
           Expanded(

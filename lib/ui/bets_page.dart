@@ -408,7 +408,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
 
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: Colors.black,
+        surfaceTintColor: Colors.transparent,
         title: Text(
           strings?.get('confirmOperation') ?? 'Confirm Order',
           style: GoogleFonts.roboto(

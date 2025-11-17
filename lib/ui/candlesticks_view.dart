@@ -526,8 +526,6 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
                           )
                         ],
                         Positioned(
-                          top: 10.0,
-                          left: 10.0,
                           child: IconButton(
                             key: _kBack,
                             icon: const Icon(
