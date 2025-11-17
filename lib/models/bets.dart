@@ -783,7 +783,11 @@ class RecentPriceBetDialog extends StatelessWidget {
                               onPressed: () async {
                                 List<Candle> candles = await BetsService()
                                     .fetchCandles(priceBet.ticker,
-                                        TimeframeManager.current.value);
+                                        TimeframeManager.current.value,
+                                        (currency == '€'
+                                          ? 'EUR'
+                                          : 'USD'
+                                        ));
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

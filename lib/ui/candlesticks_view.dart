@@ -60,6 +60,8 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
 
   Future<void> _loadData() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
       final List<Candle> candles;
       final List<BetZone> betZones = await BetsService().fetchBetZones(
         widget.ticker,
@@ -79,7 +81,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
         }
       }
 
-      candles = await BetsService().fetchCandles(widget.ticker, TimeframeManager.current.value);
+      candles = await BetsService().fetchCandles(widget.ticker, TimeframeManager.current.value, dollarCurrency ? 'USD' : 'EUR');
       List<RectangleZone> rectangleZones = Common().getRectangleZonesFromBetZones(
         betZones,
         candles.isNotEmpty ? candles.first.close : 0.0,
@@ -119,9 +121,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
       _inactive_zone ? _frozenZonesNotifier.value : _zonesNotifier.value,
       _candles.isNotEmpty ? _candles.first.date : DateTime.now().toUtc(),
       TimeframeManager.current.value,
-    ) +
-        1;
-
+    ) + 1;
     _zonesNotifier.addListener(() {
       if (!_inactive_zone) {
         int newExtraHours = Common().hoursUntilLatestEndDate(
@@ -137,7 +137,6 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
         }
       }
     });
-
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStartTutorial());
     _loadData();
   }

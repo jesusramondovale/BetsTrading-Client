@@ -14,13 +14,13 @@ class BetZoneRefresher {
   Timer? _timer;
   ValueNotifier<List<RectangleZone>>? _notifier;
 
-  void start(String ticker, ValueNotifier<List<RectangleZone>> notifier) {
+  void start(String ticker, String currency, ValueNotifier<List<RectangleZone>> notifier) {
     _notifier = notifier;
 
     _timer?.cancel(); // por si ya hay uno
     _timer = Timer.periodic(Duration(seconds: 2), (_) async {
       try {
-        final candles = await BetsService().fetchCandles(ticker, TimeframeManager.current.value);
+        final candles = await BetsService().fetchCandles(ticker, TimeframeManager.current.value, currency);
         final zones = await BetsService().fetchBetZones(ticker, TimeframeManager.current.value, null);
         if (_notifier != null) {
           _notifier!.value = Common().getRectangleZonesFromBetZones(zones, candles.isNotEmpty ? candles.first.close : 0.0);

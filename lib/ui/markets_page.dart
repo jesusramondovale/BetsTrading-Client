@@ -41,6 +41,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   static const _SEEN_FLAG = '__tutorial_seen__markets_v1';
   TutorialCoachMark? _coach;
   late final VoidCallback _tabListener;
+  late final _dollarCurrency;
 
   void _initGroups() {
     final strings = LocalizedStrings.of(context);
@@ -52,9 +53,16 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   }
 
   Future<void> _loadData() async {
+
+    final prefs = await SharedPreferences.getInstance();
+    final currency = prefs.get('dollarCurrency') ?? false;
+
     await _loadAllAssets();
     await _loadFavorites();
-    setState(() => _isLoading = false);
+    setState(() {
+      _isLoading = false;
+      _dollarCurrency = currency;
+    });
   }
 
   Future<void> _loadAllAssets() async {
@@ -491,7 +499,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                                             style: GoogleFonts.montserrat(),
                                           ),
                                           onTap: () async {
-                                            List<Candle> candles = await BetsService().fetchCandles(asset.ticker,1);
+                                            List<Candle> candles = await BetsService().fetchCandles(asset.ticker,1, _dollarCurrency ? 'USD' : 'EUR');
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(

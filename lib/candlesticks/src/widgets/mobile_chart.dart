@@ -97,8 +97,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     _ensureZonesVisible();
     _getCurrentCurrency();
     if (!widget.inactiveZone) {
-      _fetchZones();
-      BetZoneRefresher().start(widget.ticker, widget.rectangleZones);
+      _fetchZones(dollarCurrency ? 'USD' : 'EUR');
+      BetZoneRefresher().start(widget.ticker, (dollarCurrency ? 'USD' : 'EUR'), widget.rectangleZones );
     }
   }
 
@@ -163,11 +163,11 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     });
   }
 
-  void _fetchZones() async {
+  void _fetchZones(String dollarCurency) async {
     try {
       final tf = _mapTimeframe(_currentRangeTime);
       final zones = await BetsService().fetchBetZones(widget.ticker, tf, null);
-      final candles = await BetsService().fetchCandles(widget.ticker, tf);
+      final candles = await BetsService().fetchCandles(widget.ticker, tf, ( dollarCurrency ? 'USD' : 'EUR'));
       final rectangleZones = Common().getRectangleZonesFromBetZones(
           zones, candles.isNotEmpty ? candles.first.close : 0.0);
       widget.rectangleZones.value = rectangleZones;
@@ -191,12 +191,12 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _reloadData(int timeframe) async {
+  Future<void> _reloadData(int timeframe, String currency) async {
     try {
       final zones =
           await BetsService().fetchBetZones(widget.ticker, timeframe, null);
       final candles =
-          await BetsService().fetchCandles(widget.ticker, timeframe);
+          await BetsService().fetchCandles(widget.ticker, timeframe, currency);
       final rectangleZones = Common().getRectangleZonesFromBetZones(
         zones,
         candles.isNotEmpty ? candles.first.close : 0.0,
@@ -884,7 +884,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                 final timeframe =
                                 _mapTimeframe(_currentRangeTime);
                                 TimeframeManager.set(timeframe);
-                                await _reloadData(timeframe);
+                                await _reloadData(timeframe, dollarCurrency ? 'USD' : 'EUR');
                                 if (widget.candles.isNotEmpty) {
                                   final highs =
                                   widget.candles.map((c) => c.high).toList();
@@ -952,7 +952,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
         state == AppLifecycleState.detached) {
       BetZoneRefresher().stop();
     } else if (state == AppLifecycleState.resumed) {
-      BetZoneRefresher().start(widget.ticker, widget.rectangleZones);
+      BetZoneRefresher().start(widget.ticker, (dollarCurrency ? 'USD' : 'EUR'), widget.rectangleZones);
     }
   }
 }

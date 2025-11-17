@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 import '../models/betZone.dart';
@@ -30,9 +31,15 @@ class BetsService {
 
 
   Future<List<BetZone>> fetchBetZones(String ticker, int hoursTimeframe, int? betId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
     if (null != betId) {
       final response =
-          await Common().postRequestWrapper('Bet', 'GetBetZone', {'id': betId, 'timeframe' : hoursTimeframe });
+          await Common().postRequestWrapper('Bet', 'GetBetZone', {
+            'id': betId,
+            'timeframe' : hoursTimeframe,
+            'currency' : (dollarCurrency ? 'USD' : 'EUR')
+          });
 
       if (response['statusCode'] == 200) {
         List<BetZone> zones = (response['body']['bets'] as List)
@@ -45,7 +52,12 @@ class BetsService {
       }
     }
     final response =
-        await Common().postRequestWrapper('Bet', 'GetBetZones', {'id': ticker, 'timeframe': hoursTimeframe});
+        await Common().postRequestWrapper('Bet', 'GetBetZones', {
+          'id': ticker,
+          'timeframe': hoursTimeframe,
+          'currency' : (dollarCurrency ? 'USD' : 'EUR')
+
+        });
 
     if (response['statusCode'] == 200) {
       List<BetZone> zones = (response['body']['bets'] as List)
@@ -206,13 +218,15 @@ class BetsService {
     }
   }
 
-  Future<List<Candle>> fetchCandles(String symbol, int hoursTimeframe) async {
+  Future<List<Candle>> fetchCandles(String symbol, int hoursTimeframe, String currency) async {
     final response = await Common().postRequestWrapper(
       'FinancialAssets',
       'FetchCandles',
       {
         'id': symbol,
         'timeframe': hoursTimeframe,
+        // currency -> 'EUR' / 'USD'
+        'currency': currency
       },
     );
 
