@@ -524,6 +524,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                         onPressed: (_isAdLoaded && !_adPermanentlyDisabled)
                             ? () {
                           Common().vibrate();
+                          Common().applyImmersive();
                           _showRewardedAd(
                             Common().interpolate(
                               strings.get('youWonCoins') ?? 'You won {coins}',

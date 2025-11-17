@@ -98,6 +98,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         borderRadius: borderRadius,
         onTap: () {
           Common().vibrate();
+          Common().applyImmersive();
           popUserDialog(context, user);
         },
         child: Ink(
@@ -401,7 +402,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     loadUserIdAndData();
     _tabController = TabController(length: 2, vsync: this);
     _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
-      if (mounted) loadUserIdAndData();
+      if (mounted) loadUserIdAndData(); Common().applyImmersive();
     });
 
     _tabListener = () {
@@ -959,6 +960,7 @@ class RafflesBuilder extends StatelessWidget {
             borderRadius: borderRadius,
             onTap: () async {
               Common().vibrate();
+              Common().applyImmersive();
               _showConfirmRaffleDialog(context, raffleItem, userPoints);
             },
             child: Ink(

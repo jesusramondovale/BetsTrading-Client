@@ -403,6 +403,7 @@ class ExchangePageState extends State<ExchangePage> {
                     ),
                     onPressed: () async {
                       Common().vibrate();
+                      Common().applyImmersive();
                       await Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => StorePage()),
@@ -456,17 +457,19 @@ class ExchangePageState extends State<ExchangePage> {
                         onTapDown: (TapDownDetails details) async {
                           if (!canExchange){
                             Common().vibrate(300, 200);
+                            Common().applyImmersive();
                             setState(() => _isUserPointsHighlighted = true);
                             return;
                           }
 
                           if (!_isVerified){
+                            Common().applyImmersive();
                             showNotVerifiedDialog(context);
                             return;
                           }
                           if (canExchange) {
                             Common().vibrate();
-
+                            Common().applyImmersive();
                             final result = await Navigator.push<bool>(
                               context,
                               MaterialPageRoute(

@@ -444,6 +444,7 @@ class RecentBetDialog extends StatelessWidget {
                             color: Colors.white,
                           ),
                           onPressed: () {
+                            Common().applyImmersive();
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,
@@ -938,6 +939,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                   const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
               onLongPress: _triggerBetButtons,
               onTap: () {
+                Common().applyImmersive();
                 (_showEditButtons) ? _triggerBetButtons() : Common().vibrate();
                 showModalBottomSheet(
                   context: context,
@@ -1388,7 +1390,9 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                 const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
             onLongPress: _triggerBetButtons,
             onTap: () {
-              (_showEditButtons) ? _triggerBetButtons() : Common().vibrate();
+              (_showEditButtons) ? _triggerBetButtons() :
+              Common().vibrate();
+              Common().applyImmersive();
               popPriceBetDialog(context, widget.priceBet, widget.controller);
             },
             leading: SizedBox(

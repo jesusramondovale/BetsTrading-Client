@@ -184,9 +184,9 @@ class AuthService {
 
           if (data['birthdays'] != null && data['birthdays'].isNotEmpty) {
             Map birthdayData = data['birthdays'][0]['date'];
-            int year = birthdayData['year'];
-            int month = birthdayData['month'];
-            int day = birthdayData['day'];
+            int year = (birthdayData['year'] ?? data['birthdays'][1]['date']['year']) ?? data['birthdays'][2]['date']['year'] ?? 1970 ;
+            int month = (birthdayData['month'] ?? data['birthdays'][1]['date']['month']) ?? data['birthdays'][2]['date']['month'] ?? 1;
+            int day = (birthdayData['day'] ?? data['birthdays'][1]['date']['day']) ?? data['birthdays'][2]['date']['day'] ?? 1 ;
 
             final int response = await _isLoggedIn(user.id, clearingOnForbidden: false);
             if (response == 0) {

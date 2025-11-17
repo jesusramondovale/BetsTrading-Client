@@ -182,7 +182,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
             if (entry.key == 'country') {
               subtitle = Row(
                 children: [
-                  Text(entry.value),
+                  Text(entry.value != "null" ? entry.value : "-" ),
                   const SizedBox(width: 8),
                   CountryFlag.fromCountryCode(
                     entry.value,
@@ -268,7 +268,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
                       }
                     },
                   ),
-                  onTap: () => Common().vibrate(),
+                  onTap: () => {
+                    Common().vibrate(),
+                    Common().applyImmersive()
+                  }
                 ),
               );
             } else {
@@ -277,7 +280,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   leading: Common().getIconForUserInfo(entry.key),
                   title: Text(title, style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
                   subtitle: subtitle,
-                  onTap: () => Common().vibrate(),
+                  onTap: () => {
+                    Common().vibrate(),
+                    Common().applyImmersive()
+                  },
                 ),
               );
             }
@@ -300,7 +306,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 child: ListTile(
                   leading: const Icon(Icons.verified),
                   title: Text(strings?.get('verified') ?? 'Account verified!', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-                  onTap: () => Common().vibrate(),
+                  onTap: () => {
+                    Common().vibrate(),
+                    Common().applyImmersive()
+                  }
                 ),
               ),
             );
@@ -312,6 +321,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   leading: const Icon(Icons.verified_outlined, color: Colors.redAccent),
                   title: Text(strings?.get('verify') ?? 'Verify Account', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
                   onTap: () async {
+                    Common().applyImmersive();
                     await Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyAccountPage(userId: _userId)));
                   },
                 ),
@@ -327,6 +337,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 title: Text(strings?.get('paymentHistory') ?? 'Payment History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
                 onTap: () {
                   Common().vibrate();
+                  Common().applyImmersive();
                   Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentHistoryPage()));
                 },
               ),
@@ -341,6 +352,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 title: Text(strings?.get('withdrawalHistory') ?? 'Withdrawal History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
                 onTap: () {
                   Common().vibrate();
+                  Common().applyImmersive();
                   Navigator.push(context, MaterialPageRoute(builder: (context) => WithdrawalHistoryPage()));
                 },
               ),
@@ -354,6 +366,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 leading: const Icon(FontAwesomeIcons.arrowRightFromBracket),
                 title: Text(strings?.get('logOut') ?? 'Log Out', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
                 onTap: () async {
+                  Common().applyImmersive();
                   final response = await AuthService().logOut();
                   if (response['success']) {
                     await _storage.deleteAll();

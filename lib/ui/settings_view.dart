@@ -380,7 +380,10 @@ class SettingsViewState extends State<SettingsView> {
                   child: InkWell(
                     splashColor: Colors.white.withValues(alpha: 0.1),
                     highlightColor: Colors.white.withValues(alpha: 0.05),
-                    onTap: widget.onPersonalInfoTap,
+                    onTap: () {
+                      Common().applyImmersive();
+                      widget.onPersonalInfoTap;
+                    },
                     child: ListTile(
                       title: Text(
                         strings?.get('personalInfo') ?? 'Personal info',
@@ -397,7 +400,10 @@ class SettingsViewState extends State<SettingsView> {
                   child: InkWell(
                     splashColor: Colors.white.withValues(alpha: 0.1),
                     highlightColor: Colors.white.withValues(alpha: 0.05),
-                    onTap: widget.onShowNotifications,
+                    onTap: () {
+                      widget.onShowNotifications;
+                      Common().applyImmersive();
+                    },
                     child: ListTile(
                       title: Text(
                         strings?.get('notifications') ?? 'Notifications',
@@ -415,6 +421,7 @@ class SettingsViewState extends State<SettingsView> {
                     splashColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     onTap: () async {
+                      Common().applyImmersive();
                       final changed = await Navigator.push<bool>(
                         context,
                         MaterialPageRoute(builder: (_) => const RetireMethodsPage()),
@@ -441,6 +448,7 @@ class SettingsViewState extends State<SettingsView> {
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () async {
                       Common().vibrate();
+                      Common().applyImmersive();
                       showChangePasswordDialog(context, await _storage.read(key: "sessionToken") ?? "none");
                     },
                     child: ListTile(
@@ -460,7 +468,7 @@ class SettingsViewState extends State<SettingsView> {
                     splashColor: Colors.white.withValues(alpha: 0.1),
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () async {
-
+                      Common().applyImmersive();
                       final prefs = await SharedPreferences.getInstance();
                       await prefs.remove(_START_TUTORIAL_FLAG);
                       for (var k in prefs.getKeys()) {
@@ -493,6 +501,7 @@ class SettingsViewState extends State<SettingsView> {
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () {
                       Common().vibrate();
+                      Common().applyImmersive();
                       Common().openInAppBrowser(context,Config.LANDING_PAGE);
                     },
                     child: ListTile(
@@ -517,6 +526,7 @@ class SettingsViewState extends State<SettingsView> {
                   activeColor: Colors.greenAccent,
                   onChanged: (bool value) async {
                     Common().vibrate();
+                    Common().applyImmersive();
                     setState(() => enableVibration = value);
                     _saveEnableVibration(value);
                   },
@@ -532,6 +542,7 @@ class SettingsViewState extends State<SettingsView> {
                     value: dollarCurrency,
                     onChanged: (bool newValue) async {
                       Common().vibrate();
+                      Common().applyImmersive();
                       setState(() => dollarCurrency = newValue);
                       _saveDollarCurrency(newValue);
                       showRestartDialog(context);

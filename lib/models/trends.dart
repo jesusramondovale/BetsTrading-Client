@@ -276,6 +276,7 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                                 heroTag: 'chart-${widget.trend.ticker}',
                                 onTap: () {
                                   Common().vibrate(20, 60);
+                                  Common().applyImmersive();
                                   Navigator.of(context).pop();
                                   showModalBottomSheet(
                                     context: context,
@@ -535,11 +536,13 @@ class TrendContainerState extends State<TrendContainer> {
             child: InkWell(
               onTap: () => {
                 Common().vibrate(),
+                Common().applyImmersive(),
                 popTrendDialog(
                     context, widget.trend, widget.index, widget.controller)
               },
               onLongPress: () => {
                 Common().vibrate(),
+                Common().applyImmersive(),
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,

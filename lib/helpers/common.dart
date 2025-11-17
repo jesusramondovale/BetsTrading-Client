@@ -8,6 +8,7 @@ import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/BetsService.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1248,7 +1249,6 @@ class Common {
     }
   }
 
-
   Future<String> getUserCountry() async {
     final apiKey = Config.IP_GEOLOCALIZER_TOKEN;
     final url = 'https://ipinfo.io/json?token=$apiKey';
@@ -1356,6 +1356,13 @@ class Common {
     await p.setBool('__tutorial_seen__awards_v1', true);
     await p.setBool('__tutorial_seen__candles_v1', true);
     await p.setBool('__tutorial_seen__userinfo_v1', true);
+  }
+
+  void applyImmersive() {
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [SystemUiOverlay.top],
+    );
   }
 }
 

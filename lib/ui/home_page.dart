@@ -368,12 +368,13 @@ class HomeScreenState extends State<HomeScreen> {
                   color: Colors.white70,
                   onPressed: () {
                     Common().vibrate();
-
+                    Common().applyImmersive();
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => SettingsView(
                           onPersonalInfoTap: () {
+                            Common().applyImmersive();
                             Navigator.pop(context);
                             widget.controller.updateIndex(4);
                           },
@@ -411,6 +412,7 @@ class HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(2.5),
                     onPressed: () async {
                       Common().vibrate();
+                      Common().applyImmersive();
                       await Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => StorePage()),
@@ -509,7 +511,11 @@ class HomeScreenState extends State<HomeScreen> {
                           } else if (snapshot.hasData && snapshot.data!.trends.isNotEmpty) {
                             final data = snapshot.data!;
                             return Listener(
-                              onPointerDown: (_) => _userIsInteracting = true,
+                              onPointerDown: (_) => {
+                                _userIsInteracting = true,
+                                Common().applyImmersive()
+                              },
+
                               onPointerUp: (_) async {
                                 await Future.delayed(const Duration(seconds: 2));
                                 _userIsInteracting = false;
@@ -624,9 +630,7 @@ class HomeScreenState extends State<HomeScreen> {
                                 snapshot.data!.favorites.isNotEmpty) {
                               final data = snapshot.data!;
                               return ScrollConfiguration(
-                                behavior: ScrollConfiguration.of(context).copyWith(
-                                  overscroll: false,
-                                ),
+                                behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
                                   physics: const BouncingScrollPhysics(
@@ -766,6 +770,7 @@ class HomeScreenState extends State<HomeScreen> {
                                     splashColor: Colors.grey,
                                     onPressed: () {
                                       Common().vibrate();
+                                      Common().applyImmersive();
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -833,6 +838,7 @@ class HomeScreenState extends State<HomeScreen> {
                                     splashColor: Colors.grey,
                                     onPressed: () {
                                       Common().vibrate();
+                                      Common().applyImmersive();
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(

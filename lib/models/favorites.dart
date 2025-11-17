@@ -279,6 +279,7 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                                 heroTag: 'chart-${widget.favorite.ticker}',
                                 onTap: () {
                                   Common().vibrate(20, 60);
+                                  Common().applyImmersive();
                                   Navigator.of(context).pop();
                                   showModalBottomSheet(
                                     context: context,
@@ -530,10 +531,12 @@ class FavoriteContainerState extends State<FavoriteContainer> {
 
           onTap: () {
             Common().vibrate();
+            Common().applyImmersive();
             popFavoritesDialog(context, widget.favorite, widget.controller);
           },
           onLongPress: () {
             Common().vibrate();
+            Common().applyImmersive();
             showModalBottomSheet(
               context: context,
               isScrollControlled: true,

@@ -321,6 +321,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
             50),
       ),
       onPressed: () async {
+        Common().applyImmersive();
         int? result = await AuthService().googleSignIn();
         if (result != null && result == 0)
         {
@@ -378,6 +379,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         padding: const EdgeInsets.symmetric(horizontal: 20),
       ),
       onPressed: () {
+        Common().applyImmersive();
         setState(() {
           _showSocialSignIn = !_showSocialSignIn;
         });
@@ -430,6 +432,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
           ),
           onPressed: () {
+            Common().applyImmersive();
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => const SignIn()));
           },
@@ -449,6 +452,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       ),
       onPressed: () {
+        Common().applyImmersive();
         setState(() {
           _showSocialSignIn = !_showSocialSignIn;
         });
@@ -468,8 +472,8 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         TextButton(
-
           onPressed: () {
+            Common().applyImmersive();
             showEmailPasswordDialog(context);
           },
           child: Text(strings.get('forgotPassword') ?? 'Forgot Password?',

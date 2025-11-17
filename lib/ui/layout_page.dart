@@ -240,7 +240,7 @@ class MainMenuPageState extends State<MainMenuPage> {
                       ],
                     ),
                     child: BottomNavigationBar(
-                      backgroundColor: Colors.transparent.withValues(alpha: 0.0),
+                      backgroundColor: Colors.transparent.withValues(alpha: 0.35),
                       selectedItemColor: Colors.white,
                       unselectedItemColor: Colors.white30,
                       showUnselectedLabels: false,

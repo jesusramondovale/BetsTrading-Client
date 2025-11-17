@@ -377,6 +377,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       children: [
         TabBar(
           key: _kTabs,
+          onTap: (_) => Common().applyImmersive(),
           indicatorColor: Colors.purple,
           labelColor: Colors.white,
           dividerColor: Colors.white30,
@@ -457,6 +458,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                               },
                               onLongPress: () {
                                 Common().vibrate();
+                                Common().applyImmersive();
                                 showModalBottomSheet(
                                   context: context,
                                   backgroundColor: Colors.black.withValues(alpha: 0.75),
@@ -719,6 +721,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   Future<void> _openAssetChart(FinancialAsset asset, {bool tutorialMode = false}) async {
     Common().vibrate();
+    Common().applyImmersive();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
