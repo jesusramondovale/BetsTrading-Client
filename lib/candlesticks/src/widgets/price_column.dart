@@ -92,7 +92,8 @@ class _PriceColumnState extends State<PriceColumn> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: widget.style.primaryTextColor,
-                                fontSize: 11,
+                                fontSize: HelperFunctions.priceToString(newHigh - priceScale * i,
+                                    currency: widget.paintCurrency).length > 9 ? 9 : 11,
                               ),
                             ),
                           ),

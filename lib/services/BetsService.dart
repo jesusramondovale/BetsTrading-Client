@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 import '../models/betZone.dart';
@@ -12,12 +11,14 @@ class BetsService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
 
-  Future<Bet?> fetchBet(String betId) async {
+  Future<Bet?> fetchBet(String betId, String currency) async {
     String? userId = await _storage.read(key: "sessionToken");
     final response = await Common().postRequestWrapper(
-      'Bet',
-      'UserBet',
-      {'user_id': userId, 'token': betId},
+      'Bet', 'UserBet',
+      { 'user_id': userId,
+        'token': betId,
+        'currency': currency
+      },
     );
 
     if (response['statusCode'] == 200) {
@@ -30,15 +31,14 @@ class BetsService {
   }
 
 
-  Future<List<BetZone>> fetchBetZones(String ticker, int hoursTimeframe, int? betId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
+  Future<List<BetZone>> fetchBetZones(String ticker, int hoursTimeframe, int? betId, {required String currency}) async {
+
     if (null != betId) {
       final response =
           await Common().postRequestWrapper('Bet', 'GetBetZone', {
-            'id': betId,
-            'timeframe' : hoursTimeframe,
-            'currency' : (dollarCurrency ? 'USD' : 'EUR')
+            'id': "${betId}",
+            'timeframe' : "${hoursTimeframe}",
+            'currency' : currency
           });
 
       if (response['statusCode'] == 200) {
@@ -54,9 +54,8 @@ class BetsService {
     final response =
         await Common().postRequestWrapper('Bet', 'GetBetZones', {
           'id': ticker,
-          'timeframe': hoursTimeframe,
-          'currency' : (dollarCurrency ? 'USD' : 'EUR')
-
+          'timeframe': "${hoursTimeframe}",
+          'currency' : currency
         });
 
     if (response['statusCode'] == 200) {
@@ -70,9 +69,12 @@ class BetsService {
     }
   }
 
-  Future<BetsAndPriceBets> fetchInvestmentData(String userId) async {
+  Future<BetsAndPriceBets> fetchInvestmentData(String userId, String currency) async {
     final betsResponse =
-    await Common().postRequestWrapper('Bet', 'UserBets', {'id': userId});
+    await Common().postRequestWrapper('Bet', 'UserBets',
+        {'id': userId,
+        'timeframe': 1, //USELESS
+        'currency': currency});
     final priceBetsResponse =
     await Common().postRequestWrapper('Bet', 'PriceBets', {'id': userId});
 
@@ -103,9 +105,12 @@ class BetsService {
     );
   }
 
-  Future<Favorites> fetchFavouritesData(String userId) async {
+  Future<Favorites> fetchFavouritesData(String userId, String currency) async {
     final response =
-        await Common().postRequestWrapper('Info', 'Favorites', {'id': userId});
+        await Common().postRequestWrapper('Info', 'Favorites',
+            {'id': userId,
+            'timeframe': 1, //USELESS
+            'currency': currency});
     if (response['statusCode'] == 200) {
       List<Favorite> favorites = (response['body']['favorites'] as List)
           .map((json) => Favorite.fromJson(json))
@@ -117,26 +122,28 @@ class BetsService {
     }
   }
 
-  Future<bool> postNewBet(String userId, String fcm, String ticker, double betAmount,double originValue, int betZone) async {
+  Future<bool> postNewBet(String userId, String fcm, String ticker, double betAmount,double originValue, int betZone, String currency) async {
     final response = await Common().postRequestWrapper('Bet', 'NewBet', {
       'user_id': userId,
       'fcm': fcm,
       'ticker': ticker,
       'bet_amount': betAmount,
       'origin_value': originValue,
-      'bet_zone': betZone
+      'bet_zone': betZone,
+      'currency': currency
     });
 
     return response['statusCode'] == 200;
   }
 
   Future<int> postNewExactPriceBet(String userId, String fcm, String ticker, double priceBet,
-      double margin, DateTime endDate) async {
+      double margin, DateTime endDate, String currency) async {
 
     final Map<String, dynamic> data = {
       'user_id': userId,
       'fcm' : fcm,
       'ticker': ticker,
+      'currency' : currency,
       'price_bet': priceBet,
       'margin': margin,
       'end_date': endDate.toIso8601String()
@@ -157,9 +164,13 @@ class BetsService {
     return response['statusCode'] == 200;
   }
 
-  Future<bool> deleteRecentPriceBet(String priceBetId) async {
+  Future<bool> deleteRecentPriceBet(String priceBetId, String currency) async {
     final response = await Common()
-        .postRequestWrapper('Bet', 'DeleteRecentPriceBet', {'id': priceBetId});
+        .postRequestWrapper('Bet', 'DeleteRecentPriceBet',
+        {'id': priceBetId,
+         'timeframe' : 1, //USELESS,
+          'currency': currency
+        });
     return response['statusCode'] == 200;
   }
 
@@ -169,9 +180,12 @@ class BetsService {
     return response['statusCode'] == 200;
   }
 
-  Future<Trends> fetchTrendsData(String userId) async {
+  Future<Trends> fetchTrendsData(String userId, String currency) async {
     final response =
-        await Common().postRequestWrapper('Info', 'Trends', {'id': userId});
+        await Common().postRequestWrapper('Info', 'Trends',
+            {'id': userId,
+            'timeframe': 1,
+            'currency' : currency});
 
     if (response['statusCode'] == 200) {
       List<Trend> trends = (response['body']['trends'] as List)

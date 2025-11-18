@@ -65,7 +65,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> {
     if (confirmed == true) {
       String? userId = await _storage.read(key: 'sessionToken');
       String fcm = FirebaseService().firebaseToken ?? "null";
-      bool result = await BetsService().postNewBet(userId!, fcm, widget.zone.ticker, _betAmount, widget.currentValue, betZone);
+      bool result = await BetsService().postNewBet(userId!, fcm, widget.zone.ticker, _betAmount, widget.currentValue, betZone, _currency.toUpperCase());
 
       if (result) {
         if (_bettingNotifications) {

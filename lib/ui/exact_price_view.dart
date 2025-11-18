@@ -208,7 +208,9 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             widget.ticker,
                             _selectedPrice,
                             _getMarginAsDouble(_selectedMargin),
-                            _selectedDate);
+                            _selectedDate,
+                            _currency.toUpperCase()
+                        );
 
                         if (result == 200) {
                           if (_bettingNotifications) {

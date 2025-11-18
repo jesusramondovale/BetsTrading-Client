@@ -44,6 +44,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
   late bool _inactive_zone;
   late int _extraHours;
   int _finishedIcon = 0;
+  bool _dollarCurrency = false;
 
   static const _PENDING_FLAG = '__tutorial_pending__candles_v1';
   static const _SEEN_FLAG = '__tutorial_seen__candles_v1';
@@ -60,18 +61,18 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
 
   Future<void> _loadData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
       final List<Candle> candles;
+
       final List<BetZone> betZones = await BetsService().fetchBetZones(
         widget.ticker,
         TimeframeManager.current.value,
         widget.betId,
+        currency: (_dollarCurrency ? 'USD' : 'EUR'),
       );
 
       int finishedIcon = 0;
       if (_inactive_zone) {
-        final Bet? theBet = await BetsService().fetchBet(widget.betId.toString());
+        final Bet? theBet = await BetsService().fetchBet(widget.betId.toString(), (_dollarCurrency ? 'USD' : 'EUR'));
         if (theBet != null) {
           if (theBet.finished == true && theBet.targetWon == true) {
             finishedIcon = 1;
@@ -81,7 +82,12 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
         }
       }
 
-      candles = await BetsService().fetchCandles(widget.ticker, TimeframeManager.current.value, dollarCurrency ? 'USD' : 'EUR');
+      candles = await BetsService().fetchCandles(
+        widget.ticker,
+        TimeframeManager.current.value,
+        (_dollarCurrency ? 'USD' : 'EUR'),
+      );
+
       List<RectangleZone> rectangleZones = Common().getRectangleZonesFromBetZones(
         betZones,
         candles.isNotEmpty ? candles.first.close : 0.0,
@@ -111,6 +117,16 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
     }
   }
 
+  Future<void> _initCurrencyAndLoad() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storedCurrency = prefs.getBool('dollarCurrency') ?? false;
+    if (!mounted) return;
+    setState(() {
+      _dollarCurrency = storedCurrency;
+    });
+    await _loadData();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -138,7 +154,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStartTutorial());
-    _loadData();
+    _initCurrencyAndLoad();
   }
 
   Rect _globalRectOf(GlobalKey key) {
@@ -280,8 +296,8 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
                   child: ElevatedButton(
                     onPressed: _continueFromChartHint,
                     child: Text(
-                        strings?.get('tutorial_continue') ?? 'Continuar',
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      strings?.get('tutorial_continue') ?? 'Continuar',
+                      style: TextStyle(color: Colors.white, fontSize: 20),
                     ),
                   ),
                 ),

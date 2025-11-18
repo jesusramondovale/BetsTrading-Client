@@ -54,14 +54,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   Future<void> _loadData() async {
 
-    final prefs = await SharedPreferences.getInstance();
-    final currency = prefs.get('dollarCurrency') ?? false;
-
     await _loadAllAssets();
     await _loadFavorites();
     setState(() {
       _isLoading = false;
-      _dollarCurrency = currency;
     });
   }
 
@@ -84,14 +80,19 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   Future<void> _loadFavorites() async {
     final token = await _storage.read(key: "sessionToken") ?? "";
-    final Favorites favs = await BetsService().fetchFavouritesData(token);
+    final prefs = await SharedPreferences.getInstance();
+
+    final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
+    final Favorites favs = await BetsService().fetchFavouritesData(token, (dollarCurrency ? 'USD' : 'EUR'));
     final tickers = favs.favorites
         .map((f) => f.ticker.toUpperCase().trim())
         .where((t) => t.isNotEmpty)
         .toSet();
     setState(() {
       _favTickers = tickers;
+      _dollarCurrency = dollarCurrency;
     });
+
   }
 
   Future<void> _showAssetDetails(BuildContext context, FinancialAsset a) async {

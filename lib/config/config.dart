@@ -6,7 +6,7 @@ class Config {
   static const INSTAGRAM_PAGE = 'https://www.instagram.com/betstrading/';
   static const STRIPE_PUBLIC_KEY = 'pk_test_51Ro4wcIoWhLn7aPbiJW4oRV3Gtvyijmw9hSGkn7pVMcOYZ4wpKmjRX1SA4tDPlJa8iKS1iRD5edE894KWgrRkqnM007ZLfNfKr'; //TEST
   static const TERMS_N_CONDITIONS_PAGE = 'https://raw.githubusercontent.com/jesusramondovale/BetsTrading-Client/refs/heads/android-master/policies/privacy_policy_en.md';
-  static const CODE_VERSION = '25.321.1';
+  static const CODE_VERSION = '25.322.1';
   static const ADMOB_APP_ID = 'ca-app-pub-2465898294053562/1629478765';
   static const ADMOB_AD_TOKEN = 'ca-app-pub-2465898294053562/4804536511'; // REAL
   //static const ADMOB_AD_TOKEN = 'ca-app-pub-3940256099942544/5224354917'; //TEST

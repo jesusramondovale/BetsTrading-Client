@@ -1370,7 +1370,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                       Common().vibrate();
                       widget.onDelete();
                       try {
-                        final ok = await BetsService().deleteRecentPriceBet(widget.priceBet.id.toString());
+                        final ok = await BetsService().deleteRecentPriceBet(widget.priceBet.id.toString(), _currency.toUpperCase());
                         if (!ok) {
                           Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
                         }
