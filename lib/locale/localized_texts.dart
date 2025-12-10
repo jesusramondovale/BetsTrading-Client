@@ -12,6 +12,7 @@ class LocalizedStrings {
   static final Map<String?, Map<String?, String?>> localizedValues = {
     'en': {
       // English
+      'exactPriceMarginExplanation': 'The smaller the margin of error you select, the cheaper the bet is. Choosing ±0% is cheaper, while ±0.1% is the most expensive.',
       'tutorial_skip': 'Skip tutorial',
       'pf_profile_title': 'Your profile',
       'pf_profile_body': 'These are your personal details. Until your identity is verified, some fields may appear highlighted in red as pending.',
@@ -36,7 +37,7 @@ class LocalizedStrings {
       'cv_zoom_title': 'Zoom',
       'cv_zoom_body': 'Tap here to change the horizontal time zoom level. Useful to see more candles at once or focus on recent action.',
       'cv_exactprice_title': 'Exact price',
-      'cv_exactprice_body': 'Place exact-close bets from here. Pick a target close price; if the candle closes exactly at that value, you can win prizes up to €100,000.',
+      'cv_exactprice_body': 'Place exact-close bets from here. Pick a target close price; if the daily candle for the selected date closes exactly at that value, you can win prizes up to €100,000.',
       'cv_timeframe_title': 'Timeframe',
       'cv_timeframe_body': 'Change the duration of each candle (e.g., 1H, 2H, 4H). Bet rectangles adapt to the selected timeframe.',
       'cv_chart_title': 'Chart',
@@ -357,6 +358,7 @@ class LocalizedStrings {
     },
     'es': {
       // Español
+      'exactPriceMarginExplanation': 'Cuanto menor sea el margen de error que selecciones, más barata será la apuesta. Elegir ±0% es más económico, mientras que ±0.1% es el más costoso.',
       'tutorial_skip': 'Omitir tutorial',
       'pf_profile_title': 'Tu perfil',
       'pf_profile_body': 'Estos son tus datos personales. Mientras no verifiques tu identidad, algunos campos aparecerán en rojo como pendientes.',
@@ -381,7 +383,7 @@ class LocalizedStrings {
       'cv_zoom_title': 'Zoom',
       'cv_zoom_body': 'Toca aquí para cambiar el nivel de zoom temporal (horizontal). Útil para ver más velas a la vez o centrarte en la acción reciente.',
       'cv_exactprice_title': 'Precio exacto',
-      'cv_exactprice_body': 'Desde aquí realizas apuestas al cierre exacto. Elige un precio de cierre objetivo; si la vela cierra exactamente en ese valor, puedes ganar premios de hasta 100.000€.',
+      'cv_exactprice_body': 'Desde aquí realizas apuestas al cierre exacto. Elige un precio de cierre objetivo; si la vela diaria de la fecha seleccionada cierra exactamente en ese valor, puedes ganar premios de hasta 100.000€.',
       'cv_timeframe_title': 'Timeframe',
       'cv_timeframe_body': 'Cambia la duración de cada vela (p. ej., 1H, 2H , 4H). Los rectángulos de apuesta se adaptan al marco temporal seleccionado.',
       'cv_chart_title': 'Gráfico',
@@ -700,6 +702,7 @@ class LocalizedStrings {
     },
     'fr': {
       // Français
+      'exactPriceMarginExplanation': 'Plus la marge d’erreur est petite, moins le pari est cher. Choisir ±0% est moins cher, tandis que ±0.1% est le plus coûteux.',
       'tutorial_skip': 'Ignorer le tutoriel',
       'pf_profile_title': 'Votre profil',
       'pf_profile_body': 'Voici vos informations personnelles. Tant que votre identité n’est pas vérifiée, certains champs peuvent apparaître en rouge comme en attente.',
@@ -724,7 +727,7 @@ class LocalizedStrings {
       'cv_zoom_title': 'Zoom',
       'cv_zoom_body': 'Touchez ici pour modifier le zoom temporel horizontal. Pratique pour afficher plus de chandeliers ou se concentrer sur l’activité récente.',
       'cv_exactprice_title': 'Prix exact',
-      'cv_exactprice_body': 'Placez ici des paris sur le cours de clôture exact. Choisissez un prix de clôture cible ; si la bougie clôture exactement à cette valeur, vous pouvez gagner jusqu’à 100 000 €.',
+      'cv_exactprice_body': 'Placez ici des paris sur le cours de clôture exact. Choisissez un prix de clôture cible ; si la bougie quotidienne de la date sélectionnée clôture exactement à cette valeur, vous pouvez gagner jusqu’à 100 000 €.',
       'cv_timeframe_title': 'Période',
       'cv_timeframe_body': 'Modifiez la durée de chaque bougie (p. ex. 1H, 2H, 4H). Les zones de pari s’ajustent à la période choisie.',
       'cv_chart_title': 'Graphique',
@@ -1046,6 +1049,7 @@ class LocalizedStrings {
     },
     'it': {
       // Italiano
+      'exactPriceMarginExplanation': 'Più piccolo è il margine di errore che scegli, meno costosa è la scommessa. Scegliere ±0% è più economico, mentre ±0.1% è il più costoso.',
       'tutorial_skip': 'Salta il tutorial',
       'pf_profile_title': 'Il tuo profilo',
       'pf_profile_body': 'Questi sono i tuoi dati personali. Finché l’identità non è verificata, alcuni campi possono apparire in rosso come in sospeso.',
@@ -1070,7 +1074,7 @@ class LocalizedStrings {
       'cv_zoom_title': 'Zoom',
       'cv_zoom_body': 'Tocca qui per cambiare lo zoom temporale orizzontale. Utile per vedere più candele o concentrarti sull’azione recente.',
       'cv_exactprice_title': 'Prezzo esatto',
-      'cv_exactprice_body': 'Da qui piazzi scommesse sulla chiusura esatta. Scegli un prezzo di chiusura; se la candela chiude esattamente lì, puoi vincere premi fino a 100.000€.',
+      'cv_exactprice_body': 'Da qui piazzi scommesse sulla chiusura esatta. Scegli un prezzo di chiusura; se la candela giornaliera della data selezionata chiude esattamente lì, puoi vincere premi fino a 100.000€.',
       'cv_timeframe_title': 'Timeframe',
       'cv_timeframe_body': 'Cambia la durata di ogni candela (es. 1H, 2H, 4H). Le zone di scommessa si adattano al timeframe selezionato.',
       'cv_chart_title': 'Grafico',
@@ -1390,6 +1394,7 @@ class LocalizedStrings {
     },
     'de': {
       // Deutsch
+      'exactPriceMarginExplanation': 'Je kleiner die Fehlermarge, die du auswählst, desto billiger ist die Wette. ±0% ist günstiger, während ±0.1% am teuersten ist.',
       'tutorial_skip': 'Tutorial überspringen',
       'pf_profile_title': 'Dein Profil',
       'pf_profile_body': 'Hier stehen deine persönlichen Daten. Bis deine Identität verifiziert ist, können einige Felder rot markiert sein.',
@@ -1414,7 +1419,7 @@ class LocalizedStrings {
       'cv_zoom_title': 'Zoom',
       'cv_zoom_body': 'Tippe hier, um den horizontalen Zeit-Zoom zu ändern. Nützlich, um mehr Kerzen zugleich zu sehen oder den Fokus auf jüngste Bewegungen zu legen.',
       'cv_exactprice_title': 'Exakter Preis',
-      'cv_exactprice_body': 'Hier platzierst du Wetten auf den exakten Schlusskurs. Wähle einen Zielschluss; schließt die Kerze genau dort, kannst du Preise bis zu 100.000 € gewinnen.',
+      'cv_exactprice_body': 'Hier platzierst du Wetten auf den exakten Schlusskurs. Wähle einen Zielschluss; schließt die tägliche Kerze für das ausgewählte Datum genau dort, kannst du Preise bis zu 100.000 € gewinnen.',
       'cv_timeframe_title': 'Zeitrahmen',
       'cv_timeframe_body': 'Ändere die Dauer jeder Kerze (z. B. 1H, 2H, 4H). Wettrechtecke passen sich dem gewählten Zeitrahmen an.',
       'cv_chart_title': 'Chart',

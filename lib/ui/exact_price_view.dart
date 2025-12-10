@@ -22,14 +22,13 @@ class ExactPricePage extends StatefulWidget {
   final String name;
   final bool isForex;
 
-  const ExactPricePage({
-    super.key,
-    required this.name,
-    required this.currentValue,
-    required this.ticker,
-    required this.iconPath,
-    required this.isForex
-  });
+  const ExactPricePage(
+      {super.key,
+      required this.name,
+      required this.currentValue,
+      required this.ticker,
+      required this.iconPath,
+      required this.isForex});
 
   @override
   State<ExactPricePage> createState() => _ExactPricePageState();
@@ -96,7 +95,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
   double _calculateTextWidth(String text, TextStyle style) {
     final TextPainter textPainter = TextPainter(
-      text: TextSpan(text: (_currency == "eur" ? '€' : '\$ ')+text, style: style),
+      text: TextSpan(
+          text: (_currency == "eur" ? '€' : '\$ ') + text, style: style),
       maxLines: 1,
       textDirection: TextDirection.ltr,
     )..layout();
@@ -106,7 +106,13 @@ class _ExactPricePageState extends State<ExactPricePage> {
 
   Widget _buildMarginButtons(
       BuildContext context, void Function(String) onMarginChanged) {
-    final List<String> options = ["±0%", "±0.01%", "±0.05%", "±0.075%", "±0.1%"];
+    final List<String> options = [
+      "±0%",
+      "±0.01%",
+      "±0.05%",
+      "±0.075%",
+      "±0.1%"
+    ];
 
     return Padding(
       padding: const EdgeInsets.only(left: 10, right: 10, bottom: 12),
@@ -117,7 +123,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
               final bool isSelected = _selectedMargin == text;
               return Expanded(
                 child: Padding(
-                  padding: EdgeInsets.zero,
+                  padding: EdgeInsets.all(3),
                   child: ElevatedButton(
                     onPressed: () {
                       onMarginChanged(text);
@@ -133,6 +139,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                       ),
                     ),
                     child: Text(
+                      maxLines: 1,
                       text,
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
@@ -194,7 +201,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                               context,
                               _getBetAmountFromMargin(_selectedMargin)
                                   .toDouble(),
-                              widget. iconPath);
+                              widget.iconPath);
                       if (confirmed == true) {
                         String? userId =
                             await _storage.read(key: 'sessionToken');
@@ -209,16 +216,18 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             _selectedPrice,
                             _getMarginAsDouble(_selectedMargin),
                             _selectedDate,
-                            _currency.toUpperCase()
-                        );
+                            _currency.toUpperCase());
 
                         if (result == 200) {
                           if (_bettingNotifications) {
-                            Common().showFloatingSnack(context,
-                                (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null ? "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} ► ${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}"
+                            Common().showFloatingSnack(
+                                context,
+                                (LocalizedStrings.of(context)!
+                                            .get('betPlacedSuccessfully') !=
+                                        null
+                                    ? "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} ► ${_getBetAmountFromMargin(_selectedMargin).toStringAsFixed(2)}"
                                     : "Bet placed successfully! ► ${_getBetAmountFromMargin(_selectedMargin)}"),
                                 showIcon: true);
-
                           }
 
                           await BetsService().getUserInfo(userId);
@@ -227,14 +236,35 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           homeScreenKey.currentState?.loadUserIdAndData();
                           exchangePageKey.currentState?.loadData();
                         } else if (result == 410) {
-                          Common().showFloatingSnack(context, (LocalizedStrings.of(context)!.get('errorMakingBet') ?? "Error creating price bet!") + "(NO TIME)", backgroundColor: Colors.red);
+                          Common().showFloatingSnack(
+                              context,
+                              (LocalizedStrings.of(context)!
+                                          .get('errorMakingBet') ??
+                                      "Error creating price bet!") +
+                                  "(NO TIME)",
+                              backgroundColor: Colors.red);
                         } else if (result == 420) {
-                          Common().showFloatingSnack(context, (LocalizedStrings.of(context)!.get('betErrorPoints') ?? "Not enough points!"), backgroundColor: Colors.red);
+                          Common().showFloatingSnack(
+                              context,
+                              (LocalizedStrings.of(context)!
+                                      .get('betErrorPoints') ??
+                                  "Not enough points!"),
+                              backgroundColor: Colors.red);
                         } else if (result == 430) {
-                          Common().showFloatingSnack(context, (LocalizedStrings.of(context)!.get('betAlreadyExists') ?? "Bet already exists!"), backgroundColor: Colors.red);
+                          Common().showFloatingSnack(
+                              context,
+                              (LocalizedStrings.of(context)!
+                                      .get('betAlreadyExists') ??
+                                  "Bet already exists!"),
+                              backgroundColor: Colors.red);
                         } else {
                           if (_bettingNotifications) {
-                            Common().showFloatingSnack(context, (LocalizedStrings.of(context)!.get('errorMakingBet') ?? "Error creating price bet!"), backgroundColor: Colors.red);
+                            Common().showFloatingSnack(
+                                context,
+                                (LocalizedStrings.of(context)!
+                                        .get('errorMakingBet') ??
+                                    "Error creating price bet!"),
+                                backgroundColor: Colors.red);
                           }
                           Navigator.pop(context);
                           Navigator.pop(context);
@@ -274,9 +304,64 @@ class _ExactPricePageState extends State<ExactPricePage> {
     _loadUserPoints();
   }
 
+  void _showHowItWorksDialog() {
+    final strings = LocalizedStrings.of(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black.withValues(alpha: .7),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Colors.white24),
+          ),
+          title: Text(
+            strings?.get('cv_exactprice_title') ?? 'Exact price',
+            style: GoogleFonts.montserrat(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                  strings?.get('cv_exactprice_body') ??
+                      'Place exact-close bets from here. Pick a target close price; if the candle closes exactly at that value, you can win prizes up to €100,000.',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    color: Colors.white70,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  (strings?.get('exactPriceMarginExplanation') ??
+                      'The smaller the margin of error you select, the cheaper the bet is. Choosing ±0% is cheaper, while ±0.1% is the most expensive.'),
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.amber, // Highlighted text for explanation
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.close),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Stack(
         children: [
@@ -332,7 +417,10 @@ class _ExactPricePageState extends State<ExactPricePage> {
                           color: Colors.white),
                     ),
                     Text(
-                      (widget.isForex ? '' : (_currency == "eur" ? '€' : '\$')) + ' ${widget.currentValue.toStringAsFixed(2)}',
+                      (widget.isForex
+                              ? ''
+                              : (_currency == "eur" ? '€' : '\$')) +
+                          ' ${widget.currentValue.toStringAsFixed(2)}',
                       style: GoogleFonts.montserrat(
                           fontSize: 36,
                           fontWeight: FontWeight.w400,
@@ -427,7 +515,11 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                       border: InputBorder.none,
                                       isDense: true,
                                       contentPadding: EdgeInsets.zero,
-                                      prefixText: (widget.isForex ? '' : (_currency == "eur" ? '€ ' : '\$ ')) ,
+                                      prefixText: (widget.isForex
+                                          ? ''
+                                          : (_currency == "eur"
+                                              ? '€ '
+                                              : '\$ ')),
                                       prefixStyle: GoogleFonts.montserrat(
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
@@ -492,7 +584,9 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                           onPrimary: Colors.white,
                                           surface: Colors.black,
                                           onSurface: Colors.white,
-                                        ), dialogTheme: DialogThemeData(backgroundColor: Colors.grey[900]),
+                                        ),
+                                        dialogTheme: DialogThemeData(
+                                            backgroundColor: Colors.grey[900]),
                                       ),
                                       child: child!,
                                     );
@@ -544,7 +638,8 @@ class _ExactPricePageState extends State<ExactPricePage> {
                 ),
                 const SizedBox(height: 2),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
@@ -586,7 +681,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                 const SizedBox(height: 10),
                 GestureDetector(
                   onTap: () {
-                    //TODO: add price bet tutorial
+                    _showHowItWorksDialog();
                   },
                   child: Text(
                     ("${LocalizedStrings.of(context)?.get('howItWorks') ?? 'How does it work?'}")
@@ -613,12 +708,14 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     return Column(
                       children: [
                         Text(
-                          (LocalizedStrings.of(context)!.get('selectPriceMargin') ?? "Select the price margin "),
+                          (LocalizedStrings.of(context)!
+                                  .get('selectPriceMargin') ??
+                              "Select the price margin "),
                           style: GoogleFonts.syncopate(
                             fontSize: 14,
                             decoration: TextDecoration.underline,
                             fontWeight: FontWeight.w200,
-                            color:  Colors.white,
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 5),
@@ -628,7 +725,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             children: [
                               TextSpan(
                                 text:
-                                "${LocalizedStrings.of(context)?.get('enterBetAmount') ?? 'Bet amount'}: ",
+                                    "${LocalizedStrings.of(context)?.get('enterBetAmount') ?? 'Bet amount'}: ",
                                 style: GoogleFonts.syncopate(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w200,
@@ -641,12 +738,16 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                 text: _getBetAmountFromMargin(_selectedMargin)
                                     .toString(),
                                 style: GoogleFonts.syncopate(
-                                  decoration: _isAcceptEnabled ? TextDecoration.none : TextDecoration.underline,
+                                  decoration: _isAcceptEnabled
+                                      ? TextDecoration.none
+                                      : TextDecoration.underline,
                                   decorationColor: Colors.red,
                                   decorationThickness: 1,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w500,
-                                  color: _isAcceptEnabled ? Colors.green : Colors.red,
+                                  color: _isAcceptEnabled
+                                      ? Colors.green
+                                      : Colors.red,
                                 ),
                               ),
                               const WidgetSpan(
@@ -663,7 +764,6 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 5),
                         _buildSecondaryButtons(context, _isAcceptEnabled),
                       ],
