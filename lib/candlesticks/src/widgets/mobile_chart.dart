@@ -86,6 +86,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
   bool firstVerticalDragOffset = true;
   int? lastCandleIndex;
   bool _dollarCurrency = false;
+  bool _isZooming = false; // Rastrea si estamos haciendo zoom horizontal
 
   @override
   void initState() {
@@ -664,19 +665,31 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                       ),
                       child: GestureDetector(
                         onScaleUpdate: (details) {
-                          if (details.scale == 1) {
+                          // Usar umbral para distinguir zoom de pan (evita fluctuaciones)
+                          const double scaleThreshold = 0.01; // 1% de tolerancia
+                          final bool isZoomGesture = (details.scale - 1.0).abs() > scaleThreshold;
+                          
+                          if (!isZoomGesture) {
+                            // Pan horizontal - no hacer zoom vertical
+                            _isZooming = false;
                             widget.onHorizontalDragUpdate(details);
-                            _autoAdjustVerticalRange();
+                            // Solo ajustar rango vertical al final del pan, no durante cada actualización
                           } else {
+                            // Zoom horizontal - marcar que estamos haciendo zoom
+                            _isZooming = true;
                             widget
                                 .onScaleUpdate(1 + (details.scale - 1) * 0.05);
                           }
                         },
                         onScaleStart: (details) {
+                          // Inicializar como pan (se actualizará en onScaleUpdate si es zoom)
+                          _isZooming = false;
                           widget.onPanDown(details.localFocalPoint.dx);
                         },
                         onScaleEnd: (details) {
                           widget.onPanEnd();
+                          // No ajustar zoom vertical durante pan horizontal
+                          _isZooming = false;
                         },
                         onLongPressStart: (LongPressStartDetails details) {
                           final RenderBox? renderBox =
