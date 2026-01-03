@@ -254,6 +254,87 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     });
   }
 
+  /// Ajusta el desplazamiento vertical para mantener las velas visibles
+  /// sin cambiar el nivel de zoom si ya hay uno establecido
+  void _ensureVisibleRange() {
+    if (widget.candles.isEmpty) return;
+
+    final RenderBox? renderBox =
+    _customPaintKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final double maxWidth =
+        renderBox.size.width - PRICE_BAR_WIDTH + widget.candleWidth * 2;
+
+    final int candlesStartIndex = widget.candles.isEmpty
+        ? 0
+        : min(max(widget.index, 0), widget.candles.length - 1);
+
+    final int candlesEndIndex = widget.candles.isEmpty
+        ? 0
+        : min(
+      (maxWidth ~/ widget.candleWidth) + candlesStartIndex,
+      widget.candles.length - 1,
+    );
+
+    if (candlesEndIndex <= candlesStartIndex) return;
+
+    List<Candle> visibleCandles = widget.candles
+        .getRange(candlesStartIndex, candlesEndIndex - 10)
+        .toList();
+
+    double candlesHigh = visibleCandles.map((c) => c.high).reduce(max);
+    double candlesLow = visibleCandles.map((c) => c.low).reduce(min);
+
+    // Si hay zoom manual, solo ajustar si las velas se salen del rango visible
+    if (manualScaleHigh != null && manualScaleLow != null) {
+      // Verificar si las velas están completamente fuera del rango visible
+      bool needsAdjustment = false;
+      double newHigh = manualScaleHigh!;
+      double newLow = manualScaleLow!;
+      double currentRange = newHigh - newLow;
+
+      // Si las velas se salen por arriba o por abajo, ajustar manteniendo el rango
+      if (candlesHigh > newHigh) {
+        needsAdjustment = true;
+        newHigh = candlesHigh;
+        newLow = newHigh - currentRange;
+      }
+      if (candlesLow < newLow) {
+        needsAdjustment = true;
+        newLow = candlesLow;
+        newHigh = newLow + currentRange;
+      }
+
+      // Si las velas están completamente fuera en ambas direcciones, ajustar al centro
+      if (candlesHigh > newHigh && candlesLow < newLow) {
+        double candlesRange = candlesHigh - candlesLow;
+        double center = (candlesHigh + candlesLow) / 2;
+        newHigh = center + currentRange / 2;
+        newLow = center - currentRange / 2;
+        // Asegurar que el rango mínimo sea suficiente
+        if (currentRange < candlesRange) {
+          newHigh = candlesHigh;
+          newLow = candlesLow;
+        }
+        needsAdjustment = true;
+      }
+
+      if (needsAdjustment) {
+        setState(() {
+          manualScaleHigh = newHigh;
+          manualScaleLow = newLow;
+        });
+      }
+    } else {
+      // Si no hay zoom manual, ajustar normalmente (como _autoAdjustVerticalRange)
+      setState(() {
+        manualScaleHigh = candlesHigh;
+        manualScaleLow = candlesLow;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final noBetsText = LocalizedStrings.of(context)!.get('noBetsAvailable') ?? "No Bets available!";
@@ -688,7 +769,11 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                         },
                         onScaleEnd: (details) {
                           widget.onPanEnd();
-                          // No ajustar zoom vertical durante pan horizontal
+                          // Ajustar desplazamiento vertical solo si fue pan (no zoom)
+                          // para mantener las velas visibles sin cambiar el nivel de zoom
+                          if (!_isZooming) {
+                            _ensureVisibleRange();
+                          }
                           _isZooming = false;
                         },
                         onLongPressStart: (LongPressStartDetails details) {
