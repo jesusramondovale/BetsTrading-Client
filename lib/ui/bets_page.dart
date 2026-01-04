@@ -119,14 +119,16 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
   String _currency = 'eur';
   double _potentialPrize = 0.0;
   bool _isAcceptButtonEnabled = false;
-  final ScrollController _scrollController = ScrollController();
   Timer? _countdownTimer;
   Timer? _refreshTimer;
   String _timeRemaining = '0h 0m 0s';
   bool _isBlocked = false;
   RectangleZone? _currentZone;
   late AnimationController _oddsAnimationController;
-  late Animation<Color?> _oddsColorAnimation;
+  Animation<Color?> _oddsColorAnimation = AlwaysStoppedAnimation<Color?>(Colors.white);
+  
+  // Color blanco constante del label (usado tanto inicial como final de la animación)
+  static const Color _labelWhiteColor = Colors.white;
 
   // Calcula el mínimo de apuesta: 5 o el número de monedas del usuario si es menor
   double get _minBetAmount {
@@ -226,48 +228,56 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
     return const SizedBox.shrink();
   }
 
-  Widget _buildBetMultiplier(BuildContext context) {
+  Widget _buildBetMultiplier(BuildContext context, BoxConstraints constraints) {
     final strings = LocalizedStrings.of(context);
     final maxPoints = double.parse(_points ?? '0.0');
     // El tachado solo aparece cuando el valor es mayor al mÃ¡ximo permitido (mÃ¡ximo + 1)
     final shouldShowStrikethrough = _betAmount > maxPoints;
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final scaleFactor = (screenHeight / 800.0).clamp(0.75, 1.2);
+
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 20),
+        SizedBox(height: (1 * scaleFactor).clamp(4.0, 12.0)),
         Text(
           strings?.get('betting') ?? 'Betting',
           style: GoogleFonts.montserrat(
-            fontSize: 24.0,
+            fontSize: (20.0 * scaleFactor).clamp(16.0, 24.0),
             fontStyle: FontStyle.italic,
             color: Colors.white70,
           ),
         ),
+        SizedBox(height: (4 * scaleFactor).clamp(2.0, 8.0)),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               _betAmount.toStringAsFixed(0),
               style: GoogleFonts.montserrat(
-                fontSize: 36.0,
+                fontSize: (32.0 * scaleFactor).clamp(24.0, 36.0),
                 fontWeight: FontWeight.w800,
                 color: _isAcceptButtonEnabled ? Colors.white : Colors.red,
                 decoration: shouldShowStrikethrough ? TextDecoration.lineThrough : null,
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: (8 * scaleFactor).clamp(4.0, 10.0)),
             Image.asset(
               'assets/coin.png',
-              width: 36,
-              height: 36,
+              width: (32 * scaleFactor).clamp(24.0, 36.0),
+              height: (32 * scaleFactor).clamp(24.0, 36.0),
               fit: BoxFit.contain,
             ),
           ],
         ),
+        SizedBox(height: (4 * scaleFactor).clamp(2.0, 8.0)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: EdgeInsets.symmetric(horizontal: (20.0 * scaleFactor).clamp(12.0, 24.0)),
           child: BetAmountSelector(
             key: ValueKey(_points), // Forzar reconstrucciÃ³n cuando cambien los puntos
             minValue: _minBetAmount,
@@ -277,8 +287,9 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
             onChanged: _onBetAmountChanged,
           ),
         ),
+        SizedBox(height: (4 * scaleFactor).clamp(2.0, 8.0)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          padding: EdgeInsets.symmetric(horizontal: (10.0 * scaleFactor).clamp(6.0, 14.0)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -287,26 +298,26 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
               Text(
                 strings?.get('toWin') ?? 'To win: ',
                 style: GoogleFonts.montserrat(
-                  fontSize: 20.0,
+                  fontSize: (18.0 * scaleFactor).clamp(14.0, 20.0),
                   fontWeight: FontWeight.w600,
                   color: Colors.white70,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: (10 * scaleFactor).clamp(6.0, 14.0)),
               Text(
                 _potentialPrize.toStringAsFixed(2),
                 style: GoogleFonts.montserrat(
-                  fontSize: 26.0,
+                  fontSize: (24.0 * scaleFactor).clamp(18.0, 28.0),
                   fontWeight: FontWeight.w800,
                   color: _isAcceptButtonEnabled ? const Color(0xFF2ECC71) : Colors.red,
                   decoration: shouldShowStrikethrough ? TextDecoration.lineThrough : null,
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: (6 * scaleFactor).clamp(4.0, 8.0)),
               Image.asset(
                 'assets/coin.png',
-                width: 22,
-                height: 22,
+                width: (20 * scaleFactor).clamp(16.0, 24.0),
+                height: (20 * scaleFactor).clamp(16.0, 24.0),
                 fit: BoxFit.contain,
               ),
             ],
@@ -421,28 +432,14 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
     _startRefreshTimer();
     
     // Inicializar animación del odds
+    // Duración total: 0.1s (ir al color) + 1.5s (mantener) + 1s (desvanecer) = 2.6s
     _oddsAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 2600),
       vsync: this,
     );
     
-    // Animación que va de blanco -> amarillo -> blanco
-    _oddsColorAnimation = TweenSequence<Color?>([
-      TweenSequenceItem(
-        tween: ColorTween(
-          begin: Colors.white,
-          end: const Color(0xFFFFD700), // Amarillo dorado
-        ).chain(CurveTween(curve: Curves.easeIn)),
-        weight: 0.4, // 30% del tiempo para ir a amarillo
-      ),
-      TweenSequenceItem(
-        tween: ColorTween(
-          begin: const Color(0xFFFFD700), // Amarillo dorado
-          end: Colors.white,
-        ).chain(CurveTween(curve: Curves.easeOut)),
-        weight: 0.5, // 70% del tiempo para volver a blanco
-      ),
-    ]).animate(_oddsAnimationController);
+    // Animación inicial (se actualizará dinámicamente según el cambio del odds)
+    _oddsColorAnimation = AlwaysStoppedAnimation<Color?>(_labelWhiteColor);
   }
 
   @override
@@ -450,7 +447,6 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
     _countdownTimer?.cancel();
     _refreshTimer?.cancel();
     _oddsAnimationController.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -499,7 +495,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
   }
 
   void _startRefreshTimer() {
-    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (timer) async {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       if (!mounted || _isBlocked) {
         timer.cancel();
         return;
@@ -508,7 +504,36 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
     });
   }
 
-  void _startOddsAnimation() {
+  void _startOddsAnimation({required Color animationColor}) {
+    // Crear animación dinámica: blanco -> color (rápido) -> mantener color (1.5s) -> blanco (desvanecer lentamente)
+    // Usar _labelWhiteColor para asegurar que el blanco final sea exactamente el mismo que el inicial
+    _oddsColorAnimation = TweenSequence<Color?>([
+      // Fase 1: Ir al color rápidamente (0.1s)
+      TweenSequenceItem(
+        tween: ColorTween(
+          begin: _labelWhiteColor,
+          end: animationColor,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 0.1, // ~4% del tiempo total (0.1s de 2.6s)
+      ),
+      // Fase 2: Mantener el color (1.5s)
+      TweenSequenceItem(
+        tween: ColorTween(
+          begin: animationColor,
+          end: animationColor,
+        ),
+        weight: 1.5, // ~58% del tiempo total (1.5s de 2.6s)
+      ),
+      // Fase 3: Desvanecer lentamente a blanco (1s) - usando el mismo blanco del label
+      TweenSequenceItem(
+        tween: ColorTween(
+          begin: animationColor,
+          end: _labelWhiteColor,
+        ).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 1.0, // ~38% del tiempo total (1s de 2.6s)
+      ),
+    ]).animate(_oddsAnimationController);
+    
     _oddsAnimationController.reset();
     _oddsAnimationController.forward();
   }
@@ -552,12 +577,13 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
             _potentialPrize = _betAmount * newZone.odds;
           });
           
-          // Iniciar animación en cada refresh automático (cada 15 segundos)
-          _startOddsAnimation();
-          
-          // Debug: verificar si el odds cambió
+          // Iniciar animación con color según si el odds aumentó o disminuyó
           if (oldOdds != newOdds) {
-            print("Odds actualizado: $oldOdds -> $newOdds");
+            final animationColor = newOdds > oldOdds 
+                ? const Color(0xFF2ECC71) // Verde si aumentó
+                : const Color(0xFFE74C3C); // Rojo si disminuyó
+            _startOddsAnimation(animationColor: animationColor);
+            print("Odds actualizado: $oldOdds -> $newOdds (${newOdds > oldOdds ? 'aumentó' : 'disminuyó'})");
           }
         }
       }
@@ -568,68 +594,120 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: RepaintBoundary(
-              child: _BackgroundImage(
-                iconPath: widget.iconPath,
-                name: widget.name,
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter:
-              ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Desenfoque
-              child: Container(
-                color: Colors.black.withValues(alpha:0.7),
-              ),
-            ),
-          ),
-          // Contenido de la pÃ¡gina
-          Column(
+      extendBody: true,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
             children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(6.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _buildBetHeader(context),
-                      const SizedBox(height: 2),
-                      _buildBetDetails(context),
-                      _buildBetMultiplier(context),
-                    ],
+              Positioned.fill(
+                child: RepaintBoundary(
+                  child: _BackgroundImage(
+                    iconPath: widget.iconPath,
+                    name: widget.name,
                   ),
                 ),
               ),
-              _buildCountdownTimer(context),
-              _buildActionButtons(context),
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter:
+                  ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Desenfoque
+                  child: Container(
+                    color: Colors.black.withValues(alpha:0.7),
+                  ),
+                ),
+              ),
+              // Contenido de la pÃ¡gina
+              SafeArea(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.02,
+                          vertical: screenHeight * 0.005,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              flex: 3,
+                              child: _buildBetHeader(context, constraints),
+                            ),
+                            SizedBox(height: screenHeight * 0.01),
+                            _buildBetDetails(context),
+                            Spacer(),
+                            Flexible(
+                              flex: 2,
+                              child: _buildBetMultiplier(context, constraints),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    _buildCountdownTimer(context),
+                    _buildActionButtons(context),
+                  ],
+                ),
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
       resizeToAvoidBottomInset: true,
     );
   }
 
-  Widget _buildBetHeader(BuildContext context) {
+  Widget _buildBetHeader(BuildContext context, BoxConstraints constraints) {
     final strings = LocalizedStrings.of(context);
     final zone = _currentZone ?? widget.zone;
     final String currencyChar = (_currency == 'eur' ? '€' : '\$');
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
+    
+    // Factor de escala basado en la altura de pantalla (normalizado a 800px)
+    final scaleFactor = (screenHeight / 800.0).clamp(0.75, 1.2);
+    
+    // Márgenes y tamaños escalados
+    final topMargin = (screenHeight * 0.02).clamp(10.0, 20.0);
+    final horizontalMargin = (screenWidth * 0.03).clamp(8.0, 16.0);
+    
+    // Calcular altura máxima disponible: altura total menos SafeArea y componentes fijos
+    final safeAreaTop = mediaQuery.padding.top;
+    final safeAreaBottom = mediaQuery.padding.bottom;
+    final countdownTimerHeight = 74.0; // padding 12*2 + contenido ~50
+    final actionButtonsHeight = 86.0; // padding 18*2 + botones ~50
+    final sliderAndContentHeight = 220.0; // Altura aproximada del slider y contenido del BetMultiplier
+    
+    // Altura disponible para el Expanded = pantalla - SafeArea - componentes fijos
+    final expandedHeight = screenHeight - safeAreaTop - safeAreaBottom - countdownTimerHeight - actionButtonsHeight;
+    
+    // Calcular altura del header: usar un porcentaje del espacio disponible (65%)
+    // pero asegurando que quede espacio suficiente para el slider debajo (mínimo 220px)
+    final calculatedHeight = expandedHeight * 0.65;
+    final maxHeaderHeight = expandedHeight - sliderAndContentHeight - topMargin - (screenHeight * 0.01);
+    final headerHeight = calculatedHeight.clamp(364.0, maxHeaderHeight.clamp(364.0, 520.0));
 
     return Container(
+      
       key: ValueKey('${zone.id}_${zone.odds}'), // Forzar reconstrucción cuando cambie el odds
-      margin: const EdgeInsets.only(top: 80, left: 12, right: 12, bottom: 8),
+      margin: EdgeInsets.only(
+        top: topMargin,
+        left: horizontalMargin,
+        right: horizontalMargin,
+        bottom: screenHeight * 0.01,
+      ),
       child: Column(
         children: [
           // Tarjeta principal con gradiente
           Container(
-            height: 380,
+            height: headerHeight,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               border: zone.type == 1 ? null : Border.all(
@@ -677,7 +755,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Ticker del activo
                     Positioned(
-                      top: 20,
+                      top: headerHeight * 0.05,
                       left: 0,
                       right: 0,
                       child: Text(
@@ -685,15 +763,15 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                         textAlign: TextAlign.center,
                         style: GoogleFonts.syncopate(
                           color: Colors.white,
-                          fontSize: 28,
+                          fontSize: (28 * scaleFactor).clamp(20.0, 32.0),
                           fontWeight: FontWeight.w300,
-                          letterSpacing: 2,
+                          letterSpacing: 2 * scaleFactor,
                         ),
                       ),
                     ),
                     // Precio alto - mÃ¡s arriba
                     Positioned(
-                      top: 70,
+                      top: headerHeight * 0.18,
                       left: 0,
                       right: 0,
                       child: Column(
@@ -703,32 +781,32 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                             (strings?.get('alwaysBelow') ?? 'Always below').toUpperCase(),
                             style: GoogleFonts.figtree(
                               color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 16,
+                              fontSize: (16 * scaleFactor).clamp(12.0, 18.0),
                               fontWeight: FontWeight.w400,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4 * scaleFactor),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(6),
+                                padding: EdgeInsets.all(6 * scaleFactor),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.2),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   FontAwesomeIcons.anglesDown,
-                                  size: 14,
+                                  size: (14 * scaleFactor).clamp(10.0, 16.0),
                                   color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8 * scaleFactor),
                               Text(
                                 _formatPrice(zone.highPrice, _currency == 'usd'),
                                 style: GoogleFonts.figtree(
                                   color: Colors.white,
-                                  fontSize: 20,
+                                  fontSize: (20 * scaleFactor).clamp(16.0, 24.0),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -739,35 +817,43 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Odds gigante
                     Positioned(
-                      top: 100,
-                      bottom: 100,
+                      top: headerHeight * 0.26,
+                      bottom: headerHeight * 0.26,
                       left: 0,
                       right: 0,
                       child: Center(
                         child: AnimatedBuilder(
                           animation: _oddsColorAnimation,
                           builder: (context, child) {
-                            // Color blanco por defecto, amarillo solo durante la animación
+                            // Color blanco por defecto, color animado durante la animación
                             final isAnimating = _oddsAnimationController.isAnimating;
+                            final currentColor = _oddsColorAnimation.value ?? _labelWhiteColor;
+                            // Usar siempre el color de la animación o el blanco del label (mismo valor)
                             final textColor = isAnimating 
-                                ? (_oddsColorAnimation.value ?? Colors.white)
-                                : Colors.white;
+                                ? currentColor
+                                : _labelWhiteColor; // Color normal del label (mismo que el final del easeOut)
+            
+                            // Las sombras solo aparecen cuando el color no es blanco (durante la animación)
+                            // Se desvanecen gradualmente cuando el color vuelve a blanco
+                            final shadowColor = isAnimating && currentColor != _labelWhiteColor 
+                                ? currentColor 
+                                : null;
                             
                             return Text(
                               'x${zone.odds.toStringAsFixed(2)}',
                               key: ValueKey('odds_${zone.odds}'), // Forzar reconstrucción cuando cambie el odds
                               style: GoogleFonts.montserrat(
                                 color: textColor,
-                                fontSize: 54,
+                                fontSize: (54 * scaleFactor).clamp(40.0, 64.0),
                                 fontWeight: FontWeight.w300,
-                                shadows: isAnimating
+                                shadows: shadowColor != null
                                     ? [
                                         Shadow(
-                                          color: const Color(0xFFFFD700).withValues(alpha: 0.5),
+                                          color: shadowColor.withValues(alpha: 0.5),
                                           blurRadius: 20,
                                         ),
                                         Shadow(
-                                          color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                                          color: shadowColor.withValues(alpha: 0.3),
                                           blurRadius: 40,
                                         ),
                                       ]
@@ -780,7 +866,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Precio bajo - mÃ¡s abajo
                     Positioned(
-                      bottom: 70,
+                      bottom: headerHeight * 0.18,
                       left: 0,
                       right: 0,
                       child: Column(
@@ -790,34 +876,34 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(6),
+                                padding: EdgeInsets.all(6 * scaleFactor),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.2),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   FontAwesomeIcons.anglesUp,
-                                  size: 14,
+                                  size: (14 * scaleFactor).clamp(10.0, 16.0),
                                   color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8 * scaleFactor),
                               Text(
                                 _formatPrice(zone.lowPrice, _currency == 'usd'),
                                 style: GoogleFonts.figtree(
                                   color: Colors.white,
-                                  fontSize: 20,
+                                  fontSize: (20 * scaleFactor).clamp(16.0, 24.0),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4 * scaleFactor),
                           Text(
                             (strings?.get('alwaysAbove') ?? 'Always above').toUpperCase(),
                             style: GoogleFonts.figtree(
                               color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 16,
+                              fontSize: (16 * scaleFactor).clamp(12.0, 18.0),
                               fontWeight: FontWeight.w400,
                             ),
                           ),
@@ -826,35 +912,37 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Tarjetas flotantes de informaciÃ³n
                     Positioned(
-                      top: 8,
-                      left: 8,
+                      top: 8 * scaleFactor,
+                      left: 8 * scaleFactor,
                       child: _buildInfoBadge(
-                        icon: Icons.trending_up,
                         label: strings?.get('originValue') ?? 'Origin',
                         value: '${widget.currentValue.toStringAsFixed(2)}$currencyChar',
+                        scaleFactor: scaleFactor,
                       ),
                     ),
                     Positioned(
-                      bottom: 8,
-                      left: 8,
+                      bottom: 8 * scaleFactor,
+                      left: 8 * scaleFactor,
                       child: _buildInfoBadge(
                         icon: FontAwesomeIcons.arrowsUpDown,
                         label: strings?.get('targetMargin') ?? 'Margin',
                         value: '${zone.margin.toStringAsFixed(2)}%',
+                        scaleFactor: scaleFactor,
                       ),
                     ),
                     Positioned(
-                      bottom: 8,
-                      right: 8,
+                      bottom: 8 * scaleFactor,
+                      right: 8 * scaleFactor,
                       child: _buildInfoBadge(
                         icon: Icons.access_time,
                         label: strings?.get('duracion') ?? 'Duration',
                         value: '${zone.endDate.difference(zone.startDate).inHours} ${strings?.get('hours') ?? 'h'}',
+                        scaleFactor: scaleFactor,
                       ),
                     ),
                     // Etiqueta "DESDE" - izquierda, pegada al extremo, centrada verticalmente
                     Positioned(
-                      left: 2,
+                      left: -10,
                       top: 0,
                       bottom: 0,
                       child: Center(
@@ -881,14 +969,14 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Fecha inicio - izquierda, pegada al extremo, centrada verticalmente
                     Positioned(
-                      left: 0,
+                      left: -20,
                       top: 0,
                       bottom: 0,
                       child: Center(
                         child: Transform.rotate(
                           angle: 90 * 3.1415926535 / 180,
                           child: Padding(
-                            padding: const EdgeInsets.all(2),
+                            padding: const EdgeInsets.all(0),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                               decoration: BoxDecoration(
@@ -910,7 +998,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Fecha fin - derecha, pegada al extremo, centrada verticalmente
                     Positioned(
-                      right: 0,
+                      right: -20,
                       top: 0,
                       bottom: 0,
                       child: Center(
@@ -939,7 +1027,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Etiqueta "HASTA" - derecha, pegada al extremo, centrada verticalmente
                     Positioned(
-                      right: 0,
+                      right: -10,
                       top: 0,
                       bottom: 0,
                       child: Center(
@@ -964,7 +1052,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                         ),
                       ),
                     ),
-                    // Powered by 12
+                    // Powered by AWS
                     Positioned(
                       top: 8,
                       right: -15,
@@ -987,7 +1075,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                             const SizedBox(height: 4),
                             Image.asset(
                               'assets/aws.png',
-                              height: 30,
+                              height: 25,
                               fit: BoxFit.fitHeight,
                             ),
                           ],
@@ -1017,15 +1105,19 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
   }
 
   Widget _buildInfoBadge({
-    required IconData icon,
+    IconData? icon,
     required String label,
     required String value,
+    double scaleFactor = 1.0,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: (10 * scaleFactor).clamp(6.0, 12.0),
+        vertical: (8 * scaleFactor).clamp(4.0, 10.0),
+      ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12 * scaleFactor),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.4),
           width: 1,
@@ -1041,8 +1133,11 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.white),
-          const SizedBox(width: 6),
+          if (icon != null) ...
+          [
+            Icon(icon, size: (14 * scaleFactor).clamp(10.0, 16.0), color: Colors.white)
+          ],
+          SizedBox(width: (6 * scaleFactor).clamp(4.0, 8.0)),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -1051,7 +1146,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                 label,
                 style: GoogleFonts.montserrat(
                   color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 9,
+                  fontSize: (10 * scaleFactor).clamp(7.0, 11.0),
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -1059,7 +1154,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                 value,
                 style: GoogleFonts.figtree(
                   color: Colors.white,
-                  fontSize: 14,
+                  fontSize: (14 * scaleFactor).clamp(11.0, 16.0),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1180,5 +1275,6 @@ class _DashedBorderPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
 
 

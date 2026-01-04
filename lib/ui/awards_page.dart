@@ -88,9 +88,9 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     });
   }
 
-  Widget _buildUserRow(User user, int rank, String prize) {
-    
-    final borderRadius = BorderRadius.circular(14);
+  Widget _buildUserRow(User user, int rank, String prize, {double? rowExtent}) {
+    final scaleFactor = rowExtent != null ? (rowExtent / _ROW_EXTENT).clamp(0.75, 1.2) : 1.0;
+    final borderRadius = BorderRadius.circular((14 * scaleFactor).clamp(10.0, 18.0));
 
     return Material(
       color: Colors.transparent,
@@ -114,21 +114,24 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
               ),
             ],
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: EdgeInsets.symmetric(
+            horizontal: (10 * scaleFactor).clamp(6.0, 14.0),
+            vertical: (6 * scaleFactor).clamp(4.0, 8.0),
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                width: 45,
+                width: (45 * scaleFactor).clamp(35.0, 55.0),
                 child: Row(
                   children: [
                     if (rank <= 3) ...[
-                      MedalBadge(rank: rank, size: 30),
+                      MedalBadge(rank: rank, size: (30 * scaleFactor).clamp(24.0, 36.0)),
                     ] else ...[
                       Text(
                         '$rank',
                         style: GoogleFonts.syncopate(
-                          fontSize: 16,
+                          fontSize: (16 * scaleFactor).clamp(12.0, 20.0),
                           fontWeight: FontWeight.w600,
                           color: Colors.white.withValues(alpha:0.9),
                         ),
@@ -144,7 +147,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.montserrat(
-                    fontSize: 17,
+                    fontSize: (17 * scaleFactor).clamp(14.0, 20.0),
                     fontWeight: FontWeight.w500,
                     color: Colors.white.withValues(alpha:0.95),
                     letterSpacing: 0.2,
@@ -154,8 +157,8 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
 
               Container(
                 width: 1,
-                height: 24,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
+                height: (24 * scaleFactor).clamp(18.0, 30.0),
+                margin: EdgeInsets.symmetric(horizontal: (8 * scaleFactor).clamp(6.0, 10.0)),
                 color: Colors.white.withValues(alpha:0.12),
               ),
 
@@ -165,24 +168,28 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                   Text(
                     NumberFormat.compact().format(user.points),
                     style: GoogleFonts.montserrat(
-                      fontSize: 18,
+                      fontSize: (18 * scaleFactor).clamp(14.0, 22.0),
                       fontWeight: FontWeight.w700,
                       color: Colors.white.withValues(alpha:0.95),
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  Image.asset('assets/coin.png', width: 18, height: 18),
+                  SizedBox(width: (4 * scaleFactor).clamp(2.0, 6.0)),
+                  Image.asset(
+                    'assets/coin.png',
+                    width: (18 * scaleFactor).clamp(14.0, 22.0),
+                    height: (18 * scaleFactor).clamp(14.0, 22.0),
+                  ),
                   Container(
                     width: 1,
-                    height: 24,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    height: (24 * scaleFactor).clamp(18.0, 30.0),
+                    margin: EdgeInsets.symmetric(horizontal: (8 * scaleFactor).clamp(6.0, 10.0)),
                     color: Colors.white.withValues(alpha:0.12),
                   ),
                   if (prize.isNotEmpty) ...[
                     Text(
                       prize,
                       style: GoogleFonts.montserrat(
-                        fontSize: 16,
+                        fontSize: (16 * scaleFactor).clamp(12.0, 20.0),
                         fontWeight: FontWeight.w700,
                         color: Colors.green,
                       ),
@@ -197,13 +204,15 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     );
   }
 
-  Widget _buildTopUsersView(List<String> rewards, {userCountry = null}) {
-    final double blockHeight = _ROW_EXTENT * _VISIBLE_ITEMS + _ROW_GAP * (_VISIBLE_ITEMS - 1);
+  Widget _buildTopUsersView(List<String> rewards, {userCountry = null, double? rowExtent, double? rowGap}) {
+    final effectiveRowExtent = rowExtent ?? _ROW_EXTENT;
+    final effectiveRowGap = rowGap ?? _ROW_GAP;
+    final double blockHeight = effectiveRowExtent * _VISIBLE_ITEMS + effectiveRowGap * (_VISIBLE_ITEMS - 1);
 
     if (_userId == null) {
       return SizedBox(
         height: blockHeight,
-        child: _TopUsersSkeleton(count: _VISIBLE_ITEMS, rowExtent: _ROW_EXTENT, gap: _ROW_GAP),
+        child: _TopUsersSkeleton(count: _VISIBLE_ITEMS, rowExtent: effectiveRowExtent, gap: effectiveRowGap),
       );
     }
 
@@ -215,7 +224,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         if (snapshot.connectionState == ConnectionState.waiting) {
           return SizedBox(
             height: blockHeight,
-            child: _TopUsersSkeleton(count: _VISIBLE_ITEMS, rowExtent: _ROW_EXTENT, gap: _ROW_GAP),
+            child: _TopUsersSkeleton(count: _VISIBLE_ITEMS, rowExtent: effectiveRowExtent, gap: effectiveRowGap),
           );
         } else if (snapshot.hasError) {
           return SizedBox(
@@ -240,11 +249,11 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: count,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            separatorBuilder: (_, __) => SizedBox(height: _ROW_GAP),
+            padding: EdgeInsets.symmetric(horizontal: (10 * (rowExtent != null ? rowExtent / _ROW_EXTENT : 1.0)).clamp(6.0, 14.0)),
+            separatorBuilder: (_, __) => SizedBox(height: effectiveRowGap),
             itemBuilder: (_, i) => SizedBox(
-              height: _ROW_EXTENT,
-              child: _buildUserRow(users[i], i+1 , rewards.elementAt(i)),
+              height: effectiveRowExtent,
+              child: _buildUserRow(users[i], i+1 , rewards.elementAt(i), rowExtent: rowExtent),
             ),
           );
         }
@@ -425,17 +434,36 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
 
+    // Calcular valores responsivos
+    final scaleFactor = (screenHeight / 800.0).clamp(0.75, 1.2);
+    final rowExtent = (45 * scaleFactor).clamp(35.0, 55.0);
+    final rowGap = (8 * scaleFactor).clamp(6.0, 10.0);
+    final visibleItems = _VISIBLE_ITEMS;
+
+    // Obtener la altura del bottomNavigationBar (70 píxeles según layout_page.dart)
+    // y agregar padding adicional para evitar que los elementos queden ocultos
+    final bottomNavBarHeight = 70.0;
+    final additionalPadding = (16 * scaleFactor).clamp(12.0, 20.0);
+    final totalBottomPadding = bottomNavBarHeight + additionalPadding;
+    
     return SingleChildScrollView(
       physics: NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.only(bottom: totalBottomPadding),
       child: Material(
         color: Colors.transparent,
         child: Column(
           children: [
-            const SizedBox(height: 10),
+            SizedBox(height: (10 * scaleFactor).clamp(6.0, 14.0)),
             Padding(
-                padding: EdgeInsetsGeometry.fromLTRB(6,0,6,0),
+                padding: EdgeInsetsGeometry.fromLTRB(
+                  (6 * scaleFactor).clamp(4.0, 8.0),
+                  0,
+                  (6 * scaleFactor).clamp(4.0, 8.0),
+                  0
+                ),
                 child:  Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -445,7 +473,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                       child: Column(
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            padding: EdgeInsets.symmetric(horizontal: (12 * scaleFactor).clamp(8.0, 16.0)),
                             child: _FolderTabs(
                               controller: _tabController,
                               tabs: [
@@ -453,24 +481,32 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                                 strings?.get('yourCountry') ?? 'Your Region',
                               ],
                               leadingLabel: strings?.get('raffles') ?? 'Raffles',
+                              scaleFactor: scaleFactor,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: (8 * scaleFactor).clamp(6.0, 10.0)),
                           SizedBox(
-
-                            height: _ROW_EXTENT * _VISIBLE_ITEMS
-                                + _ROW_GAP * (_VISIBLE_ITEMS - 1),
+                            height: rowExtent * visibleItems + rowGap * (visibleItems - 1),
                             child: Container(
                               child: TabBarView(
                                 controller: _tabController,
                                 children: [
-                                  _buildTopUsersView(_currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD),
-                                  _buildTopUsersView(_currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD, userCountry: _userCountry),
+                                  _buildTopUsersView(
+                                    _currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD,
+                                    rowExtent: rowExtent,
+                                    rowGap: rowGap,
+                                  ),
+                                  _buildTopUsersView(
+                                    _currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD,
+                                    userCountry: _userCountry,
+                                    rowExtent: rowExtent,
+                                    rowGap: rowGap,
+                                  ),
                                 ],
                               ),
                             ),
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: (16 * scaleFactor).clamp(12.0, 20.0)),
 
                           ]
                       ),
@@ -486,10 +522,11 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                               Text(
                                 strings?.get('raffles') ?? 'Raffles',
                                 style: GoogleFonts.syncopate(
-                                    fontSize: 18, fontWeight: FontWeight.w200),
+                                    fontSize: (18 * scaleFactor).clamp(14.0, 22.0),
+                                    fontWeight: FontWeight.w200),
                               ),
                               Spacer(),
-                              DaysToMinutesCountDown()
+                              DaysToMinutesCountDown(scaleFactor: scaleFactor)
                             ],
                           ),
                           Divider(color: Colors.white, thickness: 0.5, height: 0.5),
@@ -497,6 +534,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                               raffleItems: _raffleItems,
                               userPoints: _userPoints,
                               userId: _userId ?? '0',
+                              scaleFactor: scaleFactor,
                               onRaffleSuccess: () async => {
                                 loadUserIdAndData(),
                                 homeScreenKey.currentState?.loadUserIdAndData()
@@ -526,17 +564,19 @@ class _FolderTabs extends StatelessWidget {
   final TabController controller;
   final List<String> tabs;
   final String leadingLabel;
+  final double scaleFactor;
 
   const _FolderTabs({
     required this.controller,
     required this.tabs,
     required this.leadingLabel,
+    this.scaleFactor = 1.0,
   });
 
   @override
   Widget build(BuildContext context) {
-    const double barHeight = kTextTabBarHeight;
-    const double horizontalPadding = 12;
+    final double barHeight = kTextTabBarHeight;
+    final double horizontalPadding = (12 * scaleFactor).clamp(8.0, 16.0);
 
     return SizedBox(
       height: barHeight + 1,
@@ -564,7 +604,7 @@ class _FolderTabs extends StatelessWidget {
                   child: Text(
                     'Top-5',
                     style: GoogleFonts.syncopate(
-                      fontSize: 28,
+                      fontSize: (28 * scaleFactor).clamp(22.0, 34.0),
                       fontWeight: FontWeight.w300,
                       color: Colors.white70,
                       letterSpacing: 0.5,
@@ -587,17 +627,17 @@ class _FolderTabs extends StatelessWidget {
                     dividerColor: Colors.transparent,
                     controller: controller,
                     isScrollable: true,
-                    labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+                    labelPadding: EdgeInsets.symmetric(horizontal: (14 * scaleFactor).clamp(10.0, 18.0)),
                     indicatorSize: TabBarIndicatorSize.tab,
                     overlayColor: WidgetStatePropertyAll(
                       Colors.white.withValues(alpha: 0.02),
                     ),
                     labelStyle: GoogleFonts.comfortaa(
-                      fontSize: 18,
+                      fontSize: (18 * scaleFactor).clamp(14.0, 22.0),
                       fontWeight: FontWeight.w600,
                     ),
                     unselectedLabelStyle: GoogleFonts.comfortaa(
-                      fontSize: 18,
+                      fontSize: (18 * scaleFactor).clamp(14.0, 22.0),
                       fontWeight: FontWeight.w400,
                     ),
                     labelColor: Colors.white,
@@ -607,14 +647,17 @@ class _FolderTabs extends StatelessWidget {
                         .map(
                           (t) => Tab(
                         child: Padding(
-                          padding: const EdgeInsets.only(top: 6, bottom: 2),
+                          padding: EdgeInsets.only(
+                            top: (6 * scaleFactor).clamp(4.0, 8.0),
+                            bottom: (2 * scaleFactor).clamp(1.0, 3.0),
+                          ),
                           child: Text(t),
                         ),
                       ),
                     )
                         .toList(),
                   ),
-                  const SizedBox(width: horizontalPadding),
+                  SizedBox(width: horizontalPadding),
                 ],
               ),
             ),
@@ -707,8 +750,9 @@ class MedalBadge extends StatelessWidget {
   }
 }
 class DaysToMinutesCountDown extends StatefulWidget {
-  DaysToMinutesCountDown({super.key, this.showLabel = true});
+  DaysToMinutesCountDown({super.key, this.showLabel = true, this.scaleFactor = 1.0});
   final bool showLabel;
+  final double scaleFactor;
 
   @override
   State<DaysToMinutesCountDown> createState() => _DaysToMinutesCountDownState();
@@ -754,13 +798,17 @@ class _DaysToMinutesCountDownState extends State<DaysToMinutesCountDown> {
           labelText,
           textAlign: TextAlign.right,
           style: GoogleFonts.montserrat(
-            fontSize: 14,
+            fontSize: (14 * widget.scaleFactor).clamp(11.0, 17.0),
             fontWeight: FontWeight.w300,
             color: Colors.white,
           ),
         ),
-        SizedBox(width: 4),
-        Icon(FontAwesomeIcons.clock, size: 16, color: Colors.white)
+        SizedBox(width: (4 * widget.scaleFactor).clamp(2.0, 6.0)),
+        Icon(
+          FontAwesomeIcons.clock,
+          size: (16 * widget.scaleFactor).clamp(12.0, 20.0),
+          color: Colors.white
+        )
       ],
     );
   }
@@ -776,6 +824,7 @@ class RafflesBuilder extends StatelessWidget {
   final List<RaffleItem> raffleItems;
   final double userPoints;
   final String userId;
+  final double scaleFactor;
   final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
   final Future<void> Function()? onRaffleSuccess;
 
@@ -783,6 +832,7 @@ class RafflesBuilder extends StatelessWidget {
     required this.raffleItems,
     required this.userPoints,
     required this.userId,
+    this.scaleFactor = 1.0,
     this.onRaffleSuccess,}) : super(key: key);
 
   Future<bool?> _showConfirmRaffleDialog(
@@ -934,18 +984,109 @@ class RafflesBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (raffleItems.isEmpty) {
-      return _RafflesSkeletonGrid();    }
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      itemCount: raffleItems.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1.5,
-      ),
+      return _RafflesSkeletonGrid(scaleFactor: scaleFactor);
+    }
+    
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final screenAspectRatio = screenWidth / screenHeight;
+    final horizontalPadding = (10 * scaleFactor).clamp(6.0, 14.0);
+    final crossAxisSpacing = (8 * scaleFactor).clamp(6.0, 10.0);
+    final mainAxisSpacing = (8 * scaleFactor).clamp(6.0, 10.0);
+    final crossAxisCount = 2;
+    
+    // Calcular ancho disponible para cada elemento
+    final availableWidth = screenWidth - (horizontalPadding * 2) - (crossAxisSpacing * (crossAxisCount - 1));
+    final itemWidth = availableWidth / crossAxisCount;
+    
+    // Calcular altura estimada del contenido del elemento
+    final imageHeight = screenHeight * 0.09 * scaleFactor;
+    final internalPadding = (8.0 * scaleFactor).clamp(6.0, 10.0) * 2;
+    final textHeight = (17 * scaleFactor).clamp(14.0, 20.0) * 1.8;
+    final spacingBetweenElements = (3 * scaleFactor).clamp(2.0, 4.0);
+    final estimatedItemHeight = imageHeight + internalPadding + textHeight + spacingBetweenElements;
+    
+    // Calcular childAspectRatio dinámicamente
+    // Para pantallas 9:16 (más estrechas), usar aspect ratio más alto para evitar solapamiento
+    final baseAspectRatio = itemWidth / estimatedItemHeight;
+    // Ajustar según la relación de aspecto de la pantalla
+    // Pantallas más altas (9:16) necesitan aspect ratio más alto
+    final aspectRatioAdjustment = screenAspectRatio < 0.6 ? 1.15 : 1.0; // 9:16 ≈ 0.5625
+    final dynamicAspectRatio = (baseAspectRatio * aspectRatioAdjustment).clamp(1.2, 2.0);
+    
+    // Calcular padding inferior adicional para evitar que los elementos queden ocultos
+    final bottomNavBarHeight = 100.0;
+    final extraBottomPadding = bottomNavBarHeight + (12 * scaleFactor).clamp(8.0, 16.0);
+    
+    // Obtener SafeArea para calcular el espacio disponible
+    final safeAreaTop = mediaQuery.padding.top;
+    final safeAreaBottom = mediaQuery.padding.bottom;
+    
+    // Calcular rowExtent y rowGap (mismos valores que en AwardsPage)
+    final calculatedRowExtent = (45 * scaleFactor).clamp(35.0, 55.0);
+    final calculatedRowGap = (8 * scaleFactor).clamp(6.0, 10.0);
+    final visibleItems = 5; // _VISIBLE_ITEMS
+    
+    // Calcular altura aproximada de los elementos superiores (Top-5 list)
+    // Esto incluye: padding superior, tabs, lista de top users, spacing, título de raffles, divider
+    final topSectionHeight = (10 * scaleFactor).clamp(6.0, 14.0) + // padding superior
+                             48 + // altura aproximada de tabs
+                             (calculatedRowExtent * visibleItems + calculatedRowGap * (visibleItems - 1)) + // top users list
+                             (16 * scaleFactor).clamp(12.0, 20.0) + // spacing
+                             30 + // título "Raffles"
+                             1; // divider
+    
+    // Calcular altura máxima disponible para el GridView
+    final maxAvailableHeight = screenHeight - 
+                                safeAreaTop - 
+                                safeAreaBottom - 
+                                topSectionHeight - 
+                                extraBottomPadding;
+    
+    // Calcular número de filas necesarias
+    final rowCount = (raffleItems.length / crossAxisCount).ceil();
+    final itemHeight = itemWidth / dynamicAspectRatio;
+    final topPadding = (8 * scaleFactor).clamp(4.0, 12.0);
+    final bottomPadding = (8 * scaleFactor).clamp(4.0, 12.0);
+    final totalGridHeight = (itemHeight * rowCount) + (mainAxisSpacing * (rowCount - 1));
+    final totalContentHeight = totalGridHeight + topPadding + bottomPadding;
+    
+    // Si el contenido es más grande que el espacio disponible, ajustar el aspect ratio
+    double adjustedAspectRatio = dynamicAspectRatio;
+    if (totalContentHeight > maxAvailableHeight && maxAvailableHeight > 0) {
+      // Calcular nuevo aspect ratio para que quepa en el espacio disponible
+      final availableContentHeight = maxAvailableHeight - topPadding - bottomPadding;
+      final maxItemHeight = (availableContentHeight - (mainAxisSpacing * (rowCount - 1))) / rowCount;
+      if (maxItemHeight > 0) {
+        adjustedAspectRatio = itemWidth / maxItemHeight;
+        adjustedAspectRatio = adjustedAspectRatio.clamp(1.2, 2.5);
+      }
+    }
+    
+    // Usar la altura mínima entre la calculada y la máxima disponible
+    final gridHeight = totalContentHeight > maxAvailableHeight 
+        ? maxAvailableHeight 
+        : totalContentHeight;
+    
+    return SizedBox(
+      height: gridHeight.clamp(0.0, maxAvailableHeight),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          left: horizontalPadding,
+          right: horizontalPadding,
+          top: topPadding,
+          bottom: bottomPadding,
+        ),
+        itemCount: raffleItems.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: crossAxisSpacing,
+          mainAxisSpacing: mainAxisSpacing,
+          childAspectRatio: adjustedAspectRatio,
+        ),
       itemBuilder: (context, index) {
         RaffleItem raffleItem = raffleItems[index];
         final name =  raffleItem.name;
@@ -976,14 +1117,18 @@ class RafflesBuilder extends StatelessWidget {
                   ),
                 ],
               ),
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.all((8.0 * scaleFactor).clamp(6.0, 10.0)),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (image.isNotEmpty)
-                    Image.memory(base64Decode(image), height: MediaQuery.of(context).size.height * 0.09, fit: BoxFit.fill),
+                    Image.memory(
+                      base64Decode(image),
+                      height: MediaQuery.of(context).size.height * 0.09 * scaleFactor,
+                      fit: BoxFit.fill,
+                    ),
                   if (name.isNotEmpty) ...[
-                    SizedBox(height: 3),
+                    SizedBox(height: (3 * scaleFactor).clamp(2.0, 4.0)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -991,7 +1136,7 @@ class RafflesBuilder extends StatelessWidget {
                           shortName,
                           textAlign: TextAlign.center,
                           style: GoogleFonts.montserrat(
-                            fontSize: 17,
+                            fontSize: (17 * scaleFactor).clamp(14.0, 20.0),
                             fontWeight: FontWeight.w300,
                             color: Colors.white.withValues(alpha: 0.95),
                             letterSpacing: 0.2,
@@ -1005,12 +1150,13 @@ class RafflesBuilder extends StatelessWidget {
                               const TextSpan(text: ""),
                               WidgetSpan(
                                 alignment: PlaceholderAlignment.middle,
+
                                 child: Padding(
                                   padding: EdgeInsets.zero,
                                   child: Image.asset(
                                     'assets/coin.png',
-                                    width: 16,
-                                    height: 16,
+                                    width: (16 * scaleFactor).clamp(12.0, 20.0),
+                                    height: (16 * scaleFactor).clamp(12.0, 20.0),
                                   ),
                                 ),
                               ),
@@ -1019,7 +1165,7 @@ class RafflesBuilder extends StatelessWidget {
                           ),
                           textAlign: TextAlign.center,
                           style: GoogleFonts.montserrat(
-                            fontSize: 17,
+                            fontSize: (17 * scaleFactor).clamp(14.0, 20.0),
                             fontWeight: FontWeight.w300,
                             color: Colors.white.withValues(alpha: 0.95),
                             letterSpacing: 0.2,
@@ -1036,7 +1182,8 @@ class RafflesBuilder extends StatelessWidget {
         );
 
       },
-    );
+        ),
+      );
   }
 }
 
@@ -1186,26 +1333,115 @@ class _TopUsersSkeleton extends StatelessWidget {
 }
 
 class _RafflesSkeletonGrid extends StatelessWidget {
-  const _RafflesSkeletonGrid();
+  final double scaleFactor;
+  const _RafflesSkeletonGrid({this.scaleFactor = 1.0});
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      itemCount: 4, // 2x2 placeholder
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1.5,
-      ),
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final screenAspectRatio = screenWidth / screenHeight;
+    final horizontalPadding = (10 * scaleFactor).clamp(6.0, 14.0);
+    final crossAxisSpacing = (8 * scaleFactor).clamp(6.0, 10.0);
+    final mainAxisSpacing = (8 * scaleFactor).clamp(6.0, 10.0);
+    final crossAxisCount = 2;
+    
+    // Calcular ancho disponible para cada elemento
+    final availableWidth = screenWidth - (horizontalPadding * 2) - (crossAxisSpacing * (crossAxisCount - 1));
+    final itemWidth = availableWidth / crossAxisCount;
+    
+    // Calcular altura estimada del contenido del elemento
+    final imageHeight = screenHeight * 0.09 * scaleFactor;
+    final internalPadding = (8.0 * scaleFactor).clamp(6.0, 10.0) * 2;
+    final textHeight = (17 * scaleFactor).clamp(14.0, 20.0) * 1.8;
+    final spacingBetweenElements = (6 * scaleFactor).clamp(4.0, 8.0);
+    final estimatedItemHeight = imageHeight + internalPadding + textHeight + spacingBetweenElements;
+    
+    // Calcular childAspectRatio dinámicamente
+    // Para pantallas 9:16 (más estrechas), usar aspect ratio más alto para evitar solapamiento
+    final baseAspectRatio = itemWidth / estimatedItemHeight;
+    // Ajustar según la relación de aspecto de la pantalla
+    // Pantallas más altas (9:16) necesitan aspect ratio más alto
+    final aspectRatioAdjustment = screenAspectRatio < 0.6 ? 1.15 : 1.0; // 9:16 ≈ 0.5625
+    final dynamicAspectRatio = (baseAspectRatio * aspectRatioAdjustment).clamp(1.2, 2.0);
+    
+    // Calcular padding inferior adicional para evitar que los elementos queden ocultos
+    final bottomNavBarHeight = 100.0;
+    final extraBottomPadding = bottomNavBarHeight + (12 * scaleFactor).clamp(8.0, 16.0);
+    
+    // Usar MediaQuery para obtener la altura real de la pantalla
+    final safeAreaTop = mediaQuery.padding.top;
+    final safeAreaBottom = mediaQuery.padding.bottom;
+    
+    // Calcular rowExtent y rowGap (mismos valores que en AwardsPage)
+    final calculatedRowExtent = (45 * scaleFactor).clamp(35.0, 55.0);
+    final calculatedRowGap = (8 * scaleFactor).clamp(6.0, 10.0);
+    final visibleItems = 5; // _VISIBLE_ITEMS
+    
+    // Calcular altura aproximada de los elementos superiores (Top-5 list)
+    final topSectionHeight = (10 * scaleFactor).clamp(6.0, 14.0) + // padding superior
+                             48 + // altura aproximada de tabs
+                             (calculatedRowExtent * visibleItems + calculatedRowGap * (visibleItems - 1)) + // top users list
+                             (16 * scaleFactor).clamp(12.0, 20.0) + // spacing
+                             30 + // título "Raffles"
+                             1; // divider
+    
+    // Calcular altura máxima disponible para el GridView
+    final maxAvailableHeight = screenHeight - 
+                                safeAreaTop - 
+                                safeAreaBottom - 
+                                topSectionHeight - 
+                                extraBottomPadding;
+    
+    // Calcular número de filas necesarias (4 items = 2x2)
+    final rowCount = 2;
+    final itemHeight = itemWidth / dynamicAspectRatio;
+    final topPadding = (8 * scaleFactor).clamp(4.0, 12.0);
+    final bottomPadding = (8 * scaleFactor).clamp(4.0, 12.0);
+    final totalGridHeight = (itemHeight * rowCount) + (mainAxisSpacing * (rowCount - 1));
+    final totalContentHeight = totalGridHeight + topPadding + bottomPadding;
+    
+    // Si el contenido es más grande que el espacio disponible, ajustar el aspect ratio
+    double adjustedAspectRatio = dynamicAspectRatio;
+    if (totalContentHeight > maxAvailableHeight && maxAvailableHeight > 0) {
+      // Calcular nuevo aspect ratio para que quepa en el espacio disponible
+      final availableContentHeight = maxAvailableHeight - topPadding - bottomPadding;
+      final maxItemHeight = (availableContentHeight - (mainAxisSpacing * (rowCount - 1))) / rowCount;
+      if (maxItemHeight > 0) {
+        adjustedAspectRatio = itemWidth / maxItemHeight;
+        adjustedAspectRatio = adjustedAspectRatio.clamp(1.2, 2.5);
+      }
+    }
+    
+    // Usar la altura mínima entre la calculada y la máxima disponible
+    final gridHeight = totalContentHeight > maxAvailableHeight 
+        ? maxAvailableHeight 
+        : totalContentHeight;
+    
+    return SizedBox(
+      height: gridHeight.clamp(0.0, maxAvailableHeight),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          left: horizontalPadding,
+          right: horizontalPadding,
+          top: topPadding,
+          bottom: bottomPadding,
+        ),
+        itemCount: 4, // 2x2 placeholder
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: crossAxisSpacing,
+          mainAxisSpacing: mainAxisSpacing,
+          childAspectRatio: adjustedAspectRatio,
+        ),
       itemBuilder: (_, __) {
         return Container(
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular((14 * scaleFactor).clamp(10.0, 18.0)),
             border: Border.all(color: Colors.white.withValues(alpha: 0.10), width: 1),
             boxShadow: [
               BoxShadow(
@@ -1215,27 +1451,36 @@ class _RafflesSkeletonGrid extends StatelessWidget {
               ),
             ],
           ),
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all((8 * scaleFactor).clamp(6.0, 10.0)),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                height: MediaQuery.of(_).size.height * 0.09,
+                height: MediaQuery.of(context).size.height * 0.09 * scaleFactor,
                 color: Colors.white.withValues(alpha: 0.08),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: (6 * scaleFactor).clamp(4.0, 8.0)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(width: 80, height: 14, color: Colors.white.withValues(alpha: 0.08)),
-                  const SizedBox(width: 6),
-                  Container(width: 50, height: 14, color: Colors.white.withValues(alpha: 0.08)),
+                  Container(
+                    width: (80 * scaleFactor).clamp(60.0, 100.0),
+                    height: (14 * scaleFactor).clamp(11.0, 17.0),
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                  SizedBox(width: (6 * scaleFactor).clamp(4.0, 8.0)),
+                  Container(
+                    width: (50 * scaleFactor).clamp(40.0, 60.0),
+                    height: (14 * scaleFactor).clamp(11.0, 17.0),
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
                 ],
               ),
             ],
           ),
         );
       },
-    );
+        ),
+      );
   }
 }
