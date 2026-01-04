@@ -59,7 +59,6 @@ class MainMenuPageState extends State<MainMenuPage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final MainMenuPageController _controller = MainMenuPageController();
   String _username = '';
-  bool _isLoading = true;
   bool _showNotificationsPage = false;
 
   Future<void> _loadProfilePic() async {
@@ -95,11 +94,9 @@ class MainMenuPageState extends State<MainMenuPage> {
   }
 
   Future<void> _initializeData() async {
-    await _loadUserInfo();
-    await _loadProfilePic();
-    setState(() {
-      _isLoading = false;
-    });
+    // Cargar datos de forma asíncrona sin bloquear la UI
+    _loadUserInfo();
+    _loadProfilePic();
   }
 
   Future<void> _checkFirstRun() async {
@@ -167,10 +164,7 @@ class MainMenuPageState extends State<MainMenuPage> {
       UserInfoPage(controller: _controller)
     ];
 
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    } else {
-      return Scaffold(
+    return Scaffold(
         extendBody: true,
         body: Stack(children: [
           Positioned.fill(
@@ -305,9 +299,7 @@ class MainMenuPageState extends State<MainMenuPage> {
                     ),
                   );
                 },
-              )
-
+              ),
       );
-    }
   }
 }

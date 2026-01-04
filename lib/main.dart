@@ -230,10 +230,12 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  DateTime? _startTime;
 
   @override
   void initState() {
     super.initState();
+    _startTime = DateTime.now();
     _checkConsent();
   }
 
@@ -242,11 +244,24 @@ class _SplashScreenState extends State<SplashScreen> {
     _checkAuthentication();
   }
 
-  void _checkAuthentication() async {
+  Future<void> _checkAuthentication() async {
     bool isLoggedIn = await AuthService().isLoggedIn();
+    
+    // Realizar las operaciones necesarias
     if (isLoggedIn) {
       String? id = await _storage.read(key: 'sessionToken');
       await BetsService().getUserInfo(id!);
+    }
+    
+    // Asegurar que el splash dure al menos 3 segundos
+    final elapsed = DateTime.now().difference(_startTime!);
+    final minDuration = const Duration(seconds: 3);
+    if (elapsed < minDuration) {
+      await Future.delayed(minDuration - elapsed);
+    }
+    
+    // Navegar después de cumplir el tiempo mínimo
+    if (isLoggedIn) {
       _navigateToHome();
     } else {
       _navigateToLogin();
