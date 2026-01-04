@@ -218,41 +218,6 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     }
   }
 
-  void _autoAdjustVerticalRange() {
-    if (widget.candles.isEmpty) return;
-
-    final RenderBox? renderBox =
-    _customPaintKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-
-    final double maxWidth =
-        renderBox.size.width - PRICE_BAR_WIDTH + widget.candleWidth * 2;
-
-    final int candlesStartIndex = widget.candles.isEmpty
-        ? 0
-        : min(max(widget.index, 0), widget.candles.length - 1);
-
-    final int candlesEndIndex = widget.candles.isEmpty
-        ? 0
-        : min(
-      (maxWidth ~/ widget.candleWidth) + candlesStartIndex,
-      widget.candles.length - 1,
-    );
-
-    if (candlesEndIndex <= candlesStartIndex) return;
-
-    List<Candle> visibleCandles = widget.candles
-        .getRange(candlesStartIndex, candlesEndIndex - 10)
-        .toList();
-
-    double newHigh = visibleCandles.map((c) => c.high).reduce(max);
-    double newLow = visibleCandles.map((c) => c.low).reduce(min);
-
-    setState(() {
-      manualScaleHigh = newHigh;
-      manualScaleLow = newLow;
-    });
-  }
 
   /// Ajusta el desplazamiento vertical para mantener las velas visibles
   /// sin cambiar el nivel de zoom si ya hay uno establecido
