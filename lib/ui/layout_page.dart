@@ -228,7 +228,7 @@ class MainMenuPageState extends State<MainMenuPage> {
                 valueListenable: _controller.selectedIndexNotifier,
                 builder: (context, index, _) {
                   return Container(
-                    height: 60,
+                    height: 70,
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
@@ -245,7 +245,9 @@ class MainMenuPageState extends State<MainMenuPage> {
                       unselectedItemColor: Colors.white30,
                       showUnselectedLabels: false,
                       showSelectedLabels: true,
-                      iconSize: 35,
+                      iconSize: 28,
+                      selectedLabelStyle: TextStyle(fontSize: 11),
+                      unselectedLabelStyle: TextStyle(fontSize: 11),
                       items: <BottomNavigationBarItem>[
                         BottomNavigationBarItem(
                           icon: Icon(FontAwesomeIcons.house),

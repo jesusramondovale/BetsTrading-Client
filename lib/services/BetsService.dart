@@ -33,6 +33,7 @@ class BetsService {
 
   Future<List<BetZone>> fetchBetZones(String ticker, int hoursTimeframe, int? betId, {required String currency}) async {
 
+
     if (null != betId) {
       final response =
           await Common().postRequestWrapper('Bet', 'GetBetZone', {

@@ -524,7 +524,7 @@ class Common {
       return RectangleZone(
         id: betZone.id,
         startDate: betZone.startDate,
-        endDate: betZone.endDate ?? DateTime.now().add(const Duration(days: 1)),
+        endDate: betZone.endDate ?? DateTime.now().toUtc().add(const Duration(days: 1)),
         highPrice: upperBound,
         lowPrice: lowerBound,
         margin: betZone.betMargin,
