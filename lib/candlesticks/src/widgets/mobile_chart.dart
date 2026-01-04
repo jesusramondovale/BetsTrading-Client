@@ -86,6 +86,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
   bool firstVerticalDragOffset = true;
   int? lastCandleIndex;
   bool _dollarCurrency = false;
+  bool _isZooming = false; // Rastrea si estamos haciendo zoom horizontal
 
   @override
   void initState() {
@@ -251,6 +252,87 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
       manualScaleHigh = newHigh;
       manualScaleLow = newLow;
     });
+  }
+
+  /// Ajusta el desplazamiento vertical para mantener las velas visibles
+  /// sin cambiar el nivel de zoom si ya hay uno establecido
+  void _ensureVisibleRange() {
+    if (widget.candles.isEmpty) return;
+
+    final RenderBox? renderBox =
+    _customPaintKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final double maxWidth =
+        renderBox.size.width - PRICE_BAR_WIDTH + widget.candleWidth * 2;
+
+    final int candlesStartIndex = widget.candles.isEmpty
+        ? 0
+        : min(max(widget.index, 0), widget.candles.length - 1);
+
+    final int candlesEndIndex = widget.candles.isEmpty
+        ? 0
+        : min(
+      (maxWidth ~/ widget.candleWidth) + candlesStartIndex,
+      widget.candles.length - 1,
+    );
+
+    if (candlesEndIndex <= candlesStartIndex) return;
+
+    List<Candle> visibleCandles = widget.candles
+        .getRange(candlesStartIndex, candlesEndIndex - 10)
+        .toList();
+
+    double candlesHigh = visibleCandles.map((c) => c.high).reduce(max);
+    double candlesLow = visibleCandles.map((c) => c.low).reduce(min);
+
+    // Si hay zoom manual, solo ajustar si las velas se salen del rango visible
+    if (manualScaleHigh != null && manualScaleLow != null) {
+      // Verificar si las velas están completamente fuera del rango visible
+      bool needsAdjustment = false;
+      double newHigh = manualScaleHigh!;
+      double newLow = manualScaleLow!;
+      double currentRange = newHigh - newLow;
+
+      // Si las velas se salen por arriba o por abajo, ajustar manteniendo el rango
+      if (candlesHigh > newHigh) {
+        needsAdjustment = true;
+        newHigh = candlesHigh;
+        newLow = newHigh - currentRange;
+      }
+      if (candlesLow < newLow) {
+        needsAdjustment = true;
+        newLow = candlesLow;
+        newHigh = newLow + currentRange;
+      }
+
+      // Si las velas están completamente fuera en ambas direcciones, ajustar al centro
+      if (candlesHigh > newHigh && candlesLow < newLow) {
+        double candlesRange = candlesHigh - candlesLow;
+        double center = (candlesHigh + candlesLow) / 2;
+        newHigh = center + currentRange / 2;
+        newLow = center - currentRange / 2;
+        // Asegurar que el rango mínimo sea suficiente
+        if (currentRange < candlesRange) {
+          newHigh = candlesHigh;
+          newLow = candlesLow;
+        }
+        needsAdjustment = true;
+      }
+
+      if (needsAdjustment) {
+        setState(() {
+          manualScaleHigh = newHigh;
+          manualScaleLow = newLow;
+        });
+      }
+    } else {
+      // Si no hay zoom manual, ajustar normalmente (como _autoAdjustVerticalRange)
+      setState(() {
+        manualScaleHigh = candlesHigh;
+        manualScaleLow = candlesLow;
+      });
+    }
   }
 
   @override
@@ -664,19 +746,35 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                       ),
                       child: GestureDetector(
                         onScaleUpdate: (details) {
-                          if (details.scale == 1) {
+                          // Usar umbral para distinguir zoom de pan (evita fluctuaciones)
+                          const double scaleThreshold = 0.01; // 1% de tolerancia
+                          final bool isZoomGesture = (details.scale - 1.0).abs() > scaleThreshold;
+                          
+                          if (!isZoomGesture) {
+                            // Pan horizontal - no hacer zoom vertical
+                            _isZooming = false;
                             widget.onHorizontalDragUpdate(details);
-                            _autoAdjustVerticalRange();
+                            // Solo ajustar rango vertical al final del pan, no durante cada actualización
                           } else {
+                            // Zoom horizontal - marcar que estamos haciendo zoom
+                            _isZooming = true;
                             widget
                                 .onScaleUpdate(1 + (details.scale - 1) * 0.05);
                           }
                         },
                         onScaleStart: (details) {
+                          // Inicializar como pan (se actualizará en onScaleUpdate si es zoom)
+                          _isZooming = false;
                           widget.onPanDown(details.localFocalPoint.dx);
                         },
                         onScaleEnd: (details) {
                           widget.onPanEnd();
+                          // Ajustar desplazamiento vertical solo si fue pan (no zoom)
+                          // para mantener las velas visibles sin cambiar el nivel de zoom
+                          if (!_isZooming) {
+                            _ensureVisibleRange();
+                          }
+                          _isZooming = false;
                         },
                         onLongPressStart: (LongPressStartDetails details) {
                           final RenderBox? renderBox =
