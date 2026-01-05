@@ -566,10 +566,28 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
         );
 
         if (rectangleZones.isNotEmpty && mounted && !_isBlocked) {
-          final newZone = rectangleZones.first;
+          final updatedZone = rectangleZones.first;
           // Verificar si el odds realmente cambió
           final oldOdds = _currentZone?.odds ?? widget.zone.odds;
-          final newOdds = newZone.odds;
+          final newOdds = updatedZone.odds;
+          
+          // Preservar el fillColor original de la zona inicial para evitar cambios de color
+          final originalFillColor = _currentZone?.fillColor ?? widget.zone.fillColor;
+          
+          // Crear una nueva instancia con el fillColor preservado pero con los datos actualizados
+          final newZone = RectangleZone(
+            id: updatedZone.id,
+            startDate: updatedZone.startDate,
+            endDate: updatedZone.endDate,
+            highPrice: updatedZone.highPrice,
+            lowPrice: updatedZone.lowPrice,
+            margin: updatedZone.margin,
+            fillColor: originalFillColor, // Preservar el color original
+            strokeColor: updatedZone.strokeColor,
+            odds: updatedZone.odds,
+            ticker: updatedZone.ticker,
+            type: updatedZone.type,
+          );
           
           setState(() {
             _currentZone = newZone;
@@ -696,7 +714,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
 
     return Container(
       
-      key: ValueKey('${zone.id}_${zone.odds}'), // Forzar reconstrucción cuando cambie el odds
+      key: ValueKey('${zone.id}'), // Usar solo el ID para evitar reconstrucciones innecesarias
       margin: EdgeInsets.only(
         top: topMargin,
         left: horizontalMargin,
