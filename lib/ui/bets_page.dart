@@ -724,25 +724,17 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
       child: Column(
         children: [
           // Tarjeta principal con gradiente
-          Container(
-            height: headerHeight,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: zone.type == 1 ? null : Border.all(
-                color: Colors.white.withValues(alpha: 0.9),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: zone.fillColor.withValues(alpha: 0.4),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              height: headerHeight,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: zone.type == 1 ? null : Border.all(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  width: 1.2,
                 ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              ),
               child: Stack(
                 children: [
                   Container(
