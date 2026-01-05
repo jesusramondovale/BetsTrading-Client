@@ -3,7 +3,7 @@ import 'package:betrader/services/FirebaseService.dart';
 import 'package:betrader/ui/consent_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'config/config.dart';
 import 'helpers/common.dart';
 import 'ui/login_page.dart';
@@ -19,10 +19,25 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'dart:async';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+// Helper para configurar Google Fonts
+// Con la versión 6.3.3+, el paquete maneja automáticamente la falta de AssetManifest.json
+Future<void> _configureGoogleFonts() async {
+  try {
+    // Habilitar descarga de fuentes en tiempo de ejecución
+    // Esto permite que las fuentes se descarguen desde internet si el AssetManifest no está disponible
+    GoogleFonts.config.allowRuntimeFetching = true;
+    debugPrint('Google Fonts configurado para descarga en tiempo de ejecución');
+  } catch (e) {
+    // Si hay un error al configurar, continuar de todas formas
+    debugPrint('Advertencia: Error al configurar Google Fonts: $e');
+  }
+}
 
 Future<String> getFirebaseInstanceId() async {
   // Get the instance of Firebase Messaging
@@ -139,6 +154,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting();
+
+  // Configurar Google Fonts para evitar errores con AssetManifest.json
+  // La versión 6.3.3+ maneja automáticamente este problema
+  _configureGoogleFonts();
 
   try {
     if (Firebase.apps.isEmpty) {

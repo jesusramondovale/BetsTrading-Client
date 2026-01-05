@@ -8,7 +8,7 @@ import 'package:betrader/helpers/common.dart';
 import 'package:betrader/ui/signin_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart' hide Config;
 import '../config/config.dart';
 import '../services/BetsService.dart';
 import 'first_time_page.dart';
