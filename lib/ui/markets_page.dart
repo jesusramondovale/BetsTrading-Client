@@ -53,9 +53,14 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   }
 
   Future<void> _loadData() async {
-
+    if (!mounted) return;
+    
     await _loadAllAssets();
+    if (!mounted) return;
+    
     await _loadFavorites();
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = false;
     });
@@ -79,20 +84,27 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   }
 
   Future<void> _loadFavorites() async {
+    if (!mounted) return;
+    
     final token = await _storage.read(key: "sessionToken") ?? "";
     final prefs = await SharedPreferences.getInstance();
 
     final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
     final Favorites favs = await BetsService().fetchFavouritesData(token, (dollarCurrency ? 'USD' : 'EUR'));
+    
+    if (!mounted) return;
+    
     final tickers = favs.favorites
         .map((f) => f.ticker.toUpperCase().trim())
         .where((t) => t.isNotEmpty)
         .toSet();
+    
+    if (!mounted) return;
+    
     setState(() {
       _favTickers = tickers;
       _dollarCurrency = dollarCurrency;
     });
-
   }
 
   Future<void> _showAssetDetails(BuildContext context, FinancialAsset a) async {
@@ -208,7 +220,9 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       });
       Common().showFloatingSnack(context, "Error updating favorites", backgroundColor: Colors.red);
     } else {
-      await _loadFavorites();
+      if (mounted) {
+        await _loadFavorites();
+      }
     }
 
     homeScreenKey.currentState?.refreshFavorites();
@@ -373,8 +387,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _initGroups();
-    _loadData();
+    if (mounted) {
+      _initGroups();
+      _loadData();
+    }
   }
 
   @override
@@ -737,7 +753,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       builder: (BuildContext context) {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
-          child: Container(
+          child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.56,
             child: OverflowBox(
               alignment: Alignment.topCenter,

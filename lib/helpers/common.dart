@@ -11,7 +11,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -59,7 +59,7 @@ class Common {
     ),
     scaffoldBackgroundColor: Colors.black,
     appBarTheme: const AppBarTheme(
-      color: Colors.black,
+      backgroundColor: Colors.black,
       iconTheme: IconThemeData(color: Colors.white),
       titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
     ),
@@ -73,15 +73,15 @@ class Common {
   Future<void> showLocalNotification(String type, String title, String body,
       Map<String, dynamic> payload) async {
     final prefs = await SharedPreferences.getInstance();
-    bool _enableNotifications = prefs.getBool('enableNotifications') ?? true;
-    bool _trendingNotifications =
+    bool enableNotifications = prefs.getBool('enableNotifications') ?? true;
+    bool trendingNotifications =
         prefs.getBool('trendingNotifications') ?? true;
-    bool _newsNotifications = prefs.getBool('newsNotifications') ?? true;
-    bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
-    if (_enableNotifications) {
-      if ((type == "news" && _newsNotifications) |
-          (type == "trends" && _trendingNotifications) |
-          (type == "betting" && _bettingNotifications) |
+    bool newsNotifications = prefs.getBool('newsNotifications') ?? true;
+    bool bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
+    if (enableNotifications) {
+      if ((type == "news" && newsNotifications) |
+          (type == "trends" && trendingNotifications) |
+          (type == "betting" && bettingNotifications) |
           (type == "other")) {
         AndroidNotificationDetails androidPlatformChannelSpecifics =
             AndroidNotificationDetails(Random().toString(), 'Betrader',
@@ -184,7 +184,7 @@ class Common {
               ),
               const SizedBox(height: 12),
               Text(
-                "${detail}",
+                detail,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.montserrat(
                   fontSize: 18,
@@ -451,7 +451,7 @@ class Common {
     final id = random.nextInt(10000); // ID aleatorio entre 0 y 9999
     final ticker =
         _generateRandomString(16); // Cadena de 16 caracteres aleatorios
-    final name = 'Asset ${id}'; // Nombre basado en el ID
+    final name = 'Asset $id'; // Nombre basado en el ID
     final iconPath = _getRandomIconPath(); // Path al azar
     final betAmount = random.nextDouble() *
         10000; // Monto de apuesta aleatorio entre 0 y 10000
@@ -466,9 +466,7 @@ class Common {
     final targetDate = DateTime.now().add(Duration(
         days: random.nextInt(365))); // Fecha objetivo en el próximo año
     final endDate = targetDate.add(Duration(days: 2));
-    final targetOdds = (odds != null
-        ? odds
-        : (random.nextDouble() * 20) + 1); // Probabilidades entre 1 y 21
+    final targetOdds = (odds ?? (random.nextDouble() * 20) + 1); // Probabilidades entre 1 y 21
 
     return Bet(currentValue, false, currentValue - originValue,
         id: id,
@@ -1229,10 +1227,7 @@ class Common {
         final storage = FlutterSecureStorage();
         await storage.deleteAll();
 
-        navigatorKey.currentState?.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-              (route) => false,
-        );
+        LoginPage.navigateToLogin(null);
       }
 
       return {
@@ -1366,7 +1361,7 @@ class Common {
   }
 }
 
-/**********************************************************************************************/
+/// *******************************************************************************************
 
 class _FloatingSnack extends StatefulWidget {
   final String text;

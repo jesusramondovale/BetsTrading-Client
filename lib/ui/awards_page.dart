@@ -11,7 +11,7 @@ import 'package:betrader/models/users.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
@@ -79,13 +79,14 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
           .toList();
     }
 
-    if(mounted)
-    setState(() {
+    if(mounted) {
+      setState(() {
       _userId = userId;
       _userCountry = userCountry;
        _raffleItems = parsedRaffleItems;
       _userPoints = double.tryParse(points) ?? 0;
     });
+    }
   }
 
   Widget _buildUserRow(User user, int rank, String prize, {double? rowExtent}) {
@@ -204,7 +205,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     );
   }
 
-  Widget _buildTopUsersView(List<String> rewards, {userCountry = null, double? rowExtent, double? rowGap}) {
+  Widget _buildTopUsersView(List<String> rewards, {userCountry, double? rowExtent, double? rowGap}) {
     final effectiveRowExtent = rowExtent ?? _ROW_EXTENT;
     final effectiveRowGap = rowGap ?? _ROW_GAP;
     final double blockHeight = effectiveRowExtent * _VISIBLE_ITEMS + effectiveRowGap * (_VISIBLE_ITEMS - 1);
@@ -750,7 +751,7 @@ class MedalBadge extends StatelessWidget {
   }
 }
 class DaysToMinutesCountDown extends StatefulWidget {
-  DaysToMinutesCountDown({super.key, this.showLabel = true, this.scaleFactor = 1.0});
+  const DaysToMinutesCountDown({super.key, this.showLabel = true, this.scaleFactor = 1.0});
   final bool showLabel;
   final double scaleFactor;
 
@@ -828,12 +829,12 @@ class RafflesBuilder extends StatelessWidget {
   final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
   final Future<void> Function()? onRaffleSuccess;
 
-  RafflesBuilder({Key? key,
+  RafflesBuilder({super.key,
     required this.raffleItems,
     required this.userPoints,
     required this.userId,
     this.scaleFactor = 1.0,
-    this.onRaffleSuccess,}) : super(key: key);
+    this.onRaffleSuccess,});
 
   Future<bool?> _showConfirmRaffleDialog(
       BuildContext aContext, RaffleItem raffleItem, double userPoints) async {
@@ -1213,7 +1214,7 @@ class _TopUsersSkeleton extends StatelessWidget {
     final r = Random(i + 13);
     final base = _pool[i % _pool.length];
     if (r.nextBool() && base.length > 10) {
-      return base.substring(0, 12) + '...';
+      return '${base.substring(0, 12)}...';
     }
     return base;
   }

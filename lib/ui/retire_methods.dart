@@ -595,7 +595,7 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
   static const _alphabetXRP = 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz';
 
   final List<String> _networks = const ['BTC', 'XRP', 'ETH', 'RLUSD'];
-  String? _selectedNetwork = null;
+  String? _selectedNetwork;
   String _type = 'bank';
   final _labelCtrl = TextEditingController();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -798,7 +798,7 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
     return Column(
       children: [
         DropdownButtonFormField<String>(
-          value: _selectedNetwork,
+          initialValue: _selectedNetwork,
           items: _networks.map((net) {
             return DropdownMenuItem(
               value: net,
@@ -858,15 +858,15 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
 
     switch (network) {
       case 'BTC':
-        return _isValidBTC(address) ? null : "BTC: " + (LocalizedStrings.of(context)!.get('invalidAddress')
-            ?? "Invalid address");
+        return _isValidBTC(address) ? null : "BTC: ${LocalizedStrings.of(context)!.get('invalidAddress')
+            ?? "Invalid address"}";
       case 'XRP':
       case 'RLUSD': // RLUSD uses XRPL
-        return _isValidXRP(address) ? null : "XRPL: " + (LocalizedStrings.of(context)!.get('invalidAddress')
-            ?? "Invalid address");
+        return _isValidXRP(address) ? null : "XRPL: ${LocalizedStrings.of(context)!.get('invalidAddress')
+            ?? "Invalid address"}";
       case 'ETH':
-        return _isValidEthereumAddress(address) ? null : "ETH: " + (LocalizedStrings.of(context)!.get('invalidAddress')
-            ?? "Invalid address") + " (ERC20)";
+        return _isValidEthereumAddress(address) ? null : "ETH: ${LocalizedStrings.of(context)!.get('invalidAddress')
+            ?? "Invalid address"} (ERC20)";
       default:
         return "Unsupported network";
     }

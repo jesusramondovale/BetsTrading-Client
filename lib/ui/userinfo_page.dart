@@ -370,14 +370,13 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   final response = await AuthService().logOut();
                   if (response['success']) {
                     await _storage.deleteAll();
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                          (Route<dynamic> route) => false,
-                    );
+                    LoginPage.navigateToLogin(context);
                   } else {
-                    setState(() {
-                      Common().popDialog("Oops...", "${response['message']}", context);
-                    });
+                    if (mounted) {
+                      setState(() {
+                        Common().popDialog("Oops...", "${response['message']}", context);
+                      });
+                    }
                   }
                 },
               ),

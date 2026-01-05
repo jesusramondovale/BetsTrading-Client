@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:betrader/Services/BetsService.dart';
@@ -100,13 +100,13 @@ class BetConfirmationPage extends StatefulWidget {
   final String name;
 
   const BetConfirmationPage({
-    Key? key,
+    super.key,
     required this.name,
     required this.onCancel,
     required this.zone,
     required this.currentValue,
     required this.iconPath,
-  }) : super(key: key);
+  });
 
   @override
   _BetConfirmationPageState createState() => _BetConfirmationPageState();
@@ -157,7 +157,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
     FocusScope.of(context).requestFocus(FocusNode());
     await Future.delayed(Duration(milliseconds: 100));
     final prefs = await SharedPreferences.getInstance();
-    bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
+    bool bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
     
     FocusScope.of(context).unfocus();
 
@@ -167,11 +167,11 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
       bool result = await BetsService().postNewBet(userId!, fcm, widget.zone.ticker, _betAmount, widget.currentValue, betZone, _currency.toUpperCase());
       
       if (result) {
-        if (_bettingNotifications) {
+        if (bettingNotifications) {
           Common().showFloatingSnack(
               context,
               (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null ?
-              "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} ${_betAmount.toStringAsFixed(2)} " : "Bet placed successfully! ${_betAmount} "),
+              "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} ${_betAmount.toStringAsFixed(2)} " : "Bet placed successfully! $_betAmount "),
               showIcon: true);
         }
         
@@ -182,7 +182,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
         exchangePageKey.currentState?.loadData();
 
       } else {
-        if (_bettingNotifications) {
+        if (bettingNotifications) {
           Common().showFloatingSnack(
               context,
               (LocalizedStrings.of(context)!.get('errorMakingBet') ?? "Error creating bet!"),
@@ -566,10 +566,28 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
         );
 
         if (rectangleZones.isNotEmpty && mounted && !_isBlocked) {
-          final newZone = rectangleZones.first;
+          final updatedZone = rectangleZones.first;
           // Verificar si el odds realmente cambió
           final oldOdds = _currentZone?.odds ?? widget.zone.odds;
-          final newOdds = newZone.odds;
+          final newOdds = updatedZone.odds;
+          
+          // Preservar el fillColor original de la zona inicial para evitar cambios de color
+          final originalFillColor = _currentZone?.fillColor ?? widget.zone.fillColor;
+          
+          // Crear una nueva instancia con el fillColor preservado pero con los datos actualizados
+          final newZone = RectangleZone(
+            id: updatedZone.id,
+            startDate: updatedZone.startDate,
+            endDate: updatedZone.endDate,
+            highPrice: updatedZone.highPrice,
+            lowPrice: updatedZone.lowPrice,
+            margin: updatedZone.margin,
+            fillColor: originalFillColor, // Preservar el color original
+            strokeColor: updatedZone.strokeColor,
+            odds: updatedZone.odds,
+            ticker: updatedZone.ticker,
+            type: updatedZone.type,
+          );
           
           setState(() {
             _currentZone = newZone;
@@ -696,7 +714,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
 
     return Container(
       
-      key: ValueKey('${zone.id}_${zone.odds}'), // Forzar reconstrucción cuando cambie el odds
+      key: ValueKey('${zone.id}'), // Usar solo el ID para evitar reconstrucciones innecesarias
       margin: EdgeInsets.only(
         top: topMargin,
         left: horizontalMargin,
@@ -706,25 +724,17 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
       child: Column(
         children: [
           // Tarjeta principal con gradiente
-          Container(
-            height: headerHeight,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: zone.type == 1 ? null : Border.all(
-                color: Colors.white.withValues(alpha: 0.9),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: zone.fillColor.withValues(alpha: 0.4),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              height: headerHeight,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: zone.type == 1 ? null : Border.all(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  width: 1.2,
                 ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              ),
               child: Stack(
                 children: [
                   Container(
@@ -733,11 +743,12 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                         colors: [
                           HSLColor.fromColor(zone.fillColor).withLightness(
                             (HSLColor.fromColor(zone.fillColor).lightness * 0.7).clamp(0.0, 1.0),
-                          ).toColor().withValues(alpha: 0.35),
+                          ).toColor().withValues(alpha: 0.55),
                           HSLColor.fromColor(zone.fillColor).withLightness(
                             (HSLColor.fromColor(zone.fillColor).lightness * 1.15).clamp(0.0, 1.0),
-                          ).toColor().withValues(alpha: 0.35),
+                          ).toColor().withValues(alpha: 0.55),
                         ],
+                        
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -969,27 +980,24 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Fecha inicio - izquierda, pegada al extremo, centrada verticalmente
                     Positioned(
-                      left: -20,
+                      left: 0,
                       top: 0,
                       bottom: 0,
                       child: Center(
                         child: Transform.rotate(
                           angle: 90 * 3.1415926535 / 180,
-                          child: Padding(
-                            padding: const EdgeInsets.all(0),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                _formatDateShort(zone.startDate),
-                                style: GoogleFonts.montserrat(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _formatDateShort(zone.startDate),
+                              style: GoogleFonts.montserrat(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                           ),
@@ -998,27 +1006,24 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Fecha fin - derecha, pegada al extremo, centrada verticalmente
                     Positioned(
-                      right: -20,
+                      right: 0,
                       top: 0,
                       bottom: 0,
                       child: Center(
                         child: Transform.rotate(
                           angle: -90 * 3.1415926535 / 180,
-                          child: Padding(
-                            padding: const EdgeInsets.all(2),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                _formatDateShort(zone.endDate),
-                                style: GoogleFonts.montserrat(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _formatDateShort(zone.endDate),
+                              style: GoogleFonts.montserrat(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                           ),

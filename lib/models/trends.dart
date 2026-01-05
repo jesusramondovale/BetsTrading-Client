@@ -247,7 +247,7 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                                 children: [
                                   Text(
                                     '${strings?.get('close') ?? 'Close'}: '
-                                        '${(widget.trend.close > 1 ? '${widget.trend.close.toStringAsFixed(2)}' : '${widget.trend.close.toStringAsFixed(4)}')}'
+                                        '${(widget.trend.close > 1 ? widget.trend.close.toStringAsFixed(2) : widget.trend.close.toStringAsFixed(4))}'
                                         '${widget.currency}',
                                     style: GoogleFonts.montserrat(
                                       fontSize: ( widget.trend.close < 1000 ? 20 : 15),
@@ -257,7 +257,7 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                                   ),
                                   Text(
                                     '${strings?.get('current') ?? 'Current'}: '
-                                        '${(widget.trend.current > 1 ? '${widget.trend.current.toStringAsFixed(2)}' : '${widget.trend.current.toStringAsFixed(4)}')}'
+                                        '${(widget.trend.current > 1 ? widget.trend.current.toStringAsFixed(2) : widget.trend.current.toStringAsFixed(4))}'
                                         '${widget.currency}',
                                     style: GoogleFonts.montserrat(
                                       fontSize:  ( widget.trend.current < 1000 ? 20 : 15),
@@ -550,7 +550,7 @@ class TrendContainerState extends State<TrendContainer> {
                   builder: (BuildContext context) {
                     return ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
-                      child: Container(
+                      child: SizedBox(
                         height: MediaQuery.of(context).size.height * 0.56,
                         child: OverflowBox(
 

@@ -16,14 +16,16 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystoreProperties = Properties()
             val keystoreFile = rootProject.file("key.properties")
-            keystoreProperties.load(FileInputStream(keystoreFile))
+            if (keystoreFile.exists()) {
+                val keystoreProperties = Properties()
+                keystoreProperties.load(FileInputStream(keystoreFile))
 
-            storeFile = file(keystoreProperties["storeFile"]!!)
-            storePassword = keystoreProperties["storePassword"] as String
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"]!!)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
         }
     }
 
@@ -63,8 +65,11 @@ android {
                 "proguard-rules.pro"
             )
 
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("release")
+            // Solo usar signing config si existe key.properties
+            val keystoreFile = rootProject.file("key.properties")
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }

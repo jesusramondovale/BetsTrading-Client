@@ -19,7 +19,7 @@ class CandlesticksView extends StatefulWidget {
   final int? betId;
   final bool tutorialMode;
 
-  CandlesticksView({
+  const CandlesticksView({
     super.key,
     required this.controller,
     required this.iconPath,
@@ -312,7 +312,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
   }
 
   void _removeChartHintOverlay() {
-    _hintEntry?..remove();
+    _hintEntry?.remove();
     _hintEntry = null;
   }
 

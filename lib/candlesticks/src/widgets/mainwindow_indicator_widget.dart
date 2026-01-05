@@ -81,7 +81,9 @@ class MainWindowIndicatorRenderObject extends RenderBox {
       for (int i = 0; (i + 1) * _candleWidth < size.width; i++) {
         if (i + _index >= element.values.length ||
             i + _index < 0 ||
-            element.values[i + _index] == null) continue;
+            element.values[i + _index] == null) {
+          continue;
+        }
         if (path == null) {
           path = Path()
             ..moveTo(size.width + offset.dx - (i + 0.5) * _candleWidth,

@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart' hide Config;
 import '../config/config.dart';
 import '../locale/localized_texts.dart';
 import 'package:country_flags/country_flags.dart';
@@ -45,9 +45,9 @@ class _SignInState extends State<SignIn> {
     if (_validateAndSaveCurrentStep()) {
       _updateFormData(context);
       if (_currentStep == 2) {
-        String _countryCode = Common().getCountryCode(_country);
-        Common().postRequestWrapper('Auth', 'SendCode', {'email': _email, 'country': _countryCode});
-        popCodeDialog(context, _fullName, _password, _address, _countryCode, _gender, _email, _birthday, _cardNumberController, _username, _profilePic);
+        String countryCode = Common().getCountryCode(_country);
+        Common().postRequestWrapper('Auth', 'SendCode', {'email': _email, 'country': countryCode});
+        popCodeDialog(context, _fullName, _password, _address, countryCode, _gender, _email, _birthday, _cardNumberController, _username, _profilePic);
       }
       if (_currentStep < 2) {
         setState(() {

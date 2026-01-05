@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/BetsService.dart';
 import '../config/config.dart';
@@ -193,7 +193,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                   ? () async {
                       Common().vibrate();
                       final prefs = await SharedPreferences.getInstance();
-                      bool _bettingNotifications =
+                      bool bettingNotifications =
                           prefs.getBool('bettingNotifications') ?? true;
                       FocusScope.of(context).unfocus();
                       bool? confirmed = await Common()
@@ -219,7 +219,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             _currency.toUpperCase());
 
                         if (result == 200) {
-                          if (_bettingNotifications) {
+                          if (bettingNotifications) {
                             Common().showFloatingSnack(
                                 context,
                                 (LocalizedStrings.of(context)!
@@ -238,10 +238,9 @@ class _ExactPricePageState extends State<ExactPricePage> {
                         } else if (result == 410) {
                           Common().showFloatingSnack(
                               context,
-                              (LocalizedStrings.of(context)!
+                              "${LocalizedStrings.of(context)!
                                           .get('errorMakingBet') ??
-                                      "Error creating price bet!") +
-                                  "(NO TIME)",
+                                      "Error creating price bet!"}(NO TIME)",
                               backgroundColor: Colors.red);
                         } else if (result == 420) {
                           Common().showFloatingSnack(
@@ -258,7 +257,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                   "Bet already exists!"),
                               backgroundColor: Colors.red);
                         } else {
-                          if (_bettingNotifications) {
+                          if (bettingNotifications) {
                             Common().showFloatingSnack(
                                 context,
                                 (LocalizedStrings.of(context)!
@@ -410,17 +409,16 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      "${LocalizedStrings.of(context)?.get('nowLabel')!.toUpperCase() ?? 'NOW:'}",
+                      LocalizedStrings.of(context)?.get('nowLabel')!.toUpperCase() ?? 'NOW:',
                       style: GoogleFonts.montserrat(
                           fontSize: 18,
                           fontWeight: FontWeight.w200,
                           color: Colors.white),
                     ),
                     Text(
-                      (widget.isForex
+                      '${widget.isForex
                               ? ''
-                              : (_currency == "eur" ? '€' : '\$')) +
-                          ' ${widget.currentValue.toStringAsFixed(2)}',
+                              : (_currency == "eur" ? '€' : '\$')} ${widget.currentValue.toStringAsFixed(2)}',
                       style: GoogleFonts.montserrat(
                           fontSize: 36,
                           fontWeight: FontWeight.w400,
@@ -428,7 +426,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     ),
                     const SizedBox(height: 30),
                     Text(
-                      ("${LocalizedStrings.of(context)?.get('exactClosingValue') ?? 'Exact closing value'}")
+                      (LocalizedStrings.of(context)?.get('exactClosingValue') ?? 'Exact closing value')
                           .toUpperCase(),
                       style: GoogleFonts.montserrat(
                           fontSize: 16,
@@ -551,7 +549,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      ("${LocalizedStrings.of(context)?.get('atDate') ?? 'At date'}")
+                      (LocalizedStrings.of(context)?.get('atDate') ?? 'At date')
                           .toUpperCase(),
                       style: GoogleFonts.montserrat(
                           fontSize: 16,
@@ -565,7 +563,6 @@ class _ExactPricePageState extends State<ExactPricePage> {
                         DateTime selectedDate = minDate;
                         _selectedDate =
                             DateTime(minDate.year, minDate.month, minDate.day);
-                        ;
 
                         return StatefulBuilder(
                           builder: (context, setStateDate) {
@@ -629,7 +626,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  ("${LocalizedStrings.of(context)?.get('toWin') ?? 'To earn'}")
+                  (LocalizedStrings.of(context)?.get('toWin') ?? 'To earn')
                       .toUpperCase(),
                   style: GoogleFonts.montserrat(
                       fontSize: 16,
@@ -661,7 +658,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     children: [
                       const SizedBox(width: 10),
                       Text(
-                        '${NumberFormat('#,##0', 'es').format(Config.PRICE_BET_PRIZE)}',
+                        NumberFormat('#,##0', 'es').format(Config.PRICE_BET_PRIZE),
                         style: GoogleFonts.syncopate(
                           fontSize: 32,
                           fontWeight: FontWeight.w700,
@@ -684,7 +681,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     _showHowItWorksDialog();
                   },
                   child: Text(
-                    ("${LocalizedStrings.of(context)?.get('howItWorks') ?? 'How does it work?'}")
+                    (LocalizedStrings.of(context)?.get('howItWorks') ?? 'How does it work?')
                         .toUpperCase(),
                     style: GoogleFonts.syncopate(
                       fontSize: 20,

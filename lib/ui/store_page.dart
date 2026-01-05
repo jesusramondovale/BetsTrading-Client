@@ -6,7 +6,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,6 +17,8 @@ import '../locale/localized_texts.dart';
 import 'layout_page.dart';
 
 class StorePage extends StatefulWidget {
+  const StorePage({super.key});
+
   @override
   _StorePageState createState() => _StorePageState();
 }
@@ -481,7 +483,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                         _cardPayment(coins.toDouble(), price);
                       },
                     );
-                  }).toList(),
+                  }),
                 const Spacer(),
                 Stack(
                   alignment: Alignment.center,

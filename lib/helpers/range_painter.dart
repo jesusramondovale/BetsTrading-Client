@@ -49,7 +49,7 @@ class RangePainter extends CustomPainter {
   }
 
   double priceToY(double price, double high, double low, Size size) {
-    assert(high > low, "ERROR. Lowest must be lower than highest: High: ${high} Low: ${low}");
+    assert(high > low, "ERROR. Lowest must be lower than highest: High: $high Low: $low");
     double proportion = (price - low) / (high - low);
     double yPosition = (1 - proportion) * size.height;
     return yPosition;
@@ -133,7 +133,7 @@ class RangePainter extends CustomPainter {
     if (zones.value.isEmpty){
 
       final textSpan = TextSpan(
-        text: this.noBetsText,
+        text: noBetsText,
         style: GoogleFonts.montserrat(
             color: Colors.white,
             fontSize: 18,

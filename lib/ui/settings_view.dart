@@ -4,11 +4,12 @@ import 'dart:ui';
 import 'package:app_settings/app_settings.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/retire_methods.dart';
+import 'package:betrader/ui/notifications_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../config/config.dart';
@@ -41,12 +42,12 @@ class SettingsViewState extends State<SettingsView> {
       BuildContext context,
       String token,
       ) async {
-    bool _showNewPassword = false;
+    bool showNewPassword = false;
     final strings = LocalizedStrings.of(context);
     final TextEditingController currentPasswordController = TextEditingController();
     final TextEditingController newPasswordController = TextEditingController();
     final TextEditingController confirmPasswordController = TextEditingController();
-    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     final Color bgColor = Colors.grey[900]!;
     final Color fieldColor = Colors.grey[850]!;
     final Color textColor = Colors.white;
@@ -73,7 +74,7 @@ class SettingsViewState extends State<SettingsView> {
               ),
             ),
             content: Form(
-              key: _formKey,
+              key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -113,7 +114,7 @@ class SettingsViewState extends State<SettingsView> {
                             margin: const EdgeInsets.only(bottom: 14),
                             child: TextFormField(
                               controller: newPasswordController,
-                              obscureText: !_showNewPassword,
+                              obscureText: !showNewPassword,
                               style: GoogleFonts.montserrat(color: textColor),
                               decoration: InputDecoration(
                                 labelText: strings?.get('newPassword') ?? "New Password",
@@ -127,11 +128,11 @@ class SettingsViewState extends State<SettingsView> {
                                 ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _showNewPassword ? Icons.visibility : Icons.visibility_off,
+                                    showNewPassword ? Icons.visibility : Icons.visibility_off,
                                     color: Colors.white70,
                                   ),
                                   onPressed: () {
-                                    setState(() => _showNewPassword = !_showNewPassword);
+                                    setState(() => showNewPassword = !showNewPassword);
                                   },
                                 ),
                               ),
@@ -156,7 +157,7 @@ class SettingsViewState extends State<SettingsView> {
                           Container(
                             child: TextFormField(
                               controller: confirmPasswordController,
-                              obscureText: !_showNewPassword,
+                              obscureText: !showNewPassword,
                               style: GoogleFonts.montserrat(color: textColor),
                               decoration: InputDecoration(
                                 labelText: strings?.get('confirmPassword') ?? "Confirm Password",
@@ -210,7 +211,7 @@ class SettingsViewState extends State<SettingsView> {
               ElevatedButton(
                 onPressed: () async {
                   FocusManager.instance.primaryFocus?.unfocus();
-                  if (_formKey.currentState?.validate() != true) return;
+                  if (formKey.currentState?.validate() != true) return;
 
                   int result = await AuthService().changePassword(
                     token,
@@ -374,26 +375,6 @@ class SettingsViewState extends State<SettingsView> {
               color: Colors.white70.withValues(alpha: 0.25),
               context: context,
               tiles: [
-                // Personal Info
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    splashColor: Colors.white.withValues(alpha: 0.1),
-                    highlightColor: Colors.white.withValues(alpha: 0.05),
-                    onTap: () {
-                      Common().applyImmersive();
-                      widget.onPersonalInfoTap;
-                    },
-                    child: ListTile(
-                      title: Text(
-                        strings?.get('personalInfo') ?? 'Personal info',
-                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                    ),
-                  ),
-                ),
-
                 // Notifications
                 Material(
                   color: Colors.transparent,
@@ -401,8 +382,17 @@ class SettingsViewState extends State<SettingsView> {
                     splashColor: Colors.white.withValues(alpha: 0.1),
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () {
-                      widget.onShowNotifications;
                       Common().applyImmersive();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NotificationsPage(
+                            onBack: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      );
                     },
                     child: ListTile(
                       title: Text(
@@ -523,7 +513,7 @@ class SettingsViewState extends State<SettingsView> {
                   value: enableVibration,
                   inactiveThumbColor: Colors.black,
                   inactiveTrackColor: Colors.grey,
-                  activeColor: Colors.greenAccent,
+                  activeThumbColor: Colors.greenAccent,
                   onChanged: (bool value) async {
                     Common().vibrate();
                     Common().applyImmersive();
