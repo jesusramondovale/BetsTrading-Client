@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:app_settings/app_settings.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/retire_methods.dart';
+import 'package:betrader/ui/notifications_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -374,26 +375,6 @@ class SettingsViewState extends State<SettingsView> {
               color: Colors.white70.withValues(alpha: 0.25),
               context: context,
               tiles: [
-                // Personal Info
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    splashColor: Colors.white.withValues(alpha: 0.1),
-                    highlightColor: Colors.white.withValues(alpha: 0.05),
-                    onTap: () {
-                      Common().applyImmersive();
-                      widget.onPersonalInfoTap;
-                    },
-                    child: ListTile(
-                      title: Text(
-                        strings?.get('personalInfo') ?? 'Personal info',
-                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                    ),
-                  ),
-                ),
-
                 // Notifications
                 Material(
                   color: Colors.transparent,
@@ -401,8 +382,17 @@ class SettingsViewState extends State<SettingsView> {
                     splashColor: Colors.white.withValues(alpha: 0.1),
                     highlightColor: Colors.white.withValues(alpha: 0.05),
                     onTap: () {
-                      widget.onShowNotifications;
                       Common().applyImmersive();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NotificationsPage(
+                            onBack: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      );
                     },
                     child: ListTile(
                       title: Text(
