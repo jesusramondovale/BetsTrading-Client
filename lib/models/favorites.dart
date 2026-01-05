@@ -46,7 +46,7 @@ class Favorites {
   Favorites(this.favorites, this.length);
 
   bool containsTicker(String ticker) {
-    if (favorites.length == 0) return false;
+    if (favorites.isEmpty) return false;
     return favorites.contains(ticker);
   }
 }
@@ -252,7 +252,7 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                                 children: [
                                   Text(
                                     '${strings?.get('close') ?? 'Close'}: '
-                                        '${(widget.favorite.close > 1 ? '${widget.favorite.close.toStringAsFixed(2)}' : '${widget.favorite.close.toStringAsFixed(4)}')}'
+                                        '${(widget.favorite.close > 1 ? widget.favorite.close.toStringAsFixed(2) : widget.favorite.close.toStringAsFixed(4))}'
                                         '${widget.currency}',
                                     style: GoogleFonts.montserrat(
                                       fontSize: ( widget.favorite.close < 1000 ? 20 : 15),
@@ -262,7 +262,7 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                                   ),
                                   Text(
                                     '${strings?.get('current') ?? 'Current'}: '
-                                      '${(widget.favorite.current > 1 ? '${widget.favorite.current.toStringAsFixed(2)}' : '${widget.favorite.current.toStringAsFixed(4)}')}'
+                                      '${(widget.favorite.current > 1 ? widget.favorite.current.toStringAsFixed(2) : widget.favorite.current.toStringAsFixed(4))}'
                                         '${widget.currency}',
                                     style: GoogleFonts.montserrat(
                                       fontSize:  ( widget.favorite.current < 1000 ? 20 : 15),
@@ -544,7 +544,7 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                 return ClipRRect(
                   borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(25.0)),
-                  child: Container(
+                  child: SizedBox(
                     height: MediaQuery.of(context).size.height * 0.56,
                     child: OverflowBox(
                       alignment: Alignment.topCenter,

@@ -381,7 +381,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
         }
         final double painterBottomPrice = tweenBegin;
         final double painterTopPrice = tweenEnd;
-        final RangePainter Function() buildHitTestPainter = () => RangePainter(
+        RangePainter buildHitTestPainter() => RangePainter(
             zones: widget.rectangleZones,
             candles: widget.candles,
             candleWidth: widget.candleWidth,
@@ -474,7 +474,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           ] else ...[
                             Text(
                               widget.chartTitle.length > 15
-                                  ? widget.chartTitle.substring(0, 15) + '...'
+                                  ? '${widget.chartTitle.substring(0, 15)}...'
                                   : widget.chartTitle,
                               style: GoogleFonts.openSans(
                                 fontSize: 26.0,

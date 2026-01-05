@@ -84,9 +84,9 @@ class User {
 class UserDialog extends StatelessWidget {
   final User user;
 
-  UserDialog({super.key, required this.user});
+  const UserDialog({super.key, required this.user});
 
-  static get decodedBody => null;
+  static Null get decodedBody => null;
 
   void showPopup(BuildContext context, String message, Offset position) {
     int xOffset;
@@ -188,7 +188,7 @@ class UserDialog extends StatelessWidget {
                             AutoSizeText(
                               (user.fullname.length < 12
                                   ? user.fullname
-                                  : user.fullname.substring(0, 12) + '...'),
+                                  : '${user.fullname.substring(0, 12)}...'),
                               maxLines: 1,
                               style: GoogleFonts.robotoCondensed(
                                 fontSize: 20,
@@ -197,7 +197,7 @@ class UserDialog extends StatelessWidget {
                               ),
                             ),
                             AutoSizeText(
-                              '@${(user.username.length < 20 ? user.username : user.username.substring(0, 17) + '...')}',
+                              '@${(user.username.length < 20 ? user.username : '${user.username.substring(0, 17)}...')}',
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
@@ -218,7 +218,7 @@ class UserDialog extends StatelessWidget {
                       title: Text(
                         (user.email.length < 35
                             ? user.email
-                            : user.email.substring(0, 30) + '...'),
+                            : '${user.email.substring(0, 30)}...'),
                         maxLines: 1,
                         style: GoogleFonts.montserrat(
                             color: Colors.white, fontSize: 12),

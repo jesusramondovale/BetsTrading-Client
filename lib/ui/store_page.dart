@@ -17,6 +17,8 @@ import '../locale/localized_texts.dart';
 import 'layout_page.dart';
 
 class StorePage extends StatefulWidget {
+  const StorePage({super.key});
+
   @override
   _StorePageState createState() => _StorePageState();
 }
@@ -481,7 +483,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
                         _cardPayment(coins.toDouble(), price);
                       },
                     );
-                  }).toList(),
+                  }),
                 const Spacer(),
                 Stack(
                   alignment: Alignment.center,

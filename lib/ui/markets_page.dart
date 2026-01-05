@@ -737,7 +737,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       builder: (BuildContext context) {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
-          child: Container(
+          child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.56,
             child: OverflowBox(
               alignment: Alignment.topCenter,

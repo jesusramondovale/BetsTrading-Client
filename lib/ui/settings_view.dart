@@ -41,12 +41,12 @@ class SettingsViewState extends State<SettingsView> {
       BuildContext context,
       String token,
       ) async {
-    bool _showNewPassword = false;
+    bool showNewPassword = false;
     final strings = LocalizedStrings.of(context);
     final TextEditingController currentPasswordController = TextEditingController();
     final TextEditingController newPasswordController = TextEditingController();
     final TextEditingController confirmPasswordController = TextEditingController();
-    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     final Color bgColor = Colors.grey[900]!;
     final Color fieldColor = Colors.grey[850]!;
     final Color textColor = Colors.white;
@@ -73,7 +73,7 @@ class SettingsViewState extends State<SettingsView> {
               ),
             ),
             content: Form(
-              key: _formKey,
+              key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -113,7 +113,7 @@ class SettingsViewState extends State<SettingsView> {
                             margin: const EdgeInsets.only(bottom: 14),
                             child: TextFormField(
                               controller: newPasswordController,
-                              obscureText: !_showNewPassword,
+                              obscureText: !showNewPassword,
                               style: GoogleFonts.montserrat(color: textColor),
                               decoration: InputDecoration(
                                 labelText: strings?.get('newPassword') ?? "New Password",
@@ -127,11 +127,11 @@ class SettingsViewState extends State<SettingsView> {
                                 ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _showNewPassword ? Icons.visibility : Icons.visibility_off,
+                                    showNewPassword ? Icons.visibility : Icons.visibility_off,
                                     color: Colors.white70,
                                   ),
                                   onPressed: () {
-                                    setState(() => _showNewPassword = !_showNewPassword);
+                                    setState(() => showNewPassword = !showNewPassword);
                                   },
                                 ),
                               ),
@@ -156,7 +156,7 @@ class SettingsViewState extends State<SettingsView> {
                           Container(
                             child: TextFormField(
                               controller: confirmPasswordController,
-                              obscureText: !_showNewPassword,
+                              obscureText: !showNewPassword,
                               style: GoogleFonts.montserrat(color: textColor),
                               decoration: InputDecoration(
                                 labelText: strings?.get('confirmPassword') ?? "Confirm Password",
@@ -210,7 +210,7 @@ class SettingsViewState extends State<SettingsView> {
               ElevatedButton(
                 onPressed: () async {
                   FocusManager.instance.primaryFocus?.unfocus();
-                  if (_formKey.currentState?.validate() != true) return;
+                  if (formKey.currentState?.validate() != true) return;
 
                   int result = await AuthService().changePassword(
                     token,
@@ -523,7 +523,7 @@ class SettingsViewState extends State<SettingsView> {
                   value: enableVibration,
                   inactiveThumbColor: Colors.black,
                   inactiveTrackColor: Colors.grey,
-                  activeColor: Colors.greenAccent,
+                  activeThumbColor: Colors.greenAccent,
                   onChanged: (bool value) async {
                     Common().vibrate();
                     Common().applyImmersive();

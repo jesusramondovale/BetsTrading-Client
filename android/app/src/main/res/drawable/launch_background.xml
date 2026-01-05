@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 
-    La imagen es 684x1536 (relación ~0.445:1), más estrecha que pantallas típicas (9:16).
-    Usamos fill para que la imagen cubra toda la pantalla inmediatamente sin espacios.
-    -->
     <!-- Color de fondo que se muestra INSTANTÁNEAMENTE mientras Android carga el bitmap -->
-    <!-- Sin este color, Android muestra un gris por defecto durante el cold start -->
     <item>
         <color android:color="#535665"/>
     </item>
@@ -13,9 +8,5 @@
         <bitmap android:gravity="fill"
             android:src="@drawable/android12splash_en"/>
     </item>
-    <!-- Icono de la app centrado en el splash nativo -->
-    <item>
-        <bitmap android:gravity="center"
-            android:src="@mipmap/ic_launcher"/>
-    </item>
 </layer-list>
+

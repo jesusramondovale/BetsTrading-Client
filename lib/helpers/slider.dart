@@ -20,7 +20,7 @@ class SlideToConfirm extends StatefulWidget {
   final bool disabled;
 
   const SlideToConfirm({
-    Key? key,
+    super.key,
     required this.betAmount,
     this.transformedAmount,
     required this.icon,
@@ -28,7 +28,7 @@ class SlideToConfirm extends StatefulWidget {
     this.scaleUp = false,
     this.transformThumb = false,
     this.disabled = false,
-  }) : super(key: key);
+  });
 
   @override
   _SlideToConfirmState createState() => _SlideToConfirmState();
@@ -334,13 +334,13 @@ class BetAmountSelector extends StatefulWidget {
   final double? maxAllowedValue;
 
   const BetAmountSelector({
-    Key? key,
+    super.key,
     this.minValue = 0.0,
     this.maxValue = 5000.0,
     this.initialValue = 0.0,
     required this.onChanged,
     this.maxAllowedValue,
-  }) : super(key: key);
+  });
 
   @override
   _BetAmountSelectorState createState() => _BetAmountSelectorState();

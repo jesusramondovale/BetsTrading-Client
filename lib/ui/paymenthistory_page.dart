@@ -393,7 +393,7 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
                                               Image.asset('assets/coin.png', width: 24, height: 24),
                                               SizedBox(width: 15),
                                               Text(
-                                                amount.isEmpty ? '—': '(' + amount + (currency == 'eur' ? ' €)' : ' \$)'),
+                                                amount.isEmpty ? '—': '($amount${currency == 'eur' ? ' €)' : ' \$)'}',
                                                 style: GoogleFonts.montserrat(
                                                   fontSize: 18,
                                                   fontWeight: FontWeight.w600,

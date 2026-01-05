@@ -10,7 +10,7 @@ import '../locale/localized_texts.dart';
 class NotificationsPage extends StatefulWidget {
   final VoidCallback onBack;
 
-  const NotificationsPage({Key? key, required this.onBack}) : super(key: key);
+  const NotificationsPage({super.key, required this.onBack});
 
   @override
   NotificationsPageState createState() => NotificationsPageState();

@@ -45,9 +45,9 @@ class _SignInState extends State<SignIn> {
     if (_validateAndSaveCurrentStep()) {
       _updateFormData(context);
       if (_currentStep == 2) {
-        String _countryCode = Common().getCountryCode(_country);
-        Common().postRequestWrapper('Auth', 'SendCode', {'email': _email, 'country': _countryCode});
-        popCodeDialog(context, _fullName, _password, _address, _countryCode, _gender, _email, _birthday, _cardNumberController, _username, _profilePic);
+        String countryCode = Common().getCountryCode(_country);
+        Common().postRequestWrapper('Auth', 'SendCode', {'email': _email, 'country': countryCode});
+        popCodeDialog(context, _fullName, _password, _address, countryCode, _gender, _email, _birthday, _cardNumberController, _username, _profilePic);
       }
       if (_currentStep < 2) {
         setState(() {

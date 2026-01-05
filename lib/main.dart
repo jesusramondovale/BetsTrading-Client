@@ -32,9 +32,7 @@ Future<String> getFirebaseInstanceId() async {
   String? token = await messaging.getToken();
 
   // If the token is null, try again
-  if (token == null) {
-    token = await messaging.getToken();
-  }
+  token ??= await messaging.getToken();
 
   return token!;
 }
@@ -66,7 +64,7 @@ void showOverlayNotification(String message, String ip, String city, String coun
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    "${message} \n (${city}, ${country})",
+                    "$message \n ($city, $country)",
                     style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),

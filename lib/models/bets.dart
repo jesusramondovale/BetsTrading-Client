@@ -152,14 +152,14 @@ class RecentBetDialog extends StatelessWidget {
   final Bet bet;
   final MainMenuPageController controller;
   final currency;
-  RecentBetDialog({
+  const RecentBetDialog({
     super.key,
     required this.bet,
     required this.controller,
     required this.currency,
   });
 
-  static get decodedBody => null;
+  static Null get decodedBody => null;
 
   void showPopup(BuildContext context, String message, Offset position) {
     int xOffset;
@@ -398,19 +398,19 @@ class RecentBetDialog extends StatelessWidget {
                         _buildGridItem(
                           context,
                           Icons.casino,
-                          '${bet.betAmount.toStringAsFixed(2)}',
+                          bet.betAmount.toStringAsFixed(2),
                           strings?.get('betAmount') ?? "Bet amount",
                         ),
                         _buildGridItem(
                           context,
                           Icons.update,
-                          '${bet.originValue.toStringAsFixed(2)}' + currency,
+                          bet.originValue.toStringAsFixed(2) + currency,
                           strings?.get('originValue') ?? "Origin value",
                         ),
                         _buildGridItem(
                           context,
                           Icons.crop_sharp,
-                          '${bet.targetValue.toStringAsFixed(2)}' + currency,
+                          bet.targetValue.toStringAsFixed(2) + currency,
                           strings?.get('targetValue') ?? "Target value",
                         ),
                         _buildGridItem(
@@ -500,14 +500,14 @@ class RecentPriceBetDialog extends StatelessWidget {
   final PriceBet priceBet;
   final MainMenuPageController controller;
   final String currency;
-  RecentPriceBetDialog({
+  const RecentPriceBetDialog({
     super.key,
     required this.priceBet,
     required this.controller,
     required this.currency,
   });
 
-  static get decodedBody => null;
+  static Null get decodedBody => null;
 
   void showPopup(BuildContext context, String message, Offset position) {
     int xOffset;
@@ -1198,7 +1198,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                               ),
                             ] else ...[
                               Text(
-                                "${(isAlreadyLost ? "-" : "")}${betAmountText}${((isAlreadyLost) ? "" : betMultiplierText)}",
+                                "${(isAlreadyLost ? "-" : "")}$betAmountText${((isAlreadyLost) ? "" : betMultiplierText)}",
                                 maxLines: 1,
                                 style: GoogleFonts.montserrat(
                                   fontSize: 22,
@@ -1220,7 +1220,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                             ]
                           ],
                         ),
-                        Container(
+                        SizedBox(
                           width: MediaQuery.of(context).size.height * 0.1,
                           child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -1478,7 +1478,7 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                     children: [
                       const SizedBox(height: 6),
                       Text(
-                        '${widget.priceBet.ticker} • ${prizeText}🪙 • ± $marginText',
+                        '${widget.priceBet.ticker} • $prizeText🪙 • ± $marginText',
                         maxLines: 1,
                         style: GoogleFonts.montserrat(
                           fontSize: 14,

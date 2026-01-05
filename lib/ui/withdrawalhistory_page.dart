@@ -397,9 +397,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
                                               Text(
                                                 amount.isEmpty
                                                     ? '—'
-                                                    : '(' +
-                                                    amount +
-                                                    (currency == 'eur' ? ' €)' : ' \$)'),
+                                                    : '($amount${currency == 'eur' ? ' €)' : ' \$)'}',
                                                 style: GoogleFonts.montserrat(
                                                   fontSize: 18,
                                                   fontWeight: FontWeight.w600,

@@ -144,7 +144,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
   Future<bool?> showEmailPasswordDialog(BuildContext context) async {
     final strings = LocalizedStrings.of(context);
     final TextEditingController emailController = TextEditingController();
-    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     final Color bgColor = Colors.grey[900]!;
     final Color fieldColor = Colors.grey[850]!;
     final Color textColor = Colors.white;
@@ -171,7 +171,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
               ),
             ),
             content: Form(
-              key: _formKey,
+              key: formKey,
               child: TextFormField(
                 controller: emailController,
                 style: GoogleFonts.montserrat(color: textColor),
@@ -203,7 +203,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
                 builder: (context, setState) => ElevatedButton(
                   onPressed: () async {
                     FocusManager.instance.primaryFocus?.unfocus();
-                    if (_formKey.currentState?.validate() != true) return;
+                    if (formKey.currentState?.validate() != true) return;
 
                     final response = await Common()
                         .postRequestWrapper('Auth','ResetPassword', {"id": emailController.text} , includeJwt: false);
@@ -255,7 +255,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
       controller: _usernameController,
       decoration: InputDecoration(
           border: OutlineInputBorder(borderSide: BorderSide.none),
-          labelText: "E-mail / " + (strings.get('username') ?? 'User name'),
+          labelText: "E-mail / ${strings.get('username') ?? 'User name'}",
           labelStyle: GoogleFonts.syncopate(fontSize: 25),
           errorStyle: GoogleFonts.montserrat(
             color: Colors.red,

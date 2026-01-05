@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:betrader/Services/BetsService.dart';
@@ -100,13 +100,13 @@ class BetConfirmationPage extends StatefulWidget {
   final String name;
 
   const BetConfirmationPage({
-    Key? key,
+    super.key,
     required this.name,
     required this.onCancel,
     required this.zone,
     required this.currentValue,
     required this.iconPath,
-  }) : super(key: key);
+  });
 
   @override
   _BetConfirmationPageState createState() => _BetConfirmationPageState();
@@ -157,7 +157,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
     FocusScope.of(context).requestFocus(FocusNode());
     await Future.delayed(Duration(milliseconds: 100));
     final prefs = await SharedPreferences.getInstance();
-    bool _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
+    bool bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
     
     FocusScope.of(context).unfocus();
 
@@ -167,11 +167,11 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
       bool result = await BetsService().postNewBet(userId!, fcm, widget.zone.ticker, _betAmount, widget.currentValue, betZone, _currency.toUpperCase());
       
       if (result) {
-        if (_bettingNotifications) {
+        if (bettingNotifications) {
           Common().showFloatingSnack(
               context,
               (LocalizedStrings.of(context)!.get('betPlacedSuccessfully') != null ?
-              "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} ${_betAmount.toStringAsFixed(2)} " : "Bet placed successfully! ${_betAmount} "),
+              "${LocalizedStrings.of(context)!.get('betPlacedSuccessfully')} ${_betAmount.toStringAsFixed(2)} " : "Bet placed successfully! $_betAmount "),
               showIcon: true);
         }
         
@@ -182,7 +182,7 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
         exchangePageKey.currentState?.loadData();
 
       } else {
-        if (_bettingNotifications) {
+        if (bettingNotifications) {
           Common().showFloatingSnack(
               context,
               (LocalizedStrings.of(context)!.get('errorMakingBet') ?? "Error creating bet!"),

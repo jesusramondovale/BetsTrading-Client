@@ -494,7 +494,7 @@ class ExchangePageState extends State<ExchangePage> {
                         await Future.delayed(const Duration(milliseconds: 200));
                         if (mounted) {
                           setState(() => _isUserPointsHighlighted = false);
-                        };
+                        }
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -524,7 +524,7 @@ class ExchangePageState extends State<ExchangePage> {
                             Icon(FontAwesomeIcons.anglesRight),
                             const Spacer(),
                             Text(
-                              '${option['euros']}' + (_currency == 'eur' ? ' EUR' : ' USD'),
+                              '${option['euros']}${_currency == 'eur' ? ' EUR' : ' USD'}',
                               style: GoogleFonts.montserrat(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,

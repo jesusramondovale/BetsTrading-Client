@@ -37,8 +37,8 @@ class BetsService {
     if (null != betId) {
       final response =
           await Common().postRequestWrapper('Bet', 'GetBetZone', {
-            'id': "${betId}",
-            'timeframe' : "${hoursTimeframe}",
+            'id': "$betId",
+            'timeframe' : "$hoursTimeframe",
             'currency' : currency
           });
 
@@ -55,7 +55,7 @@ class BetsService {
     final response =
         await Common().postRequestWrapper('Bet', 'GetBetZones', {
           'id': ticker,
-          'timeframe': "${hoursTimeframe}",
+          'timeframe': "$hoursTimeframe",
           'currency' : currency
         });
 
