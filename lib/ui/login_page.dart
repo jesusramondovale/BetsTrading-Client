@@ -243,6 +243,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   void logInHelper(LocalizedStrings strings) async {
+    if (!mounted) return;
     showDialog(
       barrierColor: Colors.black.withAlpha(220),
       context: context,
@@ -257,17 +258,20 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
     try {
       final result = await AuthService()
           .logIn(_usernameController.text.trim(), pass.toString());
+      if (!mounted) return;
       Navigator.of(context).pop();
 
       if (result['success']) {
         String? id = await _storage.read(key: 'sessionToken');
         await BetsService().getUserInfo(id!);
+        if (!mounted) return;
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const MainMenuPage()));
 
         Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"}  ${_usernameController.text.trim()}!");
 
       } else {
+        if (!mounted) return;
         if ("null" == result['message'] || null == result['message']) {
           Common().showFloatingSnack(context,"Oops... ${strings.get("serverUnavailable")}", backgroundColor: Colors.red);
         } else {
@@ -275,6 +279,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         }
       }
     } catch (e) {
+      if (!mounted) return;
       Navigator.of(context).pop();
       Common().popDialog("Error", "An unexpected error occurred.", context);
     }
@@ -462,17 +467,21 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
       onPressed: () async {
         Common().applyImmersive();
         int? result = await AuthService().googleSignIn();
+        if (!mounted) return;
+        
         if (result != null && result == 0)
         {
           // Validated
           String? id = await _storage.read(key: 'sessionToken');
           await BetsService().getUserInfo(id!);
+          if (!mounted) return;
           String? username = await _storage.read(key: 'username');
           Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => const MainMenuPage()));
         }
         else if (result != null && result == 3) {
+          if (!mounted) return;
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => const FirstTimePage()));
         }
@@ -481,11 +490,13 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
           // Validated
           String? id = await _storage.read(key: 'sessionToken');
           await BetsService().getUserInfo(id!);
+          if (!mounted) return;
           String? username = await _storage.read(key: 'username');
           Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const FirstTimePage()));
         }
         else {
+          if (!mounted) return;
           Common().showFloatingSnack(context, "Ooops... error!", backgroundColor: Colors.red);
           print("Error on Google LogIn.");
         }

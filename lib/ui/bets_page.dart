@@ -743,11 +743,12 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                         colors: [
                           HSLColor.fromColor(zone.fillColor).withLightness(
                             (HSLColor.fromColor(zone.fillColor).lightness * 0.7).clamp(0.0, 1.0),
-                          ).toColor().withValues(alpha: 0.35),
+                          ).toColor().withValues(alpha: 0.55),
                           HSLColor.fromColor(zone.fillColor).withLightness(
                             (HSLColor.fromColor(zone.fillColor).lightness * 1.15).clamp(0.0, 1.0),
-                          ).toColor().withValues(alpha: 0.35),
+                          ).toColor().withValues(alpha: 0.55),
                         ],
+                        
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
