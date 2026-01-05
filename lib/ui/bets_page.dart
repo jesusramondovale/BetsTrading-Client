@@ -969,27 +969,24 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Fecha inicio - izquierda, pegada al extremo, centrada verticalmente
                     Positioned(
-                      left: -20,
+                      left: 0,
                       top: 0,
                       bottom: 0,
                       child: Center(
                         child: Transform.rotate(
                           angle: 90 * 3.1415926535 / 180,
-                          child: Padding(
-                            padding: const EdgeInsets.all(0),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                _formatDateShort(zone.startDate),
-                                style: GoogleFonts.montserrat(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _formatDateShort(zone.startDate),
+                              style: GoogleFonts.montserrat(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                           ),
@@ -998,27 +995,24 @@ class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTi
                     ),
                     // Fecha fin - derecha, pegada al extremo, centrada verticalmente
                     Positioned(
-                      right: -20,
+                      right: 0,
                       top: 0,
                       bottom: 0,
                       child: Center(
                         child: Transform.rotate(
                           angle: -90 * 3.1415926535 / 180,
-                          child: Padding(
-                            padding: const EdgeInsets.all(2),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                _formatDateShort(zone.endDate),
-                                style: GoogleFonts.montserrat(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _formatDateShort(zone.endDate),
+                              style: GoogleFonts.montserrat(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                           ),
