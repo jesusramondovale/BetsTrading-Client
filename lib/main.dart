@@ -135,11 +135,7 @@ Future<void> handleFirebaseMessage(RemoteMessage message) async {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showOverlayNotification(notificationText, ip, city, country);
-
-      navigatorKey.currentState?.pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-            (route) => false,
-      );
+      LoginPage.navigateToLogin(null);
     });
   }
 }
@@ -270,6 +266,11 @@ class _SplashScreenState extends State<SplashScreen> {
       await BetsService().getUserInfo(id!);
     }
     
+    // Precargar assets del LoginPage para evitar pantallazo negro
+    if (!isLoggedIn) {
+      await _preloadLoginAssets();
+    }
+    
     // Asegurar que el splash dure al menos 3 segundos
     final elapsed = DateTime.now().difference(_startTime!);
     final minDuration = const Duration(seconds: 3);
@@ -285,6 +286,20 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
+  Future<void> _preloadLoginAssets() async {
+    try {
+      // Precargar imágenes del LoginPage
+      await Future.wait([
+        precacheImage(const AssetImage('assets/android12splash-clean.png'), context),
+        precacheImage(const AssetImage('assets/new_icon.png'), context),
+        precacheImage(const AssetImage('assets/google.png'), context),
+      ]);
+    } catch (e) {
+      // Si hay error al precargar, continuar de todas formas
+      debugPrint('Advertencia: Error al precargar assets: $e');
+    }
+  }
+
   void _navigateToHome() {
     Navigator.pushReplacement(
       context,
@@ -293,21 +308,34 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _navigateToLogin() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
+    if (mounted) {
+      LoginPage.navigateToLogin(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Obtener el código de idioma del contexto o del dispatcher
+    final locale = Localizations.maybeLocaleOf(context) ?? 
+                   WidgetsBinding.instance.platformDispatcher.locale;
+    String languageCode = locale.languageCode;
+    
+    // Verificar que el idioma esté soportado (en, es, fr, it, de)
+    const supportedLanguages = ['en', 'es', 'fr', 'it', 'de'];
+    if (!supportedLanguages.contains(languageCode)) {
+      languageCode = 'en'; // Fallback a inglés
+    }
+    
+    // Construir la ruta del asset dinámicamente
+    final splashAsset = 'assets/android12splash-$languageCode.png';
+    
     return Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/android12splash-en.png'),
+            image: AssetImage(splashAsset),
             fit: BoxFit.fill,
           ),
         ),

@@ -1227,10 +1227,7 @@ class Common {
         final storage = FlutterSecureStorage();
         await storage.deleteAll();
 
-        navigatorKey.currentState?.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-              (route) => false,
-        );
+        LoginPage.navigateToLogin(null);
       }
 
       return {

@@ -67,11 +67,7 @@ class _VerifyAccountPageState extends State<VerifyAccountPage> {
             onLoadStop: (controller, url) async {
               if (url.toString().toLowerCase().contains("approved")) {
 
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                      (Route<dynamic> route) => false,
-                );
+                LoginPage.navigateToLogin(context);
 
                 Common().showFloatingSnack(
                   context,
