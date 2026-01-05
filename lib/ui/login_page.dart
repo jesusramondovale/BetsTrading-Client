@@ -14,10 +14,12 @@ import '../config/config.dart';
 import '../services/BetsService.dart';
 import 'first_time_page.dart';
 import 'layout_page.dart';
+import 'markets_page.dart';
 import '../main.dart' show navigatorKey;
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final bool isAutoLogin;
+  const LoginPage({super.key, this.isAutoLogin = false});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -60,8 +62,12 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   late AnimationController _blurController;
   late AnimationController _contentController;
+  late AnimationController _dotsController;
+  late AnimationController _pulseController;
   late Animation<double> _blurAnimation;
+  late Animation<double> _pulseAnimation;
   Timer? _contentDelayTimer;
+  bool _isLoading = false; // Bandera para controlar cuando mostrar la animación de carga
 
   @override
   void initState() {
@@ -79,6 +85,18 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       vsync: this,
     );
 
+    // Controlador para la animación de puntos
+    _dotsController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    )..repeat();
+
+    // Controlador para la animación de pulso del icono
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+
     _blurAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -87,15 +105,46 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       curve: Curves.easeOut,
     ));
 
+    _pulseAnimation = Tween<double>(
+      begin: 0.85,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    ));
+
     // Iniciar animación del blur inmediatamente
     _blurController.forward();
     
-    // Iniciar animación del contenido después de un pequeño delay
-    _contentDelayTimer = Timer(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        _contentController.forward();
-      }
-    });
+    // Si es auto-login, ocultar botones y cargar datos
+    if (widget.isAutoLogin) {
+      // Ocultar botones inmediatamente
+      _contentController.value = 0.0;
+      _isLoading = true; // Activar bandera de carga
+      // Cargar datos y luego navegar
+      _handleAutoLogin();
+    } else {
+      // Iniciar animación del contenido después de un pequeño delay
+      _contentDelayTimer = Timer(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          _contentController.forward();
+        }
+      });
+      _isLoading = false; // No mostrar animación de carga al inicio
+    }
+  }
+
+  Future<void> _handleAutoLogin() async {
+    // Cargar todos los datos mientras se muestra el login
+    await MarketsView.preloadAllMarketData();
+    
+    if (!mounted) return;
+    
+    // Navegar a MainMenuPage
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const MainMenuPage()),
+    );
   }
 
   @override
@@ -113,6 +162,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     }
     _blurController.reset();
     _contentController.reset();
+    _dotsController.dispose();
+    _pulseController.dispose();
     _blurController.dispose();
     _contentController.dispose();
     super.dispose();
@@ -202,21 +253,100 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 child: Container(
                   width: MediaQuery.of(context).size.width,
                   padding: const EdgeInsets.all(16.0),
-                  child: LoginForm(animationController: _contentController),
+                  child: LoginForm(
+                    animationController: _contentController,
+                    onLoadingStateChanged: (isLoading) {
+                      if (mounted) {
+                        setState(() {
+                          _isLoading = isLoading;
+                        });
+                      }
+                    },
+                  ),
                 ),
               ),
             ),
           ),
+          // Animación de carga con icono y texto "Cargando" cuando el contenido está oculto
+          AnimatedBuilder(
+            animation: Listenable.merge([_contentController, _dotsController, _pulseController]),
+            builder: (context, child) {
+              // Mostrar solo cuando está cargando activamente (auto-login o durante login)
+              if (_isLoading && _contentController.value < 0.1) {
+                final strings = LocalizedStrings.of(context);
+                // Calcular cuántos puntos mostrar (0, 1, 2 o 3)
+                final dotsValue = _dotsController.value;
+                int dotsCount;
+                if (dotsValue < 0.25) {
+                  dotsCount = 0;
+                } else if (dotsValue < 0.5) {
+                  dotsCount = 1;
+                } else if (dotsValue < 0.75) {
+                  dotsCount = 2;
+                } else {
+                  dotsCount = 3;
+                }
+                
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Icono con efecto de pulso suave
+                      Transform.scale(
+                        scale: _pulseAnimation.value,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withValues(alpha: 0.15 * (1 - _pulseAnimation.value)),
+                                blurRadius: 40 * (1 - _pulseAnimation.value),
+                                spreadRadius: 15 * (1 - _pulseAnimation.value),
+                              ),
+                            ],
+                          ),
+                          child: Image.asset(
+                            'assets/new_icon.png',
+                            width: 250,
+                            height: 250,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      // Texto "Cargando" con puntos parpadeantes
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          return Opacity(
+                            opacity: 0.6 + (0.4 * _pulseAnimation.value),
+                            child: Text(
+                              '${strings?.get('loading') ?? 'Cargando'}${'.' * dotsCount}',
+                              style: GoogleFonts.syncopate(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w300,
+                                color: Colors.white,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
       ),
-      bottomSheet: FadeTransition(
-        opacity: _contentController,
-        child: Container(
-          padding: const EdgeInsets.all(10.0),
-          child: Text(
-            ((!kReleaseMode) ? 'DEBUG': Config.CODE_VERSION),
-            textAlign: TextAlign.center,
-          ),
+      bottomSheet: Container(
+        padding: const EdgeInsets.all(10.0),
+        child: Text(
+          ((!kReleaseMode) ? 'DEBUG': Config.CODE_VERSION),
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white),
         ),
       ),
     );
@@ -225,8 +355,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
 class LoginForm extends StatefulWidget {
   final AnimationController animationController;
+  final Function(bool) onLoadingStateChanged;
   
-  const LoginForm({super.key, required this.animationController});
+  const LoginForm({
+    super.key, 
+    required this.animationController,
+    required this.onLoadingStateChanged,
+  });
 
   @override
   LoginFormState createState() => LoginFormState();
@@ -264,6 +399,16 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
       if (result['success']) {
         String? id = await _storage.read(key: 'sessionToken');
         await BetsService().getUserInfo(id!);
+        if (!mounted) return;
+        
+        // Activar bandera de carga y ocultar botones con animación inversa
+        widget.onLoadingStateChanged(true);
+        await widget.animationController.reverse();
+        await Future.delayed(const Duration(milliseconds: 300));
+        
+        // Cargar todos los datos mientras se muestra el login
+        await MarketsView.preloadAllMarketData();
+        
         if (!mounted) return;
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const MainMenuPage()));
@@ -474,6 +619,16 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
           // Validated
           String? id = await _storage.read(key: 'sessionToken');
           await BetsService().getUserInfo(id!);
+          if (!mounted) return;
+          
+        // Activar bandera de carga y ocultar botones con animación inversa
+        widget.onLoadingStateChanged(true);
+        await widget.animationController.reverse();
+          await Future.delayed(const Duration(milliseconds: 300));
+          
+          // Cargar todos los datos mientras se muestra el login
+          await MarketsView.preloadAllMarketData();
+          
           if (!mounted) return;
           String? username = await _storage.read(key: 'username');
           Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");

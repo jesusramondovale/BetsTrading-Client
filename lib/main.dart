@@ -280,7 +280,8 @@ class _SplashScreenState extends State<SplashScreen> {
     
     // Navegar después de cumplir el tiempo mínimo
     if (isLoggedIn) {
-      _navigateToHome();
+      // Para auto-login, navegar al login primero para cargar datos
+      _navigateToLoginForAutoLogin();
     } else {
       _navigateToLogin();
     }
@@ -310,6 +311,15 @@ class _SplashScreenState extends State<SplashScreen> {
   void _navigateToLogin() {
     if (mounted) {
       LoginPage.navigateToLogin(context);
+    }
+  }
+
+  void _navigateToLoginForAutoLogin() {
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage(isAutoLogin: true)),
+      );
     }
   }
 
