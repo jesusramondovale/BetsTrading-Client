@@ -158,8 +158,18 @@ class AuthService {
         scopes: scopes,
         serverClientId: Config.SERVER_CLIENT_ID,
       );
-      googleSignIn.signOut();
-      googleSignIn.disconnect();
+      
+      // Limpiar sesiones previas de manera segura
+      try {
+        await googleSignIn.signOut();
+      } catch (e) {
+        if (kDebugMode) { print('Error en signOut (puede ignorarse): $e'); }
+      }
+      try {
+        await googleSignIn.disconnect();
+      } catch (e) {
+        if (kDebugMode) { print('Error en disconnect (puede ignorarse): $e'); }
+      }
 
       final user = await googleSignIn.signIn();
       String country = await Common().getUserCountry();
@@ -226,7 +236,42 @@ class AuthService {
       }
     } catch (error)
     {
-      if (kDebugMode) { print(error); }
+      if (kDebugMode) { 
+        print('Error en googleSignIn: $error');
+        if (error.toString().contains('PlatformException') || 
+            error.toString().contains('channel-error') ||
+            error.toString().contains('Pigeon')) {
+          print('Error de canal de plataforma detectado. Esto generalmente se resuelve:');
+          print('1. Ejecutando: flutter clean');
+          print('2. Ejecutando: flutter pub get');
+          print('3. Reconstruyendo el proyecto completamente');
+        }
+        if (error.toString().contains('ApiException: 10') || 
+            error.toString().contains('sign_in_failed') ||
+            error.toString().contains('DEVELOPER_ERROR')) {
+          print('═══════════════════════════════════════════════════════════');
+          print('ERROR 10: DEVELOPER_ERROR - Problema de configuración');
+          print('═══════════════════════════════════════════════════════════');
+          print('Las huellas digitales SHA-1/SHA-256 no coinciden.');
+          print('');
+          print('SOLUCIÓN:');
+          print('1. Obtén las huellas SHA ejecutando desde android/:');
+          print('   .\\gradlew.bat signingReport');
+          print('');
+          print('2. Ve a Google Cloud Console:');
+          print('   https://console.cloud.google.com/apis/credentials');
+          print('');
+          print('3. Encuentra tu OAuth 2.0 Client ID para Android');
+          print('   (Package name: com.betstrading.betrader)');
+          print('');
+          print('4. Agrega/actualiza las huellas SHA-1 y SHA-256');
+          print('   en la configuración del cliente OAuth');
+          print('');
+          print('5. Asegúrate de que el SERVER_CLIENT_ID coincida:');
+          print('   ${Config.SERVER_CLIENT_ID}');
+          print('═══════════════════════════════════════════════════════════');
+        }
+      }
       return 1;
     }
     return 1;
