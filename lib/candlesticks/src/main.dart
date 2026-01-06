@@ -382,7 +382,7 @@ class CandlesticksSkeleton extends StatelessWidget {
 
               Positioned(
                 left: 0,
-                right: PRICE_BAR_WIDTH,
+                right: priceBarWidth,
                 top: topPad,
                 bottom: bottomPad,
                 child: CustomPaint(
@@ -394,12 +394,12 @@ class CandlesticksSkeleton extends StatelessWidget {
                 right: 0,
                 top: 0,
                 bottom: 0,
-                width: PRICE_BAR_WIDTH,
+                width: priceBarWidth,
                 child: const _PriceBar(),
               ),
 
               Positioned(
-                right: PRICE_BAR_WIDTH*1.5,
+                right: priceBarWidth*1.5,
                 top: topPad,
                 bottom: bottomPad,
                 child: Icon(Icons.wifi_find_outlined, size: 50, color: Colors.grey.shade800)

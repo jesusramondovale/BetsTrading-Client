@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
-import 'package:betrader/Services/BetsService.dart';
+import 'package:betrader/Services/bets_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -10,10 +11,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../helpers/slider.dart';
+import '../models/bet_zone.dart';
 import '../models/rectangle_zone.dart';
 import '../locale/localized_texts.dart';
-import '../services/FirebaseService.dart';
-import '../services/BetZoneRefresher.dart';
+import '../services/firebase_service.dart';
+import '../services/bet_zone_refresher.dart';
 import 'layout_page.dart';
 
 
@@ -543,7 +545,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     if (_isBlocked || !mounted) return;
     
     try {
-      final zones = await BetsService().fetchBetZones(
+      final List<BetZone> zones = await BetsService().fetchBetZones(
         widget.zone.ticker,
         TimeframeManager.current.value,
         null, // No hay betId porque estamos creando una nueva apuesta
@@ -552,6 +554,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
 
       if (zones.isNotEmpty && mounted && !_isBlocked) {
         // Buscar la zona específica por ID
+
         final matchingZones = zones.where((zone) => zone.id == widget.zone.id).toList();
 
         if (matchingZones.isEmpty) {
@@ -601,12 +604,16 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                 ? const Color(0xFF2ECC71) // Verde si aumentó
                 : const Color(0xFFE74C3C); // Rojo si disminuyó
             _startOddsAnimation(animationColor: animationColor);
-            print("Odds actualizado: $oldOdds -> $newOdds (${newOdds > oldOdds ? 'aumentó' : 'disminuyó'})");
+            if (kDebugMode) {
+              print("Odds actualizado: $oldOdds -> $newOdds (${newOdds > oldOdds ? 'aumentó' : 'disminuyó'})");
+            }
           }
         }
       }
     } catch (e) {
-      print("Error refreshing zone data: $e");
+      if (kDebugMode) {
+        print("Error refreshing zone data: $e");
+      }
     }
   }
 

@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:betrader/candlesticks/src/widgets/vertical_grid_painter.dart';
 import 'package:betrader/locale/localized_texts.dart';
+import 'package:flutter/foundation.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../Services/BetsService.dart';
+import '../../../Services/bets_service.dart';
 import '../../../helpers/common.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../models/rectangle_zone.dart';
-import '../../../services/BetZoneRefresher.dart';
+import '../../../services/bet_zone_refresher.dart';
 import '../../../ui/bets_page.dart';
 import '../../../ui/exact_price_view.dart';
 import '../../candlesticks.dart';
@@ -177,7 +178,9 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
           zones, candles.isNotEmpty ? candles.first.close : 0.0);
       widget.rectangleZones.value = rectangleZones;
     } catch (e) {
-      print("Error loading initial bet zones: $e");
+      if (kDebugMode) {
+        print("Error loading initial bet zones: $e");
+      }
     }
   }
 
@@ -214,7 +217,9 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
           ..addAll(candles);
       });
     } catch (e) {
-      print("Error recharging candles with timeframe=$timeframe: $e");
+      if (kDebugMode) {
+        print("Error recharging candles with timeframe=$timeframe: $e");
+      }
     }
   }
 
@@ -229,7 +234,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     if (renderBox == null) return;
 
     final double maxWidth =
-        renderBox.size.width - PRICE_BAR_WIDTH + widget.candleWidth * 2;
+        renderBox.size.width - priceBarWidth + widget.candleWidth * 2;
 
     final int candlesStartIndex = widget.candles.isEmpty
         ? 0
@@ -306,8 +311,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     return LayoutBuilder(
       builder: (context, constraints) {
         final double maxWidth =
-            constraints.maxWidth - PRICE_BAR_WIDTH + widget.candleWidth * 2;
-        final double maxHeight = constraints.maxHeight - DATE_BAR_HEIGHT;
+            constraints.maxWidth - priceBarWidth + widget.candleWidth * 2;
+        final double maxHeight = constraints.maxHeight - dateBarHeight;
 
         final int candlesStartIndex = widget.candles.isEmpty
             ? 0
@@ -355,7 +360,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
           candlesLowPrice -= 10;
         }
 
-        double chartHeight = maxHeight * 0.75 - 2 * MAIN_CHART_VERTICAL_PADDING;
+        double chartHeight = maxHeight * 0.75 - 2 * mainChartVerticalPadding;
 
         double volumeHigh = inRangeCandles.map((e) => e.volume).reduce(max);
 
@@ -389,7 +394,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
             bottomPrice: painterBottomPrice,
             index: widget.index,
             timeframe: _mapTimeframe(_currentRangeTime),
-            priceColumnWidth: PRICE_BAR_WIDTH,
+            priceColumnWidth: priceBarWidth,
             noBetsText: noBetsText,
             noIcon: widget.iconPath == "null",
             finishedIcon: widget.finishedIcon
@@ -511,7 +516,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                         const Duration(milliseconds: 300),
                                         padding: const EdgeInsets.symmetric(
                                             vertical:
-                                            MAIN_CHART_VERTICAL_PADDING),
+                                            mainChartVerticalPadding),
                                         child: RepaintBoundary(
                                           child: Stack(
                                             children: [
@@ -556,7 +561,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                     ),
                                   ),
                                   const SizedBox(
-                                    width: PRICE_BAR_WIDTH,
+                                    width: priceBarWidth,
                                   ),
                                 ],
                               ),
@@ -580,7 +585,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                           bottomPrice: painterBottom,
                                           index: widget.index - 1,
                                           timeframe: painterTimeframe,
-                                          priceColumnWidth: PRICE_BAR_WIDTH,
+                                          priceColumnWidth: priceBarWidth,
                                           noBetsText: noBetsText,
                                           noIcon: widget.iconPath == "null",
                                           finishedIcon: widget.finishedIcon
@@ -592,12 +597,12 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: SizedBox(
-                                  width: PRICE_BAR_WIDTH,
+                                  width: priceBarWidth,
                                   child: PriceColumn(
                                     style: widget.style,
                                     low: tweenBegin,
                                     high: tweenEnd,
-                                    width: PRICE_BAR_WIDTH,
+                                    width: priceBarWidth,
                                     paintCurrency: (
                                         widget.ticker.contains('/')
                                             ? 0
@@ -661,12 +666,12 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                 ),
                               ),
                               SizedBox(
-                                width: PRICE_BAR_WIDTH,
+                                width: priceBarWidth,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     SizedBox(
-                                      height: DATE_BAR_HEIGHT,
+                                      height: dateBarHeight,
                                       child: Center(
                                         child: Row(
                                           children: [
@@ -688,7 +693,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           ),
                         ),
                         const SizedBox(
-                          height: DATE_BAR_HEIGHT,
+                          height: dateBarHeight,
                         ),
                       ],
                     ),
@@ -697,7 +702,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                         right: (maxWidth - longPressX!) ~/
                             widget.candleWidth *
                             widget.candleWidth +
-                            PRICE_BAR_WIDTH,
+                            priceBarWidth,
                         child: Container(
                           width: widget.candleWidth,
                           height: maxHeight,
@@ -706,7 +711,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                       ),
                     Padding(
                       padding: EdgeInsets.only(
-                        right: PRICE_BAR_WIDTH,
+                        right: priceBarWidth,
                         bottom: 20,
                       ),
                       child: GestureDetector(
@@ -885,7 +890,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           color: widget.style.background,
                         ),
                         height: 60.0,
-                        width: PRICE_BAR_WIDTH,
+                        width: priceBarWidth,
                         child: IconButton(
                           icon: Icon(
                             FontAwesomeIcons.bullseye,

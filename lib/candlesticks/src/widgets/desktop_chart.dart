@@ -101,8 +101,8 @@ class _DesktopChartState extends State<DesktopChart> {
     return LayoutBuilder(
       builder: (context, constraints) {
         // determine charts width and height
-        final double maxWidth = constraints.maxWidth - PRICE_BAR_WIDTH;
-        final double maxHeight = constraints.maxHeight - DATE_BAR_HEIGHT;
+        final double maxWidth = constraints.maxWidth - priceBarWidth;
+        final double maxHeight = constraints.maxHeight - dateBarHeight;
 
         // visible candles start and end indexes
         final int candlesStartIndex = max(widget.index, 0);
@@ -144,7 +144,7 @@ class _DesktopChartState extends State<DesktopChart> {
 
         // calculate priceScale
         double chartHeight =
-            maxHeight * 0.75 - 2 * (MAIN_CHART_VERTICAL_PADDING);
+            maxHeight * 0.75 - 2 * (mainChartVerticalPadding);
 
         // calculate highest volume
         double volumeHigh = inRangeCandles.map((e) => e.volume).reduce(max);
@@ -228,7 +228,7 @@ class _DesktopChartState extends State<DesktopChart> {
                                           duration: const Duration(milliseconds: 300),
                                           padding: const EdgeInsets.symmetric(
                                               vertical:
-                                                  MAIN_CHART_VERTICAL_PADDING),
+                                                  mainChartVerticalPadding),
                                           child: RepaintBoundary(
                                             child: Stack(
                                               children: [
@@ -261,7 +261,7 @@ class _DesktopChartState extends State<DesktopChart> {
                                       ),
                                     ),
                                     const SizedBox(
-                                      width: PRICE_BAR_WIDTH,
+                                      width: priceBarWidth,
                                     ),
                                   ],
                                 ),
@@ -297,13 +297,13 @@ class _DesktopChartState extends State<DesktopChart> {
                                   ),
                                 ),
                                 SizedBox(
-                                  width: PRICE_BAR_WIDTH,
+                                  width: priceBarWidth,
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       SizedBox(
-                                        height: DATE_BAR_HEIGHT,
+                                        height: dateBarHeight,
                                         child: Center(
                                           child: Row(
                                             children: [
@@ -326,7 +326,7 @@ class _DesktopChartState extends State<DesktopChart> {
                             ),
                           ),
                           const SizedBox(
-                            height: DATE_BAR_HEIGHT,
+                            height: dateBarHeight,
                           ),
                         ],
                       ),
@@ -344,17 +344,17 @@ class _DesktopChartState extends State<DesktopChart> {
                                   Container(
                                     color: widget
                                         .style.hoverIndicatorBackgroundColor,
-                                    width: PRICE_BAR_WIDTH,
+                                    width: priceBarWidth,
                                     height: 20,
                                     child: Center(
                                       child: Text(
                                         mouseHoverY! < maxHeight * 0.75
                                             ? HelperFunctions.priceToString(high -
                                                 (mouseHoverY! -
-                                                        MAIN_CHART_VERTICAL_PADDING) /
+                                                        mainChartVerticalPadding) /
                                                     (maxHeight * 0.75 -
                                                         2 *
-                                                            MAIN_CHART_VERTICAL_PADDING) *
+                                                            mainChartVerticalPadding) *
                                                     (high - low))
                                             : HelperFunctions.addMetricPrefix(
                                                 HelperFunctions.getRoof(
@@ -466,7 +466,7 @@ class _DesktopChartState extends State<DesktopChart> {
                       Positioned(
                         right: 0,
                         bottom: 0,
-                        width: PRICE_BAR_WIDTH,
+                        width: priceBarWidth,
                         height: 20,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(

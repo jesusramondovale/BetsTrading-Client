@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:betrader/services/AuthService.dart';
+import 'package:betrader/services/auth_service.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/helpers/common.dart';
 import 'package:betrader/ui/signin_page.dart';
@@ -11,7 +11,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart' hide Config;
 import '../config/config.dart';
-import '../services/BetsService.dart';
+import '../services/bets_service.dart';
 import 'first_time_page.dart';
 import 'layout_page.dart';
 import 'markets_page.dart';
@@ -336,20 +336,51 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 18),
                       // Texto "Cargando" con puntos parpadeantes
                       AnimatedBuilder(
-                        animation: _pulseController,
+                        animation: Listenable.merge([_pulseController, _dotsController]),
                         builder: (context, child) {
                           return Opacity(
                             opacity: 0.6 + (0.4 * _pulseAnimation.value),
-                            child: Text(
-                              '${strings?.get('loading') ?? 'Cargando'}${'.' * dotsCount}',
-                              style: GoogleFonts.syncopate(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.white,
-                                letterSpacing: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 70),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    height: 45, // Altura fija para mantener posición estática
+                                    child: Center(
+                                      child: Text(
+                                        strings?.get('loading') ?? 'Cargando',
+                                        style: GoogleFonts.notoSerifJp(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white,
+                                          letterSpacing: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 45, // Ancho fijo para mantener posición del texto "Cargando"
+                                    height: 45, // Altura fija para mantener posición estática
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        '.' * dotsCount,
+                                        style: GoogleFonts.notoSerifJp(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white,
+                                          letterSpacing: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           );
@@ -692,7 +723,9 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         else {
           if (!mounted) return;
           Common().showFloatingSnack(context, "Ooops... error!", backgroundColor: Colors.red);
-          print("Error on Google LogIn.");
+          if (kDebugMode) {
+            print("Error on Google LogIn.");
+          }
         }
       },
       child: Row(

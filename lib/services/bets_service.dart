@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
-import '../models/betZone.dart';
+import '../models/bet_zone.dart';
 import '../models/bets.dart';
 import '../models/favorites.dart';
 import '../models/trends.dart';

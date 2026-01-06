@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
-import '../services/BetsService.dart';
+import '../services/bets_service.dart';
 import '../ui/candlesticks_view.dart';
 import '../ui/layout_page.dart';
 

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:betrader/services/BetsService.dart';
+import 'package:betrader/services/bets_service.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
-import '../services/BetZoneRefresher.dart';
+import '../services/bet_zone_refresher.dart';
 import '../ui/candlesticks_view.dart';
 import '../ui/exact_price_view.dart';
 import '../ui/layout_page.dart';
@@ -58,7 +58,7 @@ class Bet {
   });
 
   Bet.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
+      : id = json['id'] ?? 0,
         ticker = json['ticker'],
         name = json['name'],
         iconPath = json['icon_path'],

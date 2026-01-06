@@ -166,7 +166,7 @@ class UserDialog extends StatelessWidget {
                               height: 80,
                               width: 80,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, StackTrace) =>
+                              errorBuilder: (context, error, stackTrace) =>
                                   Image.asset(
                                     "assets/new_icon.png",
                                     height: 80,

@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:betrader/services/FirebaseService.dart';
+import 'package:betrader/services/firebase_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -12,7 +12,7 @@ import 'package:google_fonts/google_fonts.dart' hide Config;
 import '../config/config.dart';
 import '../locale/localized_texts.dart';
 import 'package:country_flags/country_flags.dart';
-import 'package:betrader/services/AuthService.dart';
+import 'package:betrader/services/auth_service.dart';
 
 import '../helpers/common.dart';
 

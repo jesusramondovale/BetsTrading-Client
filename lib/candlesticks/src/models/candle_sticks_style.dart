@@ -85,6 +85,7 @@ class CandleSticksStyle {
     Color? toolBarColor,
   }) {
     return CandleSticksStyle(
+      // ignore_for_file: use_full_hex_values_for_flutter_colors
       borderColor: borderColor ?? const Color(0xFF848E9C),
       background: background ?? const Color(0xFFFAFAFA),
       primaryBull: primaryBull ?? const Color(0xFF026A69A),

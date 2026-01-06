@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
-import 'package:betrader/services/BetsService.dart';
+import 'package:betrader/services/bets_service.dart';
 import 'package:betrader/ui/betshistory_page.dart';
 import 'package:betrader/ui/settings_view.dart';
 import 'package:betrader/ui/store_page.dart';

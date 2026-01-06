@@ -1,14 +1,14 @@
 import 'package:betrader/candlesticks/candlesticks.dart';
 import 'package:betrader/locale/localized_texts.dart';
-import 'package:betrader/models/betZone.dart';
-import 'package:betrader/services/BetsService.dart';
+import 'package:betrader/models/bet_zone.dart';
+import 'package:betrader/services/bets_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../helpers/common.dart';
 import '../models/bets.dart';
 import '../models/rectangle_zone.dart';
-import '../services/BetZoneRefresher.dart';
+import '../services/bet_zone_refresher.dart';
 import 'layout_page.dart';
 
 class CandlesticksView extends StatefulWidget {

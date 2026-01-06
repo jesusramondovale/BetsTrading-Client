@@ -159,7 +159,7 @@ class RangePainter extends CustomPainter {
       final durationHours = zone.endDate.difference(zone.startDate).inHours.abs();
       final widthFactor = (durationHours / timeframe).clamp(1, double.infinity);
       endX = startX + widthFactor * candleWidth;
-      startX = startX.clamp(0.0, size.width - PRICE_BAR_WIDTH);
+      startX = startX.clamp(0.0, size.width - priceBarWidth);
       endX = endX.clamp(0.0, size.width);
       double startY = priceToY(zone.highPrice, topPrice, bottomPrice, size);
       double endY = priceToY(zone.lowPrice, topPrice, bottomPrice, size);

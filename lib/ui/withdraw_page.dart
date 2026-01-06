@@ -7,10 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Services/BetsService.dart';
+import '../Services/bets_service.dart';
 import '../helpers/common.dart';
 import '../helpers/slider.dart';
-import '../services/FirebaseService.dart';
+import '../services/firebase_service.dart';
 import 'layout_page.dart';
 import 'package:intl/intl.dart';
 

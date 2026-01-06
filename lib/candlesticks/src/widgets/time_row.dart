@@ -105,7 +105,7 @@ class _TimeRowState extends State<TimeRow> {
     final dif =
         widget.candles[0].date.difference(widget.candles[1].date) * step;
     return Padding(
-      padding: const EdgeInsets.only(right: PRICE_BAR_WIDTH + 1.0),
+      padding: const EdgeInsets.only(right: priceBarWidth + 1.0),
       child: Stack(
         children: [
           ListView.builder(

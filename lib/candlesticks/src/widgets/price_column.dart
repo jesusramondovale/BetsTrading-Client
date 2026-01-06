@@ -38,7 +38,7 @@ class _PriceColumnState extends State<PriceColumn> {
     return chartHeight +
         10 -
         (widget.lastCandle.close - low) / (high - low) * chartHeight -
-        MAIN_CHART_VERTICAL_PADDING;
+        mainChartVerticalPadding;
   }
 
   @override
@@ -49,7 +49,7 @@ class _PriceColumnState extends State<PriceColumn> {
         widget.chartHeight / ((widget.high - widget.low) / priceScale);
     final double newHigh = (widget.high ~/ priceScale + 1) * priceScale;
     final double top = -priceTileHeight / priceScale * (newHigh - widget.high) +
-        MAIN_CHART_VERTICAL_PADDING -
+        mainChartVerticalPadding -
         priceTileHeight / 2 ;
     return GestureDetector(
       onVerticalDragUpdate: (details) {
@@ -65,7 +65,7 @@ class _PriceColumnState extends State<PriceColumn> {
               duration: const Duration(milliseconds: 300),
               top: top,
               height:
-                  widget.chartHeight + 2 * MAIN_CHART_VERTICAL_PADDING - top,
+                  widget.chartHeight + 2 * mainChartVerticalPadding - top,
               width: widget.width,
               child: ListView(
                 controller: scrollController,
@@ -81,7 +81,7 @@ class _PriceColumnState extends State<PriceColumn> {
                       child: Row(
                         children: [
                           Container(
-                            width: widget.width - PRICE_BAR_WIDTH,
+                            width: widget.width - priceBarWidth,
                             height: 0.05,
                             color: widget.style.borderColor,
                           ),
@@ -119,8 +119,8 @@ class _PriceColumnState extends State<PriceColumn> {
                     color: widget.lastCandle.isBull
                         ? widget.style.primaryBull
                         : widget.style.primaryBear,
-                    width: PRICE_BAR_WIDTH,
-                    height: PRICE_INDICATOR_HEIGHT,
+                    width: priceBarWidth,
+                    height: priceIndicatorHeight,
                     child: Center(
                       child: Text(
                         HelperFunctions.priceToString(widget.lastCandle.close, currency: widget.paintCurrency),

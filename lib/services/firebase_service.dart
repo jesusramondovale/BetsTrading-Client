@@ -2,7 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import 'AuthService.dart';
+import 'auth_service.dart';
 
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -34,7 +34,9 @@ class FirebaseService {
 
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
       _firebaseToken = newToken;
-      print("New FCM Token: $newToken");
+      if (kDebugMode) {
+        print("New FCM Token: $newToken");
+      }
       AuthService().refreshFCM(userId!, _firebaseToken!);
     });
   }

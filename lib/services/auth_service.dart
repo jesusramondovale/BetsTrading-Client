@@ -1,5 +1,5 @@
 // ignore_for_file: constant_identifier_names, file_names
-import 'package:betrader/services/FirebaseService.dart';
+import 'package:betrader/services/firebase_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:async';

@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../helpers/common.dart';
 import '../models/rectangle_zone.dart';
 
-import 'BetsService.dart';
+import 'bets_service.dart';
 
 class BetZoneRefresher {
   static final BetZoneRefresher _instance = BetZoneRefresher._internal();
@@ -26,7 +26,9 @@ class BetZoneRefresher {
           _notifier!.value = Common().getRectangleZonesFromBetZones(zones, candles.isNotEmpty ? candles.first.close : 0.0);
         }
       } catch (e) {
-        print("Error fetching bet zones: $e");
+        if (kDebugMode) {
+          print("Error fetching bet zones: $e");
+        }
       }
     });
   }

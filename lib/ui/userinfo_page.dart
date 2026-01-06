@@ -3,20 +3,20 @@ import 'dart:convert';
 import 'package:betrader/ui/paymenthistory_page.dart';
 import 'package:betrader/ui/verify_account_page.dart';
 import 'package:betrader/ui/withdrawalhistory_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:betrader/locale/localized_texts.dart';
-import 'package:betrader/services/BetsService.dart';
+import 'package:betrader/services/bets_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../helpers/common.dart';
-import '../services/AuthService.dart';
+import '../services/auth_service.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
-import 'dart:typed_data';
 import 'layout_page.dart';
 import 'login_page.dart';
 
@@ -58,7 +58,9 @@ class UserInfoPageState extends State<UserInfoPage> {
         if (response.statusCode == 200) {
           imageBytes = response.bodyBytes;
         } else {
-          print('Error loading image from web');
+          if (kDebugMode) {
+            print('Error loading image from web');
+          }
           return;
         }
       } else {

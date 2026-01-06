@@ -13,7 +13,7 @@ import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../config/config.dart';
-import '../services/AuthService.dart';
+import '../services/auth_service.dart';
 import 'layout_page.dart';
 
 class SettingsView extends StatefulWidget {

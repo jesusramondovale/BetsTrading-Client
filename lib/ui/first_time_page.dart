@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../Services/BetsService.dart';
+import '../Services/bets_service.dart';
 import '../locale/localized_texts.dart';
 import '../helpers/common.dart';
 import 'layout_page.dart';

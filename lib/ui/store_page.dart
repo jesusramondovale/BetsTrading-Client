@@ -10,7 +10,7 @@ import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../Services/BetsService.dart';
+import '../Services/bets_service.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
@@ -20,10 +20,10 @@ class StorePage extends StatefulWidget {
   const StorePage({super.key});
 
   @override
-  _StorePageState createState() => _StorePageState();
+  StorePageState createState() => StorePageState();
 }
 
-class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
+class StorePageState extends State<StorePage> with TickerProviderStateMixin {
   RewardedAd? _rewardedAd;
   bool _isAdLoaded = false;
   bool _loadingAd = false;

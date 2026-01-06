@@ -6,8 +6,9 @@ import 'package:betrader/helpers/slider.dart';
 import 'package:betrader/models/rectangle_zone.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
-import 'package:betrader/services/BetsService.dart';
+import 'package:betrader/services/bets_service.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -16,7 +17,7 @@ import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../main.dart';
-import '../models/betZone.dart';
+import '../models/bet_zone.dart';
 import '../models/bets.dart';
 import '../models/trends.dart';
 import '../ui/layout_page.dart';
@@ -1254,16 +1255,24 @@ class Common {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final country = data['country'];
-        print('User country: $country');
+        if (kDebugMode) {
+          print('User country: $country');
+        }
         return country;
       } else {
-        print(
+        if (kDebugMode) {
+          print(
             'Failed to get geolocation information, status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
+        }
+        if (kDebugMode) {
+          print('Response body: ${response.body}');
+        }
         return 'null';
       }
     } catch (error) {
-      print('Error getting geolocation information: $error');
+      if (kDebugMode) {
+        print('Error getting geolocation information: $error');
+      }
       return 'null';
     }
   }

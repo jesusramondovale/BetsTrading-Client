@@ -78,7 +78,7 @@ class HelperFunctions {
   }
 
   static double calculatePriceScale(double height, double high, double low) {
-    int minTiles = (height / MIN_PRICETILE_HEIGHT).floor();
+    int minTiles = (height / minPricetileHeight).floor();
     minTiles = max(2, minTiles);
     double sizeRange = high - low;
     assert(sizeRange != 0,
