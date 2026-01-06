@@ -16,6 +16,10 @@ import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import 'layout_page.dart';
 
+/// A page for purchasing coins and viewing ad reward options.
+///
+/// Displays buy options with Stripe integration and ad reward opportunities.
+/// Manages rewarded ad loading and display for earning coins.
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
 

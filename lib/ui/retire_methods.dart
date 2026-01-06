@@ -11,6 +11,10 @@ import 'package:bech32/bech32.dart';
 import 'package:base_x/base_x.dart';
 import 'package:web3dart/web3dart.dart';
 
+/// A page for managing withdrawal methods and payment addresses.
+///
+/// Allows users to add, edit, and verify withdrawal methods including
+/// bank accounts, crypto wallets, and other payment options.
 class RetireMethodsPage extends StatefulWidget {
   const RetireMethodsPage({super.key});
 
@@ -25,6 +29,9 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
   bool _changed = false;
   Timer? _reloadTimer;
 
+  /// Loads available withdrawal methods for the current user.
+  ///
+  /// Fetches methods from the server and displays their verification status.
   Future<void> _loadMethods() async {
     final userId = await _storage.read(key: 'sessionToken');
     if (userId == null) {

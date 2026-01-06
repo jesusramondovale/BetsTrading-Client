@@ -20,7 +20,13 @@ import '../models/trends.dart';
 import 'layout_page.dart';
 import 'notifications_page.dart';
 
+/// The main home screen widget displaying trends, favorites, and recent bets.
+///
+/// This screen serves as the primary dashboard showing trending assets,
+/// user favorites, and active bets. It includes auto-scrolling trends and
+/// periodic data refresh functionality.
 class HomeScreen extends StatefulWidget {
+  /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
   const HomeScreen({super.key, required this.controller});
 
@@ -53,6 +59,10 @@ class HomeScreenState extends State<HomeScreen> {
   TutorialCoachMark? _coach;
   bool _dollarCurrency = false;
 
+  /// Refreshes user data, trends, and favorites without reloading investments.
+  ///
+  /// Updates user points, currency preference, and fetches latest trends
+  /// and favorites data from the server.
   void _refreshData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     await BetsService().getUserInfo(userId);
@@ -73,6 +83,10 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Loads user ID and initializes all data including investments.
+  ///
+  /// Fetches user information, trends, favorites, and investment data.
+  /// This method is typically called on screen initialization.
   Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
@@ -106,6 +120,7 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Refreshes the favorites list by fetching updated data from the server.
   void refreshFavorites() {
     setState(() {
       _favsFuture = BetsService()
@@ -113,6 +128,9 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Refreshes the investments list (bets and price bets) from the server.
+  ///
+  /// Updates the displayed bets without requiring a full page reload.
   Future<void> refreshInvestments() async {
     if (!mounted || _userId == null) return;
     try {
@@ -126,11 +144,19 @@ class HomeScreenState extends State<HomeScreen> {
     } catch (_) {}
   }
 
+  /// Initializes auto-scroll functionality after a delay.
+  ///
+  /// Waits 3 seconds before starting automatic scrolling of trends to
+  /// allow initial rendering to complete.
   void _delayedAutoScrollInit() async {
     await Future.delayed(const Duration(seconds: 3));
     _startAutoScroll();
   }
 
+  /// Starts automatic scrolling of the trends list.
+  ///
+  /// Scrolls back and forth automatically when user is not interacting.
+  /// Pauses scrolling when user touches the screen.
   void _startAutoScroll() {
     _ticker = Ticker((Duration elapsed) {
       if (!_trendScrollController.hasClients) return;
@@ -180,16 +206,29 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Checks if a tutorial has been seen by the user.
+  ///
+  /// [key] The tutorial identifier key.
+  /// Returns `true` if the tutorial has been marked as seen.
   Future<bool> _hasSeen(String key) async {
     final p = await SharedPreferences.getInstance();
     return p.getBool('__tutorial_seen__$key') ?? false;
   }
 
+  /// Marks a tutorial as seen by the user.
+  ///
+  /// [key] The tutorial identifier key to mark as seen.
   Future<void> _markSeen(String key) async {
     final p = await SharedPreferences.getInstance();
     await p.setBool('__tutorial_seen__$key', true);
   }
 
+  /// Builds the list of tutorial targets for the home screen onboarding.
+  ///
+  /// Creates target focus points for settings, store, trends, favorites,
+  /// bets, and history sections with localized descriptions.
+  ///
+  /// Returns a list of [TargetFocus] objects for the tutorial coach mark.
   List<TargetFocus> _buildTargets() {
     final LocalizedStrings? strings = LocalizedStrings.of(context);
     return [
@@ -292,6 +331,11 @@ class HomeScreenState extends State<HomeScreen> {
     ];
   }
 
+  /// Starts the home screen tutorial/onboarding flow.
+  ///
+  /// Waits for all UI elements to be ready, then displays a tutorial
+  /// coach mark guiding users through the main features. Only shows
+  /// if the tutorial hasn't been seen before.
   Future<void> startHomeTutorial() async {
     LocalizedStrings? strings = LocalizedStrings.of(context);
     if (!mounted) return;

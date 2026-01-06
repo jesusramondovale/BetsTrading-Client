@@ -15,11 +15,24 @@ import '../services/firebase_service.dart';
 import 'layout_page.dart';
 import 'package:intl/intl.dart';
 
+/// A page for placing exact price bets on financial assets.
+///
+/// Allows users to select a target price, margin tolerance, and date
+/// for betting that an asset will reach a specific price within a margin.
 class ExactPricePage extends StatefulWidget {
+  /// The current price value of the asset.
   final double currentValue;
+  
+  /// The path to the asset icon (can be asset path, URL, or base64).
   final String iconPath;
+  
+  /// The ticker symbol of the asset.
   final String ticker;
+  
+  /// The name of the asset.
   final String name;
+  
+  /// Whether this is a Forex asset (affects price formatting).
   final bool isForex;
 
   const ExactPricePage(
@@ -46,6 +59,10 @@ class _ExactPricePageState extends State<ExactPricePage> {
   bool _isAcceptEnabled = false;
   final TextEditingController _priceController = TextEditingController();
 
+  /// Loads user points and currency preference from storage.
+  ///
+  /// Updates the accept button enabled state based on available points
+  /// and selected margin requirements.
   Future<void> _loadUserPoints() async {
     final String? pointsStr = await _storage.read(key: 'points');
     final prefs = await SharedPreferences.getInstance();
@@ -59,6 +76,10 @@ class _ExactPricePageState extends State<ExactPricePage> {
     });
   }
 
+  /// Gets the required bet amount for a given margin percentage.
+  ///
+  /// [margin] The margin string (e.g., "±0%", "±0.01%").
+  /// Returns the bet amount in coins required for that margin.
   int _getBetAmountFromMargin(String margin) {
     switch (margin) {
       case "±0%":
@@ -76,6 +97,10 @@ class _ExactPricePageState extends State<ExactPricePage> {
     }
   }
 
+  /// Converts a margin string to a double percentage value.
+  ///
+  /// [margin] The margin string (e.g., "±0%", "±0.01%").
+  /// Returns the margin as a double (e.g., 0.0, 0.01).
   double _getMarginAsDouble(String margin) {
     switch (margin) {
       case "±0%":
@@ -93,6 +118,11 @@ class _ExactPricePageState extends State<ExactPricePage> {
     }
   }
 
+  /// Calculates the width of text with currency symbol for layout purposes.
+  ///
+  /// [text] The text to measure.
+  /// [style] The text style to use for measurement.
+  /// Returns the calculated width multiplied by 0.75 for padding.
   double _calculateTextWidth(String text, TextStyle style) {
     final TextPainter textPainter = TextPainter(
       text: TextSpan(

@@ -37,6 +37,10 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// The main menu page containing bottom navigation and tab management.
+///
+/// Manages navigation between Home, Awards, Markets, Exchange, and User Info tabs.
+/// Handles Firebase messaging and app lifecycle events.
 class MainMenuPage extends StatefulWidget {
   const MainMenuPage({super.key});
 
@@ -44,9 +48,16 @@ class MainMenuPage extends StatefulWidget {
   MainMenuPageState createState() => MainMenuPageState();
 }
 
+/// Controller for managing the main menu page navigation state.
+///
+/// Provides methods to update the selected tab index and manage navigation.
 class MainMenuPageController {
+  /// Notifier for the currently selected tab index.
   final ValueNotifier<int> selectedIndexNotifier = ValueNotifier<int>(0);
 
+  /// Updates the selected tab index.
+  ///
+  /// [index] The new tab index to select.
   void updateIndex(int index) {
     Common().vibrate();
     selectedIndexNotifier.value = index;

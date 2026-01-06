@@ -7,7 +7,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 
+/// A page for managing notification preferences.
+///
+/// Allows users to enable/disable different types of notifications:
+/// general notifications, trending alerts, betting notifications, and news.
 class NotificationsPage extends StatefulWidget {
+  /// Callback invoked when the back button is pressed.
   final VoidCallback onBack;
 
   const NotificationsPage({super.key, required this.onBack});

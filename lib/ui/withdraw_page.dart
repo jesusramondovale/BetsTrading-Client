@@ -14,9 +14,18 @@ import '../services/firebase_service.dart';
 import 'layout_page.dart';
 import 'package:intl/intl.dart';
 
+/// A page for withdrawing coins to external payment methods.
+///
+/// Allows users to select withdrawal methods and convert coins to currency.
+/// Displays available withdrawal options based on user's verified methods.
 class WithdrawPage extends StatefulWidget {
+  /// The number of coins to withdraw.
   final int coins;
+  
+  /// The equivalent currency amount for the coins.
   final int currencyAmount;
+  
+  /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
   const WithdrawPage(
       {super.key,
@@ -36,6 +45,8 @@ class _WithdrawPageState extends State<WithdrawPage> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final Map<String, Map<String, String>> _userAvailableMethods = {};
 
+  /// Loads withdrawal page data including available withdrawal methods
+  /// and user information.
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
     final id = await _storage.read(key: 'sessionToken');

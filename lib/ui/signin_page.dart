@@ -16,6 +16,10 @@ import 'package:betrader/services/auth_service.dart';
 
 import '../helpers/common.dart';
 
+/// A multi-step registration form for creating new user accounts.
+///
+/// Handles user registration with personal information, payment details,
+/// email verification, and profile picture upload.
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
 
@@ -41,6 +45,10 @@ class _SignInState extends State<SignIn> {
   String _profilePic = '';
   int _currentStep = 0;
 
+  /// Handles progression to the next step in the registration form.
+  ///
+  /// Validates current step data, saves form data, and sends verification
+  /// code when reaching the final step.
   Future<void> _onStepContinue() async {
     if (_validateAndSaveCurrentStep()) {
       _updateFormData(context);

@@ -20,7 +20,12 @@ import 'package:intl/intl.dart';
 import 'layout_page.dart';
 import 'login_page.dart';
 
+/// A page displaying and managing user profile information.
+///
+/// Shows user details, profile picture, verification status, and provides
+/// access to payment history, withdrawal history, and account verification.
 class UserInfoPage extends StatefulWidget {
+  /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
   const UserInfoPage({super.key, required this.controller});
 

@@ -19,7 +19,10 @@ import '../services/bet_zone_refresher.dart';
 import 'layout_page.dart';
 
 
-// Widget separado para la imagen de fondo que se construye solo una vez
+/// A widget that displays a background image for bet confirmation pages.
+///
+/// This widget handles different image sources (asset, network, or base64)
+/// and caches the image widget to avoid rebuilding it unnecessarily.
 class _BackgroundImage extends StatefulWidget {
   final String iconPath;
   final String name;
@@ -94,11 +97,25 @@ class _BackgroundImageState extends State<_BackgroundImage> {
   }
 }
 
+/// A page that displays bet confirmation details and allows users to place bets.
+///
+/// This page shows the bet zone information, allows users to select a bet amount,
+/// displays potential winnings, and provides countdown timer for bet expiration.
+/// It also refreshes zone data periodically to keep odds updated.
 class BetConfirmationPage extends StatefulWidget {
+  /// The current price value of the asset.
   final double currentValue;
+  
+  /// The path to the asset icon (can be asset path, URL, or base64).
   final String iconPath;
+  
+  /// Callback invoked when the user cancels the bet.
   final VoidCallback onCancel;
+  
+  /// The bet zone containing price range and odds information.
   final RectangleZone zone;
+  
+  /// The name of the asset.
   final String name;
 
   const BetConfirmationPage({
@@ -132,11 +149,16 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
   // Color blanco constante del label (usado tanto inicial como final de la animación)
   static const Color _labelWhiteColor = Colors.white;
 
-  // Calcula el mínimo de apuesta: 5 o el número de monedas del usuario si es menor
+  /// Calculates the minimum bet amount.
+  ///
+  /// Returns 5 coins or the user's total points if less than 5.
   double get _minBetAmount {
     final maxPoints = double.parse(_points ?? '0.0');
     return maxPoints < 5.0 ? maxPoints : 5.0;
   }
+  /// Loads user points and currency preference from storage.
+  ///
+  /// Updates the bet amount to ensure it's at least the minimum required.
   Future<void> _loadPoints() async {
     _points = await _storage.read(key: 'points');
     final prefs = await SharedPreferences.getInstance();
@@ -154,6 +176,12 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     }
   }
 
+  /// Handles the bet acceptance process.
+  ///
+  /// Shows a confirmation dialog, posts the bet to the server, and navigates
+  /// back if successful. Also refreshes user data and updates home/exchange pages.
+  ///
+  /// [betZone] The ID of the bet zone being accepted.
   Future<void> _onAccept(int betZone) async {
     Common().vibrate();
     FocusScope.of(context).requestFocus(FocusNode());
@@ -198,6 +226,12 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     }
   }
 
+  /// Handles the accept button press event.
+  ///
+  /// Provides haptic feedback and either triggers bet acceptance or shows
+  /// an error state if the bet cannot be placed.
+  ///
+  /// [betZone] The ID of the bet zone.
   void _handleAcceptPressed(int betZone) {
     Common().vibrate(200, 70);
     if (!_isAcceptButtonEnabled) {
@@ -207,6 +241,12 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     }
   }
 
+  /// Called when the bet amount changes.
+  ///
+  /// Updates the bet amount, recalculates potential prize, and enables/disables
+  /// the accept button based on validation rules.
+  ///
+  /// [value] The new bet amount value.
   void _onBetAmountChanged(double value) {
     setState(() {
       _betAmount = value;
@@ -452,6 +492,10 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     super.dispose();
   }
 
+  /// Starts the countdown timer that updates every second.
+  ///
+  /// The timer shows remaining time until the bet zone closes and automatically
+  /// blocks betting when the time expires.
   void _startCountdown() {
     _updateCountdown();
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -463,6 +507,9 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     });
   }
 
+  /// Updates the countdown display with remaining time until bet zone closes.
+  ///
+  /// Formats the time as hours, minutes, and seconds. Blocks betting if time expires.
   void _updateCountdown() {
     final now = DateTime.now().toUtc();
     // Asegurar que las fechas estÃ©n en UTC para comparaciÃ³n correcta
@@ -496,6 +543,10 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     }
   }
 
+  /// Starts a periodic timer to refresh bet zone data every 5 seconds.
+  ///
+  /// This keeps the odds and zone information up to date while the user
+  /// is viewing the bet confirmation page.
   void _startRefreshTimer() {
     _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       if (!mounted || _isBlocked) {
@@ -506,6 +557,12 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     });
   }
 
+  /// Starts an animation when odds change.
+  ///
+  /// Creates a color animation sequence: quickly transitions to the animation color,
+  /// holds it for 1.5 seconds, then fades back to white.
+  ///
+  /// [animationColor] The color to animate to (green for increase, red for decrease).
   void _startOddsAnimation({required Color animationColor}) {
     // Crear animación dinámica: blanco -> color (rápido) -> mantener color (1.5s) -> blanco (desvanecer lentamente)
     // Usar _labelWhiteColor para asegurar que el blanco final sea exactamente el mismo que el inicial
@@ -541,6 +598,10 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
   }
 
 
+  /// Refreshes the bet zone data from the server.
+  ///
+  /// Fetches updated zone information, recalculates potential prize if odds changed,
+  /// and triggers visual feedback animations for odds changes.
   Future<void> _refreshZoneData() async {
     if (_isBlocked || !mounted) return;
     
@@ -1206,7 +1267,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
   }
 }
 
-// Pintor para el patrÃ³n decorativo de fondo
+/// A custom painter that draws a decorative diagonal line pattern for bet zones.
 class _ZonePatternPainter extends CustomPainter {
   final Color color;
 
@@ -1234,7 +1295,9 @@ class _ZonePatternPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// Pintor para el borde discontinuo
+/// A custom painter that draws a dashed border around bet zones.
+///
+/// Used for special bet zone types (type == 1) to distinguish them visually.
 class _DashedBorderPainter extends CustomPainter {
   final Color borderColor;
   final double borderWidth;
@@ -1246,6 +1309,13 @@ class _DashedBorderPainter extends CustomPainter {
     required this.borderRadius,
   });
 
+  /// Draws a dashed rounded rectangle border.
+  ///
+  /// [canvas] The canvas to draw on.
+  /// [rrect] The rounded rectangle to draw.
+  /// [paint] The paint style to use.
+  /// [dashWidth] Width of each dash segment.
+  /// [dashSpace] Space between dash segments.
   void _drawDashedRRect(
     Canvas canvas,
     RRect rrect,

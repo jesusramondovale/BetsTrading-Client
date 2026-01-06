@@ -19,7 +19,12 @@ import 'candlesticks_view.dart';
 import 'exact_price_view.dart';
 import 'layout_page.dart';
 
+/// A view displaying financial markets organized by asset type (Shares, Crypto, Forex).
+///
+/// Supports data preloading for faster initial load, displays assets in tabs,
+/// and provides functionality to view charts, add favorites, and place bets.
 class MarketsView extends StatefulWidget {
+  /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
   const MarketsView({super.key, required this.controller});
 
@@ -34,7 +39,11 @@ class MarketsView extends StatefulWidget {
   static Set<String>? _preloadedFavTickers;
   static bool _isPreloading = false;
 
-  // Método estático para precargar todos los datos antes de mostrar la vista
+  /// Preloads all market data before displaying the view.
+  ///
+  /// Fetches assets for all tabs (Shares, Crypto, Forex), prices, and favorites.
+  /// This method is typically called during login to improve perceived performance.
+  /// If already preloading, waits for the current preload to complete.
   static Future<void> preloadAllMarketData() async {
     if (_isPreloading) {
       // Si ya se está precargando, esperar a que termine
@@ -106,14 +115,24 @@ class MarketsView extends StatefulWidget {
     }
   }
 
-  // Método para obtener datos precargados
+  /// Gets preloaded assets data organized by tab index.
   static Map<int, List<FinancialAsset>>? getPreloadedAssets() => _preloadedAssets;
+  
+  /// Gets preloaded current prices map (ticker -> price).
   static Map<String, double>? getPreloadedPrices() => _preloadedPrices;
+  
+  /// Gets preloaded previous day closing prices map (ticker -> price).
   static Map<String, double>? getPreloadedPreviousPrices() => _preloadedPreviousPrices;
+  
+  /// Gets preloaded daily gain percentages map (ticker -> percentage).
   static Map<String, double>? getPreloadedDailyGains() => _preloadedDailyGains;
+  
+  /// Gets preloaded favorite tickers set.
   static Set<String>? getPreloadedFavTickers() => _preloadedFavTickers;
   
-  // Limpiar datos precargados
+  /// Clears all preloaded market data.
+  ///
+  /// Should be called when data becomes stale or when memory needs to be freed.
   static void clearPreloadedData() {
     _preloadedAssets = null;
     _preloadedPrices = null;
@@ -153,6 +172,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   }
 
 
+  /// Loads market data, preferring preloaded data if available.
+  ///
+  /// If preloaded data exists, uses it immediately. Otherwise, fetches
+  /// assets and favorites from the server.
   Future<void> _loadData() async {
     if (!mounted) return;
     
@@ -192,6 +215,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     }
   }
 
+  /// Loads all financial assets for all market tabs.
+  ///
+  /// Fetches assets for Shares, Cryptos, and Forex groups and extracts
+  /// current prices from the asset data.
   Future<void> _loadAllAssets() async {
     final prefs = await SharedPreferences.getInstance();
     final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
@@ -232,6 +259,9 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   }
 
 
+  /// Loads user's favorite tickers from the server.
+  ///
+  /// Updates the internal favorites set and currency preference.
   Future<void> _loadFavorites() async {
     if (!mounted) return;
     
@@ -256,6 +286,12 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     });
   }
 
+  /// Shows a dialog with detailed information about a financial asset.
+  ///
+  /// Displays asset name, ticker, type, country, and icon in a modal dialog.
+  ///
+  /// [context] The build context for showing the dialog.
+  /// [a] The financial asset to display details for.
   Future<void> _showAssetDetails(BuildContext context, FinancialAsset a) async {
     final strings = LocalizedStrings.of(context);
     final Color textColor = Colors.white;
@@ -325,10 +361,21 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   }
 
+  /// Checks if a ticker is in the user's favorites.
+  ///
+  /// [ticker] The ticker symbol to check.
+  /// Returns `true` if the ticker is favorited, `false` otherwise.
   bool isFavorite(String ticker) {
     return _favTickers.contains(ticker);
   }
 
+  /// Toggles the favorite status of a ticker.
+  ///
+  /// Updates local state immediately and syncs with server. If sync fails,
+  /// reverts the local change.
+  ///
+  /// [ticker] The ticker symbol to toggle.
+  /// [onlyLocal] If `true`, only updates local state without server sync.
   void toggleFavorite(String ticker, {bool onlyLocal = false}) async {
     final key = ticker.toUpperCase().trim();
 
@@ -728,6 +775,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     await _startMarketsTutorial();
   }
 
+  /// Opens the candlestick chart view for an asset in a modal bottom sheet.
+  ///
+  /// [asset] The financial asset to display chart for.
+  /// [tutorialMode] If `true`, disables drag-to-dismiss for tutorial purposes.
   Future<void> _openAssetChart(FinancialAsset asset, {bool tutorialMode = false}) async {
     Common().vibrate();
     Common().applyImmersive();
@@ -823,6 +874,11 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
 //------ ARC SELECTOR WIDGET
 
+/// A widget that displays financial assets in an arc selector interface.
+///
+/// Supports drag gestures for scrolling through assets with inertia,
+/// displays up to 5 visible items at a time, and provides tap/long-press
+/// callbacks for asset interactions.
 class ArcSelector extends StatefulWidget {
   final List<FinancialAsset?> assets;
   final Function(FinancialAsset) onAssetTap;
@@ -1299,6 +1355,10 @@ class _ArcPainter extends CustomPainter {
 
 //------ LEAF CARD WIDGET
 
+/// A card widget displaying a single financial asset in the markets list.
+///
+/// Shows asset icon, name, current price, daily gain percentage, and
+/// favorite status. Supports tap to open chart and long-press for quick actions.
 class _LeafCardWidget extends StatefulWidget {
   final FinancialAsset asset;
   final bool isFav;
@@ -1339,6 +1399,10 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
     _loadPriceData();
   }
 
+  /// Loads price data for the asset, preferring preloaded data if available.
+  ///
+  /// Fetches current price, previous close price, and calculates daily gain.
+  /// Falls back to API call if preloaded data is not available.
   Future<void> _loadPriceData() async {
     // Verificar si hay precio precargado disponible
     final preloadedPrices = MarketsView.getPreloadedPrices();

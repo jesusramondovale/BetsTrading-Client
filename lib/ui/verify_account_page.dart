@@ -7,7 +7,12 @@ import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import 'login_page.dart';
 
+/// A page for verifying user identity using Didit KYC service.
+///
+/// Creates a verification session and displays a web view for the KYC process.
+/// Required for enabling withdrawals and certain account features.
 class VerifyAccountPage extends StatefulWidget {
+  /// The user ID to verify.
   final String userId;
 
   const VerifyAccountPage({super.key, required this.userId});
@@ -20,6 +25,10 @@ class VerifyAccountPageState extends State<VerifyAccountPage> {
   String? _sessionUrl;
   bool _loading = false;
 
+  /// Creates a Didit verification session for KYC processing.
+  ///
+  /// Fetches a session URL from the server and prepares the web view
+  /// for identity verification.
   Future<void> _createDiditSession() async {
     setState(() => _loading = true);
 

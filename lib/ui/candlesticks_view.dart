@@ -11,12 +11,27 @@ import '../models/rectangle_zone.dart';
 import '../services/bet_zone_refresher.dart';
 import 'layout_page.dart';
 
+/// A view displaying candlestick charts for financial assets with bet zones.
+///
+/// Shows price history, allows placing bets on price ranges, and supports
+/// multiple timeframes. Includes tutorial mode for onboarding.
 class CandlesticksView extends StatefulWidget {
+  /// The ticker symbol of the asset.
   final String ticker;
+  
+  /// The name of the asset.
   final String name;
+  
+  /// The path to the asset icon (can be asset path, URL, or base64).
   final String iconPath;
+  
+  /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
+  
+  /// Optional bet ID if viewing an existing bet.
   final int? betId;
+  
+  /// Whether tutorial mode is enabled (disables some interactions).
   final bool tutorialMode;
 
   const CandlesticksView({

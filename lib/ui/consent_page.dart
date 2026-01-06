@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../locale/localized_texts.dart';
 
+/// A utility class for displaying GDPR consent dialogs.
+///
+/// Shows a consent dialog for data processing purposes if the user hasn't
+/// already consented. Stores consent status in SharedPreferences.
 class ConsentPage {
+  /// Shows the consent dialog if the user hasn't already consented.
+  ///
+  /// [context] The build context for showing the dialog.
   static Future<void> showConsentDialog(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     final hasConsented = prefs.getBool('hasConsented') ?? false;

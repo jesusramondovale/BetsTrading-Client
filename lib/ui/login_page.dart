@@ -17,7 +17,10 @@ import 'layout_page.dart';
 import 'markets_page.dart';
 import '../main.dart' show navigatorKey;
 
-// Helper estático para esperar a que el siguiente frame se renderice
+/// Helper function to wait for the next frame to be rendered.
+///
+/// Useful for ensuring UI updates are visible before proceeding with
+/// navigation or state changes.
 Future<void> _waitForNextFrame() async {
   final completer = Completer<void>();
   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -26,7 +29,12 @@ Future<void> _waitForNextFrame() async {
   await completer.future;
 }
 
+/// The login page widget handling user authentication.
+///
+/// Supports both manual login (email/password) and social login (Google).
+/// Includes animated UI transitions and loading states during authentication.
 class LoginPage extends StatefulWidget {
+  /// Whether this is an automatic login attempt (e.g., from saved credentials).
   final bool isAutoLogin;
   const LoginPage({super.key, this.isAutoLogin = false});
 
@@ -36,6 +44,12 @@ class LoginPage extends StatefulWidget {
   // Bandera estática para evitar múltiples instancias simultáneas
   static bool _isNavigating = false;
   
+  /// Navigates to the login page, preventing duplicate navigations.
+  ///
+  /// Uses a static flag to ensure only one navigation occurs at a time.
+  /// Can use either the provided context or the global navigator key.
+  ///
+  /// [context] Optional build context for navigation. If null, uses global navigator.
   static void navigateToLogin(BuildContext? context) {
     // Evitar navegaciones duplicadas dentro de 1 segundo
     if (_isNavigating) {
@@ -142,6 +156,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     }
   }
 
+  /// Handles automatic login flow.
+  ///
+  /// Preloads market data while showing loading animation, then navigates
+  /// to the main menu page.
   Future<void> _handleAutoLogin() async {
     // Asegurar que el estado de carga esté activo
     if (mounted) {
@@ -407,8 +425,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 }
 
+/// A form widget for user login with email/password and social login options.
+///
+/// Handles form validation, authentication requests, and provides UI for
+/// switching between social and manual login modes.
 class LoginForm extends StatefulWidget {
+  /// Animation controller for form appearance animations.
   final AnimationController animationController;
+  
+  /// Callback invoked when loading state changes.
   final Function(bool) onLoadingStateChanged;
   
   const LoginForm({
@@ -431,6 +456,12 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
+  /// Handles the login process with email and password.
+  ///
+  /// Validates credentials, shows loading indicator, authenticates user,
+  /// and navigates to main menu on success. Shows error messages on failure.
+  ///
+  /// [strings] Localized strings for UI messages.
   void logInHelper(LocalizedStrings strings) async {
     if (!mounted) return;
     showDialog(
@@ -492,6 +523,13 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
     }
   }
 
+  /// Shows a dialog for password reset via email.
+  ///
+  /// Displays a form where users can enter their email to receive
+  /// a password reset link.
+  ///
+  /// [context] The build context for showing the dialog.
+  /// Returns `true` if password reset was successful, `false` otherwise.
   Future<bool?> showEmailPasswordDialog(BuildContext context) async {
     final strings = LocalizedStrings.of(context);
     final TextEditingController emailController = TextEditingController();

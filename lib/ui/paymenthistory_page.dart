@@ -9,6 +9,10 @@ import 'package:intl/intl.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 
+/// A page displaying the history of user payments and purchases.
+///
+/// Shows all past transactions including coin purchases and payment methods used.
+/// Automatically refreshes periodically to show updated transaction statuses.
 class PaymentHistoryPage extends StatefulWidget {
   const PaymentHistoryPage({super.key});
 

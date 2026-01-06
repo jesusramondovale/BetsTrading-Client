@@ -21,7 +21,12 @@ import '../helpers/common.dart';
 import '../helpers/slider.dart';
 import 'home_page.dart';
 
+/// A page displaying leaderboards, top users, and raffle items.
+///
+/// Shows rankings with medals for top 3 positions, user points, and
+/// available raffle prizes. Supports tab navigation between different views.
 class AwardsPage extends StatefulWidget {
+  /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
   const AwardsPage({super.key, required this.controller});
 
@@ -49,6 +54,10 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   static const String _seenFlag     = '__tutorial_seen__awards_v1';
   late final VoidCallback _tabListener;
 
+  /// Loads user ID and initializes awards page data.
+  ///
+  /// Fetches user information, points, country, currency preference,
+  /// and available raffle items from the server.
   Future<void> loadUserIdAndData() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = await _storage.read(key: "sessionToken") ?? "none";

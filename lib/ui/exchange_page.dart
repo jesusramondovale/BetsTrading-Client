@@ -14,8 +14,14 @@ import '../helpers/common.dart';
 import 'first_time_page.dart';
 import 'layout_page.dart';
 
+/// A page for exchanging coins to currency and managing withdrawals.
+///
+/// Displays user balance, pending balance, exchange options, and provides
+/// navigation to withdrawal and verification pages.
 class ExchangePage extends StatefulWidget {
   const ExchangePage({super.key, required this.controller});
+  
+  /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
   @override
   State<ExchangePage> createState() => ExchangePageState();
@@ -42,6 +48,8 @@ class ExchangePageState extends State<ExchangePage> {
 
 
 
+  /// Loads exchange page data including user points, verification status,
+  /// pending balance, and available exchange options.
   Future<void> loadData() async {
     final userId = await _storage.read(key: 'sessionToken') ?? '';
     final points = await _storage.read(key: 'points') ?? '0';

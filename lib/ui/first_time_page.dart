@@ -10,6 +10,10 @@ import '../locale/localized_texts.dart';
 import '../helpers/common.dart';
 import 'layout_page.dart';
 
+/// A page shown to first-time users for setting up their password.
+///
+/// Displays after Google sign-in for users who haven't set a password yet.
+/// Allows users to create a password and complete their account setup.
 class FirstTimePage extends StatefulWidget {
   const FirstTimePage({super.key});
 

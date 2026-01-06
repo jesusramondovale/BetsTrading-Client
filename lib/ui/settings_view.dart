@@ -16,10 +16,18 @@ import '../config/config.dart';
 import '../services/auth_service.dart';
 import 'layout_page.dart';
 
+/// A settings view widget for managing app preferences and user account.
+///
+/// Provides options for changing password, managing notifications, currency
+/// preferences, vibration settings, and navigation to personal info.
 class SettingsView extends StatefulWidget {
-
+  /// Callback invoked when personal info section is tapped.
   final VoidCallback onPersonalInfoTap;
+  
+  /// Callback invoked when notifications section is tapped.
   final VoidCallback onShowNotifications;
+  
+  /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
   const SettingsView({super.key,
     required this.onPersonalInfoTap,
@@ -38,6 +46,14 @@ class SettingsViewState extends State<SettingsView> {
   bool _loaded = false;
 
 
+  /// Shows a dialog for changing user password.
+  ///
+  /// Displays a form with current password, new password, and confirmation fields.
+  /// Validates password requirements (12+ chars, uppercase, number) before submission.
+  ///
+  /// [context] The build context for showing the dialog.
+  /// [token] The user's authentication token.
+  /// Returns `true` if password was changed successfully, `false` otherwise.
   Future<bool?> showChangePasswordDialog(
       BuildContext context,
       String token,

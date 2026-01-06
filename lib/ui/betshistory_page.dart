@@ -12,6 +12,10 @@ import 'package:intl/intl.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 
+/// A page displaying the complete history of user bets.
+///
+/// Shows all past bets with their outcomes, dates, and results.
+/// Automatically refreshes every 10 seconds to show updated bet statuses.
 class BetsHistoryPage extends StatefulWidget {
   const BetsHistoryPage({super.key});
 

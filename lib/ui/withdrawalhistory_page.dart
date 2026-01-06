@@ -9,6 +9,10 @@ import 'package:intl/intl.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 
+/// A page displaying the history of user withdrawals.
+///
+/// Shows all past withdrawal requests with their status, amounts, and methods.
+/// Automatically refreshes periodically to show updated withdrawal statuses.
 class WithdrawalHistoryPage extends StatefulWidget {
   const WithdrawalHistoryPage({super.key});
 
