@@ -1494,8 +1494,6 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final rotation = (widget.index % 3 - 1) * 0.5;
-    
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 400 + (widget.index * 40).clamp(0, 800)),
@@ -1511,144 +1509,142 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
       },
       child: Padding(
         padding: const EdgeInsets.only(bottom: 16.0),
-        child: Transform.rotate(
-          angle: rotation * 3.14159 / 180,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Material(
-                clipBehavior: Clip.none,
-                color: Colors.transparent,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Material(
+              clipBehavior: Clip.none,
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
                 borderRadius: BorderRadius.circular(20),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  highlightColor: Colors.white.withValues(alpha: .1),
-                  splashColor: Colors.white.withValues(alpha: .05),
-                  onTap: () {
-                    widget.onAssetChart(widget.asset);
-                  },
-                  onLongPress: () {
-                    Common().vibrate();
-                    Common().applyImmersive();
-                    showModalBottomSheet(
-                      context: context,
-                      backgroundColor: Colors.black.withValues(alpha: 0.75),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                      ),
-                      builder: (BuildContext context) {
-                        return SafeArea(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ListTile(
-                                dense: false,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                leading: Icon(
-                                  widget.isFav ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
-                                  color: Colors.white70,
-                                ),
-                                title: Text(
-                                  (widget.isFav
-                                      ? LocalizedStrings.of(context)!.get('removeFromFavorites')!
-                                      : LocalizedStrings.of(context)!.get('addToFavorites')!),
-                                  style: GoogleFonts.montserrat(),
-                                ),
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  widget.onToggleFavorite(widget.asset.ticker);
-                                },
-                              ),
-                              ListTile(
-                                dense: false,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                leading: const Icon(FontAwesomeIcons.crosshairs),
-                                title: Text(
-                                  LocalizedStrings.of(context)!.get('exactPriceBets') ?? "Exact price bets",
-                                  style: GoogleFonts.montserrat(),
-                                ),
-                                onTap: () async {
-                                  List<Candle> candles = await BetsService().fetchCandles(
-                                    widget.asset.ticker,
-                                    1,
-                                    widget.dollarCurrency ? 'USD' : 'EUR',
-                                  );
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ExactPricePage(
-                                        name: widget.asset.name,
-                                        ticker: widget.asset.ticker,
-                                        currentValue: candles.first.close,
-                                        iconPath: widget.asset.icon,
-                                        isForex: widget.asset.group.toLowerCase() == "forex",
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                dense: false,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                                leading: const Icon(Icons.notifications_none),
-                                title: Text(
-                                  LocalizedStrings.of(context)!.get('createAlert') ?? "Create alert",
-                                  style: GoogleFonts.montserrat(),
-                                ),
-                                onTap: () {
-                                  Common().showFloatingSnack(context, "Unimplemented action!", backgroundColor: Colors.black54);
-                                  Navigator.pop(context);
-                                }
-                              ),
-                              ListTile(
-                                dense: false,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                leading: const Icon(Icons.info_outline),
-                                title: Text(
-                                  LocalizedStrings.of(context)!.get('viewDetails') ?? "View details",
-                                  style: GoogleFonts.montserrat()),
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  widget.onShowDetails(context, widget.asset);
-                                }
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: widget.isFav
-                          ? Colors.amber.withValues(alpha: 0.15)
-                          : Colors.white.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: widget.isFav
-                            ? Colors.yellow.withValues(alpha: 0.4)
-                            : Colors.white.withValues(alpha: 0.1),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          spreadRadius: 0,
-                          offset: const Offset(0, 2),
-                        ),
-                        if (widget.isFav)
-                          BoxShadow(
-                            color: Colors.amber.withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 0),
-                          ),
-                      ],
+                highlightColor: Colors.white.withValues(alpha: .1),
+                splashColor: Colors.white.withValues(alpha: .05),
+                onTap: () {
+                  widget.onAssetChart(widget.asset);
+                },
+                onLongPress: () {
+                  Common().vibrate();
+                  Common().applyImmersive();
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.black.withValues(alpha: 0.75),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 25.0),
-                      child: Stack(
+                    builder: (BuildContext context) {
+                      return SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              dense: false,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              leading: Icon(
+                                widget.isFav ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
+                                color: Colors.white70,
+                              ),
+                              title: Text(
+                                (widget.isFav
+                                    ? LocalizedStrings.of(context)!.get('removeFromFavorites')!
+                                    : LocalizedStrings.of(context)!.get('addToFavorites')!),
+                                style: GoogleFonts.montserrat(),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                widget.onToggleFavorite(widget.asset.ticker);
+                              },
+                            ),
+                            ListTile(
+                              dense: false,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              leading: const Icon(FontAwesomeIcons.crosshairs),
+                              title: Text(
+                                LocalizedStrings.of(context)!.get('exactPriceBets') ?? "Exact price bets",
+                                style: GoogleFonts.montserrat(),
+                              ),
+                              onTap: () async {
+                                List<Candle> candles = await BetsService().fetchCandles(
+                                  widget.asset.ticker,
+                                  1,
+                                  widget.dollarCurrency ? 'USD' : 'EUR',
+                                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ExactPricePage(
+                                      name: widget.asset.name,
+                                      ticker: widget.asset.ticker,
+                                      currentValue: candles.first.close,
+                                      iconPath: widget.asset.icon,
+                                      isForex: widget.asset.group.toLowerCase() == "forex",
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              dense: false,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                              leading: const Icon(Icons.notifications_none),
+                              title: Text(
+                                LocalizedStrings.of(context)!.get('createAlert') ?? "Create alert",
+                                style: GoogleFonts.montserrat(),
+                              ),
+                              onTap: () {
+                                Common().showFloatingSnack(context, "Unimplemented action!", backgroundColor: Colors.black54);
+                                Navigator.pop(context);
+                              }
+                            ),
+                            ListTile(
+                              dense: false,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              leading: const Icon(Icons.info_outline),
+                              title: Text(
+                                LocalizedStrings.of(context)!.get('viewDetails') ?? "View details",
+                                style: GoogleFonts.montserrat()),
+                              onTap: () {
+                                Navigator.pop(context);
+                                widget.onShowDetails(context, widget.asset);
+                              }
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: widget.isFav
+                        ? Colors.amber.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: widget.isFav
+                          ? Colors.yellow.withValues(alpha: 0.4)
+                          : Colors.white.withValues(alpha: 0.1),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 2),
+                      ),
+                      if (widget.isFav)
+                        BoxShadow(
+                          color: Colors.amber.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 0),
+                        ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 25.0),
+                    child: Stack(
                         clipBehavior: Clip.none,
                         children: [
                           Row(
@@ -1815,9 +1811,8 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
               ),
             ],
           ),
-        ),
-      ),
-    );
+        )
+      );
   }
 }
 
