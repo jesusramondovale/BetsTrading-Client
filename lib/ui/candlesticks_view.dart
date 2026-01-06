@@ -41,13 +41,13 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
   late final List<RectangleZone> _initialZones;
   List<Candle> _candles = [];
   bool _isLoading = true;
-  late bool _inactive_zone;
+  late bool _inactiveZone;
   late int _extraHours;
   int _finishedIcon = 0;
   bool _dollarCurrency = false;
 
-  static const _PENDING_FLAG = '__tutorial_pending__candles_v1';
-  static const _SEEN_FLAG = '__tutorial_seen__candles_v1';
+  static const String _pendingFlag = '__tutorial_pending__candles_v1';
+  static const String _seenFlag = '__tutorial_seen__candles_v1';
   final _kChart = GlobalKey();
   final _kBack = GlobalKey();
   final _kZoom = GlobalKey();
@@ -71,7 +71,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
       );
 
       int finishedIcon = 0;
-      if (_inactive_zone) {
+      if (_inactiveZone) {
         final Bet? theBet = await BetsService().fetchBet(widget.betId.toString(), (_dollarCurrency ? 'USD' : 'EUR'));
         if (theBet != null) {
           if (theBet.finished == true && theBet.targetWon == true) {
@@ -98,7 +98,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        if (!_inactive_zone) {
+        if (!_inactiveZone) {
           _zonesNotifier.value = _initialZones;
           _finishedIcon = 0;
         } else {
@@ -132,14 +132,14 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     TimeframeManager.set(1);
-    _inactive_zone = widget.betId != null;
+    _inactiveZone = widget.betId != null;
     _extraHours = Common().hoursUntilLatestEndDate(
-      _inactive_zone ? _frozenZonesNotifier.value : _zonesNotifier.value,
+      _inactiveZone ? _frozenZonesNotifier.value : _zonesNotifier.value,
       _candles.isNotEmpty ? _candles.first.date : DateTime.now().toUtc(),
       TimeframeManager.current.value,
     ) + 1;
     _zonesNotifier.addListener(() {
-      if (!_inactive_zone) {
+      if (!_inactiveZone) {
         int newExtraHours = Common().hoursUntilLatestEndDate(
           _zonesNotifier.value,
           _candles.isNotEmpty ? _candles.first.date : DateTime.now().toUtc(),
@@ -318,7 +318,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
 
   Future<void> _maybeStartTutorial() async {
     final prefs = await SharedPreferences.getInstance();
-    final pending = prefs.getBool(_PENDING_FLAG) ?? false;
+    final pending = prefs.getBool(_pendingFlag) ?? false;
     if (!(pending || widget.tutorialMode)) return;
 
     await _waitForTargetsReady();
@@ -460,8 +460,8 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
 
   Future<void> _clearFlags() async {
     final p = await SharedPreferences.getInstance();
-    await p.remove(_PENDING_FLAG);
-    await p.setBool(_SEEN_FLAG, true);
+    await p.remove(_pendingFlag);
+    await p.setBool(_seenFlag, true);
   }
 
   @override
@@ -499,8 +499,8 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
                               onScaleUpdate: (double scale) {
                                 candleScaleNotifier.value = scale;
                               },
-                              rectangleZones: _inactive_zone ? _frozenZonesNotifier : _zonesNotifier,
-                              inactiveZone: _inactive_zone,
+                              rectangleZones: _inactiveZone ? _frozenZonesNotifier : _zonesNotifier,
+                              inactiveZone: _inactiveZone,
                               isTutorial: widget.tutorialMode,
                               controller: widget.controller,
                               chartTitle: widget.name,

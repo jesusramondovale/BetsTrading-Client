@@ -7,7 +7,7 @@ class BetZone {
   DateTime startDate;
   DateTime? endDate;
   double targetOdds;
-  int bet_type;
+  int betType;
 
   BetZone({
     required this.id,
@@ -17,7 +17,7 @@ class BetZone {
     required this.startDate,
     this.endDate,
     required this.targetOdds,
-    required this.bet_type
+    required this.betType
   });
 
   // Método auxiliar para parsear fechas asumiendo UTC si no tienen indicador de zona horaria
@@ -59,6 +59,6 @@ class BetZone {
       startDate = _parseUtcDate(json['start_date']),
       endDate = json['end_date'] != null ? _parseUtcDate(json['end_date']) : null,
       targetOdds = (json['target_odds'] as num).toDouble(),
-        bet_type = (json['bet_type'] as num).toInt();
+      betType = (json['bet_type'] as num).toInt();
 
 }

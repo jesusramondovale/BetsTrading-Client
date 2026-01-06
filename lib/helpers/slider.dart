@@ -31,10 +31,10 @@ class SlideToConfirm extends StatefulWidget {
   });
 
   @override
-  _SlideToConfirmState createState() => _SlideToConfirmState();
+  SlideToConfirmState createState() => SlideToConfirmState();
 }
 
-class _SlideToConfirmState extends State<SlideToConfirm> {
+class SlideToConfirmState extends State<SlideToConfirm> {
   double _sliderValue = 0.0;
   ui.Image? _thumbImage;
   ui.Image? _euroImage;
@@ -343,10 +343,10 @@ class BetAmountSelector extends StatefulWidget {
   });
 
   @override
-  _BetAmountSelectorState createState() => _BetAmountSelectorState();
+  BetAmountSelectorState createState() => BetAmountSelectorState();
 }
 
-class _BetAmountSelectorState extends State<BetAmountSelector> {
+class BetAmountSelectorState extends State<BetAmountSelector> {
   late double _sliderValue;
   ui.Image? _thumbImage;
 

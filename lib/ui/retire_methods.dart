@@ -644,8 +644,7 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
         ),
         child: Form(
           key: _formKey,
-          child: Container(
-            child: SingleChildScrollView(
+          child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -716,7 +715,6 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
                 ],
               ),
             ),
-          ),
         ));
   }
 

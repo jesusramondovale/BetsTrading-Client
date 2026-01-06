@@ -31,7 +31,7 @@ class SettingsView extends StatefulWidget {
 }
 
 class SettingsViewState extends State<SettingsView> {
-  static const _START_TUTORIAL_FLAG = 'START_TUTORIAL';
+  static const String _startTutorialFlag = 'START_TUTORIAL';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool enableVibration = false;
   bool dollarCurrency = false;
@@ -154,40 +154,38 @@ class SettingsViewState extends State<SettingsView> {
                           ),
 
                           // Confirm password
-                          Container(
-                            child: TextFormField(
-                              controller: confirmPasswordController,
-                              obscureText: !showNewPassword,
-                              style: GoogleFonts.montserrat(color: textColor),
-                              decoration: InputDecoration(
-                                labelText: strings?.get('confirmPassword') ?? "Confirm Password",
-                                labelStyle: GoogleFonts.montserrat(color: textColor),
-                                filled: true,
-                                fillColor: fieldColor,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
+                          TextFormField(
+                            controller: confirmPasswordController,
+                            obscureText: !showNewPassword,
+                            style: GoogleFonts.montserrat(color: textColor),
+                            decoration: InputDecoration(
+                              labelText: strings?.get('confirmPassword') ?? "Confirm Password",
+                              labelStyle: GoogleFonts.montserrat(color: textColor),
+                              filled: true,
+                              fillColor: fieldColor,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return strings?.get('thisFieldIsRequired') ?? "Field required";
-                                }
-                                if (value != newPasswordController.text) {
-                                  return strings?.get('passwordMismatch') ?? "Passwords do not match";
-                                }
-                                if (value == newPasswordController.text &&
-                                    value == currentPasswordController.text) {
-                                  Common().showFloatingSnack(
-                                    context,
-                                    "¿Desayunaste payaso 🤡?",
-                                    backgroundColor: Colors.pink[300]!,
-                                  );
-                                  return "";
-                                }
-                                return null;
-                              },
                             ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return strings?.get('thisFieldIsRequired') ?? "Field required";
+                              }
+                              if (value != newPasswordController.text) {
+                                return strings?.get('passwordMismatch') ?? "Passwords do not match";
+                              }
+                              if (value == newPasswordController.text &&
+                                  value == currentPasswordController.text) {
+                                Common().showFloatingSnack(
+                                  context,
+                                  "¿Desayunaste payaso 🤡?",
+                                  backgroundColor: Colors.pink[300]!,
+                                );
+                                return "";
+                              }
+                              return null;
+                            },
                           ),
                         ],
                       );
@@ -460,7 +458,7 @@ class SettingsViewState extends State<SettingsView> {
                     onTap: () async {
                       Common().applyImmersive();
                       final prefs = await SharedPreferences.getInstance();
-                      await prefs.remove(_START_TUTORIAL_FLAG);
+                      await prefs.remove(_startTutorialFlag);
                       for (var k in prefs.getKeys()) {
                         if (k.startsWith('__tutorial_seen__') || k.startsWith('__tutorial_pending__')) {
                           await prefs.remove(k);
@@ -492,7 +490,7 @@ class SettingsViewState extends State<SettingsView> {
                     onTap: () {
                       Common().vibrate();
                       Common().applyImmersive();
-                      Common().openInAppBrowser(context,Config.LANDING_PAGE);
+                      Common().openInAppBrowser(context,Config.landingPage);
                     },
                     child: ListTile(
                       title: Text(
@@ -568,7 +566,7 @@ class SettingsViewState extends State<SettingsView> {
       bottomSheet: Container(
         padding: const EdgeInsets.all(16.0),
         child: Text(
-            (strings?.get('versionCode') ?? 'Version code: ') + ((!kReleaseMode) ? 'DEBUG': Config.CODE_VERSION),
+            (strings?.get('versionCode') ?? 'Version code: ') + ((!kReleaseMode) ? 'DEBUG': Config.codeVersion),
             textAlign: TextAlign.center),
       ),
     );

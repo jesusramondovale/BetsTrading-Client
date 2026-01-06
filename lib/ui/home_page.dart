@@ -29,7 +29,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  static const _START_TUTORIAL_FLAG = 'START_TUTORIAL';
+  static const String _startTutorialFlag = 'START_TUTORIAL';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Future<BetsAndPriceBets>? _investmentFuture;
   bool _investInited = false;
@@ -162,9 +162,9 @@ class HomeScreenState extends State<HomeScreen> {
       _delayedAutoScrollInit();
 
       final prefs = await SharedPreferences.getInstance();
-      final alreadyShown = prefs.getBool(_START_TUTORIAL_FLAG) ?? false;
+      final alreadyShown = prefs.getBool(_startTutorialFlag) ?? false;
       if (!alreadyShown) {
-        await prefs.setBool(_START_TUTORIAL_FLAG, true);
+        await prefs.setBool(_startTutorialFlag, true);
 
         if (mounted) {
           startHomeTutorial();

@@ -17,6 +17,15 @@ import 'layout_page.dart';
 import 'markets_page.dart';
 import '../main.dart' show navigatorKey;
 
+// Helper estático para esperar a que el siguiente frame se renderice
+Future<void> _waitForNextFrame() async {
+  final completer = Completer<void>();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    completer.complete();
+  });
+  await completer.future;
+}
+
 class LoginPage extends StatefulWidget {
   final bool isAutoLogin;
   const LoginPage({super.key, this.isAutoLogin = false});
@@ -29,7 +38,6 @@ class LoginPage extends StatefulWidget {
   
   static void navigateToLogin(BuildContext? context) {
     // Evitar navegaciones duplicadas dentro de 1 segundo
-    final now = DateTime.now();
     if (_isNavigating) {
       return; // Ya hay una navegación en curso
     }
@@ -135,6 +143,21 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   Future<void> _handleAutoLogin() async {
+    // Asegurar que el estado de carga esté activo
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+    
+    // Esperar a que el frame se renderice para mostrar la animación de carga
+    await _waitForNextFrame();
+    if (!mounted) return;
+    
+    // Esperar un frame adicional para asegurar que el widget de carga esté completamente renderizado
+    await _waitForNextFrame();
+    if (!mounted) return;
+    
     // Cargar todos los datos mientras se muestra el login
     await MarketsView.preloadAllMarketData();
     
@@ -200,7 +223,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               overlayColor: Colors.transparent.withValues(alpha: 0),
               elevation: 0,
             ),
-            onPressed: () => Common().openInAppBrowser(context, Config.INSTAGRAM_PAGE),
+            onPressed: () => Common().openInAppBrowser(context, Config.instagramPage),
             child: Icon(
               FontAwesomeIcons.instagram,
               size: 35,
@@ -344,7 +367,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       bottomSheet: Container(
         padding: const EdgeInsets.all(10.0),
         child: Text(
-          ((!kReleaseMode) ? 'DEBUG': Config.CODE_VERSION),
+          ((!kReleaseMode) ? 'DEBUG': Config.codeVersion),
           textAlign: TextAlign.center,
           style: const TextStyle(color: Colors.white),
         ),
@@ -405,6 +428,14 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         widget.onLoadingStateChanged(true);
         await widget.animationController.reverse();
         await Future.delayed(const Duration(milliseconds: 300));
+        
+        // Esperar a que el frame se renderice para asegurar que el widget de carga esté visible
+        await _waitForNextFrame();
+        if (!mounted) return;
+        
+        // Esperar un frame adicional para asegurar renderizado completo
+        await _waitForNextFrame();
+        if (!mounted) return;
         
         // Cargar todos los datos mientras se muestra el login
         await MarketsView.preloadAllMarketData();
@@ -624,16 +655,24 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         // Activar bandera de carga y ocultar botones con animación inversa
         widget.onLoadingStateChanged(true);
         await widget.animationController.reverse();
-          await Future.delayed(const Duration(milliseconds: 300));
-          
-          // Cargar todos los datos mientras se muestra el login
-          await MarketsView.preloadAllMarketData();
-          
-          if (!mounted) return;
-          String? username = await _storage.read(key: 'username');
-          Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const MainMenuPage()));
+        await Future.delayed(const Duration(milliseconds: 300));
+        
+        // Esperar a que el frame se renderice para asegurar que el widget de carga esté visible
+        await _waitForNextFrame();
+        if (!mounted) return;
+        
+        // Esperar un frame adicional para asegurar renderizado completo
+        await _waitForNextFrame();
+        if (!mounted) return;
+        
+        // Cargar todos los datos mientras se muestra el login
+        await MarketsView.preloadAllMarketData();
+        
+        if (!mounted) return;
+        String? username = await _storage.read(key: 'username');
+        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const MainMenuPage()));
         }
         else if (result != null && result == 3) {
           if (!mounted) return;

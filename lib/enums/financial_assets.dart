@@ -8,6 +8,10 @@ class FinancialAsset {
   final String group;
   final String icon;
   final String country;
+  // Campos opcionales para precios (vienen del backend)
+  final double? current;
+  final double? close;
+  final double? dailyGain;
 
   FinancialAsset({
     required this.name,
@@ -15,6 +19,9 @@ class FinancialAsset {
     required this.icon,
     required this.country,
     required this.ticker,
+    this.current,
+    this.close,
+    this.dailyGain,
   });
 
   factory FinancialAsset.fromJson(Map<String, dynamic> json) {
@@ -24,6 +31,10 @@ class FinancialAsset {
       icon: json['icon'],
       country: json['country'],
       ticker: json['ticker'],
+      // Mapear campos opcionales de precios
+      current: json['current'] != null ? (json['current'] as num).toDouble() : null,
+      close: json['close'] != null ? (json['close'] as num).toDouble() : null,
+      dailyGain: json['daily_gain'] != null ? (json['daily_gain'] as num).toDouble() : null,
     );
   }
 

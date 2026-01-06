@@ -54,7 +54,7 @@ class _BackgroundImageState extends State<_BackgroundImage> {
         fit: BoxFit.cover,
         cacheWidth: null,
         cacheHeight: null,
-        errorBuilder: (context, error, StackTrace) =>
+        errorBuilder: (context, error, stackTrace) =>
             Image.asset(
               "assets/new_icon.png",
               fit: BoxFit.cover,
@@ -109,10 +109,10 @@ class BetConfirmationPage extends StatefulWidget {
   });
 
   @override
-  _BetConfirmationPageState createState() => _BetConfirmationPageState();
+  BetConfirmationPageState createState() => BetConfirmationPageState();
 }
 
-class _BetConfirmationPageState extends State<BetConfirmationPage> with SingleTickerProviderStateMixin {
+class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTickerProviderStateMixin {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String? _points = '0.0';
   double _betAmount = 0.0;

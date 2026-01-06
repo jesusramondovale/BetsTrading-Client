@@ -33,12 +33,13 @@ class _TimeRowState extends State<TimeRow> {
   int _stepCalculator() {
     if (widget.candleWidth < 3) {
       return 31;
-    } else if (widget.candleWidth < 5)
+    } else if (widget.candleWidth < 5) {
       return 19;
-    else if (widget.candleWidth < 7)
+    } else if (widget.candleWidth < 7) {
       return 13;
-    else
+    } else {
       return 9;
+    }
   }
 
   /// Calculates [DateTime] of a given candle index
@@ -48,8 +49,9 @@ class _TimeRowState extends State<TimeRow> {
     if (candleNumber < 0) {
       time = widget.candles[0].date.add(Duration(
           milliseconds: dif.inMilliseconds ~/ -1 * step * candleNumber));
-    } else if (candleNumber < widget.candles.length)
+    } else if (candleNumber < widget.candles.length) {
       time = widget.candles[candleNumber].date;
+    }
     else {
       time = widget.candles[0].date.subtract(
           Duration(milliseconds: dif.inMilliseconds ~/ step * candleNumber));

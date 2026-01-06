@@ -32,7 +32,7 @@ class Bet {
   final DateTime targetDate;
   final DateTime endDate;
   final double targetOdds;
-  final int bet_zone;
+  final int betZone;
   final bool? targetWon;
   final bool? finished;
   final double? profitLoss;
@@ -54,7 +54,7 @@ class Bet {
     required this.endDate,
     required this.finished,
     required this.targetOdds,
-    required this.bet_zone,
+    required this.betZone,
   });
 
   Bet.fromJson(Map<String, dynamic> json)
@@ -80,7 +80,7 @@ class Bet {
                     ? (json['bet_amount'].toDouble()) *
                         (json['target_odds'].toDouble())
                     : json['bet_amount'].toDouble() * (-1),
-        bet_zone = json['bet_zone'];
+        betZone = json['bet_zone'];
 }
 
 class Bets {
@@ -151,7 +151,7 @@ class BetsAndPriceBets {
 class RecentBetDialog extends StatelessWidget {
   final Bet bet;
   final MainMenuPageController controller;
-  final currency;
+  final String currency;
   const RecentBetDialog({
     super.key,
     required this.bet,

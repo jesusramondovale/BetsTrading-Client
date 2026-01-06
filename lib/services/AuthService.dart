@@ -124,8 +124,9 @@ class AuthService {
       return 0; // SUCCESS
     } else if (response['statusCode'] == 404) {
       return 1; // NOT FOUND
+    } else {
+      return 2; // ERROR
     }
-    else return 2; // ERROR
   }
 
   Future<bool> _googleQuickRegister(GoogleSignInAccount user, String country,DateTime birthday) async {
@@ -156,7 +157,7 @@ class AuthService {
 
       final googleSignIn = GoogleSignIn(
         scopes: scopes,
-        serverClientId: Config.SERVER_CLIENT_ID,
+        serverClientId: Config.serverClientId,
       );
       
       // Limpiar sesiones previas de manera segura
@@ -268,7 +269,7 @@ class AuthService {
           print('   en la configuración del cliente OAuth');
           print('');
           print('5. Asegúrate de que el SERVER_CLIENT_ID coincida:');
-          print('   ${Config.SERVER_CLIENT_ID}');
+          print('   ${Config.serverClientId}');
           print('═══════════════════════════════════════════════════════════');
         }
       }

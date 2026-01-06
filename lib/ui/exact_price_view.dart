@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui';
+import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +13,7 @@ import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../services/FirebaseService.dart';
 import 'layout_page.dart';
-import 'package:intl/src/intl/number_format.dart';
+import 'package:intl/intl.dart';
 
 class ExactPricePage extends StatefulWidget {
   final double currentValue;
@@ -98,7 +98,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
       text: TextSpan(
           text: (_currency == "eur" ? '€' : '\$ ') + text, style: style),
       maxLines: 1,
-      textDirection: TextDirection.ltr,
+      textDirection: ui.TextDirection.ltr,
     )..layout();
 
     return textPainter.size.width * 0.75;
@@ -385,7 +385,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
           ),
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
               child: Container(color: Colors.black.withValues(alpha: 0.7)),
             ),
           ),
@@ -658,7 +658,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
                     children: [
                       const SizedBox(width: 10),
                       Text(
-                        NumberFormat('#,##0', 'es').format(Config.PRICE_BET_PRIZE),
+                        NumberFormat('#,##0', 'es').format(Config.priceBetPrize),
                         style: GoogleFonts.syncopate(
                           fontSize: 32,
                           fontWeight: FontWeight.w700,

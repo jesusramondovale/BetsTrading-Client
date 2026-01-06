@@ -40,13 +40,13 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   String _userCountry = "none";
   String _currency = "eur";
   List<RaffleItem> _raffleItems = [];
-  static const double _ROW_EXTENT = 45;
-  static const double _ROW_GAP = 8;
-  static const int _VISIBLE_ITEMS = 5;
+  static const double _rowExtent = 45;
+  static const double _rowGap = 8;
+  static const int _visibleItems = 5;
   Timer? _refreshTimer;
   TutorialCoachMark? _coach;
-  static const _PENDING_FLAG  = '__tutorial_pending__awards_v1';
-  static const _SEEN_FLAG     = '__tutorial_seen__awards_v1';
+  static const String _pendingFlag  = '__tutorial_pending__awards_v1';
+  static const String _seenFlag     = '__tutorial_seen__awards_v1';
   late final VoidCallback _tabListener;
 
   Future<void> loadUserIdAndData() async {
@@ -90,7 +90,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   }
 
   Widget _buildUserRow(User user, int rank, String prize, {double? rowExtent}) {
-    final scaleFactor = rowExtent != null ? (rowExtent / _ROW_EXTENT).clamp(0.75, 1.2) : 1.0;
+    final scaleFactor = rowExtent != null ? (rowExtent / _rowExtent).clamp(0.75, 1.2) : 1.0;
     final borderRadius = BorderRadius.circular((14 * scaleFactor).clamp(10.0, 18.0));
 
     return Material(
@@ -206,14 +206,14 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   }
 
   Widget _buildTopUsersView(List<String> rewards, {userCountry, double? rowExtent, double? rowGap}) {
-    final effectiveRowExtent = rowExtent ?? _ROW_EXTENT;
-    final effectiveRowGap = rowGap ?? _ROW_GAP;
-    final double blockHeight = effectiveRowExtent * _VISIBLE_ITEMS + effectiveRowGap * (_VISIBLE_ITEMS - 1);
+    final effectiveRowExtent = rowExtent ?? _rowExtent;
+    final effectiveRowGap = rowGap ?? _rowGap;
+    final double blockHeight = effectiveRowExtent * _visibleItems + effectiveRowGap * (_visibleItems - 1);
 
     if (_userId == null) {
       return SizedBox(
         height: blockHeight,
-        child: _TopUsersSkeleton(count: _VISIBLE_ITEMS, rowExtent: effectiveRowExtent, gap: effectiveRowGap),
+        child: _TopUsersSkeleton(count: _visibleItems, rowExtent: effectiveRowExtent, gap: effectiveRowGap),
       );
     }
 
@@ -225,7 +225,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         if (snapshot.connectionState == ConnectionState.waiting) {
           return SizedBox(
             height: blockHeight,
-            child: _TopUsersSkeleton(count: _VISIBLE_ITEMS, rowExtent: effectiveRowExtent, gap: effectiveRowGap),
+            child: _TopUsersSkeleton(count: _visibleItems, rowExtent: effectiveRowExtent, gap: effectiveRowGap),
           );
         } else if (snapshot.hasError) {
           return SizedBox(
@@ -244,13 +244,13 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
           );
         } else {
           final users = snapshot.data!;
-          final count = min(_VISIBLE_ITEMS, users.length);
+          final count = min(_visibleItems, users.length);
 
           return ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: count,
-            padding: EdgeInsets.symmetric(horizontal: (10 * (rowExtent != null ? rowExtent / _ROW_EXTENT : 1.0)).clamp(6.0, 14.0)),
+            padding: EdgeInsets.symmetric(horizontal: (10 * (rowExtent != null ? rowExtent / _rowExtent : 1.0)).clamp(6.0, 14.0)),
             separatorBuilder: (_, __) => SizedBox(height: effectiveRowGap),
             itemBuilder: (_, i) => SizedBox(
               height: effectiveRowExtent,
@@ -287,12 +287,12 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   // -------- T U T O R I A L      M E T H O D S ---------
   Future<void> _markSeen() async {
     final p = await SharedPreferences.getInstance();
-    await p.setBool(_SEEN_FLAG, true);
+    await p.setBool(_seenFlag, true);
   }
 
   Future<void> _clearPending() async {
     final p = await SharedPreferences.getInstance();
-    await p.remove(_PENDING_FLAG);
+    await p.remove(_pendingFlag);
   }
 
   Future<void> _waitForTargetsReady() async {
@@ -344,7 +344,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
 
   Future<void> _tryStartAwardsTutorial() async {
     final prefs = await SharedPreferences.getInstance();
-    final pending = prefs.getBool(_PENDING_FLAG) ?? false;
+    final pending = prefs.getBool(_pendingFlag) ?? false;
 
     if (!pending) return;
 
@@ -442,7 +442,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     final scaleFactor = (screenHeight / 800.0).clamp(0.75, 1.2);
     final rowExtent = (45 * scaleFactor).clamp(35.0, 55.0);
     final rowGap = (8 * scaleFactor).clamp(6.0, 10.0);
-    final visibleItems = _VISIBLE_ITEMS;
+    final visibleItems = _visibleItems;
 
     // Obtener la altura del bottomNavigationBar (70 píxeles según layout_page.dart)
     // y agregar padding adicional para evitar que los elementos queden ocultos
@@ -488,23 +488,21 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                           SizedBox(height: (8 * scaleFactor).clamp(6.0, 10.0)),
                           SizedBox(
                             height: rowExtent * visibleItems + rowGap * (visibleItems - 1),
-                            child: Container(
-                              child: TabBarView(
+                            child: TabBarView(
                                 controller: _tabController,
                                 children: [
                                   _buildTopUsersView(
-                                    _currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD,
+                                    _currency == "eur" ? Config.top5RewardsEur : Config.top5RewardsUsd,
                                     rowExtent: rowExtent,
                                     rowGap: rowGap,
                                   ),
                                   _buildTopUsersView(
-                                    _currency == "eur" ? Config.TOP5_REWARDS_EUR : Config.TOP5_REWARDS_USD,
+                                    _currency == "eur" ? Config.top5RewardsEur : Config.top5RewardsUsd,
                                     userCountry: _userCountry,
                                     rowExtent: rowExtent,
                                     rowGap: rowGap,
                                   ),
                                 ],
-                              ),
                             ),
                           ),
                           SizedBox(height: (16 * scaleFactor).clamp(12.0, 20.0)),
@@ -514,35 +512,33 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                     ),
 
                     // RAFFLES
-                    Container(
-                      child: Column(
-                        key: _kRaffles,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                strings?.get('raffles') ?? 'Raffles',
-                                style: GoogleFonts.syncopate(
-                                    fontSize: (18 * scaleFactor).clamp(14.0, 22.0),
-                                    fontWeight: FontWeight.w200),
-                              ),
-                              Spacer(),
-                              DaysToMinutesCountDown(scaleFactor: scaleFactor)
-                            ],
-                          ),
-                          Divider(color: Colors.white, thickness: 0.5, height: 0.5),
-                          RafflesBuilder(
-                              raffleItems: _raffleItems,
-                              userPoints: _userPoints,
-                              userId: _userId ?? '0',
-                              scaleFactor: scaleFactor,
-                              onRaffleSuccess: () async => {
-                                loadUserIdAndData(),
-                                homeScreenKey.currentState?.loadUserIdAndData()
-                              }
-                          )
-                        ],
-                      ),
+                    Column(
+                      key: _kRaffles,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              strings?.get('raffles') ?? 'Raffles',
+                              style: GoogleFonts.syncopate(
+                                  fontSize: (18 * scaleFactor).clamp(14.0, 22.0),
+                                  fontWeight: FontWeight.w200),
+                            ),
+                            Spacer(),
+                            DaysToMinutesCountDown(scaleFactor: scaleFactor)
+                          ],
+                        ),
+                        Divider(color: Colors.white, thickness: 0.5, height: 0.5),
+                        RafflesBuilder(
+                            raffleItems: _raffleItems,
+                            userPoints: _userPoints,
+                            userId: _userId ?? '0',
+                            scaleFactor: scaleFactor,
+                            onRaffleSuccess: () async => {
+                              loadUserIdAndData(),
+                              homeScreenKey.currentState?.loadUserIdAndData()
+                            }
+                        )
+                      ],
                     ),
                   ],
                 )
@@ -1235,7 +1231,7 @@ class _TopUsersSkeleton extends StatelessWidget {
       separatorBuilder: (_, __) => SizedBox(height: gap),
       itemBuilder: (_, index) {
         final rank = index + 1;
-        final prize = rank <= Config.TOP5_REWARDS_EUR.length ? Config.TOP5_REWARDS_EUR[rank - 1] : '';
+        final prize = rank <= Config.top5RewardsEur.length ? Config.top5RewardsEur[rank - 1] : '';
 
         return Container(
           height: rowExtent,

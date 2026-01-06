@@ -13,10 +13,10 @@ class VerifyAccountPage extends StatefulWidget {
   const VerifyAccountPage({super.key, required this.userId});
 
   @override
-  _VerifyAccountPageState createState() => _VerifyAccountPageState();
+  VerifyAccountPageState createState() => VerifyAccountPageState();
 }
 
-class _VerifyAccountPageState extends State<VerifyAccountPage> {
+class VerifyAccountPageState extends State<VerifyAccountPage> {
   String? _sessionUrl;
   bool _loading = false;
 

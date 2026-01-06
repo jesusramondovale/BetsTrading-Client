@@ -47,7 +47,7 @@ class Favorites {
 
   bool containsTicker(String ticker) {
     if (favorites.isEmpty) return false;
-    return favorites.contains(ticker);
+    return favorites.any((favorite) => favorite.ticker == ticker);
   }
 }
 

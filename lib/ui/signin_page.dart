@@ -248,7 +248,7 @@ class _SignInState extends State<SignIn> {
     });
   }
 
-  void _updateFormData(context) {
+  void _updateFormData(BuildContext context) {
     final basicInfoForm = _formKeys[0].currentState!;
     final addressInfoForm = _formKeys[1].currentState!;
 
@@ -273,7 +273,7 @@ class _SignInState extends State<SignIn> {
     }
   }
 
-  List<Step> _buildSteps(context) {
+  List<Step> _buildSteps(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return [
       Step(
@@ -299,7 +299,7 @@ class _SignInState extends State<SignIn> {
     return currentForm?.saveAndValidate() ?? false;
   }
 
-  Widget _buildBasicInfoStep(context) {
+  Widget _buildBasicInfoStep(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilder(
       key: _formKeys[0],
@@ -340,7 +340,7 @@ class _SignInState extends State<SignIn> {
     );
   }
 
-  Widget _buildAddressInfoStep(context) {
+  Widget _buildAddressInfoStep(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilder(
       key: _formKeys[1],
@@ -372,7 +372,7 @@ class _SignInState extends State<SignIn> {
     );
   }
 
-  Widget _buildCountryDropdown(context) {
+  Widget _buildCountryDropdown(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilderDropdown(
       name: 'country',
@@ -438,7 +438,7 @@ class _SignInState extends State<SignIn> {
     );
   }
 
-  Widget _buildCredentialsStep(context) {
+  Widget _buildCredentialsStep(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilder(
       key: _formKeys[2],
@@ -481,7 +481,7 @@ class _SignInState extends State<SignIn> {
     );
   }
 
-  Widget _buildEmailField(context, String label, String name, IconData icon,
+  Widget _buildEmailField(BuildContext context, String label, String name, IconData icon,
       bool readonly,
       {void Function()? onTap, bool isIconEnabled = true}) {
     final strings = LocalizedStrings.of(context);
@@ -521,7 +521,7 @@ class _SignInState extends State<SignIn> {
     );
   }
 
-  Widget _buildTermsAndConditionsCheckbox(context) {
+  Widget _buildTermsAndConditionsCheckbox(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return FormBuilderCheckbox(
       name: 'acceptTerms',
@@ -545,7 +545,7 @@ class _SignInState extends State<SignIn> {
               recognizer: TapGestureRecognizer()
                 ..onTap = () {
                   Common()
-                      .openInAppBrowser(context, Config.TERMS_N_CONDITIONS_PAGE);
+                      .openInAppBrowser(context, Config.termsNConditionsPage);
                 },
             ),
           ],
@@ -559,7 +559,7 @@ class _SignInState extends State<SignIn> {
     );
   }
 
-  Widget _buildTextField(context, String label, String name, IconData icon,
+  Widget _buildTextField(BuildContext context, String label, String name, IconData icon,
       bool readonly,
       {bool obscureText = false, void Function()? onTap}) {
     final strings = LocalizedStrings.of(context);
@@ -611,7 +611,7 @@ class _SignInState extends State<SignIn> {
   }
 
   Widget _buildPasswordField(
-      context, String label, String name, IconData icon, bool readonly,
+      BuildContext context, String label, String name, IconData icon, bool readonly,
       GlobalKey<FormBuilderState> formKey,
       {bool obscureText = true, void Function()? onTap}) {
     final strings = LocalizedStrings.of(context);

@@ -52,7 +52,7 @@ class MarketsView extends StatefulWidget {
       final currency = dollarCurrency ? 'USD' : 'EUR';
       final storage = const FlutterSecureStorage();
       
-      // Cargar todos los activos
+      // Cargar todos los activos CON precios (ya vienen del backend)
       final Map<int, List<FinancialAsset>> assetsPerTab = {};
       final Map<int, String> groupMapping = {
         0: 'Shares',
@@ -63,7 +63,7 @@ class MarketsView extends StatefulWidget {
       for (int id = 0; id < 3; id++) {
         String? theGroup = groupMapping[id];
         if (theGroup != null) {
-          final newAssets = await AssetsService().getFinancialAssetsByGroup(theGroup);
+          final newAssets = await AssetsService().getFinancialAssetsByGroup(theGroup, currency: currency);
           assetsPerTab[id] = newAssets ?? [];
         }
       }
@@ -76,78 +76,21 @@ class MarketsView extends StatefulWidget {
           .where((t) => t.isNotEmpty)
           .toSet();
       
-      // Cargar TODOS los precios (actuales y anteriores) y calcular porcentajes
+      // Extraer precios directamente de los assets (ya vienen del backend)
       final allAssets = assetsPerTab.values.expand((list) => list).toList();
       final Map<String, double> prices = {};
       final Map<String, double> previousPrices = {};
       final Map<String, double> dailyGains = {};
       
-      // Cargar precios en lotes para no sobrecargar
-      const batchSize = 50;
-      for (int i = 0; i < allAssets.length; i += batchSize) {
-        final batch = allAssets.skip(i).take(batchSize).toList();
-        final priceResults = await Future.wait(
-          batch.map((asset) async {
-            try {
-              final tickerKey = asset.ticker.toUpperCase().trim();
-              final candles = await BetsService().fetchCandles(asset.ticker, 1, currency);
-              if (candles.isNotEmpty) {
-                final currentCandle = candles.first;
-                final previousCandle = candles.length > 1 ? candles[1] : currentCandle;
-                
-                final currentPrice = currentCandle.close;
-                final previousPrice = previousCandle.close;
-                
-                // Validar precios actuales
-                if (currentPrice != null && 
-                    currentPrice > 0 && 
-                    currentPrice.isFinite &&
-                    !currentPrice.isNaN &&
-                    currentPrice != 1.0) {
-                  
-                  // Si tenemos precio anterior válido, calcular porcentaje
-                  if (previousPrice != null && 
-                      previousPrice > 0 && 
-                      previousPrice.isFinite &&
-                      !previousPrice.isNaN &&
-                      previousPrice != 1.0 &&
-                      !(currentPrice == 1.0 && previousPrice == 1.0)) {
-                    return {
-                      'ticker': tickerKey,
-                      'current': currentPrice,
-                      'previous': previousPrice,
-                      'gain': ((currentPrice - previousPrice) / previousPrice) * 100,
-                    };
-                  } else {
-                    // Solo precio actual válido
-                    return {
-                      'ticker': tickerKey,
-                      'current': currentPrice,
-                      'previous': null,
-                      'gain': null,
-                    };
-                  }
-                }
-              }
-            } catch (_) {}
-            return null;
-          }),
-          eagerError: false,
-        );
-        
-        for (var priceData in priceResults) {
-          if (priceData != null) {
-            final tickerKey = priceData['ticker'] as String;
-            final current = priceData['current'] as double;
-            prices[tickerKey] = current;
-            
-            if (priceData['previous'] != null) {
-              previousPrices[tickerKey] = priceData['previous'] as double;
-            }
-            
-            if (priceData['gain'] != null) {
-              dailyGains[tickerKey] = priceData['gain'] as double;
-            }
+      for (var asset in allAssets) {
+        final tickerKey = asset.ticker.toUpperCase().trim();
+        if (asset.current != null && asset.current! > 0) {
+          prices[tickerKey] = asset.current!;
+          if (asset.close != null && asset.close! > 0) {
+            previousPrices[tickerKey] = asset.close!;
+          }
+          if (asset.dailyGain != null) {
+            dailyGains[tickerKey] = asset.dailyGain!;
           }
         }
       }
@@ -192,11 +135,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   Set<String> _loadedPriceTickers = {}; // Track qué tickers ya tienen precio cargado
   bool _isLoading = true;
   bool _hasLoadedData = false;
-  bool _isLoadingMorePrices = false;
   Set<String> _favTickers = {};
   bool _isFavTicker(String t) => _favTickers.contains(t.toUpperCase().trim());
-  static const  _PENDING_FLAG = '__tutorial_pending__markets_v1';
-  static const _SEEN_FLAG = '__tutorial_seen__markets_v1';
+  static const String _pendingFlag = '__tutorial_pending__markets_v1';
+  static const String _seenFlag = '__tutorial_seen__markets_v1';
   TutorialCoachMark? _coach;
   late final VoidCallback _tabListener;
   bool _dollarCurrency = false;
@@ -251,6 +193,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   }
 
   Future<void> _loadAllAssets() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
+    final currency = dollarCurrency ? 'USD' : 'EUR';
+    
     Map<int, String> groupMapping = {
       0: 'Shares',
       1: 'Cryptos',
@@ -260,131 +206,31 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     for (int id = 0; id < groups.length; id++) {
       String? theGroup = groupMapping[id];
       if (theGroup != null) {
-        final newAssets =
-        await AssetsService().getFinancialAssetsByGroup(theGroup);
+        final newAssets = await AssetsService().getFinancialAssetsByGroup(theGroup, currency: currency);
         assetsPerTab[id] = newAssets ?? [];
       }
     }
     
-    // Inicializar el set de precios cargados
-    _loadedPriceTickers.clear();
-    _assetPrices.clear();
+    // Los precios ya vienen en los assets, extraerlos
+    if (!mounted) return;
     
-    // Cargar solo los primeros precios (los más importantes)
-    await _loadAssetPrices(limit: 30);
+    final Map<String, double> prices = {};
+    final allAssets = assetsPerTab.values.expand((list) => list).toList();
+    
+    for (var asset in allAssets) {
+      final tickerKey = asset.ticker.toUpperCase().trim();
+      if (asset.current != null && asset.current! > 0) {
+        prices[tickerKey] = asset.current!;
+        _loadedPriceTickers.add(tickerKey);
+      }
+    }
+    
+    if (!mounted) return;
+    setState(() {
+      _assetPrices = prices;
+    });
   }
 
-  Future<void> _loadAssetPrices({int limit = 30}) async {
-    if (!mounted || _isLoadingMorePrices || _isLoading) return;
-    
-    // Si ya tenemos todos los precios precargados, no cargar más
-    final preloadedPrices = MarketsView.getPreloadedPrices();
-    if (preloadedPrices != null) {
-      // Si ya tenemos todos o casi todos los precios precargados, no cargar más
-      if (_assetPrices.length >= preloadedPrices.length * 0.95) {
-        return;
-      }
-      // Si tenemos la mayoría pero faltan algunos, solo cargar los que faltan
-      final missingCount = preloadedPrices.length - _assetPrices.length;
-      if (missingCount < limit) {
-        limit = missingCount;
-      }
-    }
-    
-    final prefs = await SharedPreferences.getInstance();
-    final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
-    final currency = dollarCurrency ? 'USD' : 'EUR';
-    
-    // Obtener todos los activos tal cual vienen
-    final allAssets = <FinancialAsset>[];
-    for (var tabAssets in assetsPerTab.values) {
-      allAssets.addAll(tabAssets);
-    }
-    
-    if (allAssets.isEmpty) return;
-    
-    // Filtrar solo los activos que aún no tienen precio cargado
-    final assetsToLoad = allAssets
-        .where((asset) {
-          final tickerKey = asset.ticker.toUpperCase().trim();
-          return !_loadedPriceTickers.contains(tickerKey);
-        })
-        .take(limit)
-        .toList();
-    
-    if (assetsToLoad.isEmpty) return;
-    
-    _isLoadingMorePrices = true;
-    
-    // Cargar precios en paralelo solo para los activos seleccionados
-    final priceFutures = assetsToLoad.map((asset) async {
-      try {
-        final tickerKey = asset.ticker.toUpperCase().trim();
-        final candles = await BetsService().fetchCandles(
-          asset.ticker,
-          1,
-          currency,
-        );
-        if (candles.isNotEmpty && 
-            candles.first.close != null && 
-            candles.first.close > 0 && 
-            candles.first.close.isFinite &&
-            !candles.first.close.isNaN) {
-          return MapEntry(tickerKey, candles.first.close);
-        }
-      } catch (e) {
-        // Error al cargar precio para este activo - continuar con los demás
-      }
-      return null;
-    });
-    
-    // Esperar todas las peticiones, incluso si algunas fallan
-    final prices = await Future.wait(priceFutures, eagerError: false);
-    
-    if (!mounted) {
-      _isLoadingMorePrices = false;
-      return;
-    }
-    
-    final newPrices = <String, double>{};
-    int suspiciousCount = 0;
-    
-    for (var priceEntry in prices) {
-      if (priceEntry != null) {
-        if (priceEntry.value == 1.0) {
-          suspiciousCount++;
-        }
-        newPrices[priceEntry.key] = priceEntry.value;
-        _loadedPriceTickers.add(priceEntry.key);
-      }
-    }
-    
-    // Si más del 20% de los precios son 1.0, probablemente hay un error
-    if (suspiciousCount > 0 && suspiciousCount > (newPrices.length * 0.2)) {
-      _isLoadingMorePrices = false;
-      return;
-    }
-    
-    if (!mounted) {
-      _isLoadingMorePrices = false;
-      return;
-    }
-    
-    // Solo actualizar si hay nuevos precios que agregar
-    if (newPrices.isNotEmpty) {
-      final hadChanges = newPrices.keys.any((key) => !_assetPrices.containsKey(key));
-      if (hadChanges) {
-        setState(() {
-          _assetPrices.addAll(newPrices);
-          _isLoadingMorePrices = false;
-        });
-      } else {
-        _isLoadingMorePrices = false;
-      }
-    } else {
-      _isLoadingMorePrices = false;
-    }
-  }
 
   Future<void> _loadFavorites() async {
     if (!mounted) return;
@@ -531,34 +377,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     homeScreenKey.currentState?.refreshFavorites();
   }
 
-  Widget _buildFavBadge() {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        shape: BoxShape.circle,
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(3),
-        child: Icon(FontAwesomeIcons.solidStar, size: 25, color: Colors.white70.withValues(alpha: 0.7)),
-      ),
-    );
-  }
-
   Widget _buildLeafCardLayout(List<FinancialAsset> assets) {
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
-        if (notification is ScrollEndNotification) {
-          final metrics = notification.metrics;
-          // Si el usuario está cerca del final (último 20%), cargar más precios
-          // Solo si no hay datos precargados completos
-          final preloadedPrices = MarketsView.getPreloadedPrices();
-          final hasAllPreloaded = preloadedPrices != null && 
-              _assetPrices.length >= preloadedPrices.length * 0.9;
-          
-          if (!hasAllPreloaded && metrics.pixels >= metrics.maxScrollExtent * 0.8) {
-            _loadAssetPrices(limit: 20);
-          }
-        }
+        // Los precios ya vienen en los assets, no necesitamos cargar más
         return false;
       },
       child: ListView.builder(
@@ -569,19 +391,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
           final isFav = _favTickers.contains(asset.ticker.toUpperCase().trim());
           Widget card = _buildLeafCard(asset: asset, isFav: isFav, index: index);
           
-          // Cargar precios cuando se renderiza un elemento que aún no tiene precio
-          // Solo si no hay datos precargados completos
-          final preloadedPrices = MarketsView.getPreloadedPrices();
-          final hasAllPreloaded = preloadedPrices != null && 
-              _assetPrices.length >= preloadedPrices.length * 0.9;
-          
-          if (!hasAllPreloaded && index < 30 && !_loadedPriceTickers.contains(asset.ticker.toUpperCase().trim())) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && !_isLoadingMorePrices && !_isLoading) {
-                _loadAssetPrices(limit: 20);
-              }
-            });
-          }
+          // Los precios ya vienen en los assets del backend, no necesitamos cargarlos
           
           if (index == 0 && _kAnyAsset.currentContext == null) {
             _anyAssetRef ??= asset;
@@ -604,7 +414,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       asset: asset,
       isFav: isFav,
       index: index,
-      dollarCurrency: _dollarCurrency ?? false,
+      dollarCurrency: _dollarCurrency,
       onAssetChart: _openAssetChart,
       onToggleFavorite: toggleFavorite,
       onShowDetails: _showAssetDetails,
@@ -852,12 +662,12 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   //------ T U T O R I A L      M E T H O D S -----
   Future<void> _markSeen() async {
     final p = await SharedPreferences.getInstance();
-    await p.setBool(_SEEN_FLAG, true);
+    await p.setBool(_seenFlag, true);
   }
 
   Future<void> _clearPending() async {
     final p = await SharedPreferences.getInstance();
-    await p.remove(_PENDING_FLAG);
+    await p.remove(_pendingFlag);
   }
 
   Future<void> _waitForTargetsReady() async {
@@ -909,7 +719,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   Future<void> _tryStartMarketsTutorial() async {
 
     final prefs = await SharedPreferences.getInstance();
-    final pending = prefs.getBool(_PENDING_FLAG) ?? false;
+    final pending = prefs.getBool(_pendingFlag) ?? false;
     if (!pending) return;
 
     await _waitForTargetsReady();
@@ -1568,13 +1378,11 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
           final previousPrice = previousCandle.close;
           
           // Intentar cargar al menos el precio actual
-          if (currentPrice != null && 
-              currentPrice > 0 && 
+          if (currentPrice > 0 &&
               currentPrice.isFinite &&
               !currentPrice.isNaN &&
               currentPrice != 1.0) {
-            if (previousPrice != null && 
-                previousPrice > 0 && 
+            if (previousPrice > 0 &&
                 previousPrice.isFinite &&
                 !previousPrice.isNaN &&
                 previousPrice != 1.0 &&
@@ -1622,7 +1430,6 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final strings = LocalizedStrings.of(context);
     final rotation = (widget.index % 3 - 1) * 0.5;
     
     return TweenAnimationBuilder<double>(

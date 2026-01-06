@@ -25,10 +25,10 @@ class UserInfoPage extends StatefulWidget {
   const UserInfoPage({super.key, required this.controller});
 
   @override
-  _UserInfoPageState createState() => _UserInfoPageState();
+  UserInfoPageState createState() => UserInfoPageState();
 }
 
-class _UserInfoPageState extends State<UserInfoPage> {
+class UserInfoPageState extends State<UserInfoPage> {
   final GlobalKey _kFirstSixTiles = GlobalKey();
   final GlobalKey _kProfileCamera = GlobalKey();
   final GlobalKey _kVerifyAccount = GlobalKey();
@@ -36,8 +36,8 @@ class _UserInfoPageState extends State<UserInfoPage> {
   final GlobalKey _kWithdrawalHistory = GlobalKey();
   final Completer<void> _builtOnce = Completer<void>();
   final GlobalKey _kLogout = GlobalKey();
-  static const _SEEN_KEY = '__tutorial_seen__userinfo_v1';
-  static const _PENDING_KEY = '__tutorial_pending__userinfo_v1';
+  static const String _seenKey = '__tutorial_seen__userinfo_v1';
+  static const String _pendingKey = '__tutorial_pending__userinfo_v1';
   bool userVerified = false;
   late String countryCode = '';
   late String _userId = '';
@@ -71,7 +71,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
     }
   }
 
-  Future<Map<String, String>> _readUserInfo(context) async {
+  Future<Map<String, String>> _readUserInfo(BuildContext context) async {
     final strings = LocalizedStrings.of(context);
     Map<String, String> userInfo = {};
 
@@ -120,8 +120,8 @@ class _UserInfoPageState extends State<UserInfoPage> {
     _loadProfilePic();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final p = await SharedPreferences.getInstance();
-      final pending = p.getBool(_PENDING_KEY) ?? false;
+      final SharedPreferences p = await SharedPreferences.getInstance();
+      final pending = p.getBool(_pendingKey) ?? false;
       final seen = await _hasSeen();
 
       if (!(pending || !seen)) return;
@@ -504,17 +504,17 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
   Future<void> _clearPending() async {
     final p = await SharedPreferences.getInstance();
-    await p.remove(_PENDING_KEY);
+    await p.remove(_pendingKey);
   }
 
   Future<void> _markSeen() async {
     final p = await SharedPreferences.getInstance();
-    await p.setBool(_SEEN_KEY, true);
+    await p.setBool(_seenKey, true);
   }
 
   Future<bool> _hasSeen() async {
     final p = await SharedPreferences.getInstance();
-    return p.getBool(_SEEN_KEY) ?? false;
+    return p.getBool(_seenKey) ?? false;
   }
 
   //-----   T U T O R I A L      M E T H O D S ------

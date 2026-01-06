@@ -35,8 +35,8 @@ class ExchangePageState extends State<ExchangePage> {
   final _kGetMoreBtn      = GlobalKey();
   final _kWithdrawGroup   = GlobalKey();
   final _kPendingBalance  = GlobalKey();
-  static const _PENDING_FLAG = '__tutorial_pending__exchange_v1';
-  static const _SEEN_FLAG    = '__tutorial_seen__exchange_v1';
+  static const String _pendingFlag = '__tutorial_pending__exchange_v1';
+  static const String _seenFlag    = '__tutorial_seen__exchange_v1';
   TutorialCoachMark? _coach;
   late final VoidCallback _tabListener;
 
@@ -157,12 +157,12 @@ class ExchangePageState extends State<ExchangePage> {
   // --------- T U T O R I A L     M E T H O D S    -------------
   Future<void> _markSeen() async {
     final p = await SharedPreferences.getInstance();
-    await p.setBool(_SEEN_FLAG, true);
+    await p.setBool(_seenFlag, true);
   }
 
   Future<void> _clearPending() async {
     final p = await SharedPreferences.getInstance();
-    await p.remove(_PENDING_FLAG);
+    await p.remove(_pendingFlag);
   }
 
   Future<void> _waitForTargetsReady() async {
@@ -246,7 +246,7 @@ class ExchangePageState extends State<ExchangePage> {
 
   Future<void> _tryStartExchangeTutorial() async {
     final p = await SharedPreferences.getInstance();
-    final pending = p.getBool(_PENDING_FLAG) ?? false;
+    final pending = p.getBool(_pendingFlag) ?? false;
     if (!pending) return;
 
     await _waitForTargetsReady();

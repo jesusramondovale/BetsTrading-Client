@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'config/config.dart';
 import 'helpers/common.dart';
 import 'ui/login_page.dart';
-import 'ui/layout_page.dart';
 import 'services/AuthService.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -191,7 +190,7 @@ Future<void> main() async {
     overlays: [SystemUiOverlay.top],
   );
 
-  stripe.Stripe.publishableKey = Config.STRIPE_PUBLIC_KEY;
+  stripe.Stripe.publishableKey = Config.stripePublicKey;
   await stripe.Stripe.instance.applySettings();
 
   runApp(MyApp());
@@ -238,10 +237,10 @@ class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  SplashScreenState createState() => SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class SplashScreenState extends State<SplashScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   DateTime? _startTime;
 
@@ -301,12 +300,6 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  void _navigateToHome() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const MainMenuPage()),
-    );
-  }
 
   void _navigateToLogin() {
     if (mounted) {

@@ -482,7 +482,7 @@ class Common {
         endDate: endDate,
         finished: false,
         targetOdds: targetOdds,
-        bet_zone: 999);
+        betZone: 999);
   }
 
   int hoursUntilLatestEndDate(List<RectangleZone> rectangleZones, DateTime lastCandleDate, int timeframeHours) {
@@ -530,7 +530,7 @@ class Common {
         strokeColor: strokeColor,
         odds: betZone.targetOdds,
         ticker: betZone.ticker,
-        type: betZone.bet_type
+        type: betZone.betType
       );
     }).toList();
   }
@@ -1207,7 +1207,7 @@ class Common {
     try {
       final client = HttpClient();
       final url = Uri.parse(
-          "https://${Config.PUBLIC_DOMAIN}/api/$controller/$endpoint");
+          "https://${Config.publicDomain}/api/$controller/$endpoint");
       final HttpClientRequest request = await client.postUrl(url);
 
       request.headers.set('Content-Type', 'application/json; charset=utf-8');
@@ -1245,7 +1245,7 @@ class Common {
   }
 
   Future<String> getUserCountry() async {
-    final apiKey = Config.IP_GEOLOCALIZER_TOKEN;
+    final apiKey = Config.ipGeolocalizerToken;
     final url = 'https://ipinfo.io/json?token=$apiKey';
 
     try {

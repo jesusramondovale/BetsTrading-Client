@@ -100,7 +100,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     if (mounted) setState(() {});
 
     RewardedAd.load(
-      adUnitId: Config.ADMOB_AD_TOKEN,
+      adUnitId: Config.admobAdToken,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
@@ -150,7 +150,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
     String? purpose,
   }) async {
     final url =
-    Uri.parse("https://${Config.PUBLIC_DOMAIN}/api/Rewards/RequestAdNonce");
+    Uri.parse("https://${Config.publicDomain}/api/Rewards/RequestAdNonce");
 
     final payload = {
       'adUnitId': adUnitId,
@@ -223,7 +223,7 @@ class _StorePageState extends State<StorePage> with TickerProviderStateMixin {
 
     try {
       final userId = await _storage.read(key: 'sessionToken');
-      final adId = Config.ADMOB_AD_TOKEN;
+      final adId = Config.admobAdToken;
       if (userId == null || !mounted) return;
 
       final nonce = await requestRewardNonce(
