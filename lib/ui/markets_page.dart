@@ -161,6 +161,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   TutorialCoachMark? _coach;
   late final VoidCallback _tabListener;
   bool _dollarCurrency = false;
+  final Map<int, ScrollController> _scrollControllers = {};
 
   void _initGroups() {
     final strings = LocalizedStrings.of(context);
@@ -424,19 +425,25 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     homeScreenKey.currentState?.refreshFavorites();
   }
 
-  Widget _buildLeafCardLayout(List<FinancialAsset> assets) {
+  Widget _buildLeafCardLayout(List<FinancialAsset> assets, int tabIndex) {
+    // Crear ScrollController para este tab si no existe
+    if (!_scrollControllers.containsKey(tabIndex)) {
+      _scrollControllers[tabIndex] = ScrollController();
+    }
+    
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
         // Los precios ya vienen en los assets, no necesitamos cargar más
         return false;
       },
       child: ListView.builder(
+        controller: _scrollControllers[tabIndex],
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         itemCount: assets.length,
         itemBuilder: (context, index) {
           final asset = assets[index];
           final isFav = _favTickers.contains(asset.ticker.toUpperCase().trim());
-          Widget card = _buildLeafCard(asset: asset, isFav: isFav, index: index);
+          Widget card = _buildLeafCard(asset: asset, isFav: isFav, index: index, tabIndex: tabIndex);
           
           // Los precios ya vienen en los assets del backend, no necesitamos cargarlos
           
@@ -455,6 +462,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     required FinancialAsset asset,
     required bool isFav,
     required int index,
+    required int tabIndex,
   }) {
     return _LeafCardWidget(
       key: ValueKey(asset.ticker),
@@ -466,7 +474,30 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       onToggleFavorite: toggleFavorite,
       onShowDetails: _showAssetDetails,
       assetFallbackBadge: _assetFallbackBadge,
+      onNavigateToFirst: () => _navigateToFirstAndOpen(tabIndex),
     );
+  }
+
+  /// Navega al primer elemento de la lista y abre su gráfico.
+  void _navigateToFirstAndOpen(int tabIndex) {
+    final controller = _scrollControllers[tabIndex];
+    if (controller != null && controller.hasClients) {
+      controller.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+    
+    // Esperar a que termine el scroll y luego abrir el gráfico del primer elemento
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
+      final assets = assetsPerTab[tabIndex] ?? [];
+      if (assets.isNotEmpty) {
+        final firstAsset = assets.first;
+        _openAssetChart(firstAsset, tutorialMode: true);
+      }
+    });
   }
 
   Widget _kvRow(String k, String v, Color textColor, {showCountryFlag = false}) {
@@ -609,6 +640,11 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   void dispose() {
     widget.controller.selectedIndexNotifier.removeListener(_tabListener);
     _tabController.dispose();
+    // Dispose de todos los ScrollControllers
+    for (var controller in _scrollControllers.values) {
+      controller.dispose();
+    }
+    _scrollControllers.clear();
     super.dispose();
   }
 
@@ -698,7 +734,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                       // Si ninguno tiene precio, mantener orden original
                       return 0;
                     });
-                    return _buildLeafCardLayout(assets);
+                    return _buildLeafCardLayout(assets, index);
                   }),
                 ),
         ),
@@ -847,7 +883,9 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
             try { _coach?.finish(); } catch (_) {}
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && _anyAssetRef != null) {
-                _openAssetChart(_anyAssetRef!, tutorialMode: true);
+                // Navegar al primer elemento y abrir el gráfico
+                final currentTab = _tabController.index;
+                _navigateToFirstAndOpen(currentTab);
               }
             });
           }
@@ -1368,6 +1406,7 @@ class _LeafCardWidget extends StatefulWidget {
   final Function(String) onToggleFavorite;
   final Function(BuildContext, FinancialAsset) onShowDetails;
   final Widget Function(FinancialAsset, double) assetFallbackBadge;
+  final VoidCallback? onNavigateToFirst;
 
   const _LeafCardWidget({
     super.key,
@@ -1379,6 +1418,7 @@ class _LeafCardWidget extends StatefulWidget {
     required this.onToggleFavorite,
     required this.onShowDetails,
     required this.assetFallbackBadge,
+    this.onNavigateToFirst,
   });
 
   @override
@@ -1537,6 +1577,20 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if (widget.onNavigateToFirst != null)
+                              ListTile(
+                                dense: false,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                leading: const Icon(Icons.show_chart),
+                                title: Text(
+                                  LocalizedStrings.of(context)!.get('viewChart') ?? "View chart",
+                                  style: GoogleFonts.montserrat(),
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  widget.onNavigateToFirst!();
+                                },
+                              ),
                             ListTile(
                               dense: false,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1564,13 +1618,14 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                 style: GoogleFonts.montserrat(),
                               ),
                               onTap: () async {
+                                final navigator = Navigator.of(context);
                                 List<Candle> candles = await BetsService().fetchCandles(
                                   widget.asset.ticker,
                                   1,
                                   widget.dollarCurrency ? 'USD' : 'EUR',
                                 );
-                                Navigator.push(
-                                  context,
+                                if (!mounted) return;
+                                navigator.push(
                                   MaterialPageRoute(
                                     builder: (context) => ExactPricePage(
                                       name: widget.asset.name,
