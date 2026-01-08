@@ -1395,7 +1395,9 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
   @override
   void initState() {
     super.initState();
-    _currency = widget.dollarCurrency ? '\$' : '€';
+    // Para Forex, no mostrar símbolo de moneda
+    final isForex = Common().isTickerForex(widget.asset.ticker);
+    _currency = isForex ? '' : (widget.dollarCurrency ? '\$' : '€');
     _loadPriceData();
   }
 
@@ -1577,7 +1579,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                       ticker: widget.asset.ticker,
                                       currentValue: candles.first.close,
                                       iconPath: widget.asset.icon,
-                                      isForex: widget.asset.group.toLowerCase() == "forex",
+                                      isForex: Common().isTickerForex(widget.asset.ticker),
                                     ),
                                   ),
                                 );

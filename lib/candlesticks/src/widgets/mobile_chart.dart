@@ -604,7 +604,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                     high: tweenEnd,
                                     width: priceBarWidth,
                                     paintCurrency: (
-                                        widget.ticker.contains('/')
+                                        Common().isTickerForex(widget.ticker)
                                             ? 0
                                             : (_dollarCurrency ? 2 : 1) ),
                                     chartHeight: chartHeight,
