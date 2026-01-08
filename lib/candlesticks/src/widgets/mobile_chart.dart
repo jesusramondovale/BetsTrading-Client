@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../Services/bets_service.dart';
+import '../../../services/bets_service.dart';
 import '../../../helpers/common.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../models/rectangle_zone.dart';

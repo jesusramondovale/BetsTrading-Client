@@ -9,7 +9,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
-import '../Services/bets_service.dart';
+import '../services/bets_service.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../enums/financial_assets.dart';
 import '../helpers/common.dart';

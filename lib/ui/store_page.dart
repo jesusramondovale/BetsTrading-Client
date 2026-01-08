@@ -10,7 +10,7 @@ import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../Services/bets_service.dart';
+import '../services/bets_service.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';

@@ -34,10 +34,8 @@ import 'package:image_cropper/image_cropper.dart';
 
 class Common {
 
-  bool isTickerForex(String ticker){
-
-    List<String> forexTickers = 
-    [ 
+  bool isTickerForex(String ticker) {
+    List<String> forexTickers = [
       "EUR/USD",
       "USD/JPY",
       "GPB/USD",
@@ -46,7 +44,7 @@ class Common {
       "XRP/BTC",
       "AUD/USD",
       "USD/CHF",
-      "BTC/ETH" 
+      "BTC/ETH"
     ];
 
     return forexTickers.contains(ticker);
