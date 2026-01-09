@@ -1817,8 +1817,8 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                             overflow: TextOverflow.ellipsis,
                                             textAlign: TextAlign.center,
                                             style: GoogleFonts.syncopate(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w200,
                                               color: Colors.white,
                                             ),
                                           ),
@@ -1835,39 +1835,42 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                     ),
                                     // Segunda línea: Precios centrados
                                     if (!_isLoadingPrice && _currentPrice != null)
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          if (_closePrice != null) ...[
+                                      Transform.translate(
+                                        offset: const Offset(-20, 0),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            if (_closePrice != null) ...[
+                                              Text(
+                                                '${(_closePrice! > 1 ? _closePrice!.toStringAsFixed(2) : _closePrice!.toStringAsFixed(4))}$_currency',
+                                                style: GoogleFonts.montserrat(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.white70,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '→',
+                                                style: GoogleFonts.montserrat(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.white54,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                            ],
                                             Text(
-                                              '${(_closePrice! > 1 ? _closePrice!.toStringAsFixed(2) : _closePrice!.toStringAsFixed(4))}$_currency',
+                                              '${(_currentPrice! > 1 ? _currentPrice!.toStringAsFixed(2) : _currentPrice!.toStringAsFixed(4))}$_currency',
                                               style: GoogleFonts.montserrat(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.white70,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: _dailyGain != null && _dailyGain! >= 0.0 ? const Color(0xFF00C853) : (_dailyGain != null ? const Color(0xFFDC2626) : Colors.white),
                                               ),
                                             ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '→',
-                                              style: GoogleFonts.montserrat(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.white54,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
                                           ],
-                                          Text(
-                                            '${(_currentPrice! > 1 ? _currentPrice!.toStringAsFixed(2) : _currentPrice!.toStringAsFixed(4))}$_currency',
-                                            style: GoogleFonts.montserrat(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                              color: _dailyGain != null && _dailyGain! >= 0.0 ? const Color(0xFF059669) : (_dailyGain != null ? const Color(0xFFDC2626) : Colors.white),
-                                            ),
-                                          ),
-                                        ],
+                                        ),
                                       ),
                                   ],
                                 ),
@@ -1890,7 +1893,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                       (_dailyGain! >= 0.0)
                                           ? Icon(
                                               FontAwesomeIcons.arrowTrendUp,
-                                              color: const Color(0xFF059669),
+                                              color: const Color(0xFF00C853),
                                               size: 18,
                                             )
                                           : Icon(
@@ -1904,10 +1907,10 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                         style: GoogleFonts.montserrat(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w700,
-                                          color: _dailyGain! >= 0.0 ? const Color(0xFF059669) : const Color(0xFFDC2626),
+                                          color: _dailyGain! >= 0.0 ? const Color(0xFF00C853) : const Color(0xFFDC2626),
                                           shadows: [
                                             Shadow(
-                                              color: (_dailyGain! >= 0.0 ? const Color(0xFF059669) : const Color(0xFFDC2626)).withValues(alpha: 0.5),
+                                              color: (_dailyGain! >= 0.0 ? const Color(0xFF00C853) : const Color(0xFFDC2626)).withValues(alpha: 0.5),
                                               blurRadius: 8,
                                               offset: const Offset(0, 0),
                                             ),
