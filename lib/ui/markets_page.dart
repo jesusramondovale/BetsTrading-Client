@@ -447,8 +447,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
           
           // Los precios ya vienen en los assets del backend, no necesitamos cargarlos
           
-          if (index == 0 && _kAnyAsset.currentContext == null) {
-            _anyAssetRef ??= asset;
+          // Asignar la key al primer elemento del tab activo para el tutorial
+          // Si el tab actual es el activo y es el primer elemento, asignar la key
+          if (index == 0 && tabIndex == _tabController.index) {
+            _anyAssetRef = asset;
             card = KeyedSubtree(key: _kAnyAsset, child: card);
           }
           
@@ -621,6 +623,22 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 1);
+    
+    // Listener para actualizar la referencia del primer elemento cuando cambia el tab
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        // Cuando el tab cambia, actualizar la referencia del primer elemento
+        final currentTab = _tabController.index;
+        final assets = assetsPerTab[currentTab] ?? [];
+        if (assets.isNotEmpty) {
+          _anyAssetRef = assets.first;
+        }
+        // Forzar rebuild para que el primer elemento del nuevo tab tenga la key
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
 
     _tabListener = () {
       if (widget.controller.selectedIndexNotifier.value == 2) {
@@ -645,6 +663,13 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       controller.dispose();
     }
     _scrollControllers.clear();
+    // Cerrar el tutorial si está activo para evitar errores de AnimationController
+    try {
+      _coach?.finish();
+    } catch (_) {
+      // Ignorar errores si el tutorial ya se cerró
+    }
+    _coach = null;
     super.dispose();
   }
 
@@ -853,6 +878,32 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   Future<void> _startMarketsTutorial() async {
     final strings = LocalizedStrings.of(context);
+    
+    // Asegurarse de que el primer elemento del tab activo esté visible antes de iniciar el tutorial
+    final currentTab = _tabController.index;
+    final assets = assetsPerTab[currentTab] ?? [];
+    if (assets.isNotEmpty) {
+      _anyAssetRef = assets.first;
+    }
+    
+    // Forzar rebuild para asegurar que el primer elemento tenga la key
+    if (mounted) {
+      setState(() {});
+    }
+    
+    // Esperar un momento para que el layout se actualice
+    await Future.delayed(const Duration(milliseconds: 200));
+    
+    final controller = _scrollControllers[currentTab];
+    if (controller != null && controller.hasClients) {
+      controller.jumpTo(0.0);
+      // Esperar un momento más para que el scroll termine
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+    
+    // Esperar a que los targets estén listos
+    await _waitForTargetsReady();
+    
     final targets = _buildMarketsTargets(strings)
         .where((t) => t.keyTarget?.currentContext != null)
         .toList();
@@ -876,14 +927,26 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       disableBackButton: true,
       onClickTarget: (target) async {
         try {
+          // No hacer nada en onClickTarget para el primer target, dejar que el tutorial avance automáticamente
+          // La navegación al primer elemento se maneja en onClickOverlay
           if (target.identify == 'mv_anyasset' && _anyAssetRef != null) {
             final p = await SharedPreferences.getInstance();
             await p.setBool('__tutorial_pending__candles_v1', true);
 
-            try { _coach?.finish(); } catch (_) {}
-            WidgetsBinding.instance.addPostFrameCallback((_) {
+            // Cerrar el tutorial de forma segura antes de abrir el gráfico
+            // Usar un pequeño delay para asegurar que las animaciones actuales terminen
+            Future.delayed(const Duration(milliseconds: 200), () {
+              if (!mounted) return;
+              try {
+                _coach?.finish();
+              } catch (e) {
+                // Ignorar errores si el tutorial ya se cerró o fue eliminado
+              }
+            });
+            
+            // Abrir el gráfico después de un pequeño delay adicional
+            Future.delayed(const Duration(milliseconds: 400), () {
               if (mounted && _anyAssetRef != null) {
-                // Navegar al primer elemento y abrir el gráfico
                 final currentTab = _tabController.index;
                 _navigateToFirstAndOpen(currentTab);
               }
@@ -891,7 +954,31 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
           }
         } catch (_) {}
       },
-      onClickOverlay: (_) {},
+      onClickOverlay: (target) async {
+        // Cuando se hace clic en el overlay del primer target, navegar al primer elemento
+        // para asegurarnos de que esté visible cuando el tutorial avance al siguiente paso
+        try {
+          if (target != null && target.identify == 'mv_tabs') {
+            final currentTab = _tabController.index;
+            final controller = _scrollControllers[currentTab];
+            if (controller != null && controller.hasClients) {
+              // Navegar al primer elemento inmediatamente
+              controller.jumpTo(0.0);
+              // Esperar un momento para que el layout se actualice
+              await Future.delayed(const Duration(milliseconds: 200));
+              
+              // Verificar que el target esté listo antes de que el tutorial avance
+              if (mounted && _kAnyAsset.currentContext == null) {
+                // Esperar un poco más si el target aún no está listo
+                for (int i = 0; i < 10; i++) {
+                  await Future.delayed(const Duration(milliseconds: 50));
+                  if (_kAnyAsset.currentContext != null) break;
+                }
+              }
+            }
+          }
+        } catch (_) {}
+      },
       onSkip: () {
         _clearPending();
         _markSeen();
@@ -1586,8 +1673,11 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                   LocalizedStrings.of(context)!.get('viewChart') ?? "View chart",
                                   style: GoogleFonts.montserrat(),
                                 ),
-                                onTap: () {
+                                onTap: () async {
                                   Navigator.pop(context);
+                                  // Establecer el flag del tutorial antes de abrir el gráfico
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.setBool('__tutorial_pending__candles_v1', true);
                                   widget.onNavigateToFirst!();
                                 },
                               ),
