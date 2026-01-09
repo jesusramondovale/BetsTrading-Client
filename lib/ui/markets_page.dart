@@ -958,7 +958,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
         // Cuando se hace clic en el overlay del primer target, navegar al primer elemento
         // para asegurarnos de que esté visible cuando el tutorial avance al siguiente paso
         try {
-          if (target != null && target.identify == 'mv_tabs') {
+          if (target.identify == 'mv_tabs') {
             final currentTab = _tabController.index;
             final controller = _scrollControllers[currentTab];
             if (controller != null && controller.hasClients) {
@@ -1672,7 +1672,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 leading: const Icon(Icons.show_chart),
                                 title: Text(
-                                  LocalizedStrings.of(context)!.get('viewChart') ?? "View chart",
+                                  "Ver tutorial sobre el gráfico",
                                   style: GoogleFonts.montserrat(),
                                 ),
                                 onTap: () async {
@@ -1680,6 +1680,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                   // Establecer el flag del tutorial antes de abrir el gráfico
                                   final prefs = await SharedPreferences.getInstance();
                                   await prefs.setBool('__tutorial_pending__candles_v1', true);
+                                  await prefs.setBool('__tutorial_from_menu__candles_v1', true);
                                   widget.onNavigateToFirst!();
                                 },
                               ),
@@ -1729,19 +1730,6 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                   ),
                                 );
                               },
-                            ),
-                            ListTile(
-                              dense: false,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                              leading: const Icon(Icons.notifications_none),
-                              title: Text(
-                                LocalizedStrings.of(context)!.get('createAlert') ?? "Create alert",
-                                style: GoogleFonts.montserrat(),
-                              ),
-                              onTap: () {
-                                Common().showFloatingSnack(context, "Unimplemented action!", backgroundColor: Colors.black54);
-                                Navigator.pop(context);
-                              }
                             ),
                             ListTile(
                               dense: false,
@@ -1942,16 +1930,16 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                             !widget.asset.icon.contains("http")
                         ? Image.memory(
                             base64Decode(widget.asset.icon),
-                            width: 60,
-                            height: 60,
+                            width: 75,
+                            height: 75,
                             fit: BoxFit.fitHeight,
                             errorBuilder: (_, __, ___) => widget.assetFallbackBadge(widget.asset, 60),
                           )
                         : widget.asset.icon.isNotEmpty && widget.asset.icon.contains("http")
                             ? Image.network(
                                 widget.asset.icon,
-                                width: 65,
-                                height: 65,
+                                width: 80,
+                                height: 80,
                                 fit: BoxFit.contain,
                                 errorBuilder: (_, __, ___) => widget.assetFallbackBadge(widget.asset, 60),
                               )

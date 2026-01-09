@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -403,7 +404,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                     final int coins = (item['coins'] ?? 0) as int;
 
                     final colors = [Colors.brown, Colors.grey, Colors.amber, Colors.deepPurple];
-                    final scales = [1.0, 1.15, 1.25, 1.35];
+                    final scales = [1.20, 1.28, 1.33, 1.37];
 
                     return _buildStoreButton(
                       context,
@@ -417,6 +418,74 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                       },
                     );
                   }),
+                Container(
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        FontAwesomeIcons.ccVisa,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                      const SizedBox(width: 20),
+                      Icon(
+                        FontAwesomeIcons.ccMastercard,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                      const SizedBox(width: 20),
+                      Icon(
+                        FontAwesomeIcons.ccApplePay,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                      const SizedBox(width: 20),
+                      Icon(
+                        FontAwesomeIcons.ccPaypal,
+                        color: Colors.white,
+                        size: 35,
+                      ), 
+                      const SizedBox(width: 20),
+                      Icon(
+                        FontAwesomeIcons.ccAmazonPay,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                      const SizedBox(width: 20),
+                    ],
+                  ),
+                ),
+                Container(
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 120),
+                  height: 0.5,
+                  color: Colors.white,
+                ),
+                Container(
+                  margin: const EdgeInsets.only(top: 6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'powered by',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Image.asset(
+                        'assets/stripe.png',
+                        height: 20,
+                        fit: BoxFit.contain,
+                      ),
+                    ],
+                  ),
+                ),
                 const Spacer(),
                 Container(
                   margin: const EdgeInsets.only(top: 8),
@@ -563,6 +632,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                     ],
                   ),
                 ),
+
               ],
             ),
           ),
@@ -595,13 +665,14 @@ class _StoreSlider extends StatefulWidget {
 
 class _StoreSliderState extends State<_StoreSlider> {
   double _sliderValue = 0.0;
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
       child: Container(
-        height: 70 * widget.k + 24,
+        height: 60 * widget.k + 24,
         decoration: BoxDecoration(
           color: Colors.transparent.withAlpha(30),
           borderRadius: BorderRadius.circular(50.0),
@@ -620,195 +691,221 @@ class _StoreSliderState extends State<_StoreSlider> {
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(50.0),
-          child: Stack(
-            children: [
-              // Fondo: Contenedor de monedas (bet-coins) - fondo fijo a la derecha
-              Positioned.fill(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      // Flecha hacia la derecha (se oculta cuando se desliza)
-                      Opacity(
-                        opacity: 1.0 - (_sliderValue * 1.5).clamp(0.0, 1.0),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Icon(
-                            Icons.double_arrow,
-                            size: 30 * widget.k,
-                            color: Colors.white54,
-                          ),
-                        ),
-                      ),
-                      // Contenedor de monedas (bet-coins) (derecha) - fondo fijo
-                      Expanded(
-                        child: Container(
-                          height: 70 * widget.k,
-                          margin: const EdgeInsets.only(left: 6.0),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                widget.color,
-                                widget.color.withAlpha(200),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(60.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: widget.color.withAlpha(80),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/coin.png',
-                                width: 28 * widget.k,
-                                height: 28 * widget.k,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '${widget.coins}',
-                                style: GoogleFonts.syncopate(
-                                  fontSize: 15 * widget.k,
-                                  fontWeight: FontWeight.w200,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withAlpha(120),
-                                      blurRadius: 3,
-                                      offset: const Offset(0, 1),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+        child: Stack(
+          children: [
+            // Flecha hacia la derecha (se oculta cuando se desliza) - centrada en el slider
+            Positioned.fill(
+              child: Center(
+                child: Opacity(
+                  opacity: 1.0 - (_sliderValue * 1.5).clamp(0.0, 1.0),
+                  child: Icon(
+                    Icons.double_arrow,
+                    size: 35 * widget.k,
+                    color: Colors.white54,
                   ),
                 ),
               ),
-              // Primer plano: Contenedor de precio que se desliza desde la izquierda
-              Positioned.fill(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final totalWidth = constraints.maxWidth;
-                    // Ancho más pequeño, solo para el precio (aproximadamente 120-140px)
-                    final containerWidth = 120.0 * widget.k;
-                    // Calcular el offset: cuando sliderValue es 0, está en la izquierda (offset 0)
-                    // Cuando sliderValue es 1, se mueve completamente a la derecha
-                    final maxOffset = totalWidth - containerWidth - 20; // 20 es el padding horizontal total (8*2 + 4)
-                    final slideOffset = maxOffset * _sliderValue;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
-                      child: Transform.translate(
-                        offset: Offset(slideOffset, 0),
-                        child: Container(
+            ),
+            // Fondo: Contenedor de monedas (bet-coins) - fondo fijo a la derecha
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // Contenedor de monedas (bet-coins) (derecha) - fondo fijo
+                    Container(
+                      width: 90 * widget.k,
+                      height: 70 * widget.k,
+                      margin: const EdgeInsets.only(left: 6.0),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            widget.color,
+                            widget.color.withAlpha(200),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(60.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: widget.color.withAlpha(80),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/coin.png',
+                            width: 35 * widget.k,
+                            height: 28 * widget.k,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${widget.coins}',
+                            style: GoogleFonts.syncopate(
+                              fontSize: 15 * widget.k,
+                              fontWeight: FontWeight.w200,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withAlpha(120),
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Primer plano: Contenedor de precio que se desliza desde la izquierda
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final totalWidth = constraints.maxWidth;
+                // Ancho igual al contenedor fijo de monedas
+                final containerWidth = 100.0 * widget.k;
+                // Calcular el offset: cuando sliderValue es 0, está completamente a la izquierda
+                // Cuando sliderValue es 1, se mueve completamente a la derecha
+                final paddingHorizontal = 8.0;
+                final maxOffset = totalWidth - containerWidth - (paddingHorizontal * 2);
+                final slideOffset = maxOffset * _sliderValue;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Transform.translate(
+                      offset: Offset(slideOffset, 0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(60.0),
+                        child: SizedBox(
                           width: containerWidth,
                           height: 70 * widget.k,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.white.withAlpha(30),
-                                Colors.white.withAlpha(15),
+                          child: Container(
+                            constraints: BoxConstraints(
+                              maxWidth: containerWidth,
+                              minWidth: containerWidth,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: _isPressed
+                                    ? [
+                                        Colors.white.withAlpha(80),
+                                        Colors.white.withAlpha(50),
+                                      ]
+                                    : [
+                                        Colors.white.withAlpha(30),
+                                        Colors.white.withAlpha(15),
+                                      ],
+                              ),
+                              borderRadius: BorderRadius.circular(60.0),
+                              border: Border.all(
+                                color: _isPressed
+                                    ? Colors.white.withAlpha(120)
+                                    : Colors.white.withAlpha(50),
+                                width: _isPressed ? 2.0 : 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _isPressed
+                                      ? Colors.white.withAlpha(100)
+                                      : Colors.black.withAlpha(60),
+                                  blurRadius: _isPressed ? 12 : 8,
+                                  offset: const Offset(0, 3),
+                                  spreadRadius: 0,
+                                ),
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(60.0),
-                            border: Border.all(
-                              color: Colors.white.withAlpha(50),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha(60),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                                spreadRadius: 0,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                widget.currency == 'eur' ? 'assets/euro.png' : 'assets/dollar.png',
-                                width: 28 * widget.k,
-                                height: 28 * widget.k,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                widget.price.toStringAsFixed(2),
-                                style: GoogleFonts.syncopate(
-                                  fontSize: 16 * widget.k,
-                                  fontWeight: FontWeight.w200,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withAlpha(120),
-                                      blurRadius: 3,
-                                      offset: const Offset(0, 1),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    widget.currency == 'eur' ? 'assets/euro.png' : 'assets/dollar.png',
+                                    width: 28 * widget.k,
+                                    height: 28 * widget.k,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    widget.price.toStringAsFixed(2),
+                                    style: GoogleFonts.syncopate(
+                                      fontSize: 16 * widget.k,
+                                      fontWeight: FontWeight.w200,
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withAlpha(120),
+                                          blurRadius: 3,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                    );
+                    ),
+                  ),
+                );
+              },
+            ),
+            // Slider invisible para capturar gestos
+            Positioned.fill(
+              child: SliderTheme(
+                data: SliderThemeData(
+                  trackShape: const _StoreSliderTrackShape(),
+                  thumbShape: const _StoreSliderThumbShape(),
+                  trackHeight: 0,
+                  thumbColor: Colors.transparent,
+                  activeTrackColor: Colors.transparent,
+                  inactiveTrackColor: Colors.transparent,
+                  overlayShape: SliderComponentShape.noOverlay,
+                  overlayColor: Colors.transparent,
+                ),
+                child: Slider(
+                  value: _sliderValue,
+                  onChanged: (value) {
+                    setState(() {
+                      _sliderValue = value;
+                      _isPressed = true;
+                    });
                   },
+                  onChangeStart: (_) {
+                    setState(() => _isPressed = true);
+                  },
+                  onChangeEnd: (value) {
+                    setState(() => _isPressed = false);
+                    if (value == 1.0) {
+                      widget.onSlideComplete();
+                      Future.delayed(const Duration(milliseconds: 50), () {
+                        if (mounted) setState(() => _sliderValue = 0.0);
+                      });
+                    } else {
+                      setState(() => _sliderValue = 0.0);
+                    }
+                  },
+                  min: 0.0,
+                  max: 1.0,
                 ),
               ),
-              // Slider invisible para capturar gestos
-              Positioned.fill(
-                child: SliderTheme(
-                  data: SliderThemeData(
-                    trackShape: const _StoreSliderTrackShape(),
-                    thumbShape: const _StoreSliderThumbShape(),
-                    trackHeight: 0,
-                    thumbColor: Colors.transparent,
-                    activeTrackColor: Colors.transparent,
-                    inactiveTrackColor: Colors.transparent,
-                  ),
-                  child: Slider(
-                    value: _sliderValue,
-                    onChanged: (value) {
-                      int intensity = (10 + (95 * value)).round();
-                      Common().vibrate(40, intensity);
-                      setState(() => _sliderValue = value);
-                    },
-                    onChangeEnd: (value) {
-                      if (value == 1.0) {
-                        Common().vibrate(300, 300);
-                        widget.onSlideComplete();
-                        Future.delayed(const Duration(milliseconds: 50), () {
-                          if (mounted) setState(() => _sliderValue = 0.0);
-                        });
-                      } else {
-                        Common().vibrate();
-                        setState(() => _sliderValue = 0.0);
-                      }
-                    },
-                    min: 0.0,
-                    max: 1.0,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
