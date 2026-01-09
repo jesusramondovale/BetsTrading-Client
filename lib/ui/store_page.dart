@@ -92,9 +92,31 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       List<Map<String, dynamic>>.from(buyOptionsResponse['body'] as Iterable);
       _adRewardOptions = List<Map<String, dynamic>>.from(
           adRewardOptionsResponse['body'] as Iterable);
-      _rewardPrize = _adRewardOptions.isNotEmpty
-          ? (_adRewardOptions[0]['coins'] ?? 15) as int
-          : 15;
+      
+      debugPrint('StorePage loadData: _adRewardOptions recibidas: $_adRewardOptions');
+      
+      // Obtener el premio de las opciones de recompensa
+      if (_adRewardOptions.isNotEmpty) {
+        final coinsValue = _adRewardOptions[0]['coins'];
+        debugPrint('StorePage loadData: coinsValue del primer elemento: $coinsValue (tipo: ${coinsValue.runtimeType})');
+        if (coinsValue != null) {
+          // Manejar diferentes tipos: int, double, o string
+          if (coinsValue is int) {
+            _rewardPrize = coinsValue;
+          } else if (coinsValue is double) {
+            _rewardPrize = coinsValue.toInt();
+          } else if (coinsValue is String) {
+            _rewardPrize = int.tryParse(coinsValue) ?? 15;
+          } else {
+            _rewardPrize = 15;
+          }
+        } else {
+          _rewardPrize = 15;
+        }
+      } else {
+        _rewardPrize = 15;
+      }
+      debugPrint('StorePage loadData: _rewardPrize establecido a: $_rewardPrize');
     });
   }
 
@@ -153,6 +175,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
     required String userId,
     required String adUnitId,
     String? purpose,
+    int? coins,
   }) async {
     final url =
     Uri.parse("https://${Config.publicDomain}/api/Rewards/RequestAdNonce");
@@ -160,7 +183,10 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
     final payload = {
       'adUnitId': adUnitId,
       if (purpose != null) 'purpose': purpose,
+      if (coins != null) 'coins': coins,
     };
+
+    debugPrint('StorePage requestRewardNonce: Enviando payload: $payload');
 
     final client = HttpClient();
     final req = await client.postUrl(url);
@@ -184,9 +210,11 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       if (nonce == null || nonce.isEmpty) {
         throw Exception('Nonce vacío del servidor');
       }
+      debugPrint('StorePage requestRewardNonce: Respuesta del servidor: $data');
       return nonce;
     }
 
+    debugPrint('StorePage requestRewardNonce: Error ${res.statusCode}: $body');
     throw Exception('requestRewardNonce failed: ${res.statusCode} $body');
   }
 
@@ -231,11 +259,21 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       final adId = Config.admobAdToken;
       if (userId == null || !mounted) return;
 
+      // Asegurar que tenemos el valor correcto de la recompensa
+      final rewardCoins = _rewardPrize ?? (_adRewardOptions.isNotEmpty 
+          ? (_adRewardOptions[0]['coins'] as num?)?.toInt() ?? 15 
+          : 15);
+      
+      debugPrint('StorePage: Enviando recompensa de $rewardCoins coins al backend');
+      
       final nonce = await requestRewardNonce(
         userId: userId,
         adUnitId: adId,
         purpose: 'store_page_reward',
+        coins: rewardCoins,
       );
+
+      if (!mounted) return;
 
       ad.setServerSideOptions(ServerSideVerificationOptions(
         userId: userId,
@@ -296,6 +334,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       );
       await stripe.Stripe.instance.presentPaymentSheet();
       await BetsService().getUserInfo(userId);
+      if (!mounted) return;
       Navigator.pop(context);
       homeScreenKey.currentState?.loadUserIdAndData();
       awardsScreenKey.currentState?.loadUserIdAndData();
@@ -309,6 +348,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       );
     } on stripe.StripeException catch (e) {
       if (e.error.code != stripe.FailureCode.Canceled) {
+        if (!mounted) return;
         Navigator.pop(context);
         Common().showFloatingSnack(
           context,
@@ -892,8 +932,7 @@ class _StoreSliderState extends State<_StoreSlider> {
                             ),
                           ),
                         ),
-                      ),
-                    ),
+                      ),                     ),
                   ),
                 );
               },
