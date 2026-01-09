@@ -161,6 +161,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   TutorialCoachMark? _coach;
   late final VoidCallback _tabListener;
   bool _dollarCurrency = false;
+  final Map<int, ScrollController> _scrollControllers = {};
 
   void _initGroups() {
     final strings = LocalizedStrings.of(context);
@@ -424,24 +425,32 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     homeScreenKey.currentState?.refreshFavorites();
   }
 
-  Widget _buildLeafCardLayout(List<FinancialAsset> assets) {
+  Widget _buildLeafCardLayout(List<FinancialAsset> assets, int tabIndex) {
+    // Crear ScrollController para este tab si no existe
+    if (!_scrollControllers.containsKey(tabIndex)) {
+      _scrollControllers[tabIndex] = ScrollController();
+    }
+    
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
         // Los precios ya vienen en los assets, no necesitamos cargar más
         return false;
       },
       child: ListView.builder(
+        controller: _scrollControllers[tabIndex],
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         itemCount: assets.length,
         itemBuilder: (context, index) {
           final asset = assets[index];
           final isFav = _favTickers.contains(asset.ticker.toUpperCase().trim());
-          Widget card = _buildLeafCard(asset: asset, isFav: isFav, index: index);
+          Widget card = _buildLeafCard(asset: asset, isFav: isFav, index: index, tabIndex: tabIndex);
           
           // Los precios ya vienen en los assets del backend, no necesitamos cargarlos
           
-          if (index == 0 && _kAnyAsset.currentContext == null) {
-            _anyAssetRef ??= asset;
+          // Asignar la key al primer elemento del tab activo para el tutorial
+          // Si el tab actual es el activo y es el primer elemento, asignar la key
+          if (index == 0 && tabIndex == _tabController.index) {
+            _anyAssetRef = asset;
             card = KeyedSubtree(key: _kAnyAsset, child: card);
           }
           
@@ -455,6 +464,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     required FinancialAsset asset,
     required bool isFav,
     required int index,
+    required int tabIndex,
   }) {
     return _LeafCardWidget(
       key: ValueKey(asset.ticker),
@@ -466,7 +476,30 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       onToggleFavorite: toggleFavorite,
       onShowDetails: _showAssetDetails,
       assetFallbackBadge: _assetFallbackBadge,
+      onNavigateToFirst: () => _navigateToFirstAndOpen(tabIndex),
     );
+  }
+
+  /// Navega al primer elemento de la lista y abre su gráfico.
+  void _navigateToFirstAndOpen(int tabIndex) {
+    final controller = _scrollControllers[tabIndex];
+    if (controller != null && controller.hasClients) {
+      controller.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+    
+    // Esperar a que termine el scroll y luego abrir el gráfico del primer elemento
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
+      final assets = assetsPerTab[tabIndex] ?? [];
+      if (assets.isNotEmpty) {
+        final firstAsset = assets.first;
+        _openAssetChart(firstAsset, tutorialMode: true);
+      }
+    });
   }
 
   Widget _kvRow(String k, String v, Color textColor, {showCountryFlag = false}) {
@@ -590,6 +623,22 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 1);
+    
+    // Listener para actualizar la referencia del primer elemento cuando cambia el tab
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        // Cuando el tab cambia, actualizar la referencia del primer elemento
+        final currentTab = _tabController.index;
+        final assets = assetsPerTab[currentTab] ?? [];
+        if (assets.isNotEmpty) {
+          _anyAssetRef = assets.first;
+        }
+        // Forzar rebuild para que el primer elemento del nuevo tab tenga la key
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
 
     _tabListener = () {
       if (widget.controller.selectedIndexNotifier.value == 2) {
@@ -609,6 +658,18 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   void dispose() {
     widget.controller.selectedIndexNotifier.removeListener(_tabListener);
     _tabController.dispose();
+    // Dispose de todos los ScrollControllers
+    for (var controller in _scrollControllers.values) {
+      controller.dispose();
+    }
+    _scrollControllers.clear();
+    // Cerrar el tutorial si está activo para evitar errores de AnimationController
+    try {
+      _coach?.finish();
+    } catch (_) {
+      // Ignorar errores si el tutorial ya se cerró
+    }
+    _coach = null;
     super.dispose();
   }
 
@@ -698,7 +759,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                       // Si ninguno tiene precio, mantener orden original
                       return 0;
                     });
-                    return _buildLeafCardLayout(assets);
+                    return _buildLeafCardLayout(assets, index);
                   }),
                 ),
         ),
@@ -817,6 +878,32 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   Future<void> _startMarketsTutorial() async {
     final strings = LocalizedStrings.of(context);
+    
+    // Asegurarse de que el primer elemento del tab activo esté visible antes de iniciar el tutorial
+    final currentTab = _tabController.index;
+    final assets = assetsPerTab[currentTab] ?? [];
+    if (assets.isNotEmpty) {
+      _anyAssetRef = assets.first;
+    }
+    
+    // Forzar rebuild para asegurar que el primer elemento tenga la key
+    if (mounted) {
+      setState(() {});
+    }
+    
+    // Esperar un momento para que el layout se actualice
+    await Future.delayed(const Duration(milliseconds: 200));
+    
+    final controller = _scrollControllers[currentTab];
+    if (controller != null && controller.hasClients) {
+      controller.jumpTo(0.0);
+      // Esperar un momento más para que el scroll termine
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+    
+    // Esperar a que los targets estén listos
+    await _waitForTargetsReady();
+    
     final targets = _buildMarketsTargets(strings)
         .where((t) => t.keyTarget?.currentContext != null)
         .toList();
@@ -840,20 +927,58 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       disableBackButton: true,
       onClickTarget: (target) async {
         try {
+          // No hacer nada en onClickTarget para el primer target, dejar que el tutorial avance automáticamente
+          // La navegación al primer elemento se maneja en onClickOverlay
           if (target.identify == 'mv_anyasset' && _anyAssetRef != null) {
             final p = await SharedPreferences.getInstance();
             await p.setBool('__tutorial_pending__candles_v1', true);
 
-            try { _coach?.finish(); } catch (_) {}
-            WidgetsBinding.instance.addPostFrameCallback((_) {
+            // Cerrar el tutorial de forma segura antes de abrir el gráfico
+            // Usar un pequeño delay para asegurar que las animaciones actuales terminen
+            Future.delayed(const Duration(milliseconds: 200), () {
+              if (!mounted) return;
+              try {
+                _coach?.finish();
+              } catch (e) {
+                // Ignorar errores si el tutorial ya se cerró o fue eliminado
+              }
+            });
+            
+            // Abrir el gráfico después de un pequeño delay adicional
+            Future.delayed(const Duration(milliseconds: 400), () {
               if (mounted && _anyAssetRef != null) {
-                _openAssetChart(_anyAssetRef!, tutorialMode: true);
+                final currentTab = _tabController.index;
+                _navigateToFirstAndOpen(currentTab);
               }
             });
           }
         } catch (_) {}
       },
-      onClickOverlay: (_) {},
+      onClickOverlay: (target) async {
+        // Cuando se hace clic en el overlay del primer target, navegar al primer elemento
+        // para asegurarnos de que esté visible cuando el tutorial avance al siguiente paso
+        try {
+          if (target != null && target.identify == 'mv_tabs') {
+            final currentTab = _tabController.index;
+            final controller = _scrollControllers[currentTab];
+            if (controller != null && controller.hasClients) {
+              // Navegar al primer elemento inmediatamente
+              controller.jumpTo(0.0);
+              // Esperar un momento para que el layout se actualice
+              await Future.delayed(const Duration(milliseconds: 200));
+              
+              // Verificar que el target esté listo antes de que el tutorial avance
+              if (mounted && _kAnyAsset.currentContext == null) {
+                // Esperar un poco más si el target aún no está listo
+                for (int i = 0; i < 10; i++) {
+                  await Future.delayed(const Duration(milliseconds: 50));
+                  if (_kAnyAsset.currentContext != null) break;
+                }
+              }
+            }
+          }
+        } catch (_) {}
+      },
       onSkip: () {
         _clearPending();
         _markSeen();
@@ -1368,6 +1493,7 @@ class _LeafCardWidget extends StatefulWidget {
   final Function(String) onToggleFavorite;
   final Function(BuildContext, FinancialAsset) onShowDetails;
   final Widget Function(FinancialAsset, double) assetFallbackBadge;
+  final VoidCallback? onNavigateToFirst;
 
   const _LeafCardWidget({
     super.key,
@@ -1379,6 +1505,7 @@ class _LeafCardWidget extends StatefulWidget {
     required this.onToggleFavorite,
     required this.onShowDetails,
     required this.assetFallbackBadge,
+    this.onNavigateToFirst,
   });
 
   @override
@@ -1537,6 +1664,23 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if (widget.onNavigateToFirst != null)
+                              ListTile(
+                                dense: false,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                leading: const Icon(Icons.show_chart),
+                                title: Text(
+                                  LocalizedStrings.of(context)!.get('viewChart') ?? "View chart",
+                                  style: GoogleFonts.montserrat(),
+                                ),
+                                onTap: () async {
+                                  Navigator.pop(context);
+                                  // Establecer el flag del tutorial antes de abrir el gráfico
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.setBool('__tutorial_pending__candles_v1', true);
+                                  widget.onNavigateToFirst!();
+                                },
+                              ),
                             ListTile(
                               dense: false,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1564,13 +1708,14 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                 style: GoogleFonts.montserrat(),
                               ),
                               onTap: () async {
+                                final navigator = Navigator.of(context);
                                 List<Candle> candles = await BetsService().fetchCandles(
                                   widget.asset.ticker,
                                   1,
                                   widget.dollarCurrency ? 'USD' : 'EUR',
                                 );
-                                Navigator.push(
-                                  context,
+                                if (!mounted) return;
+                                navigator.push(
                                   MaterialPageRoute(
                                     builder: (context) => ExactPricePage(
                                       name: widget.asset.name,
