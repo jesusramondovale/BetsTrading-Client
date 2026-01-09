@@ -301,10 +301,16 @@ class ExchangePageState extends State<ExchangePage> {
         final p = await SharedPreferences.getInstance();
         await p.setBool('__tutorial_pending__userinfo_v1', true);
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) widget.controller.updateIndex(4);
-        });
-        await Future.delayed(const Duration(milliseconds: 150));
+        // Esperar un poco más para asegurar que el tutorial se cierre completamente
+        await Future.delayed(const Duration(milliseconds: 300));
+        
+        if (!mounted) return;
+        
+        // Cambiar a la pestaña 4 y dar tiempo para que se inicialice
+        widget.controller.updateIndex(4);
+        
+        // Dar tiempo adicional para que UserInfoPage se inicialice y el listener esté activo
+        await Future.delayed(const Duration(milliseconds: 200));
       },
     );
 

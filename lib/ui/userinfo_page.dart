@@ -113,10 +113,28 @@ class UserInfoPageState extends State<UserInfoPage> {
 
   void _onIndexChange() {
     if (widget.controller.selectedIndexNotifier.value == 4) {
+      // Usar scheduleMicrotask para asegurar que se ejecute después del frame actual
       scheduleMicrotask(() async {
-        await _builtOnce.future;
-        startUserInfoTutorial();
-        widget.controller.selectedIndexNotifier.removeListener(_onIndexChange);
+        if (!mounted) return;
+        
+        final SharedPreferences p = await SharedPreferences.getInstance();
+        final pending = p.getBool(_pendingKey) ?? false;
+        final seen = await _hasSeen();
+        
+        // Solo iniciar si hay tutorial pendiente o no se ha visto
+        if (pending || !seen) {
+          // Esperar a que el widget se construya completamente
+          await _builtOnce.future;
+          
+          // Dar un pequeño delay adicional para asegurar que los widgets estén renderizados
+          await Future.delayed(const Duration(milliseconds: 100));
+          
+          if (mounted) {
+            startUserInfoTutorial();
+          }
+        }
+        // NO remover el listener aquí - mantenerlo activo para detectar futuros cambios
+        // El listener solo se remueve en dispose() o cuando el tutorial se complete
       });
     }
   }
@@ -126,19 +144,24 @@ class UserInfoPageState extends State<UserInfoPage> {
     super.initState();
     _loadProfilePic();
 
+    // Agregar el listener inmediatamente para no perder cambios de pestaña
+    widget.controller.selectedIndexNotifier.addListener(_onIndexChange);
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final SharedPreferences p = await SharedPreferences.getInstance();
       final pending = p.getBool(_pendingKey) ?? false;
       final seen = await _hasSeen();
 
-      if (!(pending || !seen)) return;
-
-      if (widget.controller.selectedIndexNotifier.value == 4) {
+      // Si ya estamos en la pestaña 4 y hay tutorial pendiente o no se ha visto, iniciar el tutorial
+      if (widget.controller.selectedIndexNotifier.value == 4 && (pending || !seen)) {
         await _builtOnce.future;
-        startUserInfoTutorial();
-      } else {
-        widget.controller.selectedIndexNotifier.addListener(_onIndexChange);
+        // Dar un pequeño delay adicional para asegurar que los widgets estén renderizados
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (mounted) {
+          startUserInfoTutorial();
+        }
       }
+      // NO remover el listener - mantenerlo activo para detectar cambios de pestaña
     });
   }
 
@@ -148,6 +171,14 @@ class UserInfoPageState extends State<UserInfoPage> {
     return FutureBuilder<Map<String, String>>(
       future: _readUserInfo(context),
       builder: (BuildContext context, AsyncSnapshot<Map<String, String>> snapshot) {
+        // Asegurar que _builtOnce se complete en todos los casos
+        if (snapshot.connectionState != ConnectionState.waiting && !_tutorialQueued) {
+          _tutorialQueued = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!_builtOnce.isCompleted) _builtOnce.complete();
+          });
+        }
+        
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
@@ -390,13 +421,6 @@ class UserInfoPageState extends State<UserInfoPage> {
             ),
           );
 
-          if (!_tutorialQueued) {
-            _tutorialQueued = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!_builtOnce.isCompleted) _builtOnce.complete();
-            });
-          }
-
           return ListView(children: listItems);
         } else {
           return Center(child: Text(strings?.get('noInfoAvailable') ?? 'No info available!'));
@@ -475,17 +499,41 @@ class UserInfoPageState extends State<UserInfoPage> {
 
   Future<void> startUserInfoTutorial() async {
     LocalizedStrings? strings = LocalizedStrings.of(context);
+    if (!mounted) return;
 
+    // Esperar a que los widgets estén listos con delays apropiados
     for (int i = 0; i < 50; i++) {
+      if (!mounted) return;
       final ready = _kFirstSixTiles.currentContext != null &&
           _kProfileCamera.currentContext != null &&
           _kPaymentHistory.currentContext != null &&
           _kWithdrawalHistory.currentContext != null &&
           _kLogout.currentContext != null;
       if (ready) break;
+      await Future.delayed(const Duration(milliseconds: 50));
     }
+    
+    if (!mounted) return;
     final targets = _buildUserInfoTargets();
-    if (targets.isEmpty) return;
+    if (targets.isEmpty) {
+      // Si los targets están vacíos, intentar una vez más después de un delay
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (!mounted) return;
+      final retryTargets = _buildUserInfoTargets();
+      if (retryTargets.isEmpty) {
+        await _clearPending();
+        return;
+      }
+      // Usar los targets del retry
+      _showTutorial(retryTargets, strings);
+      return;
+    }
+    
+    _showTutorial(targets, strings);
+  }
+
+  void _showTutorial(List<TargetFocus> targets, LocalizedStrings? strings) {
+    if (!mounted) return;
     _coach = TutorialCoachMark(
       targets: targets,
       colorShadow: Colors.black,
@@ -500,11 +548,16 @@ class UserInfoPageState extends State<UserInfoPage> {
         _markSeen();
         _clearPending();
         Common().markAllTutorialsSeen();
+        // Remover el listener después de completar el tutorial
+        widget.controller.selectedIndexNotifier.removeListener(_onIndexChange);
         return true;
         },
       onFinish: () async {
         await _markSeen();
-        await _clearPending(); },
+        await _clearPending();
+        // Remover el listener después de completar el tutorial
+        widget.controller.selectedIndexNotifier.removeListener(_onIndexChange);
+      },
     );
     _coach!.show(context: context);
   }

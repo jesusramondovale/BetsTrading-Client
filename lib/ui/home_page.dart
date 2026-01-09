@@ -46,10 +46,16 @@ class HomeScreenState extends State<HomeScreen> {
   late Future<Trends> _trendsFuture;
   late Future<Favorites> _favsFuture;
   bool _userIsInteracting = false;
+  bool _userIsInteractingFavs = false;
   final ScrollController _trendScrollController = ScrollController();
+  final ScrollController _favsScrollController = ScrollController();
   Ticker? _ticker;
+  Ticker? _favsTicker;
   double _direction = 1;
+  double _favsDirection = -1; // Comienza moviéndose hacia la izquierda
   Timer? _refreshTimer;
+  double _lastTrendScrollOffset = 0.0;
+  double _lastFavsScrollOffset = 0.0;
   final GlobalKey _kSettings = GlobalKey();
   final GlobalKey _kStore = GlobalKey();
   final GlobalKey _kTrends = GlobalKey();
@@ -158,6 +164,11 @@ class HomeScreenState extends State<HomeScreen> {
   /// Scrolls back and forth automatically when user is not interacting.
   /// Pauses scrolling when user touches the screen.
   void _startAutoScroll() {
+    // Inicializar la última posición
+    if (_trendScrollController.hasClients) {
+      _lastTrendScrollOffset = _trendScrollController.offset;
+    }
+    
     _ticker = Ticker((Duration elapsed) {
       if (!_trendScrollController.hasClients) return;
       if (_userIsInteracting) return;
@@ -175,9 +186,80 @@ class HomeScreenState extends State<HomeScreen> {
       }
 
       _trendScrollController.jumpTo(offset);
+      _lastTrendScrollOffset = offset;
     });
 
     _ticker!.start();
+  }
+
+  /// Starts automatic scrolling of the favorites list.
+  ///
+  /// Scrolls back and forth automatically when user is not interacting.
+  /// Pauses scrolling when user touches the screen.
+  /// Starts from the right (end) and moves first to the left.
+  void _startFavsAutoScroll() async {
+    // Esperar a que el ScrollController esté listo y posicionar al final
+    for (int i = 0; i < 50; i++) {
+      if (!mounted) return;
+      if (_favsScrollController.hasClients) {
+        try {
+          final max = _favsScrollController.position.maxScrollExtent;
+          if (max > 0) {
+            // Posicionar al final (derecha) y asegurar que la dirección sea hacia la izquierda
+            _favsScrollController.jumpTo(max);
+            _favsDirection = -1; // Asegurar dirección hacia la izquierda
+            break;
+          }
+        } catch (e) {
+          // Ignorar errores de inicialización
+        }
+      }
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    if (!mounted) return;
+
+    // Dar un pequeño delay adicional para asegurar que el jumpTo se complete
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    if (!mounted) return;
+
+    // Inicializar la última posición
+    if (_favsScrollController.hasClients) {
+      _lastFavsScrollOffset = _favsScrollController.offset;
+    }
+
+    // Ahora iniciar el ticker que se moverá hacia la izquierda
+    _favsTicker = Ticker((Duration elapsed) {
+      if (!mounted) return;
+      if (!_favsScrollController.hasClients) return;
+      if (_userIsInteractingFavs) return;
+
+      try {
+        final max = _favsScrollController.position.maxScrollExtent;
+        // Si no hay scroll disponible (maxScrollExtent <= 0), no hacer nada
+        if (max <= 0) return;
+
+        final min = 0.0;
+        double offset = _favsScrollController.offset + _favsDirection * 0.5;
+
+        if (offset >= max) {
+          _favsDirection = -1; // Cambiar a izquierda cuando llega al final
+          offset = max;
+        } else if (offset <= min) {
+          _favsDirection = 1; // Cambiar a derecha cuando llega al inicio
+          offset = min;
+        }
+
+        _favsScrollController.jumpTo(offset);
+        _lastFavsScrollOffset = offset;
+      } catch (e) {
+        // Si hay algún error con el ScrollController, detener el ticker
+        _favsTicker?.stop();
+      }
+    });
+
+    _favsTicker!.start();
   }
 
   @override
@@ -186,6 +268,10 @@ class HomeScreenState extends State<HomeScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _delayedAutoScrollInit();
+      // Iniciar auto-scroll de favoritos después de 3 segundos
+      Future.delayed(const Duration(seconds: 3), () {
+        _startFavsAutoScroll();
+      });
 
       final prefs = await SharedPreferences.getInstance();
       final alreadyShown = prefs.getBool(_startTutorialFlag) ?? false;
@@ -558,35 +644,55 @@ class HomeScreenState extends State<HomeScreen> {
                           } else if (snapshot.hasData &&
                               snapshot.data!.trends.isNotEmpty) {
                             final data = snapshot.data!;
-                            return Listener(
-                              onPointerDown: (_) {
-                                _userIsInteracting = true;
-                                Common().applyImmersive();
+                            return NotificationListener<ScrollNotification>(
+                              onNotification: (ScrollNotification notification) {
+                                if (notification is ScrollUpdateNotification) {
+                                  // Rastrear la dirección del scroll
+                                  final currentOffset = notification.metrics.pixels;
+                                  if (currentOffset > _lastTrendScrollOffset) {
+                                    // Scrolling hacia la derecha
+                                    _direction = 1;
+                                  } else if (currentOffset < _lastTrendScrollOffset) {
+                                    // Scrolling hacia la izquierda
+                                    _direction = -1;
+                                  }
+                                  _lastTrendScrollOffset = currentOffset;
+                                } else if (notification is ScrollEndNotification) {
+                                  // Cuando termina el fling, la dirección ya está actualizada
+                                  // El auto-scroll continuará en esa dirección
+                                }
+                                return false;
                               },
-                              onPointerUp: (_) async {
-                                await Future.delayed(
-                                    const Duration(seconds: 2));
-                                _userIsInteracting = false;
-                              },
-                              child: ListView.builder(
-                                controller: _trendScrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.trends.length,
-                                itemBuilder: (context, index) {
-                                  final sortedTrends =
-                                  List.from(data.trends)
-                                    ..sort((a, b) =>
-                                        a.id.compareTo(b.id));
-                                  final sortedIndex =
-                                      sortedTrends[index].id - 1;
-
-                                  return TrendContainer(
-                                    trend: sortedTrends[index],
-                                    index: sortedIndex,
-                                    onFavoriteUpdated: refreshFavorites,
-                                    controller: widget.controller,
-                                  );
+                              child: Listener(
+                                onPointerDown: (_) {
+                                  _userIsInteracting = true;
+                                  Common().applyImmersive();
                                 },
+                                onPointerUp: (_) async {
+                                  await Future.delayed(
+                                      const Duration(milliseconds: 100));
+                                  _userIsInteracting = false;
+                                },
+                                child: ListView.builder(
+                                  controller: _trendScrollController,
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: data.trends.length,
+                                  itemBuilder: (context, index) {
+                                    final sortedTrends =
+                                    List.from(data.trends)
+                                      ..sort((a, b) =>
+                                          a.id.compareTo(b.id));
+                                    final sortedIndex =
+                                        sortedTrends[index].id - 1;
+
+                                    return TrendContainer(
+                                      trend: sortedTrends[index],
+                                      index: sortedIndex,
+                                      onFavoriteUpdated: refreshFavorites,
+                                      controller: widget.controller,
+                                    );
+                                  },
+                                ),
                               ),
                             );
                           } else {
@@ -678,23 +784,55 @@ class HomeScreenState extends State<HomeScreen> {
                           } else if (snapshot.hasData &&
                               snapshot.data!.favorites.isNotEmpty) {
                             final data = snapshot.data!;
-                            return ScrollConfiguration(
-                              behavior: ScrollConfiguration.of(context)
-                                  .copyWith(overscroll: false),
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                physics: const BouncingScrollPhysics(
-                                  decelerationRate:
-                                  ScrollDecelerationRate.fast,
-                                ),
-                                itemCount: data.length,
-                                itemBuilder: (context, index) {
-                                  return FavoriteContainer(
-                                    favorite: data.favorites[index],
-                                    onFavoriteUpdated: refreshFavorites,
-                                    controller: widget.controller,
-                                  );
+                            return NotificationListener<ScrollNotification>(
+                              onNotification: (ScrollNotification notification) {
+                                if (notification is ScrollUpdateNotification) {
+                                  // Rastrear la dirección del scroll
+                                  final currentOffset = notification.metrics.pixels;
+                                  if (currentOffset > _lastFavsScrollOffset) {
+                                    // Scrolling hacia la derecha
+                                    _favsDirection = 1;
+                                  } else if (currentOffset < _lastFavsScrollOffset) {
+                                    // Scrolling hacia la izquierda
+                                    _favsDirection = -1;
+                                  }
+                                  _lastFavsScrollOffset = currentOffset;
+                                } else if (notification is ScrollEndNotification) {
+                                  // Cuando termina el fling, la dirección ya está actualizada
+                                  // El auto-scroll continuará en esa dirección
+                                }
+                                return false;
+                              },
+                              child: Listener(
+                                onPointerDown: (_) {
+                                  _userIsInteractingFavs = true;
+                                  Common().applyImmersive();
                                 },
+                                onPointerUp: (_) async {
+                                  await Future.delayed(
+                                      const Duration(milliseconds: 100));
+                                  _userIsInteractingFavs = false;
+                                },
+                                child: ScrollConfiguration(
+                                  behavior: ScrollConfiguration.of(context)
+                                      .copyWith(overscroll: false),
+                                  child: ListView.builder(
+                                    controller: _favsScrollController,
+                                    scrollDirection: Axis.horizontal,
+                                    physics: const BouncingScrollPhysics(
+                                      decelerationRate:
+                                      ScrollDecelerationRate.fast,
+                                    ),
+                                    itemCount: data.length,
+                                    itemBuilder: (context, index) {
+                                      return FavoriteContainer(
+                                        favorite: data.favorites[index],
+                                        onFavoriteUpdated: refreshFavorites,
+                                        controller: widget.controller,
+                                      );
+                                    },
+                                  ),
+                                ),
                               ),
                             );
                           } else {
@@ -939,7 +1077,9 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _trendScrollController.dispose();
+    _favsScrollController.dispose();
     _ticker?.dispose();
+    _favsTicker?.dispose();
     _refreshTimer?.cancel();
     super.dispose();
   }
