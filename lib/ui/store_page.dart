@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -349,84 +350,13 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         required Color color,
         required double k,
       }) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(50.0),
-      child: InkWell(
-        onTap: onPressed,
-        splashColor: Colors.white24,
-        highlightColor: Colors.white12,
-        borderRadius: BorderRadius.circular(50.0),
-        child: Card(
-          color: Colors.transparent.withAlpha(25),
-          margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50.0),
-          ),
-          elevation: 6,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 6.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 60 * k,
-                  height: 60 * k,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
-                  margin: EdgeInsets.fromLTRB(12 / 4 * k, 0, 12, 0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/coin.png',
-                        width: 20 * k,
-                        height: 20 * k,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '$coins',
-                        style: GoogleFonts.roboto(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    Common().interpolate(
-                      strings.get('buyCoins') ?? 'Buy {coins} Coins',
-                      {'coins': coins.toString()},
-                    ),
-                    style: GoogleFonts.roboto(
-                      fontWeight: FontWeight.w200,
-                      fontSize: 18.0,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: Text(
-                    Common().interpolate(
-                      (_currency == 'eur' ? '{price}€' : '{price}\$'),
-                      {'price': price.toStringAsFixed(2)},
-                    ),
-                    style: GoogleFonts.syncopate(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w200,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return _StoreSlider(
+      coins: coins,
+      price: price,
+      color: color,
+      k: k,
+      currency: _currency,
+      onSlideComplete: onPressed,
     );
   }
 
@@ -474,7 +404,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                     final int coins = (item['coins'] ?? 0) as int;
 
                     final colors = [Colors.brown, Colors.grey, Colors.amber, Colors.deepPurple];
-                    final scales = [1.0, 1.15, 1.25, 1.35];
+                    final scales = [1.20, 1.28, 1.33, 1.37];
 
                     return _buildStoreButton(
                       context,
@@ -488,88 +418,558 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                       },
                     );
                   }),
-                const Spacer(),
-                Stack(
+                Container(
                   alignment: Alignment.center,
-                  children: [
-                    if (_rewardPrize != null) ...[
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: AnimatedBuilder(
-                          animation: _progressController,
-                          builder: (context, child) {
-                            return LinearProgressIndicator(
-                              minHeight: 56,
-                              value: _adPermanentlyDisabled
-                                  ? 0
-                                  : (_isAdLoaded ? 1 : _progressController.value),
-                              backgroundColor: _adPermanentlyDisabled
-                                  ? Colors.grey
-                                  : Colors.grey.shade800,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                _adPermanentlyDisabled ? Colors.grey : Colors.purple,
-                              ),
-                            );
-                          },
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        FontAwesomeIcons.ccVisa,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                      const SizedBox(width: 20),
+                      Icon(
+                        FontAwesomeIcons.ccMastercard,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                      const SizedBox(width: 20),
+                      Icon(
+                        FontAwesomeIcons.ccApplePay,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                      const SizedBox(width: 20),
+                      Icon(
+                        FontAwesomeIcons.ccPaypal,
+                        color: Colors.white,
+                        size: 35,
+                      ), 
+                      const SizedBox(width: 20),
+                      Icon(
+                        FontAwesomeIcons.ccAmazonPay,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                      const SizedBox(width: 20),
+                    ],
+                  ),
+                ),
+                Container(
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 120),
+                  height: 0.5,
+                  color: Colors.white,
+                ),
+                Container(
+                  margin: const EdgeInsets.only(top: 6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'powered by',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.white,
                         ),
                       ),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 56),
-                          backgroundColor: _adPermanentlyDisabled
-                              ? Colors.grey
-                              : Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 16.0, horizontal: 10.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      const SizedBox(height: 4),
+                      Image.asset(
+                        'assets/stripe.png',
+                        height: 20,
+                        fit: BoxFit.contain,
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (_rewardPrize != null) ...[
+                        Container(
+                          height: 60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.purple.withAlpha(50),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: AnimatedBuilder(
+                              animation: _progressController,
+                              builder: (context, child) {
+                                return LinearProgressIndicator(
+                                  minHeight: 60,
+                                  value: _adPermanentlyDisabled
+                                      ? 0
+                                      : (_isAdLoaded ? 1 : _progressController.value),
+                                  backgroundColor: _adPermanentlyDisabled
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade900,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    _adPermanentlyDisabled
+                                        ? Colors.grey.shade600
+                                        : Colors.purpleAccent,
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
-                        onPressed: (_isAdLoaded && !_adPermanentlyDisabled)
-                            ? () {
-                          Common().vibrate();
-                          Common().applyImmersive();
-                          _showRewardedAd(
-                            Common().interpolate(
-                              strings.get('youWonCoins') ?? 'You won {coins}',
-                              {'coins': _rewardPrize.toString()},
-                            ),
-                          );
-                        }
-                            : () { Common().showFloatingSnack(context, strings.get('noAdsAvailableNow') ?? "No ads available right now!");},
-                        icon: const Icon(Icons.ondemand_video, size: 34),
-                        label: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              Common().interpolate(
-                                strings.get('earnCoins') ??
-                                    'Watch an Ad to Earn {coins}',
-                                {'coins': _rewardPrize.toString()},
+                        Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                          child: InkWell(
+                            onTap: (_isAdLoaded && !_adPermanentlyDisabled)
+                                ? () {
+                                    Common().vibrate();
+                                    Common().applyImmersive();
+                                    _showRewardedAd(
+                                      Common().interpolate(
+                                        strings.get('youWonCoins') ?? 'You won {coins}',
+                                        {'coins': _rewardPrize.toString()},
+                                      ),
+                                    );
+                                  }
+                                : () {
+                                    Common().showFloatingSnack(
+                                      context,
+                                      strings.get('noAdsAvailableNow') ??
+                                          "No ads available right now!",
+                                    );
+                                  },
+                            borderRadius: BorderRadius.circular(16),
+                            splashColor: Colors.white24,
+                            highlightColor: Colors.white12,
+                            child: Container(
+                              height: 60,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16.0, horizontal: 16.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withAlpha(30),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      Icons.play_circle_filled,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Flexible(
+                                    child: Text(
+                                      Common().interpolate(
+                                        strings.get('earnCoins') ??
+                                            'Watch an Ad to Earn {coins}',
+                                        {'coins': _rewardPrize.toString()},
+                                      ),
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.white,
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black.withAlpha(100),
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Container(
+                                    padding: const EdgeInsets.all(0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.transparent.withAlpha(0),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Image.asset(
+                                      'assets/coin.png',
+                                      width: 26,
+                                      height: 26,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              style: GoogleFonts.montserrat(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.white,
-                              ),
                             ),
-                            const SizedBox(width: 8),
-                            Image.asset('assets/coin.png', width: 30, height: 30),
-                          ],
+                          ),
                         ),
-                      )
-                    ] else ...[
-                      const Center(child: CircularProgressIndicator(color: Colors.grey))
-                    ]
-                  ],
+                      ] else ...[
+                        Container(
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(10),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white70,
+                              strokeWidth: 2.5,
+                            ),
+                          ),
+                        ),
+                      ]
+                    ],
+                  ),
                 ),
+
               ],
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _StoreSlider extends StatefulWidget {
+  final int coins;
+  final double price;
+  final Color color;
+  final double k;
+  final String currency;
+  final VoidCallback onSlideComplete;
+
+  const _StoreSlider({
+    required this.coins,
+    required this.price,
+    required this.color,
+    required this.k,
+    required this.currency,
+    required this.onSlideComplete,
+  });
+
+  @override
+  State<_StoreSlider> createState() => _StoreSliderState();
+}
+
+class _StoreSliderState extends State<_StoreSlider> {
+  double _sliderValue = 0.0;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
+      child: Container(
+        height: 60 * widget.k + 24,
+        decoration: BoxDecoration(
+          color: Colors.transparent.withAlpha(30),
+          borderRadius: BorderRadius.circular(50.0),
+          boxShadow: [
+            BoxShadow(
+              color: widget.color.withAlpha(60),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+              spreadRadius: 0,
+            ),
+            BoxShadow(
+              color: Colors.black.withAlpha(40),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Flecha hacia la derecha (se oculta cuando se desliza) - centrada en el slider
+            Positioned.fill(
+              child: Center(
+                child: Opacity(
+                  opacity: 1.0 - (_sliderValue * 1.5).clamp(0.0, 1.0),
+                  child: Icon(
+                    Icons.double_arrow,
+                    size: 35 * widget.k,
+                    color: Colors.white54,
+                  ),
+                ),
+              ),
+            ),
+            // Fondo: Contenedor de monedas (bet-coins) - fondo fijo a la derecha
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // Contenedor de monedas (bet-coins) (derecha) - fondo fijo
+                    Container(
+                      width: 90 * widget.k,
+                      height: 70 * widget.k,
+                      margin: const EdgeInsets.only(left: 6.0),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            widget.color,
+                            widget.color.withAlpha(200),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(60.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: widget.color.withAlpha(80),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/coin.png',
+                            width: 35 * widget.k,
+                            height: 28 * widget.k,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${widget.coins}',
+                            style: GoogleFonts.syncopate(
+                              fontSize: 15 * widget.k,
+                              fontWeight: FontWeight.w200,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withAlpha(120),
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Primer plano: Contenedor de precio que se desliza desde la izquierda
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final totalWidth = constraints.maxWidth;
+                // Ancho igual al contenedor fijo de monedas
+                final containerWidth = 100.0 * widget.k;
+                // Calcular el offset: cuando sliderValue es 0, está completamente a la izquierda
+                // Cuando sliderValue es 1, se mueve completamente a la derecha
+                final paddingHorizontal = 8.0;
+                final maxOffset = totalWidth - containerWidth - (paddingHorizontal * 2);
+                final slideOffset = maxOffset * _sliderValue;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Transform.translate(
+                      offset: Offset(slideOffset, 0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(60.0),
+                        child: SizedBox(
+                          width: containerWidth,
+                          height: 70 * widget.k,
+                          child: Container(
+                            constraints: BoxConstraints(
+                              maxWidth: containerWidth,
+                              minWidth: containerWidth,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: _isPressed
+                                    ? [
+                                        Colors.white.withAlpha(80),
+                                        Colors.white.withAlpha(50),
+                                      ]
+                                    : [
+                                        Colors.white.withAlpha(30),
+                                        Colors.white.withAlpha(15),
+                                      ],
+                              ),
+                              borderRadius: BorderRadius.circular(60.0),
+                              border: Border.all(
+                                color: _isPressed
+                                    ? Colors.white.withAlpha(120)
+                                    : Colors.white.withAlpha(50),
+                                width: _isPressed ? 2.0 : 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _isPressed
+                                      ? Colors.white.withAlpha(100)
+                                      : Colors.black.withAlpha(60),
+                                  blurRadius: _isPressed ? 12 : 8,
+                                  offset: const Offset(0, 3),
+                                  spreadRadius: 0,
+                                ),
+                              ],
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    widget.currency == 'eur' ? 'assets/euro.png' : 'assets/dollar.png',
+                                    width: 28 * widget.k,
+                                    height: 28 * widget.k,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    widget.price.toStringAsFixed(2),
+                                    style: GoogleFonts.syncopate(
+                                      fontSize: 16 * widget.k,
+                                      fontWeight: FontWeight.w200,
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withAlpha(120),
+                                          blurRadius: 3,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            // Slider invisible para capturar gestos
+            Positioned.fill(
+              child: SliderTheme(
+                data: SliderThemeData(
+                  trackShape: const _StoreSliderTrackShape(),
+                  thumbShape: const _StoreSliderThumbShape(),
+                  trackHeight: 0,
+                  thumbColor: Colors.transparent,
+                  activeTrackColor: Colors.transparent,
+                  inactiveTrackColor: Colors.transparent,
+                  overlayShape: SliderComponentShape.noOverlay,
+                  overlayColor: Colors.transparent,
+                ),
+                child: Slider(
+                  value: _sliderValue,
+                  onChanged: (value) {
+                    setState(() {
+                      _sliderValue = value;
+                      _isPressed = true;
+                    });
+                  },
+                  onChangeStart: (_) {
+                    setState(() => _isPressed = true);
+                  },
+                  onChangeEnd: (value) {
+                    setState(() => _isPressed = false);
+                    if (value == 1.0) {
+                      widget.onSlideComplete();
+                      Future.delayed(const Duration(milliseconds: 50), () {
+                        if (mounted) setState(() => _sliderValue = 0.0);
+                      });
+                    } else {
+                      setState(() => _sliderValue = 0.0);
+                    }
+                  },
+                  min: 0.0,
+                  max: 1.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StoreSliderTrackShape extends SliderTrackShape {
+  const _StoreSliderTrackShape();
+
+  @override
+  Rect getPreferredRect({
+    required RenderBox parentBox,
+    Offset offset = Offset.zero,
+    required SliderThemeData sliderTheme,
+    bool isEnabled = false,
+    bool isDiscrete = false,
+  }) {
+    return Rect.fromLTWH(
+      offset.dx,
+      offset.dy,
+      parentBox.size.width,
+      0,
+    );
+  }
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset offset, {
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required Animation<double> enableAnimation,
+    required TextDirection textDirection,
+    required Offset thumbCenter,
+    Offset? secondaryOffset,
+    bool isDiscrete = false,
+    bool isEnabled = false,
+    double additionalActiveTrackHeight = 2,
+  }) {
+    // No pintar nada, el track es transparente
+  }
+}
+
+class _StoreSliderThumbShape extends SliderComponentShape {
+  const _StoreSliderThumbShape();
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) => const Size(0, 0);
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required Size sizeWithOverflow,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double textScaleFactor,
+    required double value,
+  }) {
+    // No pintar nada, el thumb es invisible
   }
 }

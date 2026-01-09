@@ -206,13 +206,23 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
         await Future.delayed(const Duration(milliseconds: 150));
         await _clearFlags();
         final p = await SharedPreferences.getInstance();
-        await p.setBool('__tutorial_pending__exchange_v1', true);
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.of(context).pop();
-          if (mounted) widget.controller.updateIndex(3);
-        });
-
+        
+        // Verificar si viene del menú "Ver tutorial sobre el gráfico"
+        final fromMenu = p.getBool('__tutorial_from_menu__candles_v1') ?? false;
+        if (fromMenu) {
+          // Si viene del menú, solo cerrar el gráfico sin cambiar de pestaña
+          await p.remove('__tutorial_from_menu__candles_v1');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(context).pop();
+          });
+        } else {
+          // Flujo normal: continuar con el tutorial de exchange
+          await p.setBool('__tutorial_pending__exchange_v1', true);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(context).pop();
+            if (mounted) widget.controller.updateIndex(3);
+          });
+        }
       },
     );
 
