@@ -763,21 +763,31 @@ class HomeScreenState extends State<HomeScreen> {
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return Center(
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.start,
-                                  children: const [
-                                    SkeletonFavoriteContainer(),
-                                    SkeletonFavoriteContainer(),
-                                    SkeletonFavoriteContainer(),
-                                    SkeletonFavoriteContainer(),
-                                    SkeletonFavoriteContainer(),
-                                  ],
-                                ),
-                              ),
+                            return LayoutBuilder(
+                              builder: (context, constraints) {
+                                return SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: constraints.maxHeight,
+                                    ),
+                                    child: IntrinsicHeight(
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.start,
+                                        children: const [
+                                          SkeletonFavoriteContainer(),
+                                          SkeletonFavoriteContainer(),
+                                          SkeletonFavoriteContainer(),
+                                          SkeletonFavoriteContainer(),
+                                          SkeletonFavoriteContainer(),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             );
                           } else if (snapshot.hasError) {
                             return Text('Error: ${snapshot.error}');

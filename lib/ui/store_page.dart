@@ -556,33 +556,18 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                             child: Container(
                               height: 60,
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 16.0, horizontal: 16.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
+                                  vertical: 16.0, horizontal: 0.0),
+                              child: Stack(
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withAlpha(30),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.play_circle_filled,
-                                      color: Colors.white,
-                                      size: 28,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Flexible(
+                                  // Texto centrado
+                                  Center(
                                     child: Text(
-                                      Common().interpolate(
-                                        strings.get('earnCoins') ??
-                                            'Watch an Ad to Earn {coins}',
-                                        {'coins': _rewardPrize.toString()},
-                                      ),
+                                      (strings.get('earnCoins') ??
+                                              'Watch an Ad to Earn {coins}')
+                                          .replaceAll(RegExp(r'\{coins\}'), '')
+                                          .trim(),
                                       style: GoogleFonts.montserrat(
-                                        fontSize: 18,
+                                        fontSize: 19,
                                         fontWeight: FontWeight.w400,
                                         color: Colors.white,
                                         shadows: [
@@ -596,17 +581,65 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  const SizedBox(width: 5),
-                                  Container(
-                                    padding: const EdgeInsets.all(0),
-                                    decoration: BoxDecoration(
-                                      color: Colors.transparent.withAlpha(0),
-                                      borderRadius: BorderRadius.circular(8),
+                                  // Icono posicionado a la izquierda, centrado verticalmente
+                                  Positioned(
+                                    left: 30,
+                                    top: 0,
+                                    bottom: 0,
+                                    child: Center(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(0),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withAlpha(30),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: const Icon(
+                                          Icons.play_circle_filled,
+                                          color: Colors.white,
+                                          size: 28,
+                                        ),
+                                      ),
                                     ),
-                                    child: Image.asset(
-                                      'assets/coin.png',
-                                      width: 26,
-                                      height: 26,
+                                  ),
+                                  // Cantidad de monedas con icono a la derecha, centrado verticalmente
+                                  Positioned(
+                                    right: 30,
+                                    top: 0,
+                                    bottom: 0,
+                                    child: Center(
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            _rewardPrize.toString(),
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w400,
+                                              color: Colors.white,
+                                              shadows: [
+                                                Shadow(
+                                                  color: Colors.black.withAlpha(100),
+                                                  blurRadius: 2,
+                                                  offset: const Offset(0, 1),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            padding: const EdgeInsets.all(0),
+                                            decoration: BoxDecoration(
+                                              color: Colors.transparent.withAlpha(0),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Image.asset(
+                                              'assets/coin.png',
+                                              width: 26,
+                                              height: 26,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -766,7 +799,7 @@ class _StoreSliderState extends State<_StoreSlider> {
                     ),
                   ],
                 ),
-              ),
+              ), 
             ),
             // Primer plano: Contenedor de precio que se desliza desde la izquierda
             LayoutBuilder(

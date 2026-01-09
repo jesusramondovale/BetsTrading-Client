@@ -693,79 +693,74 @@ class FavoriteContainerState extends State<FavoriteContainer> {
 class SkeletonFavoriteContainer extends StatelessWidget {
   const SkeletonFavoriteContainer({super.key});
 
-  Widget _box(double width, double height, {double radius = 6}) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(radius),
-      ),
-    );
-  }
+  Color _calculateShadowColor(double dailyGain) {
+    const double maxGain = 7;
+    const double minAlpha = 0.01;
+    const double maxAlpha = 0.5;
 
-  Widget _circle(double size) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: 0.07),
-      ),
-    );
+    double normalized = (dailyGain.abs() / maxGain).clamp(0.0, 1.0);
+    double alpha = minAlpha + (maxAlpha - minAlpha) * sqrt(normalized);
+
+    if (dailyGain > 0.15) {
+      return Colors.green.withValues(alpha: alpha);
+    } else if (dailyGain < (-0.15)) {
+      return Colors.red.withValues(alpha: alpha);
+    } else {
+      return Colors.grey.withValues(alpha: 0.15);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
-      width: (Random().nextBool() ? 80 : 110),
-      decoration: BoxDecoration(
-        color: (Random().nextBool() ? Colors.green.withValues(alpha: 0.35) : Colors.red.withValues(alpha: 0.35)) ,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            spreadRadius: 1,
-            blurRadius: 1,
-            offset: const Offset(0, 1),
-          ),
-        ],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Stack(
-        clipBehavior: Clip.hardEdge,
-        children: [
-          Positioned(
-            top: 0,
-            right: -30,
-            child: Icon(
-              FontAwesomeIcons.solidStar,
-              color: Colors.grey.withValues(alpha: 0.1),
-              size: 120,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _box(40, 40, radius: 6),
-                const Spacer(),
-                _box(80, 14, radius: 4),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    _circle(10),
-                    const SizedBox(width: 6),
-                    _box(40, 10, radius: 4),
-                  ],
+    final random = Random();
+    // Simular un dailyGain aleatorio entre -1.5% y +1.5%
+    final randomDailyGain = (random.nextDouble() * 3.0) - 1.5; // Rango: -1.5 a 1.5
+    final shadowColor = _calculateShadowColor(randomDailyGain);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableHeight = constraints.maxHeight > 0 
+            ? constraints.maxHeight - 40 
+            : null;
+        final minWidth = availableHeight != null 
+            ? (availableHeight * 2 / 3) 
+            : null;
+        
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
+          width: minWidth,
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              splashColor: Colors.white12,
+              borderRadius: BorderRadius.circular(8),
+              child: Ink(
+                decoration: BoxDecoration(
+                  color: shadowColor,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 0.8, sigmaY: 0.8),
+                    child: SizedBox(
+                      height: availableHeight,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
