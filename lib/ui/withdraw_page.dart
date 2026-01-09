@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Services/bets_service.dart';
+import '../services/bets_service.dart';
 import '../helpers/common.dart';
 import '../helpers/slider.dart';
 import '../services/firebase_service.dart';

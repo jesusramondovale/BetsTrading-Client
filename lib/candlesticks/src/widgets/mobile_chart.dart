@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../Services/bets_service.dart';
+import '../../../services/bets_service.dart';
 import '../../../helpers/common.dart';
 import '../../../helpers/range_painter.dart';
 import '../../../models/rectangle_zone.dart';
@@ -604,7 +604,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                     high: tweenEnd,
                                     width: priceBarWidth,
                                     paintCurrency: (
-                                        widget.ticker.contains('/')
+                                        Common().isTickerForex(widget.ticker)
                                             ? 0
                                             : (_dollarCurrency ? 2 : 1) ),
                                     chartHeight: chartHeight,

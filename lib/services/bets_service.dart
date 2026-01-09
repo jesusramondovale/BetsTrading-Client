@@ -10,7 +10,6 @@ import '../models/trends.dart';
 class BetsService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-
   Future<Bet?> fetchBet(String betId, String currency) async {
     String? userId = await _storage.read(key: "sessionToken");
     final response = await Common().postRequestWrapper(
@@ -234,14 +233,17 @@ class BetsService {
   }
 
   Future<List<Candle>> fetchCandles(String symbol, int hoursTimeframe, String currency) async {
+    // Para items de tipo Forex, siempre usar EUR independientemente de la currency del usuario
+    final finalCurrency = Common().isTickerForex(symbol) ? 'EUR' : currency;
+    
     final response = await Common().postRequestWrapper(
       'FinancialAssets',
       'FetchCandles',
       {
         'id': symbol,
         'timeframe': hoursTimeframe,
-        // currency -> 'EUR' / 'USD'
-        'currency': currency
+        // currency: 'EUR' para Forex, 'EUR'/'USD' para otros según preferencia del usuario
+        'currency': finalCurrency
       },
     );
 
