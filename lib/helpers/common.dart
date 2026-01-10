@@ -38,7 +38,7 @@ class Common {
     List<String> forexTickers = [
       "EUR/USD",
       "USD/JPY",
-      "GPB/USD",
+      "GBP/USD",
       "EUR/JPY",
       "USD/CAD",
       "XRP/BTC",

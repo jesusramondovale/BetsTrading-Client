@@ -22,10 +22,64 @@ import 'layout_page.dart';
 /// Displays buy options with Stripe integration and ad reward opportunities.
 /// Manages rewarded ad loading and display for earning coins.
 class StorePage extends StatefulWidget {
-  const StorePage({super.key});
+  const StorePage({
+    super.key,
+    this.preloadedBuyOptions,
+    this.preloadedAdRewardOptions,
+    this.preloadedCurrency,
+    this.preloadedRewardPrize,
+  });
+
+  final List<Map<String, dynamic>>? preloadedBuyOptions;
+  final List<Map<String, dynamic>>? preloadedAdRewardOptions;
+  final String? preloadedCurrency;
+  final int? preloadedRewardPrize;
 
   @override
   StorePageState createState() => StorePageState();
+  
+  /// Precarga los datos necesarios para StorePage antes de navegar
+  static Future<Map<String, dynamic>> preloadStoreData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currency = (prefs.getBool('dollarCurrency') ?? false) ? 'usd' : 'eur';
+
+    final buyOptionsResponse = await Common().postRequestWrapper(
+      'Info',
+      'StoreOptions',
+      {'currency': currency, 'type': 'buy'},
+    );
+
+    final adRewardOptionsResponse = await Common().postRequestWrapper(
+      'Info',
+      'StoreOptions',
+      {'currency': currency, 'type': 'ad_reward'},
+    );
+
+    final buyOptions = List<Map<String, dynamic>>.from(buyOptionsResponse['body'] as Iterable);
+    final adRewardOptions = List<Map<String, dynamic>>.from(adRewardOptionsResponse['body'] as Iterable);
+    
+    // Calcular rewardPrize
+    int rewardPrize = 15;
+    if (adRewardOptions.isNotEmpty) {
+      final coinsValue = adRewardOptions[0]['coins'];
+      if (coinsValue != null) {
+        if (coinsValue is int) {
+          rewardPrize = coinsValue;
+        } else if (coinsValue is double) {
+          rewardPrize = coinsValue.toInt();
+        } else if (coinsValue is String) {
+          rewardPrize = int.tryParse(coinsValue) ?? 15;
+        }
+      }
+    }
+
+    return {
+      'buyOptions': buyOptions,
+      'adRewardOptions': adRewardOptions,
+      'currency': currency,
+      'rewardPrize': rewardPrize,
+    };
+  }
 }
 
 class StorePageState extends State<StorePage> with TickerProviderStateMixin {
@@ -42,7 +96,9 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
   List<Map<String, dynamic>> _buyOptions = [];
   List<Map<String, dynamic>> _adRewardOptions = [];
   Timer? _refreshTimer;
+  Timer? _autoScrollTimer;
   int? _rewardPrize;
+  final Map<int, GlobalKey<_StoreSliderState>> _sliderKeys = {};
 
   @override
   void initState() {
@@ -55,9 +111,37 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
     )..forward();
     MobileAds.instance.initialize();
     _loadRewardedAd();
-    loadData();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+    
+    // Si hay datos precargados, usarlos inmediatamente
+    if (widget.preloadedBuyOptions != null && 
+        widget.preloadedAdRewardOptions != null) {
+      setState(() {
+        _buyOptions = widget.preloadedBuyOptions!;
+        _adRewardOptions = widget.preloadedAdRewardOptions!;
+        if (widget.preloadedCurrency != null) {
+          _currency = widget.preloadedCurrency!;
+        }
+        if (widget.preloadedRewardPrize != null) {
+          _rewardPrize = widget.preloadedRewardPrize!;
+        }
+      });
+      // Iniciar el timer de autoscroll cuando hay datos precargados
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            _startRandomAutoScroll();
+          }
+        });
+      });
+    } else {
+      // Si no hay datos precargados, cargar normalmente
       loadData();
+    }
+    
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (mounted) {
+        loadData();
+      }
     });
   }
 
@@ -66,6 +150,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
     _rewardedAd?.dispose();
     _progressController.dispose();
     _refreshTimer?.cancel();
+    _autoScrollTimer?.cancel();
     super.dispose();
   }
 
@@ -86,6 +171,9 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       'StoreOptions',
       {'currency': _currency, 'type': 'ad_reward'},
     );
+
+    // Verificar que el widget sigue montado antes de actualizar el estado
+    if (!mounted) return;
 
     setState(() {
       _buyOptions =
@@ -118,6 +206,43 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       }
       debugPrint('StorePage loadData: _rewardPrize establecido a: $_rewardPrize');
     });
+    
+    // Limpiar keys obsoletas si el número de opciones cambió
+    final newCount = _buyOptions.length;
+    _sliderKeys.removeWhere((key, value) => key >= newCount);
+    
+    // Reiniciar el timer de autoscroll después de cargar los datos
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _startRandomAutoScroll();
+        }
+      });
+    });
+  }
+
+  /// Inicia el timer de autoscroll aleatorio para los sliders
+  void _startRandomAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!mounted) {
+        return;
+      }
+
+      // Filtrar solo los sliders que están montados
+      final availableSliders = _sliderKeys.entries
+          .where((entry) => entry.value.currentState != null && entry.value.currentState!.mounted)
+          .toList();
+
+      if (availableSliders.isEmpty) return;
+
+      // Seleccionar un slider aleatorio
+      final random = DateTime.now().millisecondsSinceEpoch % availableSliders.length;
+      final selectedSlider = availableSliders[random];
+
+      // Ejecutar autoscroll en el slider seleccionado
+      selectedSlider.value.currentState?.triggerAutoSlide();
+    });
   }
 
   void _loadRewardedAd() {
@@ -144,7 +269,11 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
               _rewardedAd = null;
               _isAdLoaded = false;
               if (mounted) setState(() {});
-              Future.delayed(const Duration(milliseconds: 500), _loadRewardedAd);
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted) {
+                  _loadRewardedAd();
+                }
+              });
             },
             onAdFailedToShowFullScreenContent: (ad, err) {
               ad.dispose();
@@ -384,20 +513,20 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
   Widget _buildStoreButton(
       BuildContext context,
       LocalizedStrings strings, {
+        Key? key,
         required int coins,
         required double price,
         required VoidCallback onPressed,
         required Color color,
         required double k,
-        required bool showAutoSlide,
       }) {
     return _StoreSlider(
+      key: key,
       coins: coins,
       price: price,
       color: color,
       k: k,
       currency: _currency,
-      showAutoSlide: showAutoSlide,
       onSlideComplete: onPressed,
     );
   }
@@ -448,14 +577,19 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                     final colors = [Colors.brown, Colors.grey, Colors.amber, Colors.deepPurple];
                     final scales = [1.20, 1.28, 1.33, 1.37];
 
+                    // Crear o obtener la key para este slider
+                    if (!_sliderKeys.containsKey(index)) {
+                      _sliderKeys[index] = GlobalKey<_StoreSliderState>();
+                    }
+
                     return _buildStoreButton(
                       context,
                       strings,
+                      key: _sliderKeys[index],
                       coins: coins,
                       price: price,
                       color: index < colors.length ? colors[index] : Colors.blueGrey,
                       k: index < scales.length ? scales[index] : 1.0,
-                      showAutoSlide: index == 2, // Solo el tercer slider (índice 2)
                       onPressed: () {
                         _cardPayment(coins.toDouble(), price);
                       },
@@ -542,7 +676,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.purple.withAlpha(50),
+                                color: Colors.deepPurple.withAlpha(50),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -564,7 +698,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     _adPermanentlyDisabled
                                         ? Colors.grey.shade600
-                                        : Colors.purpleAccent,
+                                        : Colors.deepPurple,
                                   ),
                                 );
                               },
@@ -724,16 +858,15 @@ class _StoreSlider extends StatefulWidget {
   final Color color;
   final double k;
   final String currency;
-  final bool showAutoSlide;
   final VoidCallback onSlideComplete;
 
   const _StoreSlider({
+    super.key,
     required this.coins,
     required this.price,
     required this.color,
     required this.k,
     required this.currency,
-    required this.showAutoSlide,
     required this.onSlideComplete,
   });
 
@@ -746,7 +879,7 @@ class _StoreSliderState extends State<_StoreSlider> with SingleTickerProviderSta
   bool _isPressed = false;
   late AnimationController _autoSlideController;
   late Animation<double> _autoSlideAnimation;
-  bool _hasAutoSlid = false;
+  bool _isAnimating = false;
 
   @override
   void initState() {
@@ -778,25 +911,24 @@ class _StoreSliderState extends State<_StoreSlider> with SingleTickerProviderSta
         });
       }
     });
+  }
 
-    // Iniciar animación automática solo si es el tercer slider y solo una vez
-    if (widget.showAutoSlide && !_hasAutoSlid) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted && widget.showAutoSlide && !_hasAutoSlid) {
-            _hasAutoSlid = true;
-            _autoSlideController.forward().then((_) {
-              if (mounted) {
-                _autoSlideController.reset();
-                setState(() {
-                  _sliderValue = 0.0;
-                });
-              }
-            });
-          }
+  /// Método público para activar la animación de autoslide
+  /// Puede ejecutarse múltiples veces
+  void triggerAutoSlide() {
+    if (_isAnimating || !mounted) return;
+    
+    _isAnimating = true;
+    _autoSlideController.reset();
+    _autoSlideController.forward().then((_) {
+      if (mounted) {
+        _autoSlideController.reset();
+        setState(() {
+          _sliderValue = 0.0;
+          _isAnimating = false;
         });
-      });
-    }
+      }
+    });
   }
 
   @override
@@ -883,7 +1015,6 @@ class _StoreSliderState extends State<_StoreSlider> with SingleTickerProviderSta
                             width: 35 * widget.k,
                             height: 28 * widget.k,
                           ),
-                          const SizedBox(width: 6),
                           Text(
                             '${widget.coins}',
                             style: GoogleFonts.syncopate(
@@ -1032,9 +1163,10 @@ class _StoreSliderState extends State<_StoreSlider> with SingleTickerProviderSta
                   },
                   onChangeEnd: (value) {
                     setState(() => _isPressed = false);
-                    if (value == 1.0) {
+                    if (value > 0.9) {
+                      setState(() => _sliderValue = 1.0);
                       widget.onSlideComplete();
-                      Future.delayed(const Duration(milliseconds: 50), () {
+                      Future.delayed(const Duration(milliseconds: 500), () {
                         if (mounted) setState(() => _sliderValue = 0.0);
                       });
                     } else {

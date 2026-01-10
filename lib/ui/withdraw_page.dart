@@ -27,14 +27,121 @@ class WithdrawPage extends StatefulWidget {
   
   /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
-  const WithdrawPage(
-      {super.key,
+  
+  /// Precargados datos de opciones de retiro
+  final Map<String, Map<String, String>>? preloadedUserAvailableMethods;
+  
+  /// Precargado currency
+  final String? preloadedCurrency;
+  
+  /// Precargado coin icon base64
+  final String? preloadedCoinIconBase64;
+  
+  /// Precargado userId
+  final String? preloadedUserId;
+  
+  const WithdrawPage({
+      super.key,
       required this.coins,
       required this.currencyAmount,
-      required this.controller});
+      required this.controller,
+      this.preloadedUserAvailableMethods,
+      this.preloadedCurrency,
+      this.preloadedCoinIconBase64,
+      this.preloadedUserId});
 
   @override
   State<WithdrawPage> createState() => _WithdrawPageState();
+  
+  /// Precarga los datos necesarios para WithdrawPage antes de navegar
+  static Future<Map<String, dynamic>> preloadWithdrawData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storage = const FlutterSecureStorage();
+    final id = await storage.read(key: 'sessionToken');
+    
+    // Cargar el icono de la moneda siempre
+    final bytes = await rootBundle.load('assets/coin.png');
+    final base64 = base64Encode(bytes.buffer.asUint8List());
+    
+    // Obtener currency siempre
+    final currency = (prefs.getBool('dollarCurrency') ?? false) ? 'usd' : 'eur';
+    
+    if (id == null) {
+      return {
+        'userAvailableMethods': <String, Map<String, String>>{},
+        'currency': currency,
+        'coinIconBase64': base64,
+        'userId': null,
+      };
+    }
+
+    final resp = await Common().postRequestWrapper('Info', 'RetireOptions', {'id': id});
+    
+    final map = <String, Map<String, String>>{};
+    
+    // Función auxiliar para enmascarar
+    String mask(String v, {int keep = 4}) {
+      if (v.isEmpty) return '—';
+      if (v.length <= keep) return v;
+      final tail = v.substring(v.length - keep);
+      return '•••• $tail';
+    }
+
+    if (resp['statusCode'] == 200 && resp['body'] is List) {
+      for (final it in resp['body'] as List) {
+        final type = (it['type'] ?? '').toString().toLowerCase();
+        final data = (it['data'] ?? {}) as Map<String, dynamic>;
+        final methodId = (it['id'] ?? '').toString();
+        final label = (it['label'] ?? '').toString();
+
+        if (type == 'bank') {
+          final iban = (data['iban'] ?? '').toString();
+          if (iban.isNotEmpty) {
+            map['withdrawMethodBank#$methodId'] = {
+              'text': 'IBAN • ${mask(iban)}',
+              'label': label,
+            };
+          }
+        } else if (type == 'paypal') {
+          final email = (data['email'] ?? '').toString();
+          if (email.isNotEmpty) {
+            map['withdrawMethodPaypal#$methodId'] = {
+              'text': email,
+              'label': label,
+            };
+          }
+        } else if (type == 'crypto') {
+          final net = (data['network'] ?? '').toString().toUpperCase();
+          final addr = (data['address'] ?? '').toString();
+          if (addr.isEmpty) continue;
+
+          if (net.contains('BTC')) {
+            map['withdrawMethodBTC#$methodId'] = {
+              'text': mask(addr, keep: 6),
+              'label': label,
+            };
+          } else if (net.contains('XRP')) {
+            map['withdrawMethodXRP#$methodId'] = {
+              'text': mask(addr, keep: 6),
+              'label': label,
+            };
+          } else {
+            map['withdrawMethodCrypto#$methodId'] = {
+              'text': '${net.isEmpty ? "CRYPTO" : net} • ${mask(addr, keep: 6)}',
+              'label': label,
+            };
+          }
+        }
+      }
+    }
+
+    return {
+      'userAvailableMethods': map,
+      'currency': currency,
+      'coinIconBase64': base64,
+      'userId': id,
+    };
+  }
 }
 
 class _WithdrawPageState extends State<WithdrawPage> {
@@ -135,10 +242,25 @@ class _WithdrawPageState extends State<WithdrawPage> {
   @override
   void initState() {
     super.initState();
-    _loadData();
-
-    if (_userAvailableMethods.isNotEmpty) {
-      _selectedMethod = _userAvailableMethods.keys.first;
+    
+    // Si hay datos precargados, usarlos inmediatamente
+    if (widget.preloadedUserAvailableMethods != null &&
+        widget.preloadedCoinIconBase64 != null &&
+        widget.preloadedUserId != null) {
+      setState(() {
+        _userId = widget.preloadedUserId;
+        _coinIconBase64 = widget.preloadedCoinIconBase64;
+        _currency = widget.preloadedCurrency ?? 'eur';
+        _userAvailableMethods
+          ..clear()
+          ..addAll(widget.preloadedUserAvailableMethods!);
+        _selectedMethod = _userAvailableMethods.isEmpty
+            ? null
+            : _userAvailableMethods.keys.first;
+      });
+    } else {
+      // Si no hay datos precargados, cargar normalmente
+      _loadData();
     }
   }
 

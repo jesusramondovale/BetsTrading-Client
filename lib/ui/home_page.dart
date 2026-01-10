@@ -47,6 +47,8 @@ class HomeScreenState extends State<HomeScreen> {
   late Future<Favorites> _favsFuture;
   bool _userIsInteracting = false;
   bool _userIsInteractingFavs = false;
+  bool _favsInitialPositionSet = false;
+  bool _isLoadingStore = false;
   final ScrollController _trendScrollController = ScrollController();
   final ScrollController _favsScrollController = ScrollController();
   Ticker? _ticker;
@@ -131,6 +133,8 @@ class HomeScreenState extends State<HomeScreen> {
     setState(() {
       _favsFuture = BetsService()
           .fetchFavouritesData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
+      // Reset el flag para que se posicione al final de nuevo cuando se refresque
+      _favsInitialPositionSet = false;
     });
   }
 
@@ -198,16 +202,21 @@ class HomeScreenState extends State<HomeScreen> {
   /// Pauses scrolling when user touches the screen.
   /// Starts from the right (end) and moves first to the left.
   void _startFavsAutoScroll() async {
-    // Esperar a que el ScrollController esté listo y posicionar al final
+    // Esperar a que el ScrollController esté listo
     for (int i = 0; i < 50; i++) {
       if (!mounted) return;
       if (_favsScrollController.hasClients) {
         try {
           final max = _favsScrollController.position.maxScrollExtent;
           if (max > 0) {
-            // Posicionar al final (derecha) y asegurar que la dirección sea hacia la izquierda
-            _favsScrollController.jumpTo(max);
+            // Asegurar que está posicionado al final (derecha) y la dirección sea hacia la izquierda
+            final currentOffset = _favsScrollController.offset;
+            if ((max - currentOffset).abs() > 1.0) {
+              // Solo reposicionar si no está cerca del final (por si acaso)
+              _favsScrollController.jumpTo(max);
+            }
             _favsDirection = -1; // Asegurar dirección hacia la izquierda
+            _lastFavsScrollOffset = _favsScrollController.offset;
             break;
           }
         } catch (e) {
@@ -219,12 +228,7 @@ class HomeScreenState extends State<HomeScreen> {
 
     if (!mounted) return;
 
-    // Dar un pequeño delay adicional para asegurar que el jumpTo se complete
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    if (!mounted) return;
-
-    // Inicializar la última posición
+    // Inicializar la última posición si no se hizo antes
     if (_favsScrollController.hasClients) {
       _lastFavsScrollOffset = _favsScrollController.offset;
     }
@@ -541,14 +545,46 @@ class HomeScreenState extends State<HomeScreen> {
                 IconButton(
                   key: _kStore,
                   padding: const EdgeInsets.all(2.5),
-                  onPressed: () async {
+                  onPressed: _isLoadingStore ? null : () async {
                     Common().vibrate();
                     Common().applyImmersive();
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => StorePage()),
-                    );
-                    exchangePageKey.currentState?.loadData();
+                    
+                    // Bloquear el botón y mostrar loading
+                    setState(() {
+                      _isLoadingStore = true;
+                    });
+                    
+                    try {
+                      // Precargar datos de StorePage antes de navegar
+                      final preloadedData = await StorePage.preloadStoreData();
+                      
+                      if (!mounted) return;
+                      
+                      // Navegar con datos precargados
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => StorePage(
+                            preloadedBuyOptions: preloadedData['buyOptions'] as List<Map<String, dynamic>>,
+                            preloadedAdRewardOptions: preloadedData['adRewardOptions'] as List<Map<String, dynamic>>,
+                            preloadedCurrency: preloadedData['currency'] as String,
+                            preloadedRewardPrize: preloadedData['rewardPrize'] as int,
+                          ),
+                        ),
+                      );
+                      
+                      if (!mounted) return;
+                      
+                      // Recargar datos después de volver
+                      exchangePageKey.currentState?.loadData();
+                    } finally {
+                      // Desbloquear el botón
+                      if (mounted) {
+                        setState(() {
+                          _isLoadingStore = false;
+                        });
+                      }
+                    }
                   },
                   icon: DecoratedBox(
                     decoration: BoxDecoration(
@@ -564,24 +600,33 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(6.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                            child: Image.asset(
-                              'assets/coin.png',
+                      child: _isLoadingStore
+                          ? SizedBox(
                               width: 25,
                               height: 25,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.fromLTRB(0, 0, 0, 2),
+                                  child: Image.asset(
+                                    'assets/coin.png',
+                                    width: 25,
+                                    height: 25,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  NumberFormat.compact().format(_userPoints),
+                                  style: GoogleFonts.montserrat(color: Colors.white),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            NumberFormat.compact().format(_userPoints),
-                            style: GoogleFonts.montserrat(color: Colors.white),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 ),
@@ -794,6 +839,30 @@ class HomeScreenState extends State<HomeScreen> {
                           } else if (snapshot.hasData &&
                               snapshot.data!.favorites.isNotEmpty) {
                             final data = snapshot.data!;
+                            // Posicionar al final inmediatamente después del primer frame (solo una vez)
+                            if (!_favsInitialPositionSet) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                                // Intentar múltiples veces hasta que el ScrollController esté listo
+                                for (int i = 0; i < 20; i++) {
+                                  if (!mounted || _favsInitialPositionSet) return;
+                                  if (_favsScrollController.hasClients) {
+                                    try {
+                                      final max = _favsScrollController.position.maxScrollExtent;
+                                      if (max > 0) {
+                                        _favsScrollController.jumpTo(max);
+                                        _lastFavsScrollOffset = max;
+                                        _favsDirection = -1; // Dirección hacia la izquierda
+                                        _favsInitialPositionSet = true;
+                                        return;
+                                      }
+                                    } catch (e) {
+                                      // Ignorar errores de inicialización
+                                    }
+                                  }
+                                  await Future.delayed(const Duration(milliseconds: 16)); // ~1 frame
+                                }
+                              });
+                            }
                             return NotificationListener<ScrollNotification>(
                               onNotification: (ScrollNotification notification) {
                                 if (notification is ScrollUpdateNotification) {

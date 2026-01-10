@@ -37,6 +37,8 @@ class ExchangePageState extends State<ExchangePage> {
   Timer? _refreshTimer;
   bool _isVerified = false;
   String _userId = '';
+  bool _isLoadingStore = false;
+  final Set<int> _loadingSliders = {};
   final _kCoinsTag        = GlobalKey();
   final _kGetMoreBtn      = GlobalKey();
   final _kWithdrawGroup   = GlobalKey();
@@ -45,8 +47,8 @@ class ExchangePageState extends State<ExchangePage> {
   static const String _seenFlag    = '__tutorial_seen__exchange_v1';
   TutorialCoachMark? _coach;
   late final VoidCallback _tabListener;
-  final GlobalKey<_ExchangeSliderState> _thirdSliderKey = GlobalKey<_ExchangeSliderState>();
-  bool _hasAutoSlid = false;
+  final Map<int, GlobalKey<_ExchangeSliderState>> _sliderKeys = {};
+  Timer? _autoScrollTimer;
 
 
 
@@ -70,12 +72,28 @@ class ExchangePageState extends State<ExchangePage> {
               MaterialPageRoute(builder: (context) => const FirstTimePage()));
 
         }
-        _exchangeOptions = List<Map<String, dynamic>>.from(exchangeOptionsResponse['body'] as Iterable);
+        final newExchangeOptions = List<Map<String, dynamic>>.from(exchangeOptionsResponse['body'] as Iterable);
+        _exchangeOptions = newExchangeOptions;
+        
+        // Limpiar keys obsoletas si el número de opciones cambió
+        final newCount = newExchangeOptions.length;
+        _sliderKeys.removeWhere((key, value) => key >= newCount);
+        
         if (prefs.getBool('dollarCurrency') ?? false){
           _currency = 'usd';
         }
-
   });
+  
+  // Reiniciar el timer de autoscroll si estamos en el tab correcto
+  if (widget.controller.selectedIndexNotifier.value == 3 && mounted) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _startRandomAutoScroll();
+        }
+      });
+    });
+  }
   }
 
   Future<bool?> showNotVerifiedDialog(BuildContext context) {
@@ -323,6 +341,30 @@ class ExchangePageState extends State<ExchangePage> {
 
   // --------- T U T O R I A L     M E T H O D S    -------------
 
+  /// Inicia el timer de autoscroll aleatorio para los sliders
+  void _startRandomAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!mounted || widget.controller.selectedIndexNotifier.value != 3) {
+        return;
+      }
+
+      // Filtrar solo los sliders que están montados
+      final availableSliders = _sliderKeys.entries
+          .where((entry) => entry.value.currentState != null && entry.value.currentState!.mounted)
+          .toList();
+
+      if (availableSliders.isEmpty) return;
+
+      // Seleccionar un slider aleatorio
+      final random = DateTime.now().millisecondsSinceEpoch % availableSliders.length;
+      final selectedSlider = availableSliders[random];
+
+      // Ejecutar autoscroll en el slider seleccionado
+      selectedSlider.value.currentState?.triggerAutoSlide();
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -333,17 +375,17 @@ class ExchangePageState extends State<ExchangePage> {
       if (widget.controller.selectedIndexNotifier.value == 3) {
         await loadData();
         _tryStartExchangeTutorial();
-        // Ejecutar animación del slider solo la primera vez que se selecciona el tab
-        if (!_hasAutoSlid) {
-          _hasAutoSlid = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted && _thirdSliderKey.currentState != null) {
-                _thirdSliderKey.currentState!.triggerAutoSlide();
-              }
-            });
+        // Iniciar el timer de autoscroll aleatorio cuando se selecciona el tab
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              _startRandomAutoScroll();
+            }
           });
-        }
+        });
+      } else {
+        // Detener el timer cuando se cambia de tab
+        _autoScrollTimer?.cancel();
       }
     };
     widget.controller.selectedIndexNotifier.addListener(_tabListener);
@@ -352,15 +394,12 @@ class ExchangePageState extends State<ExchangePage> {
       if (widget.controller.selectedIndexNotifier.value == 3) {
         await loadData();
         _tryStartExchangeTutorial();
-        // Ejecutar animación del slider solo la primera vez que se selecciona el tab
-        if (!_hasAutoSlid) {
-          _hasAutoSlid = true;
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted && _thirdSliderKey.currentState != null) {
-              _thirdSliderKey.currentState!.triggerAutoSlide();
-            }
-          });
-        }
+        // Iniciar el timer de autoscroll aleatorio
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            _startRandomAutoScroll();
+          }
+        });
       }
     });
   }
@@ -369,6 +408,7 @@ class ExchangePageState extends State<ExchangePage> {
   void dispose() {
     widget.controller.selectedIndexNotifier.removeListener(_tabListener);
     _refreshTimer?.cancel();
+    _autoScrollTimer?.cancel();
     super.dispose();
   }
 
@@ -437,23 +477,63 @@ class ExchangePageState extends State<ExchangePage> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    onPressed: () async {
+                    onPressed: _isLoadingStore ? null : () async {
                       Common().vibrate();
                       Common().applyImmersive();
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => StorePage()),
-                      );
-
-                      loadData();
+                      
+                      // Bloquear el botón y mostrar loading
+                      setState(() {
+                        _isLoadingStore = true;
+                      });
+                      
+                      try {
+                        // Precargar datos de StorePage antes de navegar
+                        final preloadedData = await StorePage.preloadStoreData();
+                        
+                        if (!mounted) return;
+                        
+                        // Navegar con datos precargados
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => StorePage(
+                              preloadedBuyOptions: preloadedData['buyOptions'] as List<Map<String, dynamic>>,
+                              preloadedAdRewardOptions: preloadedData['adRewardOptions'] as List<Map<String, dynamic>>,
+                              preloadedCurrency: preloadedData['currency'] as String,
+                              preloadedRewardPrize: preloadedData['rewardPrize'] as int,
+                            ),
+                          ),
+                        );
+                        
+                        if (!mounted) return;
+                        
+                        // Recargar datos después de volver
+                        loadData();
+                      } finally {
+                        // Desbloquear el botón
+                        if (mounted) {
+                          setState(() {
+                            _isLoadingStore = false;
+                          });
+                        }
+                      }
                     },
-                    child: Text(
-                      strings?.get('buyMoreCoins') ?? 'Buy more coins',
-                      style: GoogleFonts.syncopate(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    child: _isLoadingStore
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Text(
+                            strings?.get('buyMoreCoins') ?? 'Buy more coins',
+                            style: GoogleFonts.syncopate(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -484,12 +564,18 @@ class ExchangePageState extends State<ExchangePage> {
                   final currentPoints = double.tryParse(_userPoints) ?? 0.0;
                   final canExchange = currentPoints >= requiredCoins;
 
+                  // Crear o obtener la key para este slider
+                  if (!_sliderKeys.containsKey(index)) {
+                    _sliderKeys[index] = GlobalKey<_ExchangeSliderState>();
+                  }
+
                   return _ExchangeSlider(
-                    key: index == 2 ? _thirdSliderKey : null,
+                    key: _sliderKeys[index],
                     coins: requiredCoins,
                     currencyAmount: currencyAmount,
                     currency: _currency,
                     canExchange: canExchange,
+                    isLoading: _loadingSliders.contains(index),
                     onSlideComplete: () async {
                       if (!canExchange) {
                         Common().vibrate(300, 200);
@@ -511,19 +597,102 @@ class ExchangePageState extends State<ExchangePage> {
 
                       Common().vibrate();
                       Common().applyImmersive();
-                      final result = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => WithdrawPage(
-                            coins: requiredCoins,
-                            currencyAmount: currencyAmount,
-                            controller: widget.controller,
-                          ),
-                        ),
-                      );
+                      
+                      // Bloquear solo este slider específico y mostrar loading
+                      if (mounted) {
+                        setState(() {
+                          _loadingSliders.add(index);
+                        });
+                      }
+                      
+                      try {
+                        // Precargar datos de WithdrawPage antes de navegar
+                        final preloadedData = await WithdrawPage.preloadWithdrawData();
+                        
+                        if (!mounted) return;
+                        
+                        // Validar que los datos precargados sean válidos
+                        if (preloadedData['userId'] == null) {
+                          // Si no hay userId, cargar normalmente sin precarga
+                          await WidgetsBinding.instance.endOfFrame;
+                          await Future.delayed(const Duration(milliseconds: 300));
+                          
+                          if (!mounted) return;
+                          
+                          // Navegar a WithdrawPage sin datos precargados
+                          final result = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => WithdrawPage(
+                                coins: requiredCoins,
+                                currencyAmount: currencyAmount,
+                                controller: widget.controller,
+                              ),
+                            ),
+                          );
 
-                      if (mounted && result == true) {
-                        loadData();
+                          if (mounted && result == true) {
+                            loadData();
+                          }
+                        } else {
+                          // Esperar a que la página actual se renderice completamente
+                          await WidgetsBinding.instance.endOfFrame;
+                          await Future.delayed(const Duration(milliseconds: 300));
+                          
+                          if (!mounted) return;
+                          
+                          // Esperar a que el frame se renderice con el estado de loading
+                          await Future.delayed(const Duration(milliseconds: 200));
+                          await WidgetsBinding.instance.endOfFrame;
+                          
+                          if (!mounted) return;
+                          
+                          // Navegar a WithdrawPage con datos precargados
+                          final result = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => WithdrawPage(
+                                coins: requiredCoins,
+                                currencyAmount: currencyAmount,
+                                controller: widget.controller,
+                                preloadedUserAvailableMethods: preloadedData['userAvailableMethods'] as Map<String, Map<String, String>>?,
+                                preloadedCurrency: preloadedData['currency'] as String?,
+                                preloadedCoinIconBase64: preloadedData['coinIconBase64'] as String?,
+                                preloadedUserId: preloadedData['userId'] as String?,
+                              ),
+                            ),
+                          );
+
+                          if (mounted && result == true) {
+                            loadData();
+                          }
+                        }
+                      } catch (e) {
+                        // Si hay un error en la precarga, navegar normalmente
+                        debugPrint('Error precargando datos de WithdrawPage: $e');
+                        if (!mounted) return;
+                        
+                        final result = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => WithdrawPage(
+                              coins: requiredCoins,
+                              currencyAmount: currencyAmount,
+                              controller: widget.controller,
+                            ),
+                          ),
+                        );
+
+                        if (mounted && result == true) {
+                          loadData();
+                        }
+                      } finally {
+                        // Desbloquear solo este slider específico
+                        if (mounted) {
+                          setState(() {
+                            _loadingSliders.remove(index);
+                          });
+                        }
                       }
                     },
                   );
@@ -576,6 +745,7 @@ class _ExchangeSlider extends StatefulWidget {
   final int currencyAmount;
   final String currency;
   final bool canExchange;
+  final bool isLoading;
   final VoidCallback onSlideComplete;
 
   const _ExchangeSlider({
@@ -584,6 +754,7 @@ class _ExchangeSlider extends StatefulWidget {
     required this.currencyAmount,
     required this.currency,
     required this.canExchange,
+    this.isLoading = false,
     required this.onSlideComplete,
   });
 
@@ -596,7 +767,7 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
   bool _isPressed = false;
   late AnimationController _autoSlideController;
   late Animation<double> _autoSlideAnimation;
-  bool _hasAutoSlid = false;
+  bool _isAnimating = false;
 
   @override
   void initState() {
@@ -634,17 +805,43 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
     });
   }
 
-  /// Método público para activar la animación de autoslide
-  void triggerAutoSlide() {
-    if (!_hasAutoSlid && mounted) {
-      _hasAutoSlid = true;
-      _autoSlideController.forward().then((_) {
+  @override
+  void didUpdateWidget(_ExchangeSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Resetear el slider cuando el loading cambia de true a false
+    if (oldWidget.isLoading && !widget.isLoading && _sliderValue >= 0.95) {
+      Future.delayed(const Duration(milliseconds: 50), () {
         if (mounted) {
-          _autoSlideController.reset();
-          setState(() {
-            _sliderValue = 0.0;
-          });
+          resetSlider();
         }
+      });
+    }
+  }
+
+  /// Método público para activar la animación de autoslide
+  /// Puede ejecutarse múltiples veces
+  void triggerAutoSlide() {
+    if (_isAnimating || !mounted) return;
+    
+    _isAnimating = true;
+    _autoSlideController.reset();
+    _autoSlideController.forward().then((_) {
+      if (mounted) {
+        _autoSlideController.reset();
+        setState(() {
+          _sliderValue = 0.0;
+          _isAnimating = false;
+        });
+      }
+    });
+  }
+
+  /// Método público para resetear el slider
+  void resetSlider() {
+    if (mounted) {
+      setState(() {
+        _sliderValue = 0.0;
+        _isPressed = false;
       });
     }
   }
@@ -864,6 +1061,26 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
                 );
               },
             ),
+            // CircularProgressIndicator cuando está en loading
+            if (widget.isLoading)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(100),
+                    borderRadius: BorderRadius.circular(50.0),
+                  ),
+                  child: Center(
+                    child: SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             // Slider invisible para capturar gestos
             Positioned.fill(
               child: SliderTheme(
@@ -879,53 +1096,59 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
                 ),
                 child: Slider(
                   value: _sliderValue,
-                  onChanged: widget.canExchange
-                      ? (value) {
+                  onChanged: widget.isLoading
+                      ? null
+                      : widget.canExchange
+                          ? (value) {
+                              _autoSlideController.stop();
+                              _autoSlideController.reset();
+                              setState(() {
+                                _sliderValue = value;
+                                _isPressed = true;
+                              });
+                            }
+                          : (value) {
+                              _autoSlideController.stop();
+                              _autoSlideController.reset();
+                              // Limitar el deslizamiento cuando no se puede intercambiar
+                              if (value > 0.2) {
+                                Common().vibrate(300, 200);
+                                setState(() {
+                                  _sliderValue = 0.0;
+                                  _isPressed = false;
+                                });
+                              } else {
+                                setState(() {
+                                  _sliderValue = value;
+                                  _isPressed = true;
+                                });
+                              }
+                            },
+                  onChangeStart: widget.isLoading
+                      ? null
+                      : (_) {
                           _autoSlideController.stop();
                           _autoSlideController.reset();
-                          setState(() {
-                            _sliderValue = value;
-                            _isPressed = true;
-                          });
-                        }
+                          setState(() => _isPressed = true);
+                        },
+                  onChangeEnd: widget.isLoading
+                      ? null
                       : (value) {
-                          _autoSlideController.stop();
-                          _autoSlideController.reset();
-                          // Limitar el deslizamiento cuando no se puede intercambiar
-                          if (value > 0.3) {
-                            Common().vibrate(300, 200);
-                            setState(() {
-                              _sliderValue = 0.0;
-                              _isPressed = false;
-                            });
+                          setState(() => _isPressed = false);
+                          if (value >= 0.9 && widget.canExchange) {
+                            // Mantener el slider en 100% y llamar al callback
+                            setState(() => _sliderValue = 1.0);
+                            widget.onSlideComplete();
+                            // El reset se hará después de que termine la navegación
                           } else {
-                            setState(() {
-                              _sliderValue = value;
-                              _isPressed = true;
-                            });
+                            setState(() => _sliderValue = 0.0);
+                            // Si el usuario intentó deslizar cuando no puede intercambiar
+                            if (!widget.canExchange && value > 0.3) {
+                              // Mostrar feedback visual
+                              widget.onSlideComplete();
+                            }
                           }
                         },
-                  onChangeStart: (_) {
-                    _autoSlideController.stop();
-                    _autoSlideController.reset();
-                    setState(() => _isPressed = true);
-                  },
-                  onChangeEnd: (value) {
-                    setState(() => _isPressed = false);
-                    if (value >= 0.95 && widget.canExchange) {
-                      widget.onSlideComplete();
-                      Future.delayed(const Duration(milliseconds: 50), () {
-                        if (mounted) setState(() => _sliderValue = 0.0);
-                      });
-                    } else {
-                      setState(() => _sliderValue = 0.0);
-                      // Si el usuario intentó deslizar cuando no puede intercambiar
-                      if (!widget.canExchange && value > 0.3) {
-                        // Mostrar feedback visual
-                        widget.onSlideComplete();
-                      }
-                    }
-                  },
                   min: 0.0,
                   max: 1.0,
                 ),
