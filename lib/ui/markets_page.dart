@@ -476,7 +476,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       onToggleFavorite: toggleFavorite,
       onShowDetails: _showAssetDetails,
       assetFallbackBadge: _assetFallbackBadge,
-      onNavigateToFirst: () => _navigateToFirstAndOpen(tabIndex),
+      onNavigateToFirst: (asset) => _openAssetChart(asset, tutorialMode: true),
     );
   }
 
@@ -992,6 +992,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       },
     );
 
+    if (!mounted) return;
     _coach!.show(context: context);
   }
 
@@ -1493,7 +1494,7 @@ class _LeafCardWidget extends StatefulWidget {
   final Function(String) onToggleFavorite;
   final Function(BuildContext, FinancialAsset) onShowDetails;
   final Widget Function(FinancialAsset, double) assetFallbackBadge;
-  final VoidCallback? onNavigateToFirst;
+  final Function(FinancialAsset)? onNavigateToFirst;
 
   const _LeafCardWidget({
     super.key,
@@ -1672,7 +1673,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 leading: const Icon(Icons.show_chart),
                                 title: Text(
-                                  "Ver tutorial sobre el gráfico",
+                                  LocalizedStrings.of(context)?.get('viewChartTutorial') ?? 'Ver tutorial sobre el gráfico',
                                   style: GoogleFonts.montserrat(),
                                 ),
                                 onTap: () async {
@@ -1681,7 +1682,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                   final prefs = await SharedPreferences.getInstance();
                                   await prefs.setBool('__tutorial_pending__candles_v1', true);
                                   await prefs.setBool('__tutorial_from_menu__candles_v1', true);
-                                  widget.onNavigateToFirst!();
+                                  widget.onNavigateToFirst!(widget.asset);
                                 },
                               ),
                             ListTile(
@@ -1770,7 +1771,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                       ),
                       if (widget.isFav)
                         BoxShadow(
-                          color: Colors.amber.withValues(alpha: 0.3),
+                          color: Colors.yellow.withValues(alpha: 0.1),
                           blurRadius: 12,
                           spreadRadius: 1,
                           offset: const Offset(0, 0),

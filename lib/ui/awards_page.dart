@@ -153,7 +153,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
 
               Expanded(
                 child: Text(
-                  user.username,
+                  user.fullname,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.montserrat(

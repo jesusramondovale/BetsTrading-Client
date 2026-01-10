@@ -389,6 +389,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         required VoidCallback onPressed,
         required Color color,
         required double k,
+        required bool showAutoSlide,
       }) {
     return _StoreSlider(
       coins: coins,
@@ -396,6 +397,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       color: color,
       k: k,
       currency: _currency,
+      showAutoSlide: showAutoSlide,
       onSlideComplete: onPressed,
     );
   }
@@ -411,7 +413,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         automaticallyImplyLeading: true,
         title: Text(
           strings!.get('store') ?? 'Store',
-          style: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w400),
+          style: GoogleFonts.syncopate(fontSize: 24, fontWeight: FontWeight.w400),
         ),
       ),
       body: Stack(
@@ -453,6 +455,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                       price: price,
                       color: index < colors.length ? colors[index] : Colors.blueGrey,
                       k: index < scales.length ? scales[index] : 1.0,
+                      showAutoSlide: index == 2, // Solo el tercer slider (índice 2)
                       onPressed: () {
                         _cardPayment(coins.toDouble(), price);
                       },
@@ -721,6 +724,7 @@ class _StoreSlider extends StatefulWidget {
   final Color color;
   final double k;
   final String currency;
+  final bool showAutoSlide;
   final VoidCallback onSlideComplete;
 
   const _StoreSlider({
@@ -729,6 +733,7 @@ class _StoreSlider extends StatefulWidget {
     required this.color,
     required this.k,
     required this.currency,
+    required this.showAutoSlide,
     required this.onSlideComplete,
   });
 
@@ -736,9 +741,69 @@ class _StoreSlider extends StatefulWidget {
   State<_StoreSlider> createState() => _StoreSliderState();
 }
 
-class _StoreSliderState extends State<_StoreSlider> {
+class _StoreSliderState extends State<_StoreSlider> with SingleTickerProviderStateMixin {
   double _sliderValue = 0.0;
   bool _isPressed = false;
+  late AnimationController _autoSlideController;
+  late Animation<double> _autoSlideAnimation;
+  bool _hasAutoSlid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _autoSlideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    // Crear animación que va a 0.15, rebota un poco y vuelve a 0
+    _autoSlideAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: 0.15)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 0.5,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.15, end: 0.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 0.5,
+      )
+      
+    ]).animate(_autoSlideController);
+
+    _autoSlideAnimation.addListener(() {
+      if (mounted) {
+        setState(() {
+          _sliderValue = _autoSlideAnimation.value;
+        });
+      }
+    });
+
+    // Iniciar animación automática solo si es el tercer slider y solo una vez
+    if (widget.showAutoSlide && !_hasAutoSlid) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && widget.showAutoSlide && !_hasAutoSlid) {
+            _hasAutoSlid = true;
+            _autoSlideController.forward().then((_) {
+              if (mounted) {
+                _autoSlideController.reset();
+                setState(() {
+                  _sliderValue = 0.0;
+                });
+              }
+            });
+          }
+        });
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _autoSlideController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -953,12 +1018,16 @@ class _StoreSliderState extends State<_StoreSlider> {
                 child: Slider(
                   value: _sliderValue,
                   onChanged: (value) {
+                    _autoSlideController.stop();
+                    _autoSlideController.reset();
                     setState(() {
                       _sliderValue = value;
                       _isPressed = true;
                     });
                   },
                   onChangeStart: (_) {
+                    _autoSlideController.stop();
+                    _autoSlideController.reset();
                     setState(() => _isPressed = true);
                   },
                   onChangeEnd: (value) {
