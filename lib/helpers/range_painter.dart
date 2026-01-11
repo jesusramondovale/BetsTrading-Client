@@ -62,8 +62,8 @@ class RangePainter extends CustomPainter {
     final double clamped =
     odds.clamp(minOdds, maxOdds).toDouble();
 
-    const double minAlpha = 0.75;
-    const double maxAlpha = 1.0;
+    const double minAlpha = 0.65;
+    const double maxAlpha = 0.85;
 
     final double t = (clamped - minOdds) / (maxOdds - minOdds);
     final double alpha = minAlpha + (maxAlpha - minAlpha) * t;
@@ -85,13 +85,18 @@ class RangePainter extends CustomPainter {
     final double darkFactor = lerpDouble(0.65, 0.8, t)!;
     final double lightFactor = lerpDouble(1.02, 1.15, t)!;
 
+    // Aplicar transparencia sutil para mantener translucidez sin perder intensidad
+    const double transparencyFactor = 0.92;
+
     final Color startColor = hsl
         .withLightness((baseLight * darkFactor).clamp(0.0, 1.0))
-        .toColor();
+        .toColor()
+        .withValues(alpha: transparencyFactor);
 
     final Color endColor = hsl
         .withLightness((baseLight * lightFactor).clamp(0.0, 1.0))
-        .toColor();
+        .toColor()
+        .withValues(alpha: transparencyFactor);
 
     return LinearGradient(
       colors: [
@@ -152,7 +157,11 @@ class RangePainter extends CustomPainter {
     }
     DateTime maxCandleDate = candles.map((candle) => candle.date).reduce((a, b) => a.isAfter(b) ? a : b);
 
-    for (final zone in zones.value) {
+    // Ordenar zonas por odds (menor a mayor) para que las de mayor odds se pinten al final y queden por encima
+    final sortedZones = List<RectangleZone>.from(zones.value)
+      ..sort((a, b) => a.odds.compareTo(b.odds));
+
+    for (final zone in sortedZones) {
 
       double startX = hoursToX(zone.startDate, index, candleWidth, maxCandleDate, size, timeframe);
       double endX = hoursToX(zone.endDate, index, candleWidth, maxCandleDate, size, timeframe);
@@ -165,8 +174,43 @@ class RangePainter extends CustomPainter {
       double endY = priceToY(zone.lowPrice, topPrice, bottomPrice, size);
 
       final Rect  rect   = Rect.fromLTRB(startX, startY, endX, endY);
-      final rrectRadius  = Radius.circular(8);
+      final rrectRadius  = Radius.circular(10);
       final RRect rrect  = RRect.fromRectAndRadius(rect, rrectRadius);
+
+      // Calcular factor de elevación basado en las odds (mayor odds = mayor elevación)
+      const double minOdds = 1.0;
+      const double maxOdds = 6.0;
+      final double clampedOdds = zone.odds.clamp(minOdds, maxOdds).toDouble();
+      final double elevationFactor = (clampedOdds - minOdds) / (maxOdds - minOdds);
+      
+      // Desplazamiento de sombra proporcional a las odds (de 3.0 a 10.0)
+      final double shadowOffset = 3.0 + (elevationFactor * 7.0);
+      final RRect shadowRrect = RRect.fromRectAndRadius(
+        rect.shift(Offset(shadowOffset, shadowOffset)),
+        rrectRadius,
+      );
+      
+      // Intensidad de sombra proporcional a las odds
+      final double shadowAlpha1 = 0.25 + (elevationFactor * 0.25); // 0.25 a 0.5
+      final double shadowAlpha2 = 0.3 + (elevationFactor * 0.3);  // 0.3 a 0.6
+      final double blurRadius1 = 6.0 + (elevationFactor * 6.0);    // 6.0 a 12.0
+      final double blurRadius2 = 3.0 + (elevationFactor * 4.0);    // 3.0 a 7.0
+      
+      // Primera capa de sombra (más difusa y suave)
+      final paintShadow1 = Paint()
+        ..isAntiAlias = true
+        ..color = Colors.black.withValues(alpha: shadowAlpha1)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurRadius1)
+        ..style = PaintingStyle.fill;
+      canvas.drawRRect(shadowRrect, paintShadow1);
+      
+      // Segunda capa de sombra (más definida)
+      final paintShadow2 = Paint()
+        ..isAntiAlias = true
+        ..color = Colors.black.withValues(alpha: shadowAlpha2)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurRadius2)
+        ..style = PaintingStyle.fill;
+      canvas.drawRRect(shadowRrect, paintShadow2);
 
       final paintFill = Paint()
         ..isAntiAlias = true
@@ -174,6 +218,37 @@ class RangePainter extends CustomPainter {
         ..color  = oddsToColor(zone.odds, zone.fillColor)
         ..style  = PaintingStyle.fill;
       canvas.drawRRect(rrect, paintFill);
+      
+      // Efecto de iluminación en la parte superior izquierda para mayor relieve
+      // Intensidad proporcional a las odds
+      final double highlightAlpha = 0.15 + (elevationFactor * 0.15); // 0.15 a 0.3
+      final highlightRect = Rect.fromLTRB(
+        rect.left,
+        rect.top,
+        rect.left + (rect.width * 0.4),
+        rect.top + (rect.height * 0.4),
+      );
+      final highlightRrect = RRect.fromRectAndRadius(highlightRect, rrectRadius);
+      final paintHighlight = Paint()
+        ..isAntiAlias = true
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: highlightAlpha),
+            Colors.transparent,
+          ],
+        ).createShader(highlightRect)
+        ..style = PaintingStyle.fill;
+      canvas.drawRRect(highlightRrect, paintHighlight);
+
+      // Borde fino con efecto cristal pálido para todos los rectangleZones
+      final paintBorder = Paint()
+        ..isAntiAlias = true
+        ..color = Colors.white.withValues(alpha: 0.12)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8;
+      canvas.drawRRect(rrect, paintBorder);
 
       if (finishedIcon != 0) {
         const double padding = 4.0;
@@ -456,16 +531,63 @@ class _ZoneDialogPainter extends CustomPainter {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
     final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(14));
 
+    // Calcular factor de elevación basado en las odds (mayor odds = mayor elevación)
+    const double minOdds = 1.0;
+    const double maxOdds = 6.0;
+    final double clampedOdds = zone.odds.clamp(minOdds, maxOdds).toDouble();
+    final double elevationFactor = (clampedOdds - minOdds) / (maxOdds - minOdds);
+    
+    // Desplazamiento de sombra proporcional a las odds (de 3.0 a 10.0)
+    final double shadowOffset = 3.0 + (elevationFactor * 7.0);
+    final RRect shadowRrect = RRect.fromRectAndRadius(
+      rect.shift(Offset(shadowOffset, shadowOffset)),
+      const Radius.circular(14),
+    );
+    
+    // Intensidad de sombra proporcional a las odds
+    final double shadowAlpha1 = 0.25 + (elevationFactor * 0.25); // 0.25 a 0.5
+    final double shadowAlpha2 = 0.3 + (elevationFactor * 0.3);  // 0.3 a 0.6
+    final double blurRadius1 = 6.0 + (elevationFactor * 6.0);    // 6.0 a 12.0
+    final double blurRadius2 = 3.0 + (elevationFactor * 4.0);    // 3.0 a 7.0
+    
+    // Primera capa de sombra (más difusa y suave)
+    final paintShadow1 = Paint()
+      ..isAntiAlias = true
+      ..color = Colors.black.withValues(alpha: shadowAlpha1)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurRadius1)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(shadowRrect, paintShadow1);
+    
+    // Segunda capa de sombra (más definida)
+    final paintShadow2 = Paint()
+      ..isAntiAlias = true
+      ..color = Colors.black.withValues(alpha: shadowAlpha2)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurRadius2)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(shadowRrect, paintShadow2);
+
+    // Usar el mismo shader con translucidez que en el gráfico
+    final hsl = HSLColor.fromColor(zone.fillColor);
+    final double baseLight = hsl.lightness;
+    final double t = elevationFactor;
+    final double darkFactor = lerpDouble(0.65, 0.8, t)!;
+    final double lightFactor = lerpDouble(1.02, 1.15, t)!;
+    const double transparencyFactor = 0.92;
+
+    final Color startColor = hsl
+        .withLightness((baseLight * darkFactor).clamp(0.0, 1.0))
+        .toColor()
+        .withValues(alpha: transparencyFactor);
+
+    final Color endColor = hsl
+        .withLightness((baseLight * lightFactor).clamp(0.0, 1.0))
+        .toColor()
+        .withValues(alpha: transparencyFactor);
+
     final fill = Paint()
+      ..isAntiAlias = true
       ..shader = LinearGradient(
-        colors: [
-          HSLColor.fromColor(zone.fillColor).withLightness(
-            (HSLColor.fromColor(zone.fillColor).lightness * 0.75).clamp(0.0, 1.0),
-          ).toColor(),
-          HSLColor.fromColor(zone.fillColor).withLightness(
-            (HSLColor.fromColor(zone.fillColor).lightness * 1.1).clamp(0.0, 1.0),
-          ).toColor(),
-        ],
+        colors: [startColor, endColor],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(rect)
@@ -473,8 +595,31 @@ class _ZoneDialogPainter extends CustomPainter {
 
     canvas.drawRRect(rrect, fill);
 
+    // Efecto de iluminación en la parte superior izquierda para mayor relieve
+    final double highlightAlpha = 0.15 + (elevationFactor * 0.15); // 0.15 a 0.3
+    final highlightRect = Rect.fromLTRB(
+      rect.left,
+      rect.top,
+      rect.left + (rect.width * 0.4),
+      rect.top + (rect.height * 0.4),
+    );
+    final highlightRrect = RRect.fromRectAndRadius(highlightRect, const Radius.circular(14));
+    final paintHighlight = Paint()
+      ..isAntiAlias = true
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.white.withValues(alpha: highlightAlpha),
+          Colors.transparent,
+        ],
+      ).createShader(highlightRect)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(highlightRrect, paintHighlight);
+
     final border = Paint()
-      ..color = Colors.white.withValues(alpha: .9)
+      ..isAntiAlias = true
+      ..color = Colors.white.withValues(alpha: 0.12)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.8;
     canvas.drawRRect(rrect, border);
