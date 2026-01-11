@@ -1,11 +1,11 @@
-# Script para generar los iconos ic_launcher_foreground.png redimensionando logoNuevo.png
+# Script para generar los iconos ic_launcher_foreground.png usando directamente new_icon.png
 # Uso: .\generate_launcher_foreground.ps1 [ruta_imagen]
-# Ejemplo: .\generate_launcher_foreground.ps1 assets/logoNuevo.png
-# Si no se proporciona ruta, usa assets/logoNuevo.png por defecto
+# Ejemplo: .\generate_launcher_foreground.ps1 assets/new_icon.png
+# Si no se proporciona ruta, usa assets/new_icon.png por defecto
 
 param(
     [Parameter(Position=0)]
-    [string]$ImagePath = "assets/new_Icon.png"
+    [string]$ImagePath = "assets/app_icon.png"
 )
 
 Write-Host "Generando iconos ic_launcher_foreground.png..." -ForegroundColor Green
@@ -32,8 +32,8 @@ function Resize-Image {
         
         $sourceImage = [System.Drawing.Image]::FromFile((Resolve-Path $SourcePath).Path)
         
-        # Crear una nueva imagen con las dimensiones especificadas
-        $bitmap = New-Object System.Drawing.Bitmap($Width, $Height)
+        # Crear una nueva imagen con las dimensiones especificadas y formato ARGB (canal alpha para transparencia)
+        $bitmap = New-Object System.Drawing.Bitmap($Width, $Height, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
         $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
         
         # Configurar alta calidad de redimensionamiento
@@ -42,7 +42,10 @@ function Resize-Image {
         $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
         $graphics.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
         
-        # Dibujar la imagen redimensionada
+        # Limpiar el área de dibujo (asegura fondo transparente)
+        $graphics.Clear([System.Drawing.Color]::Transparent)
+        
+        # Dibujar la imagen redimensionada directamente (sin fondo, preservando transparencia)
         $graphics.DrawImage($sourceImage, 0, 0, $Width, $Height)
         
         # Guardar como PNG

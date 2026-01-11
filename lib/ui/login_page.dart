@@ -1014,7 +1014,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
             total: _showSocialSignIn ? 5 : 6,
             child: Image.asset('assets/new_icon.png', width: 200, fit: BoxFit.cover),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 30),
 
           if (_showSocialSignIn) ...[
             _buildAnimatedWidget(
