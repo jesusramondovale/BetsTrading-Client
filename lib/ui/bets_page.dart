@@ -260,8 +260,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
       _isAcceptButtonEnabled =
           !_isBlocked &&
           _betAmount >= minBet &&
-          _betAmount <= maxPoints &&
-          _betAmount <= 5000.0;
+          _betAmount <= maxPoints;
     });
   }
 
@@ -323,7 +322,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
           child: BetAmountSelector(
             key: ValueKey(_points), // Forzar reconstrucciÃ³n cuando cambien los puntos
             minValue: _minBetAmount,
-            maxValue: 5000.0,
+            maxValue: maxPoints.floor().toDouble(),
             initialValue: _betAmount < _minBetAmount ? _minBetAmount : _betAmount,
             maxAllowedValue: _points != null ? double.tryParse(_points!) : null,
             onChanged: _onBetAmountChanged,

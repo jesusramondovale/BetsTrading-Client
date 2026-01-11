@@ -176,6 +176,14 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     await _waitForNextFrame();
     if (!mounted) return;
     
+    // Mostrar notificación de bienvenido durante la carga
+    final strings = LocalizedStrings.of(context);
+    final storage = const FlutterSecureStorage();
+    String? username = await storage.read(key: 'username');
+    if (username != null && mounted) {
+      Common().showFloatingSnack(context, "${strings?.get('welcome') ?? "Welcome"} $username!");
+    }
+    
     // Cargar todos los datos mientras se muestra el login
     await MarketsView.preloadAllMarketData();
     
@@ -499,14 +507,15 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         await _waitForNextFrame();
         if (!mounted) return;
         
+        // Mostrar notificación de bienvenido durante la carga
+        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"}  ${_usernameController.text.trim()}!");
+        
         // Cargar todos los datos mientras se muestra el login
         await MarketsView.preloadAllMarketData();
         
         if (!mounted) return;
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const MainMenuPage()));
-
-        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"}  ${_usernameController.text.trim()}!");
 
       } else {
         if (!mounted) return;
@@ -734,12 +743,14 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         await _waitForNextFrame();
         if (!mounted) return;
         
+        // Mostrar notificación de bienvenido durante la carga
+        String? username = await _storage.read(key: 'username');
+        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
+        
         // Cargar todos los datos mientras se muestra el login
         await MarketsView.preloadAllMarketData();
         
         if (!mounted) return;
-        String? username = await _storage.read(key: 'username');
-        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const MainMenuPage()));
         }

@@ -5,6 +5,7 @@ import 'package:betrader/services/bets_service.dart';
 import 'package:betrader/ui/betshistory_page.dart';
 import 'package:betrader/ui/settings_view.dart';
 import 'package:betrader/ui/store_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -45,6 +46,8 @@ class HomeScreenState extends State<HomeScreen> {
   double _userPoints = 0;
   late Future<Trends> _trendsFuture;
   late Future<Favorites> _favsFuture;
+  Trends? _currentTrends; // Mantener datos actuales para evitar skeletons
+  Favorites? _currentFavorites; // Mantener datos actuales para evitar skeletons
   bool _userIsInteracting = false;
   bool _userIsInteractingFavs = false;
   bool _favsInitialPositionSet = false;
@@ -70,7 +73,8 @@ class HomeScreenState extends State<HomeScreen> {
   /// Refreshes user data, trends, and favorites without reloading investments.
   ///
   /// Updates user points, currency preference, and fetches latest trends
-  /// and favorites data from the server.
+  /// and favorites data from the server. Mantiene los datos actuales mientras
+  /// se cargan los nuevos para evitar mostrar skeletons.
   void _refreshData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     await BetsService().getUserInfo(userId);
@@ -80,15 +84,52 @@ class HomeScreenState extends State<HomeScreen> {
 
     if (!mounted) return;
 
+    // Actualizar datos del usuario primero
     setState(() {
       _userId = userId != "none" ? userId : null;
       _userPoints = double.tryParse(userPoints) ?? 0;
       _dollarCurrency = dollarCurrency;
-      _trendsFuture = BetsService()
-          .fetchTrendsData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
-      _favsFuture = BetsService()
-          .fetchFavouritesData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
     });
+
+    // Cargar nuevos datos en segundo plano sin cambiar los Futures inmediatamente
+    // Esto evita que los FutureBuilder vuelvan a estado 'waiting'
+    final newTrendsFuture = BetsService()
+        .fetchTrendsData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
+    final newFavsFuture = BetsService()
+        .fetchFavouritesData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
+
+    // Esperar a que los datos estén listos antes de actualizar
+    try {
+      final newTrends = await newTrendsFuture;
+      if (!mounted) return;
+      setState(() {
+        _currentTrends = newTrends;
+        // Solo actualizar el Future si ya tenemos datos, para mantener la referencia
+        _trendsFuture = Future.value(newTrends);
+      });
+    } catch (e) {
+      // Si hay error, mantener los datos anteriores
+      if (kDebugMode) {
+        print('Error refreshing trends: $e');
+      }
+    }
+
+    try {
+      final newFavs = await newFavsFuture;
+      if (!mounted) return;
+      setState(() {
+        _currentFavorites = newFavs;
+        // Solo actualizar el Future si ya tenemos datos, para mantener la referencia
+        _favsFuture = Future.value(newFavs);
+        // Reset el flag para que se posicione al final de nuevo cuando se refresque
+        _favsInitialPositionSet = false;
+      });
+    } catch (e) {
+      // Si hay error, mantener los datos anteriores
+      if (kDebugMode) {
+        print('Error refreshing favorites: $e');
+      }
+    }
   }
 
   /// Loads user ID and initializes all data including investments.
@@ -115,6 +156,21 @@ class HomeScreenState extends State<HomeScreen> {
           .fetchInvestmentData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
     });
 
+    // Inicializar datos actuales cuando se carguen por primera vez
+    _trendsFuture.then((trends) {
+      if (!mounted) return;
+      setState(() {
+        _currentTrends = trends;
+      });
+    }).catchError((_) {});
+
+    _favsFuture.then((favs) {
+      if (!mounted) return;
+      setState(() {
+        _currentFavorites = favs;
+      });
+    }).catchError((_) {});
+
     final future = _investmentFuture;
     if (future != null) {
       future.then((data) {
@@ -130,11 +186,20 @@ class HomeScreenState extends State<HomeScreen> {
 
   /// Refreshes the favorites list by fetching updated data from the server.
   void refreshFavorites() {
-    setState(() {
-      _favsFuture = BetsService()
-          .fetchFavouritesData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
-      // Reset el flag para que se posicione al final de nuevo cuando se refresque
-      _favsInitialPositionSet = false;
+    // Cargar nuevos datos en segundo plano sin cambiar el Future inmediatamente
+    final newFavsFuture = BetsService()
+        .fetchFavouritesData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
+    
+    newFavsFuture.then((newFavs) {
+      if (!mounted) return;
+      setState(() {
+        _currentFavorites = newFavs;
+        _favsFuture = Future.value(newFavs);
+        // Reset el flag para que se posicione al final de nuevo cuando se refresque
+        _favsInitialPositionSet = false;
+      });
+    }).catchError((_) {
+      // Si hay error, mantener los datos anteriores
     });
   }
 
@@ -290,7 +355,7 @@ class HomeScreenState extends State<HomeScreen> {
 
     loadUserIdAndData();
 
-    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 60), (_) async {
       _refreshData();
       await refreshInvestments();
     });
@@ -666,8 +731,59 @@ class HomeScreenState extends State<HomeScreen> {
                           : FutureBuilder<Trends>(
                         future: _trendsFuture,
                         builder: (context, snapshot) {
+                          // Si está cargando pero tenemos datos previos, mostrar esos datos
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
+                            if (_currentTrends != null && _currentTrends!.trends.isNotEmpty) {
+                              final data = _currentTrends!;
+                              return NotificationListener<ScrollNotification>(
+                                onNotification: (ScrollNotification notification) {
+                                  if (notification is ScrollUpdateNotification) {
+                                    final currentOffset = notification.metrics.pixels;
+                                    if (currentOffset > _lastTrendScrollOffset) {
+                                      _direction = 1;
+                                    } else if (currentOffset < _lastTrendScrollOffset) {
+                                      _direction = -1;
+                                    }
+                                    _lastTrendScrollOffset = currentOffset;
+                                  } else if (notification is ScrollEndNotification) {
+                                  }
+                                  return false;
+                                },
+                                child: Listener(
+                                  onPointerDown: (_) {
+                                    _userIsInteracting = true;
+                                    Common().applyImmersive();
+                                  },
+                                  onPointerUp: (_) async {
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 100));
+                                    _userIsInteracting = false;
+                                  },
+                                  child: ListView.builder(
+                                    controller: _trendScrollController,
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: data.trends.length,
+                                    itemBuilder: (context, index) {
+                                      final sortedTrends =
+                                      List.from(data.trends)
+                                        ..sort((a, b) =>
+                                            a.id.compareTo(b.id));
+                                      final sortedIndex =
+                                          sortedTrends[index].id - 1;
+
+                                      return TrendContainer(
+                                        trend: sortedTrends[index],
+                                        index: sortedIndex,
+                                        onFavoriteUpdated: refreshFavorites,
+                                        controller: widget.controller,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
+                            // Solo mostrar skeleton si no hay datos previos
                             return Center(
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
@@ -685,10 +801,70 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           } else if (snapshot.hasError) {
+                            // Si hay error pero tenemos datos previos, mostrar esos datos
+                            if (_currentTrends != null && _currentTrends!.trends.isNotEmpty) {
+                              final data = _currentTrends!;
+                              return NotificationListener<ScrollNotification>(
+                                onNotification: (ScrollNotification notification) {
+                                  if (notification is ScrollUpdateNotification) {
+                                    final currentOffset = notification.metrics.pixels;
+                                    if (currentOffset > _lastTrendScrollOffset) {
+                                      _direction = 1;
+                                    } else if (currentOffset < _lastTrendScrollOffset) {
+                                      _direction = -1;
+                                    }
+                                    _lastTrendScrollOffset = currentOffset;
+                                  } else if (notification is ScrollEndNotification) {
+                                  }
+                                  return false;
+                                },
+                                child: Listener(
+                                  onPointerDown: (_) {
+                                    _userIsInteracting = true;
+                                    Common().applyImmersive();
+                                  },
+                                  onPointerUp: (_) async {
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 100));
+                                    _userIsInteracting = false;
+                                  },
+                                  child: ListView.builder(
+                                    controller: _trendScrollController,
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: data.trends.length,
+                                    itemBuilder: (context, index) {
+                                      final sortedTrends =
+                                      List.from(data.trends)
+                                        ..sort((a, b) =>
+                                            a.id.compareTo(b.id));
+                                      final sortedIndex =
+                                          sortedTrends[index].id - 1;
+
+                                      return TrendContainer(
+                                        trend: sortedTrends[index],
+                                        index: sortedIndex,
+                                        onFavoriteUpdated: refreshFavorites,
+                                        controller: widget.controller,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
                             return Text('Error: ${snapshot.error}');
                           } else if (snapshot.hasData &&
                               snapshot.data!.trends.isNotEmpty) {
                             final data = snapshot.data!;
+                            // Actualizar datos actuales cuando se reciben nuevos
+                            if (_currentTrends != data) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted) {
+                                  setState(() {
+                                    _currentTrends = data;
+                                  });
+                                }
+                              });
+                            }
                             return NotificationListener<ScrollNotification>(
                               onNotification: (ScrollNotification notification) {
                                 if (notification is ScrollUpdateNotification) {
@@ -806,8 +982,81 @@ class HomeScreenState extends State<HomeScreen> {
                           : FutureBuilder<Favorites>(
                         future: _favsFuture,
                         builder: (context, snapshot) {
+                          // Si está cargando pero tenemos datos previos, mostrar esos datos
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
+                            if (_currentFavorites != null && _currentFavorites!.favorites.isNotEmpty) {
+                              final data = _currentFavorites!;
+                              // Posicionar al final inmediatamente después del primer frame (solo una vez)
+                              if (!_favsInitialPositionSet) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                                  for (int i = 0; i < 20; i++) {
+                                    if (!mounted || _favsInitialPositionSet) return;
+                                    if (_favsScrollController.hasClients) {
+                                      try {
+                                        final max = _favsScrollController.position.maxScrollExtent;
+                                        if (max > 0) {
+                                          _favsScrollController.jumpTo(max);
+                                          _lastFavsScrollOffset = max;
+                                          _favsDirection = -1;
+                                          _favsInitialPositionSet = true;
+                                          return;
+                                        }
+                                      } catch (e) {
+                                      }
+                                    }
+                                    await Future.delayed(const Duration(milliseconds: 16));
+                                  }
+                                });
+                              }
+                              return NotificationListener<ScrollNotification>(
+                                onNotification: (ScrollNotification notification) {
+                                  if (notification is ScrollUpdateNotification) {
+                                    final currentOffset = notification.metrics.pixels;
+                                    if (currentOffset > _lastFavsScrollOffset) {
+                                      _favsDirection = 1;
+                                    } else if (currentOffset < _lastFavsScrollOffset) {
+                                      _favsDirection = -1;
+                                    }
+                                    _lastFavsScrollOffset = currentOffset;
+                                  } else if (notification is ScrollEndNotification) {
+                                  }
+                                  return false;
+                                },
+                                child: Listener(
+                                  onPointerDown: (_) {
+                                    _userIsInteractingFavs = true;
+                                    Common().applyImmersive();
+                                  },
+                                  onPointerUp: (_) async {
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 100));
+                                    _userIsInteractingFavs = false;
+                                  },
+                                  child: ScrollConfiguration(
+                                    behavior: ScrollConfiguration.of(context)
+                                        .copyWith(overscroll: false),
+                                    child: ListView.builder(
+                                      controller: _favsScrollController,
+                                      scrollDirection: Axis.horizontal,
+                                      physics: const BouncingScrollPhysics(
+                                        decelerationRate:
+                                        ScrollDecelerationRate.fast,
+                                      ),
+                                      itemCount: data.length,
+                                      itemBuilder: (context, index) {
+                                        return FavoriteContainer(
+                                          favorite: data.favorites[index],
+                                          onFavoriteUpdated: refreshFavorites,
+                                          controller: widget.controller,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            // Solo mostrar skeleton si no hay datos previos
                             return LayoutBuilder(
                               builder: (context, constraints) {
                                 return SingleChildScrollView(
@@ -835,10 +1084,91 @@ class HomeScreenState extends State<HomeScreen> {
                               },
                             );
                           } else if (snapshot.hasError) {
+                            // Si hay error pero tenemos datos previos, mostrar esos datos
+                            if (_currentFavorites != null && _currentFavorites!.favorites.isNotEmpty) {
+                              final data = _currentFavorites!;
+                              if (!_favsInitialPositionSet) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                                  for (int i = 0; i < 20; i++) {
+                                    if (!mounted || _favsInitialPositionSet) return;
+                                    if (_favsScrollController.hasClients) {
+                                      try {
+                                        final max = _favsScrollController.position.maxScrollExtent;
+                                        if (max > 0) {
+                                          _favsScrollController.jumpTo(max);
+                                          _lastFavsScrollOffset = max;
+                                          _favsDirection = -1;
+                                          _favsInitialPositionSet = true;
+                                          return;
+                                        }
+                                      } catch (e) {
+                                      }
+                                    }
+                                    await Future.delayed(const Duration(milliseconds: 16));
+                                  }
+                                });
+                              }
+                              return NotificationListener<ScrollNotification>(
+                                onNotification: (ScrollNotification notification) {
+                                  if (notification is ScrollUpdateNotification) {
+                                    final currentOffset = notification.metrics.pixels;
+                                    if (currentOffset > _lastFavsScrollOffset) {
+                                      _favsDirection = 1;
+                                    } else if (currentOffset < _lastFavsScrollOffset) {
+                                      _favsDirection = -1;
+                                    }
+                                    _lastFavsScrollOffset = currentOffset;
+                                  } else if (notification is ScrollEndNotification) {
+                                  }
+                                  return false;
+                                },
+                                child: Listener(
+                                  onPointerDown: (_) {
+                                    _userIsInteractingFavs = true;
+                                    Common().applyImmersive();
+                                  },
+                                  onPointerUp: (_) async {
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 100));
+                                    _userIsInteractingFavs = false;
+                                  },
+                                  child: ScrollConfiguration(
+                                    behavior: ScrollConfiguration.of(context)
+                                        .copyWith(overscroll: false),
+                                    child: ListView.builder(
+                                      controller: _favsScrollController,
+                                      scrollDirection: Axis.horizontal,
+                                      physics: const BouncingScrollPhysics(
+                                        decelerationRate:
+                                        ScrollDecelerationRate.fast,
+                                      ),
+                                      itemCount: data.length,
+                                      itemBuilder: (context, index) {
+                                        return FavoriteContainer(
+                                          favorite: data.favorites[index],
+                                          onFavoriteUpdated: refreshFavorites,
+                                          controller: widget.controller,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
                             return Text('Error: ${snapshot.error}');
                           } else if (snapshot.hasData &&
                               snapshot.data!.favorites.isNotEmpty) {
                             final data = snapshot.data!;
+                            // Actualizar datos actuales cuando se reciben nuevos
+                            if (_currentFavorites != data) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted) {
+                                  setState(() {
+                                    _currentFavorites = data;
+                                  });
+                                }
+                              });
+                            }
                             // Posicionar al final inmediatamente después del primer frame (solo una vez)
                             if (!_favsInitialPositionSet) {
                               WidgetsBinding.instance.addPostFrameCallback((_) async {
