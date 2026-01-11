@@ -396,7 +396,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
         children: [
           Positioned.fill(
             child: widget.iconPath == "null"
-                ? Image.asset('assets/logo_simple.png', fit: BoxFit.cover)
+                ? Image.asset('assets/new_icon.png', fit: BoxFit.cover)
                 : (widget.iconPath.startsWith("http")
                     ? Image.network(
                         widget.iconPath,

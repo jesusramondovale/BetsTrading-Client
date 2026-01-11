@@ -94,7 +94,7 @@ class CandlesticksState extends State<Candlesticks> {
   String ticker = "";
   /// candleWidth controls the width of the single candles.
   ///  range: [2...10]
-  double candleWidth = 6;
+  double candleWidth = 10;
 
   /// true when widget.onLoadMoreCandles is fetching new candles.
   bool isCallingLoadMore = false;
@@ -216,7 +216,7 @@ class CandlesticksState extends State<Candlesticks> {
         else
           Expanded(
             child: TweenAnimationBuilder(
-              tween: Tween(begin: 6.toDouble(), end: candleWidth),
+              tween: Tween(begin: 10.toDouble(), end: candleWidth),
               duration: const Duration(milliseconds: 120),
               builder: (_, double width, __) {
                 if (kIsWeb ||
