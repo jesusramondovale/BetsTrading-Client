@@ -22,9 +22,11 @@ class Trend {
   final double close;
   final double current;
   final String ticker;
+  final double? currentMaxOdd;
+  final int? currentMaxOddDirection;
 
   Trend(this.id, this.icon, this.dailyGain, this.name, this.close, this.current,
-      this.ticker);
+      this.ticker, {this.currentMaxOdd, this.currentMaxOddDirection});
 
   Trend.fromJson(Map<String, dynamic> json)
       : id = json['id'],
@@ -33,7 +35,9 @@ class Trend {
         dailyGain = (json['daily_gain'] as num).toDouble(),
         close = (json['close'] as num).toDouble(),
         current = (json['current'] as num).toDouble(),
-        ticker = json['ticker'];
+        ticker = json['ticker'],
+        currentMaxOdd = json['current_max_odd'] != null ? (json['current_max_odd'] as num).toDouble() : null,
+        currentMaxOddDirection = json['current_max_odd_direction'] != null ? (json['current_max_odd_direction'] as num).toInt() : null;
 }
 
 class Trends {
@@ -693,6 +697,14 @@ class TrendContainerState extends State<TrendContainer> {
                               )
                             ],
                           ),
+                          if (widget.trend.currentMaxOdd != null && widget.trend.currentMaxOddDirection != null) ...[
+                            const SizedBox(height: 8),
+                            _MaxOddRectangleZone(
+                              maxOdd: widget.trend.currentMaxOdd!,
+                              direction: widget.trend.currentMaxOddDirection!,
+                              currentPrice: widget.trend.current,
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -723,6 +735,206 @@ class TrendContainerState extends State<TrendContainer> {
       ),
     );
   }
+}
+
+// Widget para dibujar el pequeño RectangleZone del max odd
+class _MaxOddRectangleZone extends StatelessWidget {
+  final double maxOdd;
+  final int direction; // +1 verde, 0 amarillo, -1 rojo
+  final double currentPrice;
+
+  const _MaxOddRectangleZone({
+    required this.maxOdd,
+    required this.direction,
+    required this.currentPrice,
+  });
+
+  Color _getFillColor() {
+    if (direction == 1) {
+      return Colors.green.withValues(alpha: 1);
+    } else if (direction == -1) {
+      return Colors.red.withValues(alpha: 1);
+    } else {
+      return Colors.orange.withValues(alpha: 1);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 100,
+      height: 30,
+      child: CustomPaint(
+        painter: _MaxOddRectangleZonePainter(
+          maxOdd: maxOdd,
+          fillColor: _getFillColor(),
+        ),
+      ),
+    );
+  }
+}
+
+class _MaxOddRectangleZonePainter extends CustomPainter {
+  final double maxOdd;
+  final Color fillColor;
+
+  _MaxOddRectangleZonePainter({
+    required this.maxOdd,
+    required this.fillColor,
+  });
+
+  Color oddsToColor(double odds, Color fillColor) {
+    const double minOdds = 1.0;
+    const double maxOdds = 6.0;
+
+    final double clamped = odds.clamp(minOdds, maxOdds).toDouble();
+
+    const double minAlpha = 0.65;
+    const double maxAlpha = 0.85;
+
+    final double t = (clamped - minOdds) / (maxOdds - minOdds);
+    final double alpha = minAlpha + (maxAlpha - minAlpha) * t;
+
+    return fillColor.withValues(alpha: alpha);
+  }
+
+  Shader buildZoneShader(Color base, double odds, Rect rect) {
+    const double minOdds = 1.0;
+    const double maxOdds = 6.0;
+
+    final double t = ((odds.clamp(minOdds, maxOdds) - minOdds) / (maxOdds - minOdds)).toDouble();
+
+    final hsl = HSLColor.fromColor(base);
+
+    final double baseLight = hsl.lightness;
+
+    final double darkFactor = lerpDouble(0.65, 0.8, t)!;
+    final double lightFactor = lerpDouble(1.02, 1.15, t)!;
+
+    const double transparencyFactor = 0.92;
+
+    final Color startColor = hsl
+        .withLightness((baseLight * darkFactor).clamp(0.0, 1.0))
+        .toColor()
+        .withValues(alpha: transparencyFactor);
+
+    final Color endColor = hsl
+        .withLightness((baseLight * lightFactor).clamp(0.0, 1.0))
+        .toColor()
+        .withValues(alpha: transparencyFactor);
+
+    return LinearGradient(
+      colors: [
+        startColor,
+        endColor,
+      ],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ).createShader(rect);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rrectRadius = const Radius.circular(6);
+    final RRect rrect = RRect.fromRectAndRadius(rect, rrectRadius);
+
+    // Calcular factor de elevación basado en las odds
+    const double minOdds = 1.0;
+    const double maxOdds = 6.0;
+    final double clampedOdds = maxOdd.clamp(minOdds, maxOdds).toDouble();
+    final double elevationFactor = (clampedOdds - minOdds) / (maxOdds - minOdds);
+
+    // Desplazamiento de sombra proporcional a las odds
+    final double shadowOffset = 2.0 + (elevationFactor * 3.0);
+    final RRect shadowRrect = RRect.fromRectAndRadius(
+      rect.shift(Offset(shadowOffset, shadowOffset)),
+      rrectRadius,
+    );
+
+    // Intensidad de sombra proporcional a las odds
+    final double shadowAlpha1 = 0.25 + (elevationFactor * 0.25);
+    final double shadowAlpha2 = 0.3 + (elevationFactor * 0.3);
+    final double blurRadius1 = 4.0 + (elevationFactor * 4.0);
+    final double blurRadius2 = 2.0 + (elevationFactor * 2.0);
+
+    // Primera capa de sombra
+    final paintShadow1 = Paint()
+      ..isAntiAlias = true
+      ..color = Colors.black.withValues(alpha: shadowAlpha1)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurRadius1)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(shadowRrect, paintShadow1);
+
+    // Segunda capa de sombra
+    final paintShadow2 = Paint()
+      ..isAntiAlias = true
+      ..color = Colors.black.withValues(alpha: shadowAlpha2)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurRadius2)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(shadowRrect, paintShadow2);
+
+    // Relleno con shader
+    final paintFill = Paint()
+      ..isAntiAlias = true
+      ..shader = buildZoneShader(fillColor, maxOdd, rect)
+      ..color = oddsToColor(maxOdd, fillColor)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(rrect, paintFill);
+
+    // Efecto de iluminación en la parte superior izquierda
+    final double highlightAlpha = 0.15 + (elevationFactor * 0.15);
+    final highlightRect = Rect.fromLTRB(
+      rect.left,
+      rect.top,
+      rect.left + (rect.width * 0.4),
+      rect.top + (rect.height * 0.4),
+    );
+    final highlightRrect = RRect.fromRectAndRadius(highlightRect, rrectRadius);
+    final paintHighlight = Paint()
+      ..isAntiAlias = true
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.white.withValues(alpha: highlightAlpha),
+          Colors.transparent,
+        ],
+      ).createShader(highlightRect)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(highlightRrect, paintHighlight);
+
+    // Borde fino con efecto cristal pálido
+    final paintBorder = Paint()
+      ..isAntiAlias = true
+      ..color = Colors.white.withValues(alpha: 0.12)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+    canvas.drawRRect(rrect, paintBorder);
+
+    // Texto con las odds
+    final fontSize = 10.0;
+    final oddsTextSpan = TextSpan(
+      text: 'x${maxOdd.toStringAsFixed(2)}',
+      style: GoogleFonts.montserrat(
+        color: Colors.white,
+        fontSize: fontSize,
+        fontWeight: FontWeight.w300,
+      ),
+    );
+
+    final textPainter = TextPainter(
+      text: oddsTextSpan,
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout(minWidth: 0, maxWidth: size.width);
+    final textX = (size.width - textPainter.width) / 2;
+    final textY = (size.height - textPainter.height) / 2;
+    textPainter.paint(canvas, Offset(textX, textY));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 //------- SKELETON
