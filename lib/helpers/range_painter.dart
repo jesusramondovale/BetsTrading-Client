@@ -218,29 +218,6 @@ class RangePainter extends CustomPainter {
         ..color  = oddsToColor(zone.odds, zone.fillColor)
         ..style  = PaintingStyle.fill;
       canvas.drawRRect(rrect, paintFill);
-      
-      // Efecto de iluminación en la parte superior izquierda para mayor relieve
-      // Intensidad proporcional a las odds
-      final double highlightAlpha = 0.15 + (elevationFactor * 0.15); // 0.15 a 0.3
-      final highlightRect = Rect.fromLTRB(
-        rect.left,
-        rect.top,
-        rect.left + (rect.width * 0.4),
-        rect.top + (rect.height * 0.4),
-      );
-      final highlightRrect = RRect.fromRectAndRadius(highlightRect, rrectRadius);
-      final paintHighlight = Paint()
-        ..isAntiAlias = true
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: highlightAlpha),
-            Colors.transparent,
-          ],
-        ).createShader(highlightRect)
-        ..style = PaintingStyle.fill;
-      canvas.drawRRect(highlightRrect, paintHighlight);
 
       // Borde fino con efecto cristal pálido para todos los rectangleZones
       final paintBorder = Paint()
@@ -529,7 +506,7 @@ class _ZoneDialogPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(14));
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(12));
 
     // Calcular factor de elevación basado en las odds (mayor odds = mayor elevación)
     const double minOdds = 1.0;

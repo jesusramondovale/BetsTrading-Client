@@ -1883,14 +1883,14 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                           ? Icon(
                                               FontAwesomeIcons.arrowTrendUp,
                                               color: const Color(0xFF00C853),
-                                              size: 18,
+                                              size: 14,
                                             )
                                           : Icon(
                                               FontAwesomeIcons.arrowTrendDown,
                                               color: const Color(0xFFDC2626),
                                               size: 18,
                                             ),
-                                      const SizedBox(width: 4),
+                                      const SizedBox(width: 8),
                                       Text(
                                         '${_dailyGain!.abs().toStringAsFixed(2)}%',
                                         style: GoogleFonts.montserrat(

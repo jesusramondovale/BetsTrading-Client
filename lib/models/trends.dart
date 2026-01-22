@@ -243,8 +243,18 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                               ),
                             ],
                           ),
-                          const SizedBox(height: 22),
-
+                          if (widget.trend.currentMaxOdd != null && widget.trend.currentMaxOddDirection != null) ...[
+                            const SizedBox(height: 12),
+                            Row(mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                              _MaxOddRectangleZone(
+                                maxOdd: widget.trend.currentMaxOdd!,
+                                direction: widget.trend.currentMaxOddDirection!,
+                                currentPrice: widget.trend.current,
+                                isLarge: true,
+                              ),
+                            ],)
+                          ],
                           Row(
                             children: [
                               Column(
@@ -697,14 +707,6 @@ class TrendContainerState extends State<TrendContainer> {
                               )
                             ],
                           ),
-                          if (widget.trend.currentMaxOdd != null && widget.trend.currentMaxOddDirection != null) ...[
-                            const SizedBox(height: 8),
-                            _MaxOddRectangleZone(
-                              maxOdd: widget.trend.currentMaxOdd!,
-                              direction: widget.trend.currentMaxOddDirection!,
-                              currentPrice: widget.trend.current,
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -731,6 +733,16 @@ class TrendContainerState extends State<TrendContainer> {
               left: -8,
               child: _buildTopBadge(Icons.emoji_events, Colors.brown),
             ),
+          if (widget.trend.currentMaxOdd != null && widget.trend.currentMaxOddDirection != null)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: _MaxOddRectangleZone(
+                maxOdd: widget.trend.currentMaxOdd!,
+                direction: widget.trend.currentMaxOddDirection!,
+                currentPrice: widget.trend.current,
+              ),
+            ),
         ],
       ),
     );
@@ -742,11 +754,13 @@ class _MaxOddRectangleZone extends StatelessWidget {
   final double maxOdd;
   final int direction; // +1 verde, 0 amarillo, -1 rojo
   final double currentPrice;
+  final bool isLarge;
 
   const _MaxOddRectangleZone({
     required this.maxOdd,
     required this.direction,
     required this.currentPrice,
+    this.isLarge = false,
   });
 
   Color _getFillColor() {
@@ -762,12 +776,13 @@ class _MaxOddRectangleZone extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 100,
-      height: 30,
+      width: isLarge ? 74 : 40,
+      height: isLarge ? 45 : 24,
       child: CustomPaint(
         painter: _MaxOddRectangleZonePainter(
           maxOdd: maxOdd,
           fillColor: _getFillColor(),
+          isLarge: isLarge,
         ),
       ),
     );
@@ -777,10 +792,12 @@ class _MaxOddRectangleZone extends StatelessWidget {
 class _MaxOddRectangleZonePainter extends CustomPainter {
   final double maxOdd;
   final Color fillColor;
+  final bool isLarge;
 
   _MaxOddRectangleZonePainter({
     required this.maxOdd,
     required this.fillColor,
+    this.isLarge = false,
   });
 
   Color oddsToColor(double odds, Color fillColor) {
@@ -836,7 +853,7 @@ class _MaxOddRectangleZonePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    final rrectRadius = const Radius.circular(6);
+    final rrectRadius = Radius.circular(12);
     final RRect rrect = RRect.fromRectAndRadius(rect, rrectRadius);
 
     // Calcular factor de elevación basado en las odds
@@ -846,7 +863,7 @@ class _MaxOddRectangleZonePainter extends CustomPainter {
     final double elevationFactor = (clampedOdds - minOdds) / (maxOdds - minOdds);
 
     // Desplazamiento de sombra proporcional a las odds
-    final double shadowOffset = 2.0 + (elevationFactor * 3.0);
+    final double shadowOffset = 1.5 + (elevationFactor * 2.0);
     final RRect shadowRrect = RRect.fromRectAndRadius(
       rect.shift(Offset(shadowOffset, shadowOffset)),
       rrectRadius,
@@ -855,8 +872,8 @@ class _MaxOddRectangleZonePainter extends CustomPainter {
     // Intensidad de sombra proporcional a las odds
     final double shadowAlpha1 = 0.25 + (elevationFactor * 0.25);
     final double shadowAlpha2 = 0.3 + (elevationFactor * 0.3);
-    final double blurRadius1 = 4.0 + (elevationFactor * 4.0);
-    final double blurRadius2 = 2.0 + (elevationFactor * 2.0);
+    final double blurRadius1 = 3.0 + (elevationFactor * 3.0);
+    final double blurRadius2 = 1.5 + (elevationFactor * 1.5);
 
     // Primera capa de sombra
     final paintShadow1 = Paint()
@@ -882,44 +899,22 @@ class _MaxOddRectangleZonePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     canvas.drawRRect(rrect, paintFill);
 
-    // Efecto de iluminación en la parte superior izquierda
-    final double highlightAlpha = 0.15 + (elevationFactor * 0.15);
-    final highlightRect = Rect.fromLTRB(
-      rect.left,
-      rect.top,
-      rect.left + (rect.width * 0.4),
-      rect.top + (rect.height * 0.4),
-    );
-    final highlightRrect = RRect.fromRectAndRadius(highlightRect, rrectRadius);
-    final paintHighlight = Paint()
-      ..isAntiAlias = true
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Colors.white.withValues(alpha: highlightAlpha),
-          Colors.transparent,
-        ],
-      ).createShader(highlightRect)
-      ..style = PaintingStyle.fill;
-    canvas.drawRRect(highlightRrect, paintHighlight);
-
     // Borde fino con efecto cristal pálido
     final paintBorder = Paint()
       ..isAntiAlias = true
       ..color = Colors.white.withValues(alpha: 0.12)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8;
+      ..strokeWidth = 0.6;
     canvas.drawRRect(rrect, paintBorder);
 
-    // Texto con las odds
-    final fontSize = 10.0;
+    // Texto con las odds - más grande y sin tanto padding
+    final fontSize = isLarge ? 20.0 : 12.0;
     final oddsTextSpan = TextSpan(
-      text: 'x${maxOdd.toStringAsFixed(2)}',
+      text: 'x${maxOdd.toStringAsFixed(isLarge ? 2 : 1)}',
       style: GoogleFonts.montserrat(
         color: Colors.white,
         fontSize: fontSize,
-        fontWeight: FontWeight.w300,
+        fontWeight: FontWeight.w400,
       ),
     );
 

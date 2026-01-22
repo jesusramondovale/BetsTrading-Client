@@ -1003,6 +1003,9 @@ class HomeScreenState extends State<HomeScreen> {
                                           return;
                                         }
                                       } catch (e) {
+                                        if (kDebugMode) {
+                                          print("[ERR] Home-Error:1007");
+                                        }
                                       }
                                     }
                                     await Future.delayed(const Duration(milliseconds: 16));
@@ -1102,6 +1105,9 @@ class HomeScreenState extends State<HomeScreen> {
                                           return;
                                         }
                                       } catch (e) {
+                                        if (kDebugMode) {
+                                          print("[ERR] Home-Error:1109");
+                                        }
                                       }
                                     }
                                     await Future.delayed(const Duration(milliseconds: 16));
