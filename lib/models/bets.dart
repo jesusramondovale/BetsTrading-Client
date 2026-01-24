@@ -57,30 +57,54 @@ class Bet {
     required this.betZone,
   });
 
+  static double _d(dynamic v) => (v == null) ? 0.0 : (v as num).toDouble();
+  static int _i(dynamic v) => (v == null) ? 0 : (v as num).toInt();
+
   Bet.fromJson(Map<String, dynamic> json)
-      : id = json['id'] ?? 0,
-        ticker = json['ticker'],
-        name = json['name'],
-        iconPath = json['icon_path'],
-        betAmount = json['bet_amount'].toDouble(),
-        necessaryGain = json['necessary_gain'].toDouble(),
-        originValue = json['origin_value'].toDouble(),
-        currentValue = json['current_value'].toDouble(),
-        targetValue = json['target_value'].toDouble(),
-        targetMargin = json['target_margin'].toDouble(),
-        targetDate = DateTime.parse(json['target_date']),
-        endDate = DateTime.parse(json['final_date']),
-        targetOdds = json['target_odds'].toDouble(),
-        targetWon = json['target_won'],
-        finished = json['finished'],
-        profitLoss =
-            DateTime.parse(json['target_date']).isAfter(DateTime.now().toUtc())
-                ? json['bet_amount'].toDouble()
-                : json['target_won'] == true
-                    ? (json['bet_amount'].toDouble()) *
-                        (json['target_odds'].toDouble())
-                    : json['bet_amount'].toDouble() * (-1),
-        betZone = json['bet_zone'];
+      : id = _i(json['id']),
+        ticker = (json['ticker']?.toString()) ?? '',
+        name = (json['name']?.toString()) ?? '',
+        iconPath = (json['iconPath']?.toString()) ?? '',
+        betAmount = _d(json['betAmount']),
+        necessaryGain = _d(json['necessaryGain']),
+        originValue = _d(json['originValue']),
+        currentValue = _d(json['currentValue']),
+        targetValue = _d(json['targetValue']),
+        targetMargin = _d(json['targetMargin']),
+        targetDate = _parseDate(json['targetDate']),
+        endDate = _parseDate(json['endDate']),
+        targetOdds = _d(json['targetOdds']),
+        targetWon = json['targetWon'] as bool?,
+        finished = json['finished'] as bool?,
+        profitLoss = _profitLossFromJson(json),
+        betZone = _i(json['betZone']);
+
+  static DateTime _parseDate(dynamic v) {
+    if (v == null || v.toString().trim().isEmpty) return DateTime.now().toUtc();
+    try {
+      return DateTime.parse(v.toString());
+    } catch (_) {
+      return DateTime.now().toUtc();
+    }
+  }
+
+  static double? _profitLossFromJson(Map<String, dynamic> json) {
+    try {
+      final td = json['targetDate'];
+      final ba = _d(json['betAmount']);
+      final tw = json['targetWon'];
+      final to = _d(json['targetOdds']);
+      final targetDate = (td != null && td.toString().trim().isNotEmpty)
+          ? DateTime.tryParse(td.toString())
+          : null;
+      if (targetDate == null) return null;
+      if (targetDate.isAfter(DateTime.now().toUtc())) return ba;
+      if (tw == true) return ba * to;
+      return ba * (-1);
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 class Bets {
@@ -120,18 +144,30 @@ class PriceBet {
     required this.iconPath,
   });
 
+  static double _d(dynamic v) => (v == null) ? 0.0 : (v as num).toDouble();
+  static int _i(dynamic v) => (v == null) ? 0 : (v as num).toInt();
+
+  static DateTime _parseDate(dynamic v) {
+    if (v == null || v.toString().trim().isEmpty) return DateTime.now().toUtc();
+    try {
+      return DateTime.parse(v.toString());
+    } catch (_) {
+      return DateTime.now().toUtc();
+    }
+  }
+
   PriceBet.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        name = json['name'],
-        ticker = json['ticker'],
-        priceBet = json['price_bet'].toDouble(),
-        paid = json['paid'],
-        prize = json['prize'],
-        margin = json['margin'].toDouble(),
-        userId = json['user_id'],
-        betDate = DateTime.parse(json['bet_date']),
-        endDate = DateTime.parse(json['end_date']),
-        iconPath = json['icon_path'];
+      : id = _i(json['id']),
+        name = (json['name']?.toString()) ?? '',
+        ticker = (json['ticker']?.toString()) ?? '',
+        priceBet = _d(json['priceBet']),
+        paid = json['paid'] as bool?,
+        prize = _i(json['prize']),
+        margin = _d(json['margin']),
+        userId = (json['userId']?.toString()) ?? '',
+        betDate = _parseDate(json['betDate']),
+        endDate = _parseDate(json['endDate']),
+        iconPath = (json['iconPath']?.toString()) ?? '';
 }
 
 class BetsAndPriceBets {

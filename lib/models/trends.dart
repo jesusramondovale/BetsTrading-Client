@@ -28,16 +28,24 @@ class Trend {
   Trend(this.id, this.icon, this.dailyGain, this.name, this.close, this.current,
       this.ticker, {this.currentMaxOdd, this.currentMaxOddDirection});
 
+  static double _toDouble(dynamic v) =>
+      (v == null) ? 0.0 : (v as num).toDouble();
+
+  static int? _toIntOrNull(dynamic v) =>
+      (v == null) ? null : (v as num).toInt();
+
   Trend.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        name = json['name'],
-        icon = json['icon'],
-        dailyGain = (json['daily_gain'] as num).toDouble(),
-        close = (json['close'] as num).toDouble(),
-        current = (json['current'] as num).toDouble(),
-        ticker = json['ticker'],
-        currentMaxOdd = json['current_max_odd'] != null ? (json['current_max_odd'] as num).toDouble() : null,
-        currentMaxOddDirection = json['current_max_odd_direction'] != null ? (json['current_max_odd_direction'] as num).toInt() : null;
+      : id = (json['id'] as num?)?.toInt() ?? 0,
+        name = json['name'] as String? ?? '',
+        icon = json['icon'] as String? ?? '',
+        dailyGain = _toDouble(json['dailyGain']),
+        close = _toDouble(json['close']),
+        current = _toDouble(json['current']),
+        ticker = json['ticker'] as String? ?? '',
+        currentMaxOdd = json['currentMaxOdd'] != null
+            ? _toDouble(json['currentMaxOdd'])
+            : null,
+        currentMaxOddDirection = _toIntOrNull(json['currentMaxOddDirection']);
 }
 
 class Trends {

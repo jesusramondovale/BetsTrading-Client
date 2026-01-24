@@ -11,6 +11,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart' hide Config;
 import '../config/config.dart';
+import '../helpers/preload_cache.dart';
 import '../services/bets_service.dart';
 import 'first_time_page.dart';
 import 'layout_page.dart';
@@ -184,12 +185,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       Common().showFloatingSnack(context, "${strings?.get('welcome') ?? "Welcome"} $username!");
     }
     
-    // Cargar todos los datos mientras se muestra el login
-    await MarketsView.preloadAllMarketData();
+    // Cargar TODOS los datos durante "Cargando..." antes de abandonar la vista
+    await Future.wait([
+      MarketsView.preloadAllMarketData(),
+      PreloadCache.preloadAll(),
+    ]);
     
     if (!mounted) return;
     
-    // Navegar a MainMenuPage
+    // Navegar a MainMenuPage solo cuando todo esté listo
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const MainMenuPage()),
@@ -510,8 +514,11 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         // Mostrar notificación de bienvenido durante la carga
         Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"}  ${_usernameController.text.trim()}!");
         
-        // Cargar todos los datos mientras se muestra el login
-        await MarketsView.preloadAllMarketData();
+        // Cargar TODOS los datos durante "Cargando..." antes de abandonar la vista
+        await Future.wait([
+          MarketsView.preloadAllMarketData(),
+          PreloadCache.preloadAll(),
+        ]);
         
         if (!mounted) return;
         Navigator.pushReplacement(context,
@@ -604,7 +611,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
                     if (formKey.currentState?.validate() != true) return;
 
                     final response = await Common()
-                        .postRequestWrapper('Auth','ResetPassword', {"id": emailController.text} , includeJwt: false);
+                        .postRequestWrapper('Auth','ResetPassword', {"emailOrId": emailController.text.trim()} , includeJwt: false);
 
                     if (response['statusCode'] == 200) {
                       Navigator.of(dialogContext).pop(true);

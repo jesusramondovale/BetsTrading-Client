@@ -35,7 +35,7 @@ class VerifyAccountPageState extends State<VerifyAccountPage> {
     final response = await Common().postRequestWrapper(
       "Didit",
       "CreateSession",
-      {"id": widget.userId},
+      {"userId": widget.userId},
     );
 
     if (response['statusCode'] == 200) {

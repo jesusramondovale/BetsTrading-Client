@@ -466,12 +466,24 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     required int index,
     required int tabIndex,
   }) {
+    // Obtener precios del asset directamente (ya vienen del backend)
+    final tickerKey = asset.ticker.toUpperCase().trim();
+    final currentPrice = asset.current;
+    final closePrice = asset.close;
+    final dailyGain = asset.dailyGain;
+    
+    // Si no están en el asset, intentar obtenerlos de _assetPrices
+    final fallbackPrice = _assetPrices[tickerKey];
+    
     return _LeafCardWidget(
       key: ValueKey(asset.ticker),
       asset: asset,
       isFav: isFav,
       index: index,
       dollarCurrency: _dollarCurrency,
+      currentPrice: currentPrice ?? fallbackPrice,
+      closePrice: closePrice,
+      dailyGain: dailyGain,
       onAssetChart: _openAssetChart,
       onToggleFavorite: toggleFavorite,
       onShowDetails: _showAssetDetails,
@@ -1490,6 +1502,9 @@ class _LeafCardWidget extends StatefulWidget {
   final bool isFav;
   final int index;
   final bool dollarCurrency;
+  final double? currentPrice;
+  final double? closePrice;
+  final double? dailyGain;
   final Function(FinancialAsset) onAssetChart;
   final Function(String) onToggleFavorite;
   final Function(BuildContext, FinancialAsset) onShowDetails;
@@ -1502,6 +1517,9 @@ class _LeafCardWidget extends StatefulWidget {
     required this.isFav,
     required this.index,
     required this.dollarCurrency,
+    this.currentPrice,
+    this.closePrice,
+    this.dailyGain,
     required this.onAssetChart,
     required this.onToggleFavorite,
     required this.onShowDetails,
@@ -1513,12 +1531,16 @@ class _LeafCardWidget extends StatefulWidget {
   State<_LeafCardWidget> createState() => _LeafCardWidgetState();
 }
 
-class _LeafCardWidgetState extends State<_LeafCardWidget> {
+class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliveClientMixin {
   double? _closePrice;
   double? _currentPrice;
   double? _dailyGain;
   bool _isLoadingPrice = true;
   String _currency = '€';
+  bool _hasLoadedAsync = false; // Track si ya se cargaron de forma asíncrona
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -1526,8 +1548,57 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
     // Para Forex, no mostrar símbolo de moneda
     final isForex = Common().isTickerForex(widget.asset.ticker);
     _currency = isForex ? '' : (widget.dollarCurrency ? '\$' : '€');
-    _loadPriceData();
+    _updatePricesFromWidget();
   }
+
+  @override
+  void didUpdateWidget(_LeafCardWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Actualizar precios si cambian en el widget padre o si cambia el asset
+    if (oldWidget.asset.ticker != widget.asset.ticker ||
+        oldWidget.currentPrice != widget.currentPrice ||
+        oldWidget.closePrice != widget.closePrice ||
+        oldWidget.dailyGain != widget.dailyGain ||
+        oldWidget.dollarCurrency != widget.dollarCurrency) {
+      _updatePricesFromWidget();
+    }
+  }
+
+  void _updatePricesFromWidget() {
+    // Actualizar moneda si cambia
+    final isForex = Common().isTickerForex(widget.asset.ticker);
+    final newCurrency = isForex ? '' : (widget.dollarCurrency ? '\$' : '€');
+    
+    // Usar precios pasados directamente desde el widget padre
+    if (widget.currentPrice != null && widget.currentPrice! > 0) {
+      setState(() {
+        _currentPrice = widget.currentPrice;
+        _closePrice = widget.closePrice;
+        _dailyGain = widget.dailyGain;
+        _currency = newCurrency;
+        _isLoadingPrice = false;
+        _hasLoadedAsync = false; // Resetear flag ya que tenemos precios del widget
+      });
+    } else if (!_hasLoadedAsync) {
+      // Si no hay precios pasados y aún no se han cargado de forma asíncrona, intentar cargarlos
+      setState(() {
+        _currency = newCurrency;
+      });
+      _loadPriceData();
+    } else {
+      // Ya se cargaron de forma asíncrona, solo actualizar moneda
+      setState(() {
+        _currency = newCurrency;
+      });
+    }
+  }
+
+  // Método helper para obtener los precios actuales (prioriza widget, luego estado interno)
+  double? get _effectiveCurrentPrice => widget.currentPrice ?? _currentPrice;
+  double? get _effectiveClosePrice => widget.closePrice ?? _closePrice;
+  double? get _effectiveDailyGain => widget.dailyGain ?? _dailyGain;
+  // Solo mostrar loading si no hay precio efectivo Y aún está cargando
+  bool get _effectiveIsLoading => _effectiveCurrentPrice == null && _isLoadingPrice;
 
   /// Loads price data for the asset, preferring preloaded data if available.
   ///
@@ -1552,6 +1623,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
           _closePrice = preloadedPrevious;
           _dailyGain = preloadedGain;
           _isLoadingPrice = false;
+          _hasLoadedAsync = true;
         });
       }
     } else {
@@ -1587,12 +1659,14 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                 _closePrice = previousPrice;
                 _dailyGain = ((_currentPrice! - _closePrice!) / _closePrice!) * 100;
                 _isLoadingPrice = false;
+                _hasLoadedAsync = true;
               });
             } else {
               // Solo tenemos precio actual válido
               setState(() {
                 _currentPrice = currentPrice;
                 _isLoadingPrice = false;
+                _hasLoadedAsync = true;
               });
             }
           } else {
@@ -1600,6 +1674,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
             if (mounted) {
               setState(() {
                 _isLoadingPrice = false;
+                _hasLoadedAsync = true;
               });
             }
           }
@@ -1608,6 +1683,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
           if (mounted) {
             setState(() {
               _isLoadingPrice = false;
+              _hasLoadedAsync = true;
             });
           }
         }
@@ -1616,6 +1692,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
         if (mounted) {
           setState(() {
             _isLoadingPrice = false;
+            _hasLoadedAsync = true;
           });
         }
       }
@@ -1624,6 +1701,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Necesario para AutomaticKeepAliveClientMixin
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 400 + (widget.index * 40).clamp(0, 800)),
@@ -1823,16 +1901,16 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                       ],
                                     ),
                                     // Segunda línea: Precios centrados
-                                    if (!_isLoadingPrice && _currentPrice != null)
+                                    if (!_effectiveIsLoading && _effectiveCurrentPrice != null)
                                       Transform.translate(
                                         offset: const Offset(-20, 0),
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           crossAxisAlignment: CrossAxisAlignment.center,
                                           children: [
-                                            if (_closePrice != null) ...[
+                                            if (_effectiveClosePrice != null) ...[
                                               Text(
-                                                '${(_closePrice! > 1 ? _closePrice!.toStringAsFixed(2) : _closePrice!.toStringAsFixed(4))}$_currency',
+                                                '${(_effectiveClosePrice! > 1 ? _effectiveClosePrice!.toStringAsFixed(2) : _effectiveClosePrice!.toStringAsFixed(4))}$_currency',
                                                 style: GoogleFonts.montserrat(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w500,
@@ -1851,11 +1929,11 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                               const SizedBox(width: 4),
                                             ],
                                             Text(
-                                              '${(_currentPrice! > 1 ? _currentPrice!.toStringAsFixed(2) : _currentPrice!.toStringAsFixed(4))}$_currency',
+                                              '${(_effectiveCurrentPrice! > 1 ? _effectiveCurrentPrice!.toStringAsFixed(2) : _effectiveCurrentPrice!.toStringAsFixed(4))}$_currency',
                                               style: GoogleFonts.montserrat(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w600,
-                                                color: _dailyGain != null && _dailyGain! >= 0.0 ? const Color(0xFF00C853) : (_dailyGain != null ? const Color(0xFFDC2626) : Colors.white),
+                                                color: _effectiveDailyGain != null && _effectiveDailyGain! >= 0.0 ? const Color(0xFF00C853) : (_effectiveDailyGain != null ? const Color(0xFFDC2626) : Colors.white),
                                               ),
                                             ),
                                           ],
@@ -1867,7 +1945,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                             ],
                           ),
                           // Indicador de porcentaje destacado
-                          if (!_isLoadingPrice && _dailyGain != null)
+                          if (!_effectiveIsLoading && _effectiveDailyGain != null)
                             Positioned(
                               right: 8,
                               top: 0,
@@ -1879,7 +1957,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      (_dailyGain! >= 0.0)
+                                      (_effectiveDailyGain! >= 0.0)
                                           ? Icon(
                                               FontAwesomeIcons.arrowTrendUp,
                                               color: const Color(0xFF00C853),
@@ -1892,14 +1970,14 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> {
                                             ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        '${_dailyGain!.abs().toStringAsFixed(2)}%',
+                                        '${_effectiveDailyGain!.abs().toStringAsFixed(2)}%',
                                         style: GoogleFonts.montserrat(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w700,
-                                          color: _dailyGain! >= 0.0 ? const Color(0xFF00C853) : const Color(0xFFDC2626),
+                                          color: _effectiveDailyGain! >= 0.0 ? const Color(0xFF00C853) : const Color(0xFFDC2626),
                                           shadows: [
                                             Shadow(
-                                              color: (_dailyGain! >= 0.0 ? const Color(0xFF00C853) : const Color(0xFFDC2626)).withValues(alpha: 0.5),
+                                              color: (_effectiveDailyGain! >= 0.0 ? const Color(0xFF00C853) : const Color(0xFFDC2626)).withValues(alpha: 0.5),
                                               blurRadius: 8,
                                               offset: const Offset(0, 0),
                                             ),

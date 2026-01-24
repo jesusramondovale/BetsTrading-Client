@@ -38,7 +38,20 @@ class StorePage extends StatefulWidget {
   @override
   StorePageState createState() => StorePageState();
   
-  /// Precarga los datos necesarios para StorePage antes de navegar
+  /// Parsea la respuesta de StoreOptions de forma segura (statusCode + body List/Map).
+  static List<Map<String, dynamic>> _parseStoreOptionsBody(Map<String, dynamic> response) {
+    if (response['statusCode'] != 200) return [];
+    final body = response['body'];
+    if (body is! List) return [];
+    return List<Map<String, dynamic>>.from(
+      (body)
+          .map((e) => e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{})
+          .where((m) => m.isNotEmpty),
+    );
+  }
+
+  /// Precarga los datos necesarios para StorePage antes de navegar.
+  /// Nunca lanza; si la API falla devuelve listas vacías.
   static Future<Map<String, dynamic>> preloadStoreData() async {
     final prefs = await SharedPreferences.getInstance();
     final currency = (prefs.getBool('dollarCurrency') ?? false) ? 'usd' : 'eur';
@@ -55,10 +68,9 @@ class StorePage extends StatefulWidget {
       {'currency': currency, 'type': 'ad_reward'},
     );
 
-    final buyOptions = List<Map<String, dynamic>>.from(buyOptionsResponse['body'] as Iterable);
-    final adRewardOptions = List<Map<String, dynamic>>.from(adRewardOptionsResponse['body'] as Iterable);
-    
-    // Calcular rewardPrize
+    final buyOptions = _parseStoreOptionsBody(buyOptionsResponse);
+    final adRewardOptions = _parseStoreOptionsBody(adRewardOptionsResponse);
+
     int rewardPrize = 15;
     if (adRewardOptions.isNotEmpty) {
       final coinsValue = adRewardOptions[0]['coins'];
@@ -155,70 +167,67 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
   }
 
   Future<void> loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('dollarCurrency') ?? false) {
-      _currency = 'usd';
-    }
-
-    final buyOptionsResponse = await Common().postRequestWrapper(
-      'Info',
-      'StoreOptions',
-      {'currency': _currency, 'type': 'buy'},
-    );
-
-    final adRewardOptionsResponse = await Common().postRequestWrapper(
-      'Info',
-      'StoreOptions',
-      {'currency': _currency, 'type': 'ad_reward'},
-    );
-
-    // Verificar que el widget sigue montado antes de actualizar el estado
-    if (!mounted) return;
-
-    setState(() {
-      _buyOptions =
-      List<Map<String, dynamic>>.from(buyOptionsResponse['body'] as Iterable);
-      _adRewardOptions = List<Map<String, dynamic>>.from(
-          adRewardOptionsResponse['body'] as Iterable);
-      
-      debugPrint('StorePage loadData: _adRewardOptions recibidas: $_adRewardOptions');
-      
-      // Obtener el premio de las opciones de recompensa
-      if (_adRewardOptions.isNotEmpty) {
-        final coinsValue = _adRewardOptions[0]['coins'];
-        debugPrint('StorePage loadData: coinsValue del primer elemento: $coinsValue (tipo: ${coinsValue.runtimeType})');
-        if (coinsValue != null) {
-          // Manejar diferentes tipos: int, double, o string
-          if (coinsValue is int) {
-            _rewardPrize = coinsValue;
-          } else if (coinsValue is double) {
-            _rewardPrize = coinsValue.toInt();
-          } else if (coinsValue is String) {
-            _rewardPrize = int.tryParse(coinsValue) ?? 15;
-          } else {
-            _rewardPrize = 15;
-          }
-        } else {
-          _rewardPrize = 15;
-        }
-      } else {
-        _rewardPrize = 15;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('dollarCurrency') ?? false) {
+        _currency = 'usd';
       }
-      debugPrint('StorePage loadData: _rewardPrize establecido a: $_rewardPrize');
-    });
-    
-    // Limpiar keys obsoletas si el número de opciones cambió
-    final newCount = _buyOptions.length;
-    _sliderKeys.removeWhere((key, value) => key >= newCount);
-    
-    // Reiniciar el timer de autoscroll después de cargar los datos
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          _startRandomAutoScroll();
+
+      final buyOptionsResponse = await Common().postRequestWrapper(
+        'Info',
+        'StoreOptions',
+        {'currency': _currency, 'type': 'buy'},
+      );
+
+      final adRewardOptionsResponse = await Common().postRequestWrapper(
+        'Info',
+        'StoreOptions',
+        {'currency': _currency, 'type': 'ad_reward'},
+      );
+
+      if (!mounted) return;
+
+      final buyOptions = StorePage._parseStoreOptionsBody(buyOptionsResponse);
+      final adRewardOptions = StorePage._parseStoreOptionsBody(adRewardOptionsResponse);
+
+      int rewardPrize = 15;
+      if (adRewardOptions.isNotEmpty) {
+        final coinsValue = adRewardOptions[0]['coins'];
+        if (coinsValue != null) {
+          if (coinsValue is int) {
+            rewardPrize = coinsValue;
+          } else if (coinsValue is double) {
+            rewardPrize = coinsValue.toInt();
+          } else if (coinsValue is String) {
+            rewardPrize = int.tryParse(coinsValue) ?? 15;
+          }
         }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _buyOptions = buyOptions;
+        _adRewardOptions = adRewardOptions;
+        _rewardPrize = rewardPrize;
       });
-    });
+
+      final newCount = _buyOptions.length;
+      _sliderKeys.removeWhere((key, value) => key >= newCount);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) _startRandomAutoScroll();
+        });
+      });
+    } catch (e) {
+      debugPrint('StorePage loadData error: $e');
+      if (!mounted) return;
+      setState(() {
+        _buyOptions = [];
+        _adRewardOptions = [];
+        _rewardPrize = 15;
+      });
+    }
   }
 
   /// Inicia el timer de autoscroll aleatorio para los sliders
@@ -494,7 +503,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       'amount': (price * 100).toInt(),
       'currency': _currency,
       'userId': userId,
-      'coins': coins,
+      'coins': coins.toInt(),
     };
     final response = await Common().postRequestWrapper(
       'Payments',

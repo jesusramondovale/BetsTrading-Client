@@ -26,15 +26,14 @@ class FinancialAsset {
 
   factory FinancialAsset.fromJson(Map<String, dynamic> json) {
     return FinancialAsset(
-      name: json['name'],
-      group: json['group'],
-      icon: json['icon'],
-      country: json['country'],
-      ticker: json['ticker'],
-      // Mapear campos opcionales de precios
+      name: (json['name']?.toString()) ?? '',
+      group: (json['group']?.toString()) ?? '',
+      icon: (json['icon']?.toString()) ?? '',
+      country: (json['country']?.toString()) ?? '',
+      ticker: (json['ticker']?.toString()) ?? '',
       current: json['current'] != null ? (json['current'] as num).toDouble() : null,
       close: json['close'] != null ? (json['close'] as num).toDouble() : null,
-      dailyGain: json['daily_gain'] != null ? (json['daily_gain'] as num).toDouble() : null,
+      dailyGain: json['dailyGain'] != null ? (json['dailyGain'] as num).toDouble() : null,
     );
   }
 

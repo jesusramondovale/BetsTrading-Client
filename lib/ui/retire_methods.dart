@@ -44,7 +44,7 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
 
     try {
       final resp = await Common()
-          .postRequestWrapper('Info', 'RetireOptions', {'id': userId});
+          .postRequestWrapper('Info', 'RetireOptions', {});
 
       if ((resp['statusCode'] ?? 500) == 200 && resp['body'] is List) {
         final list = <Map<String, dynamic>>[];
@@ -88,7 +88,7 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
     final resp = await Common().postRequestWrapper(
       'Info',
       'DeleteRetireOption',
-      {'user_id': userId, 'token': label},
+      {'label': label},
     );
 
     if (resp['statusCode'] == 200) {
@@ -947,7 +947,7 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
     Map<String, dynamic> data;
     if (type == 'bank') {
       data = {
-        'user_id': userId,
+        'userId': userId,
         'label': label,
         'iban': _ibanCtrl.text.trim(),
         'holder': _holderCtrl.text.trim(),
@@ -965,9 +965,9 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
 
     else if (type == 'paypal') {
       data = {
-        'user_id': userId,
+        'userId': userId,
         'label': label,
-        'email': _paypalEmailCtrl.text.trim()
+        'email': _paypalEmailCtrl.text.trim(),
       };
       final response = await Common().postRequestWrapper("Info", "AddPaypalRetireMethod", data);
       if (response['statusCode'] == 200) {
@@ -981,7 +981,7 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
 
     else if (type == "crypto"){
       data = {
-        'user_id': userId,
+        'userId': userId,
         'label': label,
         'network': _selectedNetwork,
         'address': _addressCtrl.text.trim(),

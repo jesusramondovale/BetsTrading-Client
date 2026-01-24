@@ -27,8 +27,8 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> googleLogIn(String username) async {
-    final response = await Common().postRequestWrapper('Auth','GoogleLogIn', {'username': username});
+  Future<Map<String, dynamic>> googleLogIn(String googleUserId) async {
+    final response = await Common().postRequestWrapper('Auth','GoogleLogIn', {'userId': googleUserId});
 
     if (response['statusCode'] == 200) {
       final String token = response['body']['userId'];
@@ -41,8 +41,7 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> logOut() async {
-    String userId = await _storage.read(key: 'sessionToken') ?? "none";
-    final response = await Common().postRequestWrapper('Auth', 'LogOut', {'id': userId});
+    final response = await Common().postRequestWrapper('Auth', 'LogOut', {});
 
     if (response['statusCode'] == 200) {
       await _storage.write(key: 'sessionToken', value: "empty");
@@ -119,7 +118,7 @@ class AuthService {
 
   Future<int> changePassword(String token, String currentPassword, String newPass) async {
     final response = await Common().postRequestWrapper('Auth','ChangePassword',
-                            {'username': token, 'password' : newPass, 'current': currentPassword});
+                            {'currentPassword': currentPassword, 'newPassword': newPass});
     if (response['statusCode'] == 200) {
       return 0; // SUCCESS
     } else if (response['statusCode'] == 404) {

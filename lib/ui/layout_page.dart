@@ -13,6 +13,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
+import '../helpers/preload_cache.dart';
 import 'exchange_page.dart';
 import 'home_page.dart';
 import 'login_page.dart';
@@ -73,41 +74,109 @@ class MainMenuPageState extends State<MainMenuPage> {
   bool _showNotificationsPage = false;
 
   Future<void> _loadProfilePic() async {
-    String? profilePicString = await _storage.read(key: 'profilepic');
-    if (profilePicString != null && profilePicString.isNotEmpty) {
-      Uint8List imageBytes;
-      if (profilePicString.startsWith('http')) {
-        final response = await http.get(Uri.parse(profilePicString));
-        if (response.statusCode == 200) {
-          imageBytes = response.bodyBytes;
-        } else {
-          if (kDebugMode) {
-            print('Error loading profile pic!');
+    try {
+      // Usar foto precargada durante "Cargando..." si existe
+      final cached = PreloadCache.takeProfilePic();
+      if (cached != null && mounted) {
+        setState(() => _profilePicBytes = cached);
+        if (kDebugMode) {
+          print('[MainMenuPage] Profile pic from PreloadCache. Bytes: ${cached.length}');
+        }
+        return;
+      }
+
+      String? profilePicString = await _storage.read(key: 'profilepic');
+      if (kDebugMode) {
+        print('[MainMenuPage] Loading profile pic. Value from storage: ${profilePicString != null ? (profilePicString.isEmpty ? "empty" : "${profilePicString.substring(0, profilePicString.length > 50 ? 50 : profilePicString.length)}...") : "null"}');
+      }
+      
+      if (profilePicString != null && 
+          profilePicString.isNotEmpty && 
+          profilePicString != 'null' && 
+          profilePicString.toLowerCase() != 'null') {
+        Uint8List imageBytes;
+        if (profilePicString.startsWith('http')) {
+          final response = await http.get(Uri.parse(profilePicString));
+          if (response.statusCode == 200) {
+            imageBytes = response.bodyBytes;
+          } else {
+            if (kDebugMode) {
+              print('[MainMenuPage] Error loading profile pic from URL! Status code: ${response.statusCode}');
+            }
+            if (mounted) {
+              setState(() {
+                _profilePicBytes = null;
+              });
+            }
+            return;
           }
-          return;
+        } else {
+          try {
+            imageBytes = base64Decode(profilePicString);
+            if (kDebugMode) {
+              print('[MainMenuPage] Successfully decoded base64 profile pic. Size: ${imageBytes.length} bytes');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('[MainMenuPage] Error decoding base64 profile pic: $e');
+            }
+            if (mounted) {
+              setState(() {
+                _profilePicBytes = null;
+              });
+            }
+            return;
+          }
+        }
+        if (mounted) {
+          setState(() {
+            _profilePicBytes = imageBytes;
+          });
+          if (kDebugMode) {
+            print('[MainMenuPage] Profile pic loaded successfully. Image bytes: ${imageBytes.length}');
+          }
         }
       } else {
-        imageBytes = base64Decode(profilePicString);
+        if (kDebugMode) {
+          print('[MainMenuPage] Profile pic is null, empty, or "null" string. Clearing image.');
+        }
+        if (mounted) {
+          setState(() {
+            _profilePicBytes = null;
+          });
+        }
       }
-      setState(() {
-        _profilePicBytes = imageBytes;
-      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('[MainMenuPage] Error loading profile pic: $e');
+      }
+      if (mounted) {
+        setState(() {
+          _profilePicBytes = null;
+        });
+      }
     }
   }
 
   Future<void> _loadUserInfo() async {
-    String? username = await _storage.read(key: 'username');
-    if (username != null) {
-      setState(() {
-        _username = username;
-      });
+    try {
+      String? username = await _storage.read(key: 'username');
+      if (username != null && mounted) {
+        setState(() {
+          _username = username;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading user info: $e');
+      }
     }
   }
 
   Future<void> _initializeData() async {
     // Cargar datos de forma asíncrona sin bloquear la UI
-    _loadUserInfo();
-    _loadProfilePic();
+    await _loadUserInfo();
+    await _loadProfilePic();
   }
 
   Future<void> _checkFirstRun() async {
@@ -304,6 +373,10 @@ class MainMenuPageState extends State<MainMenuPage> {
                           });
                         } else {
                           _controller.updateIndex(index);
+                        }
+                        // Recargar la imagen de perfil cuando se selecciona el tab de perfil
+                        if (index == 4) {
+                          _loadProfilePic();
                         }
                       },
                       type: BottomNavigationBarType.fixed,

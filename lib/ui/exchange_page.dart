@@ -58,8 +58,8 @@ class ExchangePageState extends State<ExchangePage> {
     final userId = await _storage.read(key: 'sessionToken') ?? '';
     final points = await _storage.read(key: 'points') ?? '0';
     final isVerified = await _storage.read(key: 'isverified');
-    final pendingBalanceResponse = await Common().postRequestWrapper('Info', 'PendingBalance', {'id': userId});
-    final exchangeOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': _currency, 'type': 'exchange'}); //TODO Currency
+    final pendingBalanceResponse = await Common().postRequestWrapper('Info', 'PendingBalance', {});
+    final exchangeOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': _currency, 'type': 'exchange'});
     final prefs = await SharedPreferences.getInstance();
 
     setState(() {
@@ -487,12 +487,9 @@ class ExchangePageState extends State<ExchangePage> {
                       });
                       
                       try {
-                        // Precargar datos de StorePage antes de navegar
                         final preloadedData = await StorePage.preloadStoreData();
-                        
                         if (!mounted) return;
-                        
-                        // Navegar con datos precargados
+
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -504,17 +501,17 @@ class ExchangePageState extends State<ExchangePage> {
                             ),
                           ),
                         );
-                        
                         if (!mounted) return;
-                        
-                        // Recargar datos después de volver
                         loadData();
-                      } finally {
-                        // Desbloquear el botón
+                      } catch (e) {
                         if (mounted) {
-                          setState(() {
-                            _isLoadingStore = false;
-                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error al cargar la tienda: $e')),
+                          );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isLoadingStore = false);
                         }
                       }
                     },

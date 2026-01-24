@@ -51,6 +51,8 @@ class UserInfoPageState extends State<UserInfoPage> {
   bool isDark = true;
   TutorialCoachMark? _coach;
   bool _tutorialQueued = false;
+  Map<String, String>? _cachedUserInfo;
+  Future<Map<String, String>>? _userInfoFuture;
 
 
   Future<void> _loadProfilePic() async {
@@ -166,10 +168,21 @@ class UserInfoPageState extends State<UserInfoPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Cachear el Future aquí, después de que las dependencias estén disponibles
+    // Solo crear el Future una vez para evitar recargas innecesarias
+    _userInfoFuture ??= _readUserInfo(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
+    // Usar el Future cacheado o crear uno nuevo si no existe
+    _userInfoFuture ??= _readUserInfo(context);
+    
     return FutureBuilder<Map<String, String>>(
-      future: _readUserInfo(context),
+      future: _userInfoFuture,
       builder: (BuildContext context, AsyncSnapshot<Map<String, String>> snapshot) {
         // Asegurar que _builtOnce se complete en todos los casos
         if (snapshot.connectionState != ConnectionState.waiting && !_tutorialQueued) {
@@ -179,254 +192,278 @@ class UserInfoPageState extends State<UserInfoPage> {
           });
         }
         
+        // Cachear los datos cuando estén disponibles
+        if (snapshot.hasData) {
+          _cachedUserInfo = snapshot.data;
+        }
+        
         if (snapshot.connectionState == ConnectionState.waiting) {
+          // Si tenemos datos cacheados, mostrarlos mientras carga
+          if (_cachedUserInfo != null) {
+            return _buildUserInfoList(_cachedUserInfo!, strings);
+          }
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
+          // Si hay error pero tenemos datos cacheados, mostrarlos
+          if (_cachedUserInfo != null) {
+            return _buildUserInfoList(_cachedUserInfo!, strings);
+          }
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
-          userVerified = snapshot.data?['isverified'] == 'true' ? true : false;
-
-          final baseTiles = snapshot.data!.entries
-              .where((entry) => entry.key != 'isverified')
-              .map((entry) {
-            String title = '';
-            switch (entry.key) {
-              case "lastsession":
-                title = strings?.get('lastSession') ?? 'Last Session';
-                break;
-              case "fullname":
-                title = strings?.get('fullName') ?? 'Full Name';
-                break;
-              case "username":
-                title = strings?.get('username') ?? 'User Name';
-                break;
-              case "email":
-                title = strings?.get('email') ?? 'E-mail';
-                break;
-              case "country":
-                title = strings?.get('country') ?? 'Country';
-                break;
-              case "address":
-                title = strings?.get('address') ?? 'Address';
-                break;
-              case "birthday":
-                title = strings?.get('birthday') ?? 'Birthday';
-                break;
-              default:
-                title = Common().capitalizeFirstLetter(entry.key.toString());
-            }
-
-            Widget subtitle;
-            if (entry.key == 'country') {
-              subtitle = Row(
-                children: [
-                  Text(entry.value != "null" ? entry.value : "-" ),
-                  const SizedBox(width: 8),
-                  CountryFlag.fromCountryCode(
-                    entry.value,
-                    shape: RoundedRectangle(5),
-                    height: 18,
-                    width: 25,
-                  ),
-                  if (!userVerified) ...[
-                    const SizedBox(width: 10, height: 1),
-                    Text(strings!.get('pendingVerification') ?? '(Pending verification)', style: const TextStyle(color: Colors.redAccent)),
-                  ] else ...[
-                    const SizedBox(width: 5, height: 1),
-                    const Icon(Icons.verified, size: 18),
-                  ]
-                ],
-              );
-            } else if (entry.key == 'fullname') {
-              if (!userVerified) {
-                subtitle = Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(entry.value, textAlign: TextAlign.start),
-                    const SizedBox(width: 10, height: 1),
-                    Text(strings!.get('pendingVerification') ?? '(Pending verification)', style: const TextStyle(color: Colors.redAccent)),
-                  ],
-                );
-              } else {
-                subtitle = Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text(entry.value, textAlign: TextAlign.start),
-                    const SizedBox(width: 5, height: 1),
-                    const Icon(Icons.verified, size: 20),
-                  ],
-                );
-              }
-            } else if (entry.key == 'birthday') {
-              Locale locale = Localizations.localeOf(context);
-              String localeCode = "${locale.languageCode}_${locale.countryCode}";
-              final parsed = DateFormat("d MMMM yyyy", "en_US").parse(entry.value);
-              String localizedDate = DateFormat("d MMMM yyyy", localeCode).format(parsed);
-              subtitle = Row(
-                children: [
-                  Text(localizedDate),
-                  if (!userVerified) ...[
-                    const SizedBox(width: 8, height: 1),
-                    Text(strings!.get('pendingVerification') ?? '(Pending verification)', style: const TextStyle(color: Colors.redAccent)),
-                  ] else ...[
-                    const SizedBox(width: 5, height: 1),
-                    const Icon(Icons.verified, size: 16),
-                  ]
-                ],
-              );
-            } else {
-              subtitle = Text(entry.value);
-            }
-
-            if (entry.key == 'fullname') {
-              return TouchableTile(
-                child: ListTile(
-                  leading: (_profilePicBytes != null
-                      ? CircleAvatar(radius: 28, backgroundImage: MemoryImage(_profilePicBytes!))
-                      : Common().getIconForUserInfo(entry.key)),
-                  title: Text(title, style: GoogleFonts.syncopate(fontSize: 12, fontWeight: FontWeight.w500)),
-                  subtitle: subtitle,
-                  trailing: IconButton(
-                    padding: EdgeInsets.zero,
-                    key: _kProfileCamera,
-                    icon: const Icon(FontAwesomeIcons.cameraRotate),
-                    onPressed: () async {
-                      String? sessionToken = await _storage.read(key: 'sessionToken');
-                      bool result = await BetsService().uploadProfilePic(
-                          sessionToken, await Common().pickImageFromGallery());
-                      if (result) {
-                        _loadProfilePic();
-                        setState(() {
-                          Common().popDialog(
-                            strings?.get('success') ?? "Success!",
-                            strings?.get('profilePictureUploadedSuccessfully') ?? "Profile picture uploaded successfully",
-                            context,
-                          );
-                        });
-                      }
-                    },
-                  ),
-                  onTap: () => {
-                    Common().vibrate(),
-                    Common().applyImmersive()
-                  }
-                ),
-              );
-            } else {
-              return TouchableTile(
-                child: ListTile(
-                  leading: Common().getIconForUserInfo(entry.key),
-                  title: Text(title, style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-                  subtitle: subtitle,
-                  onTap: () => {
-                    Common().vibrate(),
-                    Common().applyImmersive()
-                  },
-                ),
-              );
-            }
-          }).toList();
-
-          final firstSix = baseTiles.take(6).toList();
-          final restAfterSix = baseTiles.skip(6).toList();
-
-          final List<Widget> listItems = [
-            KeyedSubtree(
-              key: _kFirstSixTiles,
-              child: Column(children: firstSix),
-            ),
-            ...restAfterSix,
-          ];
-
-          if (userVerified) {
-            listItems.add(
-              TouchableTile(
-                child: ListTile(
-                  leading: const Icon(Icons.verified),
-                  title: Text(strings?.get('verified') ?? 'Account verified!', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-                  onTap: () => {
-                    Common().vibrate(),
-                    Common().applyImmersive()
-                  }
-                ),
-              ),
-            );
-          } else {
-            listItems.add(
-              TouchableTile(
-                child: ListTile(
-                  key: _kVerifyAccount,
-                  leading: const Icon(Icons.verified_outlined, color: Colors.redAccent),
-                  title: Text(strings?.get('verify') ?? 'Verify Account', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-                  onTap: () async {
-                    Common().applyImmersive();
-                    await Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyAccountPage(userId: _userId)));
-                  },
-                ),
-              ),
-            );
-          }
-
-          listItems.add(
-            TouchableTile(
-              child: ListTile(
-                key: _kPaymentHistory,
-                leading: const Icon(FontAwesomeIcons.creditCard),
-                title: Text(strings?.get('paymentHistory') ?? 'Payment History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-                onTap: () {
-                  Common().vibrate();
-                  Common().applyImmersive();
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentHistoryPage()));
-                },
-              ),
-            ),
-          );
-
-          listItems.add(
-            TouchableTile(
-              child: ListTile(
-                key: _kWithdrawalHistory,
-                leading: const Icon(FontAwesomeIcons.moneyBillTransfer),
-                title: Text(strings?.get('withdrawalHistory') ?? 'Withdrawal History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-                onTap: () {
-                  Common().vibrate();
-                  Common().applyImmersive();
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => WithdrawalHistoryPage()));
-                },
-              ),
-            ),
-          );
-
-          listItems.add(
-            TouchableTile(
-              child: ListTile(
-                key: _kLogout,
-                leading: const Icon(FontAwesomeIcons.arrowRightFromBracket),
-                title: Text(strings?.get('logOut') ?? 'Log Out', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
-                onTap: () async {
-                  Common().applyImmersive();
-                  final response = await AuthService().logOut();
-                  if (response['success']) {
-                    await _storage.deleteAll();
-                    LoginPage.navigateToLogin(context);
-                  } else {
-                    if (mounted) {
-                      setState(() {
-                        Common().popDialog("Oops...", "${response['message']}", context);
-                      });
-                    }
-                  }
-                },
-              ),
-            ),
-          );
-
-          return ListView(children: listItems);
+          return _buildUserInfoList(snapshot.data!, strings);
         } else {
           return Center(child: Text(strings?.get('noInfoAvailable') ?? 'No info available!'));
         }
       },
     );
+  }
+
+  Widget _buildUserInfoList(Map<String, String> userInfo, LocalizedStrings? strings) {
+    userVerified = userInfo['isverified'] == 'true' ? true : false;
+
+    final baseTiles = userInfo.entries
+        .where((entry) => entry.key != 'isverified')
+        .map((entry) {
+      String title = '';
+      switch (entry.key) {
+        case "lastsession":
+          title = strings?.get('lastSession') ?? 'Last Session';
+          break;
+        case "fullname":
+          title = strings?.get('fullName') ?? 'Full Name';
+          break;
+        case "username":
+          title = strings?.get('username') ?? 'User Name';
+          break;
+        case "email":
+          title = strings?.get('email') ?? 'E-mail';
+          break;
+        case "country":
+          title = strings?.get('country') ?? 'Country';
+          break;
+        case "address":
+          title = strings?.get('address') ?? 'Address';
+          break;
+        case "birthday":
+          title = strings?.get('birthday') ?? 'Birthday';
+          break;
+        default:
+          title = Common().capitalizeFirstLetter(entry.key.toString());
+      }
+
+      Widget subtitle;
+      if (entry.key == 'country') {
+        subtitle = Row(
+          children: [
+            Text(entry.value != "null" ? entry.value : "-" ),
+            const SizedBox(width: 8),
+            CountryFlag.fromCountryCode(
+              entry.value,
+              shape: RoundedRectangle(5),
+              height: 18,
+              width: 25,
+            ),
+            if (!userVerified) ...[
+              const SizedBox(width: 10, height: 1),
+              Text(strings!.get('pendingVerification') ?? '(Pending verification)', style: const TextStyle(color: Colors.redAccent)),
+            ] else ...[
+              const SizedBox(width: 5, height: 1),
+              const Icon(Icons.verified, size: 18),
+            ]
+          ],
+        );
+      } else if (entry.key == 'fullname') {
+        if (!userVerified) {
+          subtitle = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(entry.value, textAlign: TextAlign.start),
+              const SizedBox(width: 10, height: 1),
+              Text(strings!.get('pendingVerification') ?? '(Pending verification)', style: const TextStyle(color: Colors.redAccent)),
+            ],
+          );
+        } else {
+          subtitle = Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(entry.value, textAlign: TextAlign.start),
+              const SizedBox(width: 5, height: 1),
+              const Icon(Icons.verified, size: 20),
+            ],
+          );
+        }
+      } else if (entry.key == 'birthday') {
+        Locale locale = Localizations.localeOf(context);
+        String localeCode = "${locale.languageCode}_${locale.countryCode}";
+        final parsed = DateFormat("d MMMM yyyy", "en_US").parse(entry.value);
+        String localizedDate = DateFormat("d MMMM yyyy", localeCode).format(parsed);
+        subtitle = Row(
+          children: [
+            Text(localizedDate),
+            if (!userVerified) ...[
+              const SizedBox(width: 8, height: 1),
+              Text(strings!.get('pendingVerification') ?? '(Pending verification)', style: const TextStyle(color: Colors.redAccent)),
+            ] else ...[
+              const SizedBox(width: 5, height: 1),
+              const Icon(Icons.verified, size: 16),
+            ]
+          ],
+        );
+      } else {
+        subtitle = Text(entry.value);
+      }
+
+      if (entry.key == 'fullname') {
+        return TouchableTile(
+          child: ListTile(
+            leading: (_profilePicBytes != null
+                ? CircleAvatar(radius: 28, backgroundImage: MemoryImage(_profilePicBytes!))
+                : Common().getIconForUserInfo(entry.key)),
+            title: Text(title, style: GoogleFonts.syncopate(fontSize: 12, fontWeight: FontWeight.w500)),
+            subtitle: subtitle,
+            trailing: IconButton(
+              padding: EdgeInsets.zero,
+              key: _kProfileCamera,
+              icon: const Icon(FontAwesomeIcons.cameraRotate),
+              onPressed: () async {
+                String? sessionToken = await _storage.read(key: 'sessionToken');
+                bool result = await BetsService().uploadProfilePic(
+                    sessionToken, await Common().pickImageFromGallery());
+                if (result) {
+                  _loadProfilePic();
+                  // Recargar la info del usuario después de subir foto
+                  _userInfoFuture = _readUserInfo(context);
+                  _cachedUserInfo = null;
+                  setState(() {
+                    Common().popDialog(
+                      strings?.get('success') ?? "Success!",
+                      strings?.get('profilePictureUploadedSuccessfully') ?? "Profile picture uploaded successfully",
+                      context,
+                    );
+                  });
+                }
+              },
+            ),
+            onTap: () => {
+              Common().vibrate(),
+              Common().applyImmersive()
+            }
+          ),
+        );
+      } else {
+        return TouchableTile(
+          child: ListTile(
+            leading: Common().getIconForUserInfo(entry.key),
+            title: Text(title, style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+            subtitle: subtitle,
+            onTap: () => {
+              Common().vibrate(),
+              Common().applyImmersive()
+            },
+          ),
+        );
+      }
+    }).toList();
+
+    final firstSix = baseTiles.take(6).toList();
+    final restAfterSix = baseTiles.skip(6).toList();
+
+    final List<Widget> listItems = [
+      KeyedSubtree(
+        key: _kFirstSixTiles,
+        child: Column(children: firstSix),
+      ),
+      ...restAfterSix,
+    ];
+
+    if (userVerified) {
+      listItems.add(
+        TouchableTile(
+          child: ListTile(
+            leading: const Icon(Icons.verified),
+            title: Text(strings?.get('verified') ?? 'Account verified!', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+            onTap: () => {
+              Common().vibrate(),
+              Common().applyImmersive()
+            }
+          ),
+        ),
+      );
+    } else {
+      listItems.add(
+        TouchableTile(
+          child: ListTile(
+            key: _kVerifyAccount,
+            leading: const Icon(Icons.verified_outlined, color: Colors.redAccent),
+            title: Text(strings?.get('verify') ?? 'Verify Account', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+            onTap: () async {
+              Common().applyImmersive();
+              await Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyAccountPage(userId: _userId)));
+              // Recargar después de verificar
+              _userInfoFuture = _readUserInfo(context);
+              _cachedUserInfo = null;
+              if (mounted) setState(() {});
+            },
+          ),
+        ),
+      );
+    }
+
+    listItems.add(
+      TouchableTile(
+        child: ListTile(
+          key: _kPaymentHistory,
+          leading: const Icon(FontAwesomeIcons.creditCard),
+          title: Text(strings?.get('paymentHistory') ?? 'Payment History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+          onTap: () {
+            Common().vibrate();
+            Common().applyImmersive();
+            Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentHistoryPage()));
+          },
+        ),
+      ),
+    );
+
+    listItems.add(
+      TouchableTile(
+        child: ListTile(
+          key: _kWithdrawalHistory,
+          leading: const Icon(FontAwesomeIcons.moneyBillTransfer),
+          title: Text(strings?.get('withdrawalHistory') ?? 'Withdrawal History', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+          onTap: () {
+            Common().vibrate();
+            Common().applyImmersive();
+            Navigator.push(context, MaterialPageRoute(builder: (context) => WithdrawalHistoryPage()));
+          },
+        ),
+      ),
+    );
+
+    listItems.add(
+      TouchableTile(
+        child: ListTile(
+          key: _kLogout,
+          leading: const Icon(FontAwesomeIcons.arrowRightFromBracket),
+          title: Text(strings?.get('logOut') ?? 'Log Out', style: GoogleFonts.syncopate(fontSize: 15, fontWeight: FontWeight.w500)),
+          onTap: () async {
+            Common().applyImmersive();
+            final response = await AuthService().logOut();
+            if (response['success']) {
+              await _storage.deleteAll();
+              LoginPage.navigateToLogin(context);
+            } else {
+              if (mounted) {
+                setState(() {
+                  Common().popDialog("Oops...", "${response['message']}", context);
+                });
+              }
+            }
+          },
+        ),
+      ),
+    );
+
+    return ListView(children: listItems);
   }
 
   @override

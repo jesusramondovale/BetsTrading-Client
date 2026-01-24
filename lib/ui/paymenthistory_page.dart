@@ -38,7 +38,7 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
 
     try {
       final resp = await Common()
-          .postRequestWrapper('Info', 'PaymentHistory', {'id': userId});
+          .postRequestWrapper('Info', 'PaymentHistory', {});
 
       if ((resp['statusCode'] ?? 500) == 200 && resp['body'] is List) {
         final list = <Map<String, dynamic>>[];

@@ -56,6 +56,8 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
   late final List<RectangleZone> _initialZones;
   List<Candle> _candles = [];
   bool _isLoading = true;
+  bool _loadError = false;
+  String? _loadErrorMessage;
   late bool _inactiveZone;
   late int _extraHours;
   int _finishedIcon = 0;
@@ -75,6 +77,12 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
   double _bubbleHeight = 0;
 
   Future<void> _loadData() async {
+    if (!mounted) return;
+    setState(() {
+      _loadError = false;
+      _loadErrorMessage = null;
+      _isLoading = true;
+    });
     try {
       final List<Candle> candles;
 
@@ -112,6 +120,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
 
       if (!mounted) return;
       setState(() {
+        _loadError = false;
         _isLoading = false;
         if (!_inactiveZone) {
           _zonesNotifier.value = _initialZones;
@@ -123,9 +132,13 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
       });
 
       _maybeStartTutorial();
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('CandlesticksView _loadData error: $e');
+      debugPrint('Stack trace: $st');
       if (!mounted) return;
       setState(() {
+        _loadError = true;
+        _loadErrorMessage = e.toString();
         _isLoading = false;
       });
       _maybeStartTutorial();
@@ -489,6 +502,58 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
     await p.setBool(_seenFlag, true);
   }
 
+  Widget _buildErrorRetryUI() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 56, color: Colors.orange.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'Error al cargar el gráfico',
+              style: TextStyle(
+                color: CandleSticksStyle.dark().secondaryTextColor,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Comprueba la conexión e inténtalo de nuevo.',
+              style: TextStyle(
+                color: CandleSticksStyle.dark().primaryTextColor,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (_loadErrorMessage != null && _loadErrorMessage!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              SelectableText(
+                _loadErrorMessage!,
+                style: TextStyle(
+                  color: CandleSticksStyle.dark().primaryTextColor.withValues(alpha: 0.7),
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 6,
+              ),
+            ],
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () => _loadData(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();
@@ -513,7 +578,9 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
                   return Center(
                     child: Stack(
                       children: <Widget>[
-                        if (_isLoading)
+                        if (_loadError || (!_isLoading && _candles.isEmpty))
+                          _buildErrorRetryUI()
+                        else if (_isLoading)
                           CandlesticksSkeleton()
                         else
                           KeyedSubtree(

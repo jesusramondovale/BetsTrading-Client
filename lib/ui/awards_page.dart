@@ -67,7 +67,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     final raffleItemsResponse = await Common().postRequestWrapper(
       'Info',
       'RaffleItems',
-      {'id': userId},
+      {'userId': userId},
     );
     final body = raffleItemsResponse['body'];
     if (prefs.getBool('dollarCurrency') ?? false) {
@@ -955,8 +955,8 @@ class RafflesBuilder extends StatelessWidget {
                           betAmount: raffleItem.coins.toDouble(),
                           onSlideComplete: () async {
                             final response = await Common().postRequestWrapper('Info','NewRaffle', {
-                              'user_id': userId,
-                              'token': raffleItem.id.toString(),
+                              'userId': userId,
+                              'itemToken': raffleItem.id.toString(),
                             });
                             if (response['statusCode'] == 200) {
                               Common().vibrate(100,100);

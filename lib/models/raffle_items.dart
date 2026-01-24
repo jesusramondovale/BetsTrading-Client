@@ -11,12 +11,21 @@ class RaffleItem {
 
   RaffleItem(this.id, this.name, this.shortName, this.coins, this.raffleDate, this.icon, this.participants);
 
-  RaffleItem.fromJson(Map<String, dynamic> json) :
-      id = json['id'],
-      name = json['name'],
-      shortName = json['short_name'],
-      coins = json['coins'],
-      raffleDate = DateTime.parse(json['raffle_date']),
-      icon = json['icon'],
-      participants = json['participants'];
+  RaffleItem.fromJson(Map<String, dynamic> json)
+      : id = (json['id'] as num?)?.toInt() ?? 0,
+        name = (json['name']?.toString()) ?? '',
+        shortName = (json['shortName']?.toString()) ?? '',
+        coins = (json['coins'] as num?)?.toInt() ?? 0,
+        raffleDate = _parseRaffleDate(json['raffleDate']),
+        icon = (json['icon']?.toString()) ?? '',
+        participants = (json['participants'] as num?)?.toInt() ?? 0;
+
+  static DateTime _parseRaffleDate(dynamic v) {
+    if (v == null || v.toString().trim().isEmpty) return DateTime.now().toUtc();
+    try {
+      return DateTime.parse(v.toString());
+    } catch (_) {
+      return DateTime.now().toUtc();
+    }
   }
+}

@@ -16,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../helpers/common.dart';
+import '../helpers/preload_cache.dart';
 import '../models/bets.dart';
 import '../models/trends.dart';
 import 'layout_page.dart';
@@ -134,8 +135,8 @@ class HomeScreenState extends State<HomeScreen> {
 
   /// Loads user ID and initializes all data including investments.
   ///
-  /// Fetches user information, trends, favorites, and investment data.
-  /// This method is typically called on screen initialization.
+  /// Usa datos precargados durante "Cargando..." si existen; si no, fetchea
+  /// trends, favorites e investment data.
   Future<void> loadUserIdAndData() async {
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     final userPoints = await _storage.read(key: "points") ?? "0";
@@ -143,6 +144,25 @@ class HomeScreenState extends State<HomeScreen> {
     final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
 
     if (!mounted) return;
+
+    // Usar datos precargados durante "Cargando..." si existen
+    final (cachedTrends, cachedFavs, cachedInvest) = PreloadCache.takeHomeData();
+    if (cachedTrends != null && cachedFavs != null && cachedInvest != null && mounted) {
+      setState(() {
+        _userId = userId != "none" ? userId : null;
+        _userPoints = double.tryParse(userPoints) ?? 0;
+        _dollarCurrency = dollarCurrency;
+        _trendsFuture = Future.value(cachedTrends);
+        _favsFuture = Future.value(cachedFavs);
+        _investmentFuture = Future.value(cachedInvest);
+        _currentTrends = cachedTrends;
+        _currentFavorites = cachedFavs;
+        _bets = List.from(cachedInvest.bets.investList);
+        _priceBets = List.from(cachedInvest.priceBets);
+        _investInited = true;
+      });
+      return;
+    }
 
     setState(() {
       _userId = userId != "none" ? userId : null;
@@ -156,7 +176,6 @@ class HomeScreenState extends State<HomeScreen> {
           .fetchInvestmentData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
     });
 
-    // Inicializar datos actuales cuando se carguen por primera vez
     _trendsFuture.then((trends) {
       if (!mounted) return;
       setState(() {
@@ -620,12 +639,9 @@ class HomeScreenState extends State<HomeScreen> {
                     });
                     
                     try {
-                      // Precargar datos de StorePage antes de navegar
                       final preloadedData = await StorePage.preloadStoreData();
-                      
                       if (!mounted) return;
-                      
-                      // Navegar con datos precargados
+
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -637,17 +653,17 @@ class HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       );
-                      
                       if (!mounted) return;
-                      
-                      // Recargar datos después de volver
                       exchangePageKey.currentState?.loadData();
-                    } finally {
-                      // Desbloquear el botón
+                    } catch (e) {
                       if (mounted) {
-                        setState(() {
-                          _isLoadingStore = false;
-                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error al cargar la tienda: $e')),
+                        );
+                      }
+                    } finally {
+                      if (mounted) {
+                        setState(() => _isLoadingStore = false);
                       }
                     }
                   },

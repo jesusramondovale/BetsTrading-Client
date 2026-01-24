@@ -28,15 +28,17 @@ class Favorite {
   Favorite(this.id, this.icon, this.dailyGain, this.name, this.close,
       this.current, this.userId, this.ticker);
 
+  static double _d(dynamic v) => (v == null) ? 0.0 : (v as num).toDouble();
+
   Favorite.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        name = json['name'],
-        icon = json['icon'],
-        dailyGain = (json['daily_gain'] as num).toDouble(),
-        close = (json['close'] as num).toDouble(),
-        current = (json['current'] as num).toDouble(),
-        userId = json['user_id'].toString(),
-        ticker = json['ticker'];
+      : id = (json['id']?.toString()) ?? '',
+        name = (json['name']?.toString()) ?? '',
+        icon = (json['icon']?.toString()) ?? '',
+        dailyGain = _d(json['dailyGain']),
+        close = _d(json['close']),
+        current = _d(json['current']),
+        userId = (json['userId']?.toString()) ?? '',
+        ticker = (json['ticker']?.toString()) ?? '';
 }
 
 class Favorites {

@@ -75,7 +75,7 @@ class WithdrawPage extends StatefulWidget {
       };
     }
 
-    final resp = await Common().postRequestWrapper('Info', 'RetireOptions', {'id': id});
+    final resp = await Common().postRequestWrapper('Info', 'RetireOptions', {});
     
     final map = <String, Map<String, String>>{};
     
@@ -160,7 +160,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
     if (id == null) return;
 
     final resp =
-    await Common().postRequestWrapper('Info', 'RetireOptions', {'id': id});
+    await Common().postRequestWrapper('Info', 'RetireOptions', {});
 
     final map = <String, Map<String, String>>{};
 

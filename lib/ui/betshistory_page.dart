@@ -53,7 +53,7 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
     }
 
     try {
-      final resp = await Common().postRequestWrapper('Bet', 'HistoricUserBets', {'id': userId});
+      final resp = await Common().postRequestWrapper('Bet', 'HistoricUserBets', {'userId': userId});
       if ((resp['statusCode'] ?? 500) == 200 && resp['body'] is Map) {
         final body = resp['body'] as Map<String, dynamic>;
         final bets = body['bets'] as List? ?? [];

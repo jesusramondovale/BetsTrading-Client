@@ -1229,9 +1229,26 @@ class Common {
         LoginPage.navigateToLogin(null);
       }
 
+      // Handle empty or invalid JSON responses
+      dynamic body;
+      if (responseBody.isEmpty || responseBody.trim().isEmpty) {
+        body = {'message': 'Empty response from server'};
+      } else {
+        try {
+          body = jsonDecode(responseBody);
+          // If body is a List, wrap it or keep it as is (client expects it directly in response['body'])
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error decoding JSON response: $e');
+            print('Response body: ${responseBody.substring(0, responseBody.length > 200 ? 200 : responseBody.length)}');
+          }
+          body = {'message': 'Invalid JSON response from server', 'error': e.toString()};
+        }
+      }
+
       return {
         'statusCode': response.statusCode,
-        'body': jsonDecode(responseBody)
+        'body': body
       };
     } on SocketException catch (e) {
       if (e.osError?.errorCode == 111 || e.osError?.errorCode == 7) {

@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/bets_service.dart';
+import '../helpers/preload_cache.dart';
 import '../locale/localized_texts.dart';
 import '../helpers/common.dart';
+import '../services/bets_service.dart';
 import 'layout_page.dart';
+import 'markets_page.dart';
 
 /// A page shown to first-time users for setting up their password.
 ///
@@ -30,27 +32,22 @@ class _FirstTimePageState extends State<FirstTimePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _passwordError;
   String? _confirmPasswordError;
-  String? _userId;
+  bool _isLoading = false;
 
   Future<void> _init() async {
     final bytes = await rootBundle.load('assets/new_icon.png');
     final base64 = base64Encode(bytes.buffer.asUint8List());
-    final userId = await _storage.read(key: 'sessionToken');
-
     setState(() {
       _coinIconBase64 = base64;
-      _userId = userId;
     });
   }
 
   Future<void> _loadCoinImage() async {
     final bytes = await rootBundle.load('assets/new_icon.png');
     final base64 = base64Encode(bytes.buffer.asUint8List());
-    final userId = await _storage.read(key: "sessionToken") ?? "none";
     setState(() {
       _coinIconBase64 = base64;
-      _userId = userId;
-    } );
+    });
   }
 
   void _validateForm() {
@@ -118,6 +115,28 @@ class _FirstTimePageState extends State<FirstTimePage> {
               ),
             ),
           ),
+          if (_isLoading)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black54,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(color: Colors.white),
+                      const SizedBox(height: 16),
+                      Text(
+                        LocalizedStrings.of(context)?.get('loading') ?? 'Cargando',
+                        style: GoogleFonts.rajdhani(
+                          fontSize: 20,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -234,7 +253,7 @@ class _FirstTimePageState extends State<FirstTimePage> {
                           if (_passwordError != null || _confirmPasswordError != null) return;
 
                           final response = await Common().postRequestWrapper('Auth', 'NewPassword',
-                              { 'username' : _userId , 'password' : _confirmPasswordController.text.trim() });
+                              { 'password' : _confirmPasswordController.text.trim() });
 
                           if (response['statusCode'] == 200) {
                             Common().showFloatingSnack(
@@ -244,6 +263,14 @@ class _FirstTimePageState extends State<FirstTimePage> {
                             );
                             String? id = await _storage.read(key: 'sessionToken');
                             await BetsService().getUserInfo(id!);
+                            if (!mounted) return;
+                            setState(() => _isLoading = true);
+                            // Precargar todo antes de ir a MainMenuPage (igual que en "Cargando...")
+                            await Future.wait([
+                              MarketsView.preloadAllMarketData(),
+                              PreloadCache.preloadAll(),
+                            ]);
+                            if (!mounted) return;
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(builder: (context) => const MainMenuPage()),

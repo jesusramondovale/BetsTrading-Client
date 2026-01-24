@@ -49,34 +49,41 @@ class User {
     this.profilePic,
   });
 
-  // From Json
+  static DateTime? _parseDateOrNull(dynamic v) {
+    if (v == null || v.toString().trim().isEmpty) return null;
+    try {
+      return DateTime.parse(v.toString());
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static DateTime _parseDate(dynamic v) =>
+      _parseDateOrNull(v) ?? DateTime.now().toUtc();
+
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      fullname: json['fullname'],
-      password: json['password'],
-      country: json['country'],
-      gender: json['gender'],
-      email: json['email'],
-      birthday: DateTime.parse(json['birthday']),
-      signinDate: DateTime.parse(json['signin_date']),
-      lastSession: DateTime.parse(json['last_session']),
-      creditCard: json['credit_card'],
-      username: json['username'],
-      points: (json['points'] as num).toDouble(),
-      tokenExpiration: json['token_expiration'] != null
-          ? DateTime.parse(json['token_expiration'])
-          : null,
-      isVerified: json['isverified'] ?? false,
-      isActive: json['is_active'] ?? true,
-      failedAttempts: json['failed_attempts'] ?? 0,
-      lastLoginAttempt: json['last_login_attempt'] != null
-          ? DateTime.parse(json['last_login_attempt'])
-          : null,
-      lastPasswordChange: json['last_password_change'] != null
-          ? DateTime.parse(json['last_password_change'])
-          : null,
-      profilePic: json['profile_pic'],
+      id: (json['id']?.toString()) ?? '',
+      fullname: (json['fullname']?.toString()) ?? '',
+      password: (json['password']?.toString()) ?? '',
+      country: (json['country']?.toString()) ?? '',
+      gender: (json['gender']?.toString()) ?? '',
+      email: (json['email']?.toString()) ?? '',
+      birthday: _parseDate(json['birthday']),
+      signinDate: _parseDate(json['signinDate']),
+      lastSession: _parseDate(json['lastSession']),
+      creditCard: (json['creditCard']?.toString()) ?? '',
+      username: (json['username']?.toString()) ?? '',
+      points: (json['points'] == null) ? 0.0 : (json['points'] as num).toDouble(),
+      tokenExpiration: _parseDateOrNull(json['tokenExpiration']),
+      isVerified: json['isVerified'] == true,
+      isActive: json['isActive'] != false,
+      failedAttempts: (json['failedAttempts'] == null)
+          ? 0
+          : (json['failedAttempts'] as num).toInt(),
+      lastLoginAttempt: _parseDateOrNull(json['lastLoginAttempt']),
+      lastPasswordChange: _parseDateOrNull(json['lastPasswordChange']),
+      profilePic: json['profilePic']?.toString(),
     );
   }
 }

@@ -6,12 +6,10 @@ import '../helpers/common.dart';
 class AssetsService {
 
   Future<List<FinancialAsset>?> getFinancialAssetsByGroup(String group, {String? currency}) async {
-    final requestBody = {'id': group};
-    // Agregar currency si se proporciona
+    final requestBody = <String, dynamic>{'id': group};
     if (currency != null) {
       requestBody['currency'] = currency;
     }
-    
     final response = await Common().postRequestWrapper(
       "FinancialAssets",
       "ByGroup",

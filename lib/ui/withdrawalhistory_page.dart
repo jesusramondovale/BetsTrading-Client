@@ -38,7 +38,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
 
     try {
       final resp = await Common()
-          .postRequestWrapper('Info', 'WithdrawalHistory', {'id': userId});
+          .postRequestWrapper('Info', 'WithdrawalHistory', {});
 
       if ((resp['statusCode'] ?? 500) == 200 && resp['body'] is List) {
         final list = <Map<String, dynamic>>[];

@@ -51,14 +51,34 @@ class BetZone {
     return DateTime.parse(utcDateString);
   }
 
-  BetZone.fromJson(Map<String, dynamic> json)
-    : id = json['id'],
-      ticker = json['ticker'],
-      targetValue = (json['target_value'] as num).toDouble(),
-      betMargin = (json['bet_margin'] as num).toDouble(),
-      startDate = _parseUtcDate(json['start_date']),
-      endDate = json['end_date'] != null ? _parseUtcDate(json['end_date']) : null,
-      targetOdds = (json['target_odds'] as num).toDouble(),
-      betType = (json['bet_type'] as num).toInt();
+  static double _toDouble(dynamic v) => (v == null) ? 0.0 : (v as num).toDouble();
+  static int _toInt(dynamic v) => (v == null) ? 0 : (v as num).toInt();
 
+  BetZone.fromJson(Map<String, dynamic> json)
+      : id = _toInt(json['id']),
+        ticker = (json['ticker']?.toString()) ?? '',
+        targetValue = _toDouble(json['targetValue']),
+        betMargin = _toDouble(json['betMargin']),
+        startDate = _parseDateSafe(json['startDate']),
+        endDate = _parseDateSafeOrNull(json['endDate']),
+        targetOdds = _toDouble(json['targetOdds']),
+        betType = _toInt(json['betType']);
+
+  static DateTime _parseDateSafe(dynamic v) {
+    if (v == null || v.toString().trim().isEmpty) return DateTime.now().toUtc();
+    try {
+      return _parseUtcDate(v.toString());
+    } catch (_) {
+      return DateTime.now().toUtc();
+    }
+  }
+
+  static DateTime? _parseDateSafeOrNull(dynamic v) {
+    if (v == null || v.toString().trim().isEmpty) return null;
+    try {
+      return _parseUtcDate(v.toString());
+    } catch (_) {
+      return null;
+    }
+  }
 }
