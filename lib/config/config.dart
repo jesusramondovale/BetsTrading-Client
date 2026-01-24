@@ -1,6 +1,8 @@
 class Config {
   static const String publicDomain = 'api.betstrading.online';
   static const String landingPage = 'https://betstrading.online';
+  static const String statusPage = 'https://api.betstrading.online/status';
+
   static const String instagramPage = 'https://www.instagram.com/betstrading/';
   static const String stripePublicKey = 'pk_test_51Ro4wcIoWhLn7aPbiJW4oRV3Gtvyijmw9hSGkn7pVMcOYZ4wpKmjRX1SA4tDPlJa8iKS1iRD5edE894KWgrRkqnM007ZLfNfKr'; //TEST
   static const String termsNConditionsPage = 'https://raw.githubusercontent.com/jesusramondovale/BetsTrading-Client/refs/heads/android-master/policies/privacy_policy_en.md';

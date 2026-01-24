@@ -87,6 +87,15 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
     }
   }
 
+  /// Devuelve el primer valor no null de [keys] (soporta snake_case y camelCase del API).
+  static dynamic _get(Map<String, dynamic> row, List<String> keys) {
+    for (final k in keys) {
+      final v = row[k];
+      if (v != null) return v;
+    }
+    return null;
+  }
+
   String _formatDate(dynamic v) {
     if (v == null) return '—';
     DateTime? dt;
@@ -127,11 +136,11 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
     final textColor = Colors.white;
     final isPriceBet = row['_type'] == 'priceBet';
 
-    final id        = (row['id'] ?? '').toString();
-    final name      = (row['name'] ?? '').toString();
-    final ticker    = (row['ticker'] ?? '').toString();
-    final endDate   = _formatDate(row['end_date'] ?? row['final_date']);
-    final icon      = (row['icon_path'] ?? '').toString();
+    final id        = (_get(row, ['id']) ?? '').toString();
+    final name      = (_get(row, ['name']) ?? '').toString();
+    final ticker    = (_get(row, ['ticker']) ?? '').toString();
+    final endDate   = _formatDate(_get(row, ['end_date', 'endDate', 'final_date']));
+    final icon      = (_get(row, ['icon_path', 'iconPath']) ?? '').toString();
 
     bool? status;
     String amount = '';
@@ -139,15 +148,15 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
     String profit = '';
 
     if (isPriceBet) {
-      status = row['paid'] == true;
-      amount = (row['price_bet'] ?? '').toString();
-      oddsOrMargin = (row['margin'] ?? '').toString();
+      status = _get(row, ['paid']) == true;
+      amount = (_get(row, ['price_bet', 'priceBet']) ?? '').toString();
+      oddsOrMargin = (_get(row, ['margin']) ?? '').toString();
       profit = '';
     } else {
-      status = row['target_won'] == true;
-      amount = (row['bet_amount'] ?? '').toString();
-      oddsOrMargin = (row['target_odds'] ?? '').toString();
-      profit = (row['profitLoss'] ?? '').toString();
+      status = _get(row, ['target_won', 'targetWon']) == true;
+      amount = (_get(row, ['bet_amount', 'betAmount']) ?? '').toString();
+      oddsOrMargin = (_get(row, ['target_odds', 'targetOdds']) ?? '').toString();
+      profit = (_get(row, ['profitLoss']) ?? '').toString();
     }
 
     final rows = <Widget>[
@@ -334,23 +343,23 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
                       final row = _rows[index];
                       final isPriceBet = row['_type'] == 'priceBet';
 
-                      final name = (row['name'] ?? '').toString();
-                      final ticker = (row['ticker'] ?? '').toString();
-                      final icon = (row['icon_path'] ?? '').toString();
-                      final end = _formatDate(row['end_date'] ?? row['final_date']);
+                      final name = (_get(row, ['name']) ?? '').toString();
+                      final ticker = (_get(row, ['ticker']) ?? '').toString();
+                      final icon = (_get(row, ['icon_path', 'iconPath']) ?? '').toString();
+                      final end = _formatDate(_get(row, ['end_date', 'endDate', 'final_date']));
 
                       bool success = false;
                       String amount = '';
                       String extra = '';
 
                       if (isPriceBet) {
-                        success = row['paid'] == true;
-                        amount = (row['price_bet'] ?? '').toString();
-                        extra = (row['margin'] ?? '').toString();
+                        success = _get(row, ['paid']) == true;
+                        amount = (_get(row, ['price_bet', 'priceBet']) ?? '').toString();
+                        extra = (_get(row, ['margin']) ?? '').toString();
                       } else {
-                        success = row['target_won'] == true;
-                        amount = (row['bet_amount'] ?? '').toString();
-                        extra = (row['target_odds'] ?? '').toString();
+                        success = _get(row, ['target_won', 'targetWon']) == true;
+                        amount = (_get(row, ['bet_amount', 'betAmount']) ?? '').toString();
+                        extra = (_get(row, ['target_odds', 'targetOdds']) ?? '').toString();
                       }
 
                       return Card(

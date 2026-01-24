@@ -233,35 +233,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         scrolledUnderElevation: 0.0,
         automaticallyImplyLeading: false,
       ),
-      floatingActionButton: FadeTransition(
-        opacity: _contentController,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1.0, 0.0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: _contentController,
-            curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
-          )),
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.fromLTRB(0, 0, 5, 0),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              surfaceTintColor: Colors.transparent,
-              backgroundColor: Colors.transparent,
-              overlayColor: Colors.transparent.withValues(alpha: 0),
-              elevation: 0,
-            ),
-            onPressed: () => Common().openInAppBrowser(context, Config.instagramPage),
-            child: Icon(
-              FontAwesomeIcons.instagram,
-              size: 35,
-              color: Colors.white70.withValues(alpha: .5),
-            ),
-          ),
-        ),
-      ),
       body: Stack(
         children: [
           // Fondo principal intacto
@@ -422,6 +393,78 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               }
               return const SizedBox.shrink();
             },
+          ),
+          // Botón izquierdo
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 20,
+            left: 16,
+            child: FadeTransition(
+              opacity: _contentController,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(-1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: _contentController,
+                  curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
+                )),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    surfaceTintColor: Colors.transparent,
+                    backgroundColor: Colors.transparent,
+                    overlayColor: Colors.transparent.withValues(alpha: 0),
+                    elevation: 0,
+                  ),
+                  onPressed: () => {
+                    Common().vibrate(),
+                    Common().applyImmersive(),
+                    Common().openInAppBrowser(context,Config.statusPage)
+                  },
+                  child: Icon(
+                    FontAwesomeIcons.signal,
+                    size: 26,
+                    color: Colors.white70.withValues(alpha: .5),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Botón derecho
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 20,
+            right: 16,
+            child: FadeTransition(
+              opacity: _contentController,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: _contentController,
+                  curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
+                )),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.fromLTRB(0, 0, 5, 0),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    surfaceTintColor: Colors.transparent,
+                    backgroundColor: Colors.transparent,
+                    overlayColor: Colors.transparent.withValues(alpha: 0),
+                    elevation: 0,
+                  ),
+                  onPressed: () => Common().openInAppBrowser(context, Config.instagramPage),
+                  child: Icon(
+                    FontAwesomeIcons.instagram,
+                    size: 35,
+                    color: Colors.white70.withValues(alpha: .5),
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
