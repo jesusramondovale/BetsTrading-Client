@@ -36,7 +36,7 @@ class HomeScreen extends StatefulWidget {
   HomeScreenState createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static const String _startTutorialFlag = 'START_TUTORIAL';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Future<BetsAndPriceBets>? _investmentFuture;
@@ -70,6 +70,7 @@ class HomeScreenState extends State<HomeScreen> {
   final GlobalKey _kHistory = GlobalKey();
   TutorialCoachMark? _coach;
   bool _dollarCurrency = false;
+  bool _isRefreshing = false; // Flag para evitar múltiples refreshes simultáneos
 
   /// Refreshes user data, trends, and favorites without reloading investments.
   ///
@@ -77,60 +78,105 @@ class HomeScreenState extends State<HomeScreen> {
   /// and favorites data from the server. Mantiene los datos actuales mientras
   /// se cargan los nuevos para evitar mostrar skeletons.
   void _refreshData() async {
-    final userId = await _storage.read(key: "sessionToken") ?? "none";
-    await BetsService().getUserInfo(userId);
-    final userPoints = await _storage.read(key: "points") ?? "0";
-    final prefs = await SharedPreferences.getInstance();
-    final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
-
-    if (!mounted) return;
-
-    // Actualizar datos del usuario primero
-    setState(() {
-      _userId = userId != "none" ? userId : null;
-      _userPoints = double.tryParse(userPoints) ?? 0;
-      _dollarCurrency = dollarCurrency;
-    });
-
-    // Cargar nuevos datos en segundo plano sin cambiar los Futures inmediatamente
-    // Esto evita que los FutureBuilder vuelvan a estado 'waiting'
-    final newTrendsFuture = BetsService()
-        .fetchTrendsData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
-    final newFavsFuture = BetsService()
-        .fetchFavouritesData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
-
-    // Esperar a que los datos estén listos antes de actualizar
-    try {
-      final newTrends = await newTrendsFuture;
-      if (!mounted) return;
-      setState(() {
-        _currentTrends = newTrends;
-        // Solo actualizar el Future si ya tenemos datos, para mantener la referencia
-        _trendsFuture = Future.value(newTrends);
-      });
-    } catch (e) {
-      // Si hay error, mantener los datos anteriores
-      if (kDebugMode) {
-        print('Error refreshing trends: $e');
-      }
-    }
+    // Evitar múltiples refreshes simultáneos
+    if (_isRefreshing) return;
+    _isRefreshing = true;
 
     try {
-      final newFavs = await newFavsFuture;
-      if (!mounted) return;
-      setState(() {
-        _currentFavorites = newFavs;
-        // Solo actualizar el Future si ya tenemos datos, para mantener la referencia
-        _favsFuture = Future.value(newFavs);
-        // Reset el flag para que se posicione al final de nuevo cuando se refresque
-        _favsInitialPositionSet = false;
-      });
-    } catch (e) {
-      // Si hay error, mantener los datos anteriores
-      if (kDebugMode) {
-        print('Error refreshing favorites: $e');
+      final userId = await _storage.read(key: "sessionToken") ?? "none";
+      await BetsService().getUserInfo(userId);
+      final userPoints = await _storage.read(key: "points") ?? "0";
+      final prefs = await SharedPreferences.getInstance();
+      final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
+
+      if (!mounted) {
+        _isRefreshing = false;
+        return;
       }
+
+      // Actualizar datos del usuario primero (solo si cambió)
+      bool userDataChanged = false;
+      if (_userId != (userId != "none" ? userId : null) ||
+          _userPoints != (double.tryParse(userPoints) ?? 0) ||
+          _dollarCurrency != dollarCurrency) {
+        userDataChanged = true;
+        setState(() {
+          _userId = userId != "none" ? userId : null;
+          _userPoints = double.tryParse(userPoints) ?? 0;
+          _dollarCurrency = dollarCurrency;
+        });
+      }
+
+      // Cargar nuevos datos en segundo plano sin cambiar los Futures inmediatamente
+      // Esto evita que los FutureBuilder vuelvan a estado 'waiting'
+      final newTrendsFuture = BetsService()
+          .fetchTrendsData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
+      final newFavsFuture = BetsService()
+          .fetchFavouritesData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
+
+      // Esperar a que los datos estén listos antes de actualizar
+      try {
+        final newTrends = await newTrendsFuture;
+        if (!mounted) {
+          _isRefreshing = false;
+          return;
+        }
+        // Solo actualizar si los datos realmente cambiaron
+        if (_currentTrends == null || !_areTrendsEqual(_currentTrends!, newTrends)) {
+          setState(() {
+            _currentTrends = newTrends;
+            // Actualizar el Future solo si hay datos previos para evitar parpadeos
+            _trendsFuture = Future.value(newTrends);
+          });
+        }
+      } catch (e) {
+        // Si hay error, mantener los datos anteriores
+        if (kDebugMode) {
+          print('Error refreshing trends: $e');
+        }
+      }
+
+      try {
+        final newFavs = await newFavsFuture;
+        if (!mounted) {
+          _isRefreshing = false;
+          return;
+        }
+        // Solo actualizar si los datos realmente cambiaron
+        if (_currentFavorites == null || !_areFavoritesEqual(_currentFavorites!, newFavs)) {
+          setState(() {
+            _currentFavorites = newFavs;
+            // Actualizar el Future solo si hay datos previos para evitar parpadeos
+            _favsFuture = Future.value(newFavs);
+            // Reset el flag para que se posicione al final de nuevo cuando se refresque
+            _favsInitialPositionSet = false;
+          });
+        }
+      } catch (e) {
+        // Si hay error, mantener los datos anteriores
+        if (kDebugMode) {
+          print('Error refreshing favorites: $e');
+        }
+      }
+    } finally {
+      _isRefreshing = false;
     }
+  }
+
+  /// Compara si dos objetos Trends son iguales (comparación simple por IDs)
+  bool _areTrendsEqual(Trends a, Trends b) {
+    if (a.trends.length != b.trends.length) return false;
+    final aIds = a.trends.map((t) => t.id).toSet();
+    final bIds = b.trends.map((t) => t.id).toSet();
+    return aIds.length == bIds.length && aIds.every((id) => bIds.contains(id));
+  }
+
+  /// Compara si dos objetos Favorites son iguales (comparación simple por tickers)
+  bool _areFavoritesEqual(Favorites a, Favorites b) {
+    if (a.favorites.length != b.favorites.length) return false;
+    final aTickers = a.favorites.map((f) => f.ticker).toSet();
+    final bTickers = b.favorites.map((f) => f.ticker).toSet();
+    return aTickers.length == bTickers.length && aTickers.every((t) => bTickers.contains(t));
   }
 
   /// Loads user ID and initializes all data including investments.
@@ -353,6 +399,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _delayedAutoScrollInit();
@@ -378,6 +425,21 @@ class HomeScreenState extends State<HomeScreen> {
       _refreshData();
       await refreshInvestments();
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Cuando la app vuelve a primer plano, refrescar los datos en segundo plano
+      // sin forzar actualizaciones inmediatas que causan parpadeos
+      if (mounted && !_isRefreshing) {
+        // Refrescar los datos en segundo plano
+        // El método _refreshData ya maneja la actualización inteligente de Futures
+        _refreshData();
+        refreshInvestments();
+      }
+    }
   }
 
   /// Checks if a tutorial has been seen by the user.
@@ -1329,6 +1391,8 @@ class HomeScreenState extends State<HomeScreen> {
                           : FutureBuilder<BetsAndPriceBets>(
                         future: _investmentFuture,
                         builder: (context, snapshot) {
+                          // Si ya tenemos datos inicializados, no mostrar skeleton
+                          // incluso si el Future está en estado waiting
                           if (!_investInited &&
                               snapshot.connectionState ==
                                   ConnectionState.waiting) {
@@ -1342,6 +1406,83 @@ class HomeScreenState extends State<HomeScreen> {
 
                           if (!_investInited && snapshot.hasError) {
                             return Text('Error: ${snapshot.error}');
+                          }
+
+                          // Si el Future está en estado waiting pero ya tenemos datos,
+                          // mostrar los datos actuales en lugar de skeleton
+                          if (snapshot.connectionState == ConnectionState.waiting &&
+                              _investInited &&
+                              (_bets.isNotEmpty || _priceBets.isNotEmpty)) {
+                            // Mostrar los datos actuales mientras se refrescan
+                            return Scaffold(
+                              backgroundColor: Colors.transparent,
+                              body: SafeArea(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: ListView(
+                                    padding: EdgeInsets.only(
+                                      bottom: MediaQuery.of(context)
+                                          .padding
+                                          .bottom +
+                                          50,
+                                    ),
+                                    children: [
+                                      ..._bets.reversed.map(
+                                            (b) => RecentBetContainer(
+                                          necessaryGain: b.necessaryGain,
+                                          bet: b,
+                                          onDelete: () => setState(() {
+                                            _bets.removeWhere(
+                                                    (x) => x.id == b.id);
+                                          }),
+                                          controller: widget.controller,
+                                        ),
+                                      ),
+                                      ..._priceBets.reversed.map(
+                                            (p) => RecentPriceBetContainer(
+                                          priceBet: p,
+                                          onDelete: () => setState(() {
+                                            _priceBets.removeWhere(
+                                                    (x) => x.id == p.id);
+                                          }),
+                                          controller: widget.controller,
+                                          isForex: Common()
+                                              .isTickerForex(p.ticker),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              floatingActionButton: KeyedSubtree(
+                                key: _kHistory,
+                                child: Transform.translate(
+                                  offset: const Offset(14, 14),
+                                  child: FloatingActionButton(
+                                    backgroundColor: Colors.transparent
+                                        .withValues(alpha: 0.1),
+                                    splashColor: Colors.grey,
+                                    onPressed: () {
+                                      Common().vibrate();
+                                      Common().applyImmersive();
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                          const BetsHistoryPage(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Icon(
+                                      FontAwesomeIcons.clockRotateLeft,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              floatingActionButtonLocation:
+                              FloatingActionButtonLocation.endFloat,
+                            );
                           }
 
                           if (_bets.isEmpty && _priceBets.isEmpty) {
@@ -1507,6 +1648,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _trendScrollController.dispose();
     _favsScrollController.dispose();
     _ticker?.dispose();
