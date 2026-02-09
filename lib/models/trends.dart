@@ -255,7 +255,7 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                             const SizedBox(height: 12),
                             Row(mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                              _MaxOddRectangleZone(
+                              MaxOddRectangleZone(
                                 maxOdd: widget.trend.currentMaxOdd!,
                                 direction: widget.trend.currentMaxOddDirection!,
                                 currentPrice: widget.trend.current,
@@ -745,7 +745,7 @@ class TrendContainerState extends State<TrendContainer> {
             Positioned(
               top: 8,
               right: 8,
-              child: _MaxOddRectangleZone(
+              child: MaxOddRectangleZone(
                 maxOdd: widget.trend.currentMaxOdd!,
                 direction: widget.trend.currentMaxOddDirection!,
                 currentPrice: widget.trend.current,
@@ -757,14 +757,14 @@ class TrendContainerState extends State<TrendContainer> {
   }
 }
 
-// Widget para dibujar el pequeño RectangleZone del max odd
-class _MaxOddRectangleZone extends StatelessWidget {
+/// Widget para dibujar el pequeño RectangleZone del max odd. Público para usar en listas (grid 2x2).
+class MaxOddRectangleZone extends StatelessWidget {
   final double maxOdd;
   final int direction; // +1 verde, 0 amarillo, -1 rojo
   final double currentPrice;
   final bool isLarge;
 
-  const _MaxOddRectangleZone({
+  const MaxOddRectangleZone({
     required this.maxOdd,
     required this.direction,
     required this.currentPrice,

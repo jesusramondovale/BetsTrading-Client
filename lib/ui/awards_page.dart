@@ -501,12 +501,12 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                                 controller: _tabController,
                                 children: [
                                   _buildTopUsersView(
-                                    _currency == "eur" ? Config.top5RewardsEur : Config.top5RewardsUsd,
+                                    Config.top5Rewards,
                                     rowExtent: rowExtent,
                                     rowGap: rowGap,
                                   ),
                                   _buildTopUsersView(
-                                    _currency == "eur" ? Config.top5RewardsEur : Config.top5RewardsUsd,
+                                    Config.top5Rewards,
                                     userCountry: _userCountry,
                                     rowExtent: rowExtent,
                                     rowGap: rowGap,
@@ -1240,7 +1240,7 @@ class _TopUsersSkeleton extends StatelessWidget {
       separatorBuilder: (_, __) => SizedBox(height: gap),
       itemBuilder: (_, index) {
         final rank = index + 1;
-        final prize = rank <= Config.top5RewardsEur.length ? Config.top5RewardsEur[rank - 1] : '';
+        final prize = rank <= Config.top5Rewards.length ? Config.top5Rewards[rank - 1] : '';
 
         return Container(
           height: rowExtent,

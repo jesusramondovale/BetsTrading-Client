@@ -19,6 +19,5 @@ class Config {
 
   //TODO -> Values to be fetched from backend
   static const int priceBetPrize = 100000;
-  static const List<String> top5RewardsUsd = [r'+$2,500', r'+$1,500', r'+$1,000', r'+$750', r'+$500'];
-  static const List<String> top5RewardsEur = [r'+2.000€', r'+1.300€', r'+1.000€', r'+650€', r'+400€'];
+  static const List<String> top5Rewards = [r'+2.000', r'+1.300', r'+1.000', r'+650', r'+400'];
 }
