@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:betrader/services/assets_service.dart';
 import 'package:country_flags/country_flags.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -31,7 +32,7 @@ class MarketsView extends StatefulWidget {
   @override
   MarketsViewState createState() => MarketsViewState();
 
-  // Variables estáticas para almacenar datos precargados
+  // Variables estaticas para almacenar datos precargados
   static Map<int, List<FinancialAsset>>? _preloadedAssets;
   static Map<String, double>? _preloadedPrices;
   static Map<String, double>? _preloadedPreviousPrices; // Precios anteriores para calcular porcentajes
@@ -46,7 +47,7 @@ class MarketsView extends StatefulWidget {
   /// If already preloading, waits for the current preload to complete.
   static Future<void> preloadAllMarketData() async {
     if (_isPreloading) {
-      // Si ya se está precargando, esperar a que termine
+      // Si ya se esta precargando, esperar a que termine
       while (_isPreloading) {
         await Future.delayed(const Duration(milliseconds: 100));
       }
@@ -151,7 +152,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Map<int, List<FinancialAsset>> assetsPerTab = {};
   Map<String, double> _assetPrices = {};
-  Set<String> _loadedPriceTickers = {}; // Track qué tickers ya tienen precio cargado
+  Set<String> _loadedPriceTickers = {}; // Track tickers ya tienen precio cargado
   bool _isLoading = true;
   bool _hasLoadedData = false;
   Set<String> _favTickers = {};
@@ -306,7 +307,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       const Divider(),
       _kvRow(strings?.get('type') ?? 'Type', groupPretty, textColor),
       const Divider(),
-      _kvRow(strings?.get('country') ?? 'Country', a.country.isEmpty ? '—' : a.country, textColor, showCountryFlag: true),
+      _kvRow(strings?.get('country') ?? 'Country', a.country.isEmpty ? 'â€”' : a.country, textColor, showCountryFlag: true),
     ];
 
     await showDialog<void>(
@@ -426,73 +427,141 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   }
 
   Widget _buildLeafCardLayout(List<FinancialAsset> assets, int tabIndex) {
-    // Crear ScrollController para este tab si no existe
     if (!_scrollControllers.containsKey(tabIndex)) {
       _scrollControllers[tabIndex] = ScrollController();
     }
-    
+
     return NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification notification) {
-        // Los precios ya vienen en los assets, no necesitamos cargar más
-        return false;
-      },
-      child: ListView.builder(
+      onNotification: (_) => false,
+      child: CustomScrollView(
         controller: _scrollControllers[tabIndex],
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemCount: assets.length,
-        itemBuilder: (context, index) {
-          final asset = assets[index];
-          final isFav = _favTickers.contains(asset.ticker.toUpperCase().trim());
-          Widget card = _buildLeafCard(asset: asset, isFav: isFav, index: index, tabIndex: tabIndex);
-          
-          // Los precios ya vienen en los assets del backend, no necesitamos cargarlos
-          
-          // Asignar la key al primer elemento del tab activo para el tutorial
-          // Si el tab actual es el activo y es el primer elemento, asignar la key
-          if (index == 0 && tabIndex == _tabController.index) {
-            _anyAssetRef = asset;
-            card = KeyedSubtree(key: _kAnyAsset, child: card);
-          }
-          
-          return card;
-        },
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final asset = assets[index];
+                  final isFav = _isFavTicker(asset.ticker);
+                  Widget row = _buildMarketListRow(asset, index, tabIndex, isFav);
+                  if (index == 0 && tabIndex == _tabController.index) {
+                    _anyAssetRef = asset;
+                    row = KeyedSubtree(key: _kAnyAsset, child: row);
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: row,
+                  );
+                },
+                childCount: assets.length,
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+        ],
       ),
     );
   }
 
-  Widget _buildLeafCard({
-    required FinancialAsset asset,
-    required bool isFav,
-    required int index,
-    required int tabIndex,
-  }) {
-    // Obtener precios del asset directamente (ya vienen del backend)
+  /// Fila de lista: icono + nombre + precio y %. Si no hay precio, se carga desde velas.
+  Widget _buildMarketListRow(FinancialAsset asset, int index, int tabIndex, bool isFav) {
     final tickerKey = asset.ticker.toUpperCase().trim();
-    final currentPrice = asset.current;
-    final closePrice = asset.close;
-    final dailyGain = asset.dailyGain;
-    
-    // Si no están en el asset, intentar obtenerlos de _assetPrices
-    final fallbackPrice = _assetPrices[tickerKey];
-    
-    return _LeafCardWidget(
+    final price = asset.current ?? _assetPrices[tickerKey] ?? MarketsView.getPreloadedPrices()?[tickerKey];
+    double? dailyGain = asset.dailyGain ?? MarketsView.getPreloadedDailyGains()?[tickerKey];
+    if (dailyGain == null && price != null) {
+      final prev = asset.close ?? MarketsView.getPreloadedPreviousPrices()?[tickerKey];
+      if (prev != null && prev > 0) dailyGain = ((price - prev) / prev) * 100;
+    }
+    return _MarketListRow(
       key: ValueKey(asset.ticker),
       asset: asset,
       isFav: isFav,
-      index: index,
+      initialPrice: price,
+      initialDailyGain: dailyGain,
+      initialClose: asset.close ?? MarketsView.getPreloadedPreviousPrices()?[tickerKey],
       dollarCurrency: _dollarCurrency,
-      currentPrice: currentPrice ?? fallbackPrice,
-      closePrice: closePrice,
-      dailyGain: dailyGain,
-      onAssetChart: _openAssetChart,
-      onToggleFavorite: toggleFavorite,
-      onShowDetails: _showAssetDetails,
       assetFallbackBadge: _assetFallbackBadge,
-      onNavigateToFirst: (asset) => _openAssetChart(asset, tutorialMode: true),
+      onTap: () => _openAssetChart(asset),
+      onLongPress: () => _showMarketRowBottomSheet(asset, isFav),
     );
   }
 
-  /// Navega al primer elemento de la lista y abre su gráfico.
+  void _showMarketRowBottomSheet(FinancialAsset asset, bool isFav) {
+    Common().vibrate();
+    Common().applyImmersive();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black.withValues(alpha: 0.75),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(isFav ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star, color: Colors.white70),
+                title: Text(
+                  (isFav
+                      ? LocalizedStrings.of(context)!.get('removeFromFavorites')!
+                      : LocalizedStrings.of(context)!.get('addToFavorites')!),
+                  style: GoogleFonts.montserrat(),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  toggleFavorite(asset.ticker);
+                },
+              ),
+              ListTile(
+                leading: const Icon(FontAwesomeIcons.crosshairs),
+                title: Text(
+                  LocalizedStrings.of(context)!.get('exactPriceBets') ?? "Exact price bets",
+                  style: GoogleFonts.montserrat(),
+                ),
+                onTap: () async {
+                  final navigator = Navigator.of(context);
+                  List<Candle> candles = await BetsService().fetchCandles(
+                    asset.ticker,
+                    1,
+                    _dollarCurrency ? 'USD' : 'EUR',
+                  );
+                  if (!mounted) return;
+                  Navigator.pop(context);
+                  navigator.push(
+                    MaterialPageRoute(
+                      builder: (context) => ExactPricePage(
+                        name: asset.name,
+                        ticker: asset.ticker,
+                        currentValue: candles.first.close,
+                        iconPath: asset.icon,
+                        isForex: Common().isTickerForex(asset.ticker),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: Text(
+                  LocalizedStrings.of(context)!.get('viewDetails') ?? "View details",
+                  style: GoogleFonts.montserrat(),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showAssetDetails(context, asset);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+
+  /// Navega al primer elemento de la lista y abre su grafico.
   void _navigateToFirstAndOpen(int tabIndex) {
     final controller = _scrollControllers[tabIndex];
     if (controller != null && controller.hasClients) {
@@ -502,8 +571,6 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
         curve: Curves.easeInOut,
       );
     }
-    
-    // Esperar a que termine el scroll y luego abrir el gráfico del primer elemento
     Future.delayed(const Duration(milliseconds: 350), () {
       if (!mounted) return;
       final assets = assetsPerTab[tabIndex] ?? [];
@@ -537,7 +604,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
             child: Row(
               children: [
                 Text(
-                  (v.isEmpty ? '—' : v),
+                  (v.isEmpty ? 'â€”' : v),
                   textAlign: TextAlign.right,
                   style: GoogleFonts.roboto(
                     color: textColor,
@@ -561,6 +628,740 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     );
   }
 
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 1);
+
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        final currentTab = _tabController.index;
+        final assets = assetsPerTab[currentTab] ?? [];
+        if (assets.isNotEmpty) {
+          _anyAssetRef = assets.first;
+        }
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
+
+    _tabListener = () {
+      if (widget.controller.selectedIndexNotifier.value == 2) {
+        _tryStartMarketsTutorial();
+      }
+    };
+    widget.controller.selectedIndexNotifier.addListener(_tabListener);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.controller.selectedIndexNotifier.value == 2) {
+        _tryStartMarketsTutorial();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.controller.selectedIndexNotifier.removeListener(_tabListener);
+    _tabController.dispose();
+    for (var controller in _scrollControllers.values) {
+      controller.dispose();
+    }
+    _scrollControllers.clear();
+    try {
+      _coach?.finish();
+    } catch (_) {}
+    _coach = null;
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (mounted && !_hasLoadedData) {
+      _initGroups();
+      _loadData();
+      _hasLoadedData = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return Column(
+      verticalDirection: VerticalDirection.up,
+      children: [
+        TabBar(
+          key: _kTabs,
+          onTap: (_) => Common().applyImmersive(),
+          indicatorColor: Colors.purple,
+          labelColor: Colors.white,
+          dividerColor: Colors.white30,
+          tabAlignment: TabAlignment.center,
+          isScrollable: true,
+          controller: _tabController,
+          labelStyle: GoogleFonts.montserrat(
+            fontSize: 26,
+            fontWeight: FontWeight.w400,
+          ),
+          labelPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
+          unselectedLabelStyle: GoogleFonts.montserrat(
+            fontSize: 20,
+            fontWeight: FontWeight.w300,
+          ),
+          tabs: groups.map((String group) => Tab(text: group)).toList(),
+        ),
+        const Divider(
+          color: Colors.white30,
+          thickness: 2,
+          height: 1,
+        ),
+        Expanded(
+          child: _isLoading
+              ? ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  itemCount: 10,
+                  itemBuilder: (context, index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Container(
+                      height: 90,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                )
+              : TabBarView(
+                  controller: _tabController,
+                  children: List.generate(groups.length, (index) {
+                    final List<FinancialAsset> assets = List.from(assetsPerTab[index] ?? []);
+                    assets.sort((a, b) {
+                      final aIsFav = _isFavTicker(a.ticker);
+                      final bIsFav = _isFavTicker(b.ticker);
+                      if (aIsFav && !bIsFav) return -1;
+                      if (!aIsFav && bIsFav) return 1;
+                      final aTicker = a.ticker.toUpperCase().trim();
+                      final bTicker = b.ticker.toUpperCase().trim();
+                      final aPrice = _assetPrices[aTicker];
+                      final bPrice = _assetPrices[bTicker];
+                      if (aPrice != null && bPrice != null) return bPrice.compareTo(aPrice);
+                      if (aPrice != null && bPrice == null) return -1;
+                      if (aPrice == null && bPrice != null) return 1;
+                      return 0;
+                    });
+                    return _buildLeafCardLayout(assets, index);
+                  }),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _markSeen() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_seenFlag, true);
+  }
+
+  Future<void> _clearPending() async {
+    final p = await SharedPreferences.getInstance();
+    await p.remove(_pendingFlag);
+  }
+
+  Future<void> _waitForTargetsReady() async {
+    for (int i = 0; i < 30; i++) {
+      final ready = _kTabs.currentContext != null && _kAnyAsset.currentContext != null;
+      if (ready) break;
+    }
+  }
+
+  List<TargetFocus> _buildMarketsTargets(LocalizedStrings? strings) {
+    return [
+      TargetFocus(
+        identify: 'mv_tabs',
+        keyTarget: _kTabs,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (_, __) => Common().bubble(
+                strings!.get('mv_tabs_title') ?? 'Different markets',
+                strings.get('mv_tabs_body') ??
+                    'Switch between different markets: Shares, Crypto, and Forex. Tabs are scrollable and remember your last selection. Assets are displayed in their original order, and data refreshes automatically during the session.'
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'mv_anyasset',
+        keyTarget: _kAnyAsset,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (_, __) => Common().bubble(
+                strings!.get('mv_anyasset_title') ?? 'Asset',
+                strings.get('mv_anyasset_body') ??
+                    'Tap to open the candlestick chart with full timeframe control. Long press for quick actions like adding to favorites, placing exact-price bets, setting alerts, or viewing details.'
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Future<void> _tryStartMarketsTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    final pending = prefs.getBool(_pendingFlag) ?? false;
+    if (!pending) return;
+    await _waitForTargetsReady();
+    if (widget.controller.selectedIndexNotifier.value != 2) return;
+    await _startMarketsTutorial();
+  }
+
+  Future<void> _openAssetChart(FinancialAsset asset, {bool tutorialMode = false}) async {
+    Common().vibrate();
+    Common().applyImmersive();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      enableDrag: !tutorialMode,
+      builder: (BuildContext context) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.56,
+            child: OverflowBox(
+              alignment: Alignment.topCenter,
+              maxHeight: MediaQuery.of(context).size.height,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: CandlesticksView(
+                      ticker: asset.ticker,
+                      name: asset.name,
+                      controller: widget.controller,
+                      iconPath: asset.icon,
+                      tutorialMode: tutorialMode
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _startMarketsTutorial() async {
+    final strings = LocalizedStrings.of(context);
+    final currentTab = _tabController.index;
+    final assets = assetsPerTab[currentTab] ?? [];
+    if (assets.isNotEmpty) {
+      _anyAssetRef = assets.first;
+    }
+    if (mounted) {
+      setState(() {});
+    }
+    await Future.delayed(const Duration(milliseconds: 200));
+    final controller = _scrollControllers[currentTab];
+    if (controller != null && controller.hasClients) {
+      controller.jumpTo(0.0);
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+    await _waitForTargetsReady();
+    final targets = _buildMarketsTargets(strings)
+        .where((t) => t.keyTarget?.currentContext != null)
+        .toList();
+    if (targets.isEmpty) {
+      await _clearPending();
+      return;
+    }
+    _coach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.75,
+      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
+      hideSkip: false,
+      useSafeArea: true,
+      pulseEnable: true,
+      alignSkip: Alignment.bottomRight,
+      initialFocus: 0,
+      disableBackButton: true,
+      onClickTarget: (target) async {
+        try {
+          if (target.identify == 'mv_anyasset' && _anyAssetRef != null) {
+            final p = await SharedPreferences.getInstance();
+            await p.setBool('__tutorial_pending__candles_v1', true);
+            Future.delayed(const Duration(milliseconds: 200), () {
+              if (!mounted) return;
+              try {
+                _coach?.finish();
+              } catch (e) {
+                if (kDebugMode) {
+                  print("TutorialCoachMark error ${e.toString()}");
+                }
+              }
+            });
+            Future.delayed(const Duration(milliseconds: 400), () {
+              if (mounted && _anyAssetRef != null) {
+                final currentTab = _tabController.index;
+                _navigateToFirstAndOpen(currentTab);
+              }
+            });
+          }
+        } catch (_) {}
+      },
+      onClickOverlay: (target) async {
+        try {
+          if (target.identify == 'mv_tabs') {
+            final currentTab = _tabController.index;
+            final controller = _scrollControllers[currentTab];
+            if (controller != null && controller.hasClients) {
+              controller.jumpTo(0.0);
+              await Future.delayed(const Duration(milliseconds: 200));
+              if (mounted && _kAnyAsset.currentContext == null) {
+                for (int i = 0; i < 10; i++) {
+                  await Future.delayed(const Duration(milliseconds: 50));
+                  if (_kAnyAsset.currentContext != null) break;
+                }
+              }
+            }
+          }
+        } catch (_) {}
+      },
+      onSkip: () {
+        _clearPending();
+        _markSeen();
+        Common().markAllTutorialsSeen();
+        return true;
+      },
+      onFinish: () async {
+        await Future.delayed(const Duration(milliseconds: 150));
+        await _clearPending();
+        await _markSeen();
+      },
+    );
+    if (!mounted) return;
+    _coach!.show(context: context);
+  }
+}
+
+/// Fila de lista con carga asíncrona de precio cuando no viene del API.
+class _MarketListRow extends StatefulWidget {
+  final FinancialAsset asset;
+  final bool isFav;
+  final double? initialPrice;
+  final double? initialDailyGain;
+  final double? initialClose;
+  final bool dollarCurrency;
+  final Widget Function(FinancialAsset, double) assetFallbackBadge;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+
+  const _MarketListRow({
+    super.key,
+    required this.asset,
+    required this.isFav,
+    this.initialPrice,
+    this.initialDailyGain,
+    this.initialClose,
+    required this.dollarCurrency,
+    required this.assetFallbackBadge,
+    required this.onTap,
+    required this.onLongPress,
+  });
+
+  @override
+  State<_MarketListRow> createState() => _MarketListRowState();
+}
+
+class _MarketListRowState extends State<_MarketListRow> {
+  double? _loadedPrice;
+  double? _loadedDailyGain;
+  bool _loading = false;
+
+  double? get _price => _loadedPrice ?? widget.initialPrice;
+  double? get _dailyGain => _loadedDailyGain ?? widget.initialDailyGain;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_price == null) { _loadPrice(); }
+    else if (_dailyGain == null && _price != null && (widget.initialClose != null && widget.initialClose! > 0)) {
+      setState(() {
+        _loadedDailyGain = ((_price! - widget.initialClose!) / widget.initialClose!) * 100;
+      });
+    }
+  }
+
+  Future<void> _loadPrice() async {
+    if (_loading) return;
+    _loading = true;
+    try {
+      final currency = widget.dollarCurrency ? 'USD' : 'EUR';
+      final candles = await BetsService().fetchCandles(widget.asset.ticker, 1, currency);
+      if (!mounted) return;
+      if (candles.isNotEmpty) {
+        final current = candles.first.close;
+        double? gain;
+        if (candles.length > 1 && candles[1].close > 0) {
+          gain = ((current - candles[1].close) / candles[1].close) * 100;
+        }
+        setState(() {
+          _loadedPrice = current;
+          _loadedDailyGain = gain;
+        });
+      }
+    } finally {
+      if (mounted) _loading = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final price = _price;
+    final dailyGain = _dailyGain;
+    final isForex = Common().isTickerForex(widget.asset.ticker);
+    final currency = isForex ? '' : (widget.dollarCurrency ? '\$' : '€');
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: widget.onTap,
+        onLongPress: widget.onLongPress,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 80,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: widget.isFav
+                ? Colors.amber.withValues(alpha: 0.1)
+                : Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: widget.isFav ? Colors.amber.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.08),
+              width: 1,
+            ),
+          ),
+          clipBehavior: Clip.none,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: widget.asset.icon.isNotEmpty &&
+                        widget.asset.icon != "null" &&
+                        !widget.asset.icon.contains("http")
+                    ? Image.memory(
+                        base64Decode(widget.asset.icon),
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => widget.assetFallbackBadge(widget.asset, 48),
+                      )
+                    : widget.asset.icon.isNotEmpty && widget.asset.icon.contains("http")
+                        ? Image.network(
+                            widget.asset.icon,
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => widget.assetFallbackBadge(widget.asset, 48),
+                          )
+                        : widget.assetFallbackBadge(widget.asset, 48),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      widget.asset.name.split(' ').take(2).join(' '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.syncopate(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (_loading)
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white54),
+                          )
+                        else
+                          Text(
+                            price != null && price > 0
+                                ? '${price > 1 ? price.toStringAsFixed(2) : price.toStringAsFixed(4)}$currency'
+                                : '€',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: price != null && price > 0 ? Colors.white : Colors.white54,
+                            ),
+                          ),
+                        const SizedBox(width: 10),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (dailyGain != null)
+                              Icon(
+                                dailyGain >= 0 ? FontAwesomeIcons.arrowTrendUp : FontAwesomeIcons.arrowTrendDown,
+                                size: 14,
+                                color: dailyGain >= 0 ? const Color(0xFF00C853) : const Color(0xFFDC2626),
+                              ),
+                            if (dailyGain != null) const SizedBox(width: 4),
+                            Text(
+                              dailyGain != null
+                                  ? '${dailyGain.toStringAsFixed(2)}%'
+                                  : '—',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: dailyGain != null
+                                    ? (dailyGain >= 0 ? const Color(0xFF00C853) : const Color(0xFFDC2626))
+                                    : Colors.white54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+                  Expanded(
+                    flex: 2,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _MarketsOddZone(maxOdd: 1.5, direction: 0, currentPrice: _price ?? 0.0, timeframeHours: 24),
+                              const SizedBox(height: 14),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _MarketsOddZone(maxOdd: 1.5, direction: -1, currentPrice: _price ?? 0.0, timeframeHours: 4),
+                                  const SizedBox(width: 14),
+                                  _MarketsOddZone(maxOdd: 1.5, direction: 1, currentPrice: _price ?? 0.0, timeframeHours: 1),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              if (widget.isFav)
+                Positioned(
+                  top: -6,
+                  left: -6,
+                  child: Icon(FontAwesomeIcons.solidStar, size: 22, color: Colors.amber.shade300),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Zona de odds para la fila de mercados: copia local más grande (no reutiliza trends.dart).
+class _MarketsOddZone extends StatelessWidget {
+  final double maxOdd;
+  final int direction; // +1 verde, 0 amarillo, -1 rojo
+  final double currentPrice;
+  /// Timeframe en horas: 1, 2, 4 o 24 (se muestra "Xh" en la esquina superior izquierda).
+  final int timeframeHours;
+
+  const _MarketsOddZone({
+    required this.maxOdd,
+    required this.direction,
+    required this.currentPrice,
+    this.timeframeHours = 1,
+  });
+
+  Color _fillColor() {
+    if (direction == 1) return Colors.green.withValues(alpha: 1);
+    if (direction == -1) return Colors.red.withValues(alpha: 1);
+    return Colors.orange.withValues(alpha: 1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double w = 155;
+    const double h = 90;
+    return SizedBox(
+      width: w,
+      height: h,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          CustomPaint(
+            size: Size(w, h),
+            painter: _MarketsOddZonePainter(maxOdd: maxOdd, fillColor: _fillColor()),
+          ),
+          Positioned(
+            top: -4,
+            left: -15,
+            child: Text(
+              '${timeframeHours.clamp(1, 24)}H',
+              style: GoogleFonts.montserrat(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.w600,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    offset: const Offset(1, 1),
+                    blurRadius: 2,
+                  ),
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    offset: const Offset(0, 2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MarketsOddZonePainter extends CustomPainter {
+  final double maxOdd;
+  final Color fillColor;
+
+  _MarketsOddZonePainter({required this.maxOdd, required this.fillColor});
+
+  @override
+  bool shouldRepaint(covariant _MarketsOddZonePainter oldDelegate) =>
+      oldDelegate.maxOdd != maxOdd || oldDelegate.fillColor != fillColor;
+
+  Color oddsToColor(double odds, Color fillColor) {
+    const double minOdds = 1.0, maxOdds = 6.0;
+    final double clamped = odds.clamp(minOdds, maxOdds).toDouble();
+    const double minAlpha = 0.65, maxAlpha = 0.85;
+    final double t = (clamped - minOdds) / (maxOdds - minOdds);
+    return fillColor.withValues(alpha: minAlpha + (maxAlpha - minAlpha) * t);
+  }
+
+  Shader buildZoneShader(Color base, double odds, Rect rect) {
+    const double minOdds = 1.0, maxOdds = 6.0;
+    final double t = ((odds.clamp(minOdds, maxOdds) - minOdds) / (maxOdds - minOdds)).toDouble();
+    final hsl = HSLColor.fromColor(base);
+    final double baseLight = hsl.lightness;
+    final double darkFactor = lerpDouble(0.65, 0.8, t)!;
+    final double lightFactor = lerpDouble(1.02, 1.15, t)!;
+    const double transparencyFactor = 0.92;
+    final Color startColor = hsl
+        .withLightness((baseLight * darkFactor).clamp(0.0, 1.0))
+        .toColor()
+        .withValues(alpha: transparencyFactor);
+    final Color endColor = hsl
+        .withLightness((baseLight * lightFactor).clamp(0.0, 1.0))
+        .toColor()
+        .withValues(alpha: transparencyFactor);
+    return LinearGradient(
+      colors: [startColor, endColor],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ).createShader(rect);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    const rrectRadius = Radius.circular(45);
+    final RRect rrect = RRect.fromRectAndRadius(rect, rrectRadius);
+
+    // Mismo estilo de flotación que los RectangleZones del gráfico de candlesticks (RangePainter)
+    const double minOdds = 1.0, maxOdds = 6.0;
+    final double clampedOdds = maxOdd.clamp(minOdds, maxOdds).toDouble();
+    final double elevationFactor = (clampedOdds - minOdds) / (maxOdds - minOdds);
+    final double shadowOffset = 3.0 + (elevationFactor * 7.0);
+    final RRect shadowRrect = RRect.fromRectAndRadius(
+      rect.shift(Offset(shadowOffset, shadowOffset)),
+      rrectRadius,
+    );
+    final double shadowAlpha1 = 0.25 + (elevationFactor * 0.25);
+    final double shadowAlpha2 = 0.3 + (elevationFactor * 0.3);
+    final double blurRadius1 = 6.0 + (elevationFactor * 6.0);
+    final double blurRadius2 = 3.0 + (elevationFactor * 4.0);
+
+    final paintShadow1 = Paint()
+      ..isAntiAlias = true
+      ..color = Colors.black.withValues(alpha: shadowAlpha1)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurRadius1)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(shadowRrect, paintShadow1);
+    final paintShadow2 = Paint()
+      ..isAntiAlias = true
+      ..color = Colors.black.withValues(alpha: shadowAlpha2)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurRadius2)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(shadowRrect, paintShadow2);
+
+    final paintFill = Paint()
+      ..isAntiAlias = true
+      ..shader = buildZoneShader(fillColor, maxOdd, rect)
+      ..color = oddsToColor(maxOdd, fillColor)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(rrect, paintFill);
+
+    final paintBorder = Paint()
+      ..isAntiAlias = true
+      ..color = Colors.white.withValues(alpha: 0.12)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+    canvas.drawRRect(rrect, paintBorder);
+
+    const double fontSize = 35.0;
+    final oddsTextSpan = TextSpan(
+      text: 'x${maxOdd.toStringAsFixed(2)}',
+      style: GoogleFonts.montserrat(
+        color: Colors.white,
+        fontSize: fontSize,
+        fontWeight: FontWeight.w400,
+      ),
+    );
+    final textPainter = TextPainter(text: oddsTextSpan, textDirection: TextDirection.ltr);
+    textPainter.layout(minWidth: 0, maxWidth: size.width);
+    final textX = (size.width - textPainter.width) / 2;
+    final textY = (size.height - textPainter.height) / 2;
+    textPainter.paint(canvas, Offset(textX, textY));
+  }
+}
+
+//------ Helpers como extension de MarketsViewState
+extension _MarketsViewStateExtension on MarketsViewState {
   Widget _assetIcon(FinancialAsset a, {double size = 40}) {
     try {
       if (a.icon.isNotEmpty && !a.icon.startsWith('http')) {
@@ -627,389 +1428,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     }
     return group;
   }
-
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 1);
-    
-    // Listener para actualizar la referencia del primer elemento cuando cambia el tab
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        // Cuando el tab cambia, actualizar la referencia del primer elemento
-        final currentTab = _tabController.index;
-        final assets = assetsPerTab[currentTab] ?? [];
-        if (assets.isNotEmpty) {
-          _anyAssetRef = assets.first;
-        }
-        // Forzar rebuild para que el primer elemento del nuevo tab tenga la key
-        if (mounted) {
-          setState(() {});
-        }
-      }
-    });
-
-    _tabListener = () {
-      if (widget.controller.selectedIndexNotifier.value == 2) {
-        _tryStartMarketsTutorial();
-      }
-    };
-    widget.controller.selectedIndexNotifier.addListener(_tabListener);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.controller.selectedIndexNotifier.value == 2) {
-        _tryStartMarketsTutorial();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    widget.controller.selectedIndexNotifier.removeListener(_tabListener);
-    _tabController.dispose();
-    // Dispose de todos los ScrollControllers
-    for (var controller in _scrollControllers.values) {
-      controller.dispose();
-    }
-    _scrollControllers.clear();
-    // Cerrar el tutorial si está activo para evitar errores de AnimationController
-    try {
-      _coach?.finish();
-    } catch (_) {
-      // Ignorar errores si el tutorial ya se cerró
-    }
-    _coach = null;
-    super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (mounted && !_hasLoadedData) {
-      _initGroups();
-      _loadData();
-      _hasLoadedData = true;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return Column(
-      verticalDirection: VerticalDirection.up,
-      children: [
-        TabBar(
-          key: _kTabs,
-          onTap: (_) => Common().applyImmersive(),
-          indicatorColor: Colors.purple,
-          labelColor: Colors.white,
-          dividerColor: Colors.white30,
-          tabAlignment: TabAlignment.center,
-          isScrollable: true,
-          controller: _tabController,
-          labelStyle: GoogleFonts.montserrat(
-            fontSize: 26,
-            fontWeight: FontWeight.w400,
-          ),
-          labelPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
-          unselectedLabelStyle: GoogleFonts.montserrat(
-            fontSize: 20,
-            fontWeight: FontWeight.w300,
-          ),
-          tabs: groups.map((String group) => Tab(text: group)).toList(),
-        ),
-        const Divider(
-          color: Colors.white30,
-          thickness: 2,
-          height: 1,
-        ),
-        Expanded(
-          child: _isLoading
-              ? ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  itemCount: 10,
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Container(
-                      height: 90,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
-                )
-              : TabBarView(
-                  controller: _tabController,
-                  children: List.generate(groups.length, (index) {
-                    final List<FinancialAsset> assets = List.from(assetsPerTab[index] ?? []);
-                    // Ordenar: favoritos primero, luego por precio descendente
-                    assets.sort((a, b) {
-                      final aIsFav = _isFavTicker(a.ticker);
-                      final bIsFav = _isFavTicker(b.ticker);
-                      
-                      // Favoritos primero
-                      if (aIsFav && !bIsFav) return -1;
-                      if (!aIsFav && bIsFav) return 1;
-                      
-                      // Si ambos son favoritos o ambos no lo son, ordenar por precio
-                      final aTicker = a.ticker.toUpperCase().trim();
-                      final bTicker = b.ticker.toUpperCase().trim();
-                      final aPrice = _assetPrices[aTicker];
-                      final bPrice = _assetPrices[bTicker];
-                      
-                      // Si ambos tienen precio, ordenar descendente
-                      if (aPrice != null && bPrice != null) {
-                        return bPrice.compareTo(aPrice);
-                      }
-                      // Si solo uno tiene precio, el que tiene precio va primero
-                      if (aPrice != null && bPrice == null) return -1;
-                      if (aPrice == null && bPrice != null) return 1;
-                      // Si ninguno tiene precio, mantener orden original
-                      return 0;
-                    });
-                    return _buildLeafCardLayout(assets, index);
-                  }),
-                ),
-        ),
-      ],
-    );
-  }
-
-  //------ T U T O R I A L      M E T H O D S -----
-  Future<void> _markSeen() async {
-    final p = await SharedPreferences.getInstance();
-    await p.setBool(_seenFlag, true);
-  }
-
-  Future<void> _clearPending() async {
-    final p = await SharedPreferences.getInstance();
-    await p.remove(_pendingFlag);
-  }
-
-  Future<void> _waitForTargetsReady() async {
-    for (int i = 0; i < 30; i++) {
-      final ready = _kTabs.currentContext != null && _kAnyAsset.currentContext != null;
-      if (ready) break;
-    }
-  }
-
-  List<TargetFocus> _buildMarketsTargets(LocalizedStrings? strings) {
-    return [
-      TargetFocus(
-        identify: 'mv_tabs',
-        keyTarget: _kTabs,
-        shape: ShapeLightFocus.RRect,
-        radius: 12,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (_, __) => Common().bubble(
-                strings!.get('mv_tabs_title') ?? 'Different markets',
-                strings.get('mv_tabs_body') ??
-                    'Switch between different markets: Shares, Crypto, and Forex. Tabs are scrollable and remember your last selection. Assets are displayed in their original order, and data refreshes automatically during the session.'
-            ),
-          ),
-        ],
-      ),
-
-      TargetFocus(
-        identify: 'mv_anyasset',
-        keyTarget: _kAnyAsset,
-        shape: ShapeLightFocus.RRect,
-        radius: 12,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (_, __) => Common().bubble(
-                strings!.get('mv_anyasset_title') ?? 'Asset',
-                strings.get('mv_anyasset_body') ??
-                    'Tap to open the candlestick chart with full timeframe control. Long press for quick actions like adding to favorites, placing exact-price bets, setting alerts, or viewing details.'
-            ),
-          ),
-        ],
-      ),
-
-    ];
-  }
-
-  Future<void> _tryStartMarketsTutorial() async {
-
-    final prefs = await SharedPreferences.getInstance();
-    final pending = prefs.getBool(_pendingFlag) ?? false;
-    if (!pending) return;
-
-    await _waitForTargetsReady();
-
-    if (widget.controller.selectedIndexNotifier.value != 2) return;
-    await _startMarketsTutorial();
-  }
-
-  /// Opens the candlestick chart view for an asset in a modal bottom sheet.
-  ///
-  /// [asset] The financial asset to display chart for.
-  /// [tutorialMode] If `true`, disables drag-to-dismiss for tutorial purposes.
-  Future<void> _openAssetChart(FinancialAsset asset, {bool tutorialMode = false}) async {
-    Common().vibrate();
-    Common().applyImmersive();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      enableDrag: !tutorialMode,
-      builder: (BuildContext context) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.56,
-            child: OverflowBox(
-              alignment: Alignment.topCenter,
-              maxHeight: MediaQuery.of(context).size.height,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: CandlesticksView(
-                      ticker: asset.ticker,
-                      name: asset.name,
-                      controller: widget.controller,
-                      iconPath: asset.icon,
-                      tutorialMode: tutorialMode
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-
-  }
-
-  Future<void> _startMarketsTutorial() async {
-    final strings = LocalizedStrings.of(context);
-    
-    // Asegurarse de que el primer elemento del tab activo esté visible antes de iniciar el tutorial
-    final currentTab = _tabController.index;
-    final assets = assetsPerTab[currentTab] ?? [];
-    if (assets.isNotEmpty) {
-      _anyAssetRef = assets.first;
-    }
-    
-    // Forzar rebuild para asegurar que el primer elemento tenga la key
-    if (mounted) {
-      setState(() {});
-    }
-    
-    // Esperar un momento para que el layout se actualice
-    await Future.delayed(const Duration(milliseconds: 200));
-    
-    final controller = _scrollControllers[currentTab];
-    if (controller != null && controller.hasClients) {
-      controller.jumpTo(0.0);
-      // Esperar un momento más para que el scroll termine
-      await Future.delayed(const Duration(milliseconds: 200));
-    }
-    
-    // Esperar a que los targets estén listos
-    await _waitForTargetsReady();
-    
-    final targets = _buildMarketsTargets(strings)
-        .where((t) => t.keyTarget?.currentContext != null)
-        .toList();
-
-    if (targets.isEmpty) {
-      await _clearPending();
-      return;
-    }
-
-    _coach = TutorialCoachMark(
-      targets: targets,
-      colorShadow: Colors.black,
-      opacityShadow: 0.75,
-      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
-      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
-      hideSkip: false,
-      useSafeArea: true,
-      pulseEnable: true,
-      alignSkip: Alignment.bottomRight,
-      initialFocus: 0,
-      disableBackButton: true,
-      onClickTarget: (target) async {
-        try {
-          // No hacer nada en onClickTarget para el primer target, dejar que el tutorial avance automáticamente
-          // La navegación al primer elemento se maneja en onClickOverlay
-          if (target.identify == 'mv_anyasset' && _anyAssetRef != null) {
-            final p = await SharedPreferences.getInstance();
-            await p.setBool('__tutorial_pending__candles_v1', true);
-
-            // Cerrar el tutorial de forma segura antes de abrir el gráfico
-            // Usar un pequeño delay para asegurar que las animaciones actuales terminen
-            Future.delayed(const Duration(milliseconds: 200), () {
-              if (!mounted) return;
-              try {
-                _coach?.finish();
-              } catch (e) {
-                // Ignorar errores si el tutorial ya se cerró o fue eliminado
-              }
-            });
-            
-            // Abrir el gráfico después de un pequeño delay adicional
-            Future.delayed(const Duration(milliseconds: 400), () {
-              if (mounted && _anyAssetRef != null) {
-                final currentTab = _tabController.index;
-                _navigateToFirstAndOpen(currentTab);
-              }
-            });
-          }
-        } catch (_) {}
-      },
-      onClickOverlay: (target) async {
-        // Cuando se hace clic en el overlay del primer target, navegar al primer elemento
-        // para asegurarnos de que esté visible cuando el tutorial avance al siguiente paso
-        try {
-          if (target.identify == 'mv_tabs') {
-            final currentTab = _tabController.index;
-            final controller = _scrollControllers[currentTab];
-            if (controller != null && controller.hasClients) {
-              // Navegar al primer elemento inmediatamente
-              controller.jumpTo(0.0);
-              // Esperar un momento para que el layout se actualice
-              await Future.delayed(const Duration(milliseconds: 200));
-              
-              // Verificar que el target esté listo antes de que el tutorial avance
-              if (mounted && _kAnyAsset.currentContext == null) {
-                // Esperar un poco más si el target aún no está listo
-                for (int i = 0; i < 10; i++) {
-                  await Future.delayed(const Duration(milliseconds: 50));
-                  if (_kAnyAsset.currentContext != null) break;
-                }
-              }
-            }
-          }
-        } catch (_) {}
-      },
-      onSkip: () {
-        _clearPending();
-        _markSeen();
-        Common().markAllTutorialsSeen();
-        return true;
-      },
-      onFinish: () async {
-        await Future.delayed(const Duration(milliseconds: 150));
-        await _clearPending();
-        await _markSeen();
-      },
-    );
-
-    if (!mounted) return;
-    _coach!.show(context: context);
-  }
-
 }
-
 //------ ARC SELECTOR WIDGET
 
 /// A widget that displays financial assets in an arc selector interface.
@@ -1060,13 +1479,13 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
   double _lastIndex = 0.0;
   VoidCallback? _animationListener;
   
-  static const double _rotationSensitivity = 0.02; // Sensibilidad de rotación
-  static const double _friction = 0.92; // Fricción para inercia
-  static const double _minVelocity = 0.5; // Velocidad mínima para continuar
-  static const int _visibleItems = 5; // Número de elementos visibles a la vez
+  static const double _rotationSensitivity = 0.02; // Sensibilidad de rotacion
+  static const double _friction = 0.92; // Friccion para inercia
+  static const double _minVelocity = 0.5; // Velocidad minima para continuar
+  static const int _visibleItems = 5; // Numero de elementos visibles a la vez
   
-  // Índice base que representa el elemento central
-  double _baseIndex = 0.0; // Usamos double para permitir valores fraccionarios durante animación
+  // Indice base que representa el elemento central
+  double _baseIndex = 0.0; // Usamos double para permitir valores fraccionarios durante animacion
 
   @override
   void initState() {
@@ -1100,7 +1519,7 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
     
     if (deltaTime > 0 && widget.assets.isNotEmpty) {
       final deltaX = details.globalPosition.dx - _dragStartX;
-      // Convertir desplazamiento horizontal a cambio de índice
+      // Convertir desplazamiento horizontal a cambio de Indice
       final newIndex = _dragStartRotation - (deltaX * _rotationSensitivity);
       
       final deltaIndex = newIndex - _lastIndex;
@@ -1180,7 +1599,7 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
       _rotationAnimation!.removeListener(_animationListener!);
     }
     
-    // Snap al índice más cercano
+    // Snap al Indice mas cercano
     final targetIndex = _baseIndex.round().clamp(0, widget.assets.length - 1).toDouble();
     
     final tween = Tween<double>(
@@ -1209,14 +1628,14 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
     });
   }
 
-  // Determinar qué elementos están visibles
+  // Determinar que elementos estan visibles
   List<int> _getVisibleIndices() {
     if (widget.assets.isEmpty) return [];
     
     final centerOffset = (_visibleItems - 1) / 2;
     final baseIndexInt = _baseIndex.round();
     
-    // Obtener índices visibles alrededor del base (2 antes, base, 2 después = 5 total)
+    // Obtener Índices visibles alrededor del base (2 antes, base, 2 despues = 5 total)
     final visibleIndices = <int>[];
     for (int i = 0; i < _visibleItems; i++) {
       final index = baseIndexInt + i - centerOffset.round();
@@ -1231,7 +1650,7 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
   Widget _buildAssetTile(FinancialAsset? asset, int assetIndex, int positionInVisible, Size size) {
     if (asset == null && !widget.isSkeleton) return const SizedBox.shrink();
     
-    // Parámetros del arco
+    // Parametros del arco
     final centerX = size.width / 2;
     final centerY = size.height * 0.35;
     final radius = math.min(size.width, size.height) * 0.38;
@@ -1242,20 +1661,20 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
     final anglePerItem = arcAngle / (_visibleItems - 1);
     final centerOffset = (_visibleItems - 1) / 2.0;
     
-    // Calcular posición relativa del elemento en el arco visible
+    // Calcular posicion relativa del elemento en el arco visible
     final relativePosition = positionInVisible - centerOffset;
     
-    // Calcular el offset fraccional desde el índice base
+    // Calcular el offset fraccional desde el Índice base
     final fractionalOffset = _baseIndex - _baseIndex.round();
     
-    // Ángulo del elemento ajustado por el offset fraccional
+    // Angulo del elemento ajustado por el offset fraccional
     final adjustedPosition = relativePosition - fractionalOffset;
     final itemAngle = startAngle + (centerOffset * anglePerItem) + (adjustedPosition * anglePerItem);
     
-    // Normalizar al rango [0, 2π]
+    // Normalizar al rango [0, 2Ï€]
     final normalizedAngle = (itemAngle % (math.pi * 2) + (math.pi * 2)) % (math.pi * 2);
     
-    // Calcular posición en el arco
+    // Calcular posicion en el arco
     final x = centerX + radius * math.cos(normalizedAngle);
     final y = centerY + radius * math.sin(normalizedAngle);
     
@@ -1428,7 +1847,7 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
       builder: (context, constraints) {
         final size = Size(constraints.maxWidth, constraints.maxHeight);
         
-        // Obtener solo los índices visibles
+        // Obtener solo los Índices visibles
         final visibleIndices = widget.isSkeleton 
             ? List.generate(math.min(_visibleItems, widget.assets.length), (i) => i)
             : _getVisibleIndices();
@@ -1467,7 +1886,7 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
 class _ArcPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    // Opcional: dibujar guía del arco si se necesita
+    // Opcional: dibujar guÍa del arco si se necesita
     final paint = Paint()
       ..color = Colors.white.withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
@@ -1476,7 +1895,7 @@ class _ArcPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height * 0.3);
     final radius = math.min(size.width, size.height) * 0.32;
     
-    // Dibujar arco guía (semicírculo superior)
+    // Dibujar arco guÍa (semicÍrculo superior)
     final rect = Rect.fromCircle(center: center, radius: radius);
     canvas.drawArc(
       rect,
@@ -1510,21 +1929,23 @@ class _LeafCardWidget extends StatefulWidget {
   final Function(BuildContext, FinancialAsset) onShowDetails;
   final Widget Function(FinancialAsset, double) assetFallbackBadge;
   final Function(FinancialAsset)? onNavigateToFirst;
+  /// Compact layout for grid/carousel cells (icon on top, vertical).
+  final bool compact;
 
   const _LeafCardWidget({
-    super.key,
     required this.asset,
     required this.isFav,
     required this.index,
     required this.dollarCurrency,
-    this.currentPrice,
-    this.closePrice,
-    this.dailyGain,
+    this.currentPrice, // ignore: unused_element_parameter
+    this.closePrice, // ignore: unused_element_parameter
+    this.dailyGain, // ignore: unused_element_parameter
     required this.onAssetChart,
     required this.onToggleFavorite,
     required this.onShowDetails,
     required this.assetFallbackBadge,
-    this.onNavigateToFirst,
+    this.onNavigateToFirst, // ignore: unused_element_parameter
+    this.compact = false, // ignore: unused_element_parameter
   });
 
   @override
@@ -1536,8 +1957,8 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
   double? _currentPrice;
   double? _dailyGain;
   bool _isLoadingPrice = true;
-  String _currency = '€';
-  bool _hasLoadedAsync = false; // Track si ya se cargaron de forma asíncrona
+  String _currency = 'â‚¬';
+  bool _hasLoadedAsync = false; // Track si ya se cargaron de forma asÍncrona
 
   @override
   bool get wantKeepAlive => true;
@@ -1545,9 +1966,9 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
   @override
   void initState() {
     super.initState();
-    // Para Forex, no mostrar símbolo de moneda
+    // Para Forex, no mostrar sÍmbolo de moneda
     final isForex = Common().isTickerForex(widget.asset.ticker);
-    _currency = isForex ? '' : (widget.dollarCurrency ? '\$' : '€');
+    _currency = isForex ? '' : (widget.dollarCurrency ? '\$' : 'â‚¬');
     _updatePricesFromWidget();
   }
 
@@ -1567,7 +1988,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
   void _updatePricesFromWidget() {
     // Actualizar moneda si cambia
     final isForex = Common().isTickerForex(widget.asset.ticker);
-    final newCurrency = isForex ? '' : (widget.dollarCurrency ? '\$' : '€');
+    final newCurrency = isForex ? '' : (widget.dollarCurrency ? '\$' : 'â‚¬');
     
     // Usar precios pasados directamente desde el widget padre
     if (widget.currentPrice != null && widget.currentPrice! > 0) {
@@ -1580,24 +2001,24 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
         _hasLoadedAsync = false; // Resetear flag ya que tenemos precios del widget
       });
     } else if (!_hasLoadedAsync) {
-      // Si no hay precios pasados y aún no se han cargado de forma asíncrona, intentar cargarlos
+      // Si no hay precios pasados y aun no se han cargado de forma asÍncrona, intentar cargarlos
       setState(() {
         _currency = newCurrency;
       });
       _loadPriceData();
     } else {
-      // Ya se cargaron de forma asíncrona, solo actualizar moneda
+      // Ya se cargaron de forma asÍncrona, solo actualizar moneda
       setState(() {
         _currency = newCurrency;
       });
     }
   }
 
-  // Método helper para obtener los precios actuales (prioriza widget, luego estado interno)
+  // Metodo helper para obtener los precios actuales (prioriza widget, luego estado interno)
   double? get _effectiveCurrentPrice => widget.currentPrice ?? _currentPrice;
   double? get _effectiveClosePrice => widget.closePrice ?? _closePrice;
   double? get _effectiveDailyGain => widget.dailyGain ?? _dailyGain;
-  // Solo mostrar loading si no hay precio efectivo Y aún está cargando
+  // Solo mostrar loading si no hay precio efectivo Y aun esta cargando
   bool get _effectiveIsLoading => _effectiveCurrentPrice == null && _isLoadingPrice;
 
   /// Loads price data for the asset, preferring preloaded data if available.
@@ -1639,7 +2060,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
           final currentCandle = candles.first;
           final previousCandle = candles.length > 1 ? candles[1] : currentCandle;
           
-          // Validar que los precios sean válidos y no sospechosos
+          // Validar que los precios sean validos y no sospechosos
           final currentPrice = currentCandle.close;
           final previousPrice = previousCandle.close;
           
@@ -1653,7 +2074,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
                 !previousPrice.isNaN &&
                 previousPrice != 1.0 &&
                 !(currentPrice == 1.0 && previousPrice == 1.0)) {
-              // Tenemos ambos precios válidos
+              // Tenemos ambos precios validos
               setState(() {
                 _currentPrice = currentPrice;
                 _closePrice = previousPrice;
@@ -1662,7 +2083,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
                 _hasLoadedAsync = true;
               });
             } else {
-              // Solo tenemos precio actual válido
+              // Solo tenemos precio actual valido
               setState(() {
                 _currentPrice = currentPrice;
                 _isLoadingPrice = false;
@@ -1670,7 +2091,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
               });
             }
           } else {
-            // Si los precios no son válidos, marcar como no cargado
+            // Si los precios no son validos, marcar como no cargado
             if (mounted) {
               setState(() {
                 _isLoadingPrice = false;
@@ -1699,180 +2120,299 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    super.build(context); // Necesario para AutomaticKeepAliveClientMixin
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 400 + (widget.index * 40).clamp(0, 800)),
-      curve: Curves.easeOut,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
-          child: Opacity(
-            opacity: value,
-            child: child,
-          ),
-        );
-      },
+  Widget _buildCompactCard() {
+    return SizedBox.expand(
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
+        padding: EdgeInsets.zero,
         child: Stack(
+          fit: StackFit.expand,
           clipBehavior: Clip.none,
           children: [
             Material(
-              clipBehavior: Clip.none,
+              clipBehavior: Clip.antiAlias,
               color: Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(8),
               child: InkWell(
-                borderRadius: BorderRadius.circular(20),
-                highlightColor: Colors.white.withValues(alpha: .1),
-                splashColor: Colors.white.withValues(alpha: .05),
-                onTap: () {
-                  widget.onAssetChart(widget.asset);
-                },
-                onLongPress: () {
-                  Common().vibrate();
-                  Common().applyImmersive();
-                  showModalBottomSheet(
-                    context: context,
-                    backgroundColor: Colors.black.withValues(alpha: 0.75),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                    ),
-                    builder: (BuildContext context) {
-                      return SafeArea(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (widget.onNavigateToFirst != null)
-                              ListTile(
-                                dense: false,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                leading: const Icon(Icons.show_chart),
-                                title: Text(
-                                  LocalizedStrings.of(context)?.get('viewChartTutorial') ?? 'Ver tutorial sobre el gráfico',
-                                  style: GoogleFonts.montserrat(),
-                                ),
-                                onTap: () async {
-                                  Navigator.pop(context);
-                                  // Establecer el flag del tutorial antes de abrir el gráfico
-                                  final prefs = await SharedPreferences.getInstance();
-                                  await prefs.setBool('__tutorial_pending__candles_v1', true);
-                                  await prefs.setBool('__tutorial_from_menu__candles_v1', true);
-                                  widget.onNavigateToFirst!(widget.asset);
-                                },
-                              ),
-                            ListTile(
-                              dense: false,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              leading: Icon(
-                                widget.isFav ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
-                                color: Colors.white70,
-                              ),
-                              title: Text(
-                                (widget.isFav
-                                    ? LocalizedStrings.of(context)!.get('removeFromFavorites')!
-                                    : LocalizedStrings.of(context)!.get('addToFavorites')!),
-                                style: GoogleFonts.montserrat(),
-                              ),
-                              onTap: () {
-                                Navigator.pop(context);
-                                widget.onToggleFavorite(widget.asset.ticker);
-                              },
-                            ),
-                            ListTile(
-                              dense: false,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              leading: const Icon(FontAwesomeIcons.crosshairs),
-                              title: Text(
-                                LocalizedStrings.of(context)!.get('exactPriceBets') ?? "Exact price bets",
-                                style: GoogleFonts.montserrat(),
-                              ),
-                              onTap: () async {
-                                final navigator = Navigator.of(context);
-                                List<Candle> candles = await BetsService().fetchCandles(
-                                  widget.asset.ticker,
-                                  1,
-                                  widget.dollarCurrency ? 'USD' : 'EUR',
-                                );
-                                if (!mounted) return;
-                                navigator.push(
-                                  MaterialPageRoute(
-                                    builder: (context) => ExactPricePage(
-                                      name: widget.asset.name,
-                                      ticker: widget.asset.ticker,
-                                      currentValue: candles.first.close,
-                                      iconPath: widget.asset.icon,
-                                      isForex: Common().isTickerForex(widget.asset.ticker),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            ListTile(
-                              dense: false,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              leading: const Icon(Icons.info_outline),
-                              title: Text(
-                                LocalizedStrings.of(context)!.get('viewDetails') ?? "View details",
-                                style: GoogleFonts.montserrat()),
-                              onTap: () {
-                                Navigator.pop(context);
-                                widget.onShowDetails(context, widget.asset);
-                              }
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => widget.onAssetChart(widget.asset),
+                onLongPress: () => _showAssetBottomSheet(),
                 child: Container(
+                  padding: const EdgeInsets.fromLTRB(6, 6, 8, 6),
                   decoration: BoxDecoration(
                     color: widget.isFav
-                        ? Colors.amber.withValues(alpha: 0.15)
+                        ? Colors.amber.withValues(alpha: 0.12)
                         : Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: widget.isFav
-                          ? Colors.yellow.withValues(alpha: 0.4)
+                          ? Colors.yellow.withValues(alpha: 0.35)
                           : Colors.white.withValues(alpha: 0.1),
                       width: 1,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 8,
-                        spreadRadius: 0,
-                        offset: const Offset(0, 2),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: widget.asset.icon.isNotEmpty &&
+                                widget.asset.icon != "null" &&
+                                !widget.asset.icon.contains("http")
+                            ? Image.memory(
+                                base64Decode(widget.asset.icon),
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) =>
+                                    widget.assetFallbackBadge(widget.asset, 40),
+                              )
+                            : widget.asset.icon.isNotEmpty &&
+                                    widget.asset.icon.contains("http")
+                                ? Image.network(
+                                    widget.asset.icon,
+                                    width: 40,
+                                    height: 40,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, __, ___) =>
+                                        widget.assetFallbackBadge(widget.asset, 40),
+                                  )
+                                : widget.assetFallbackBadge(widget.asset, 40),
                       ),
-                      if (widget.isFav)
-                        BoxShadow(
-                          color: Colors.yellow.withValues(alpha: 0.1),
-                          blurRadius: 12,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 0),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.asset.name.split(' ').take(2).join(' '),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.syncopate(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w300,
+                                color: Colors.white,
+                              ),
+                            ),
+                            if (!_effectiveIsLoading && _effectiveCurrentPrice != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                '${(_effectiveCurrentPrice! > 1 ? _effectiveCurrentPrice!.toStringAsFixed(2) : _effectiveCurrentPrice!.toStringAsFixed(4))}$_currency',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: _effectiveDailyGain != null && _effectiveDailyGain! >= 0.0
+                                      ? const Color(0xFF00C853)
+                                      : (_effectiveDailyGain != null
+                                          ? const Color(0xFFDC2626)
+                                          : Colors.white),
+                                ),
+                              ),
+                            ],
+                            if (!_effectiveIsLoading && _effectiveDailyGain != null) ...[
+                              const SizedBox(height: 1),
+                              Text(
+                                '${_effectiveDailyGain! >= 0 ? '+' : ''}${_effectiveDailyGain!.toStringAsFixed(2)}%',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _effectiveDailyGain! >= 0.0
+                                      ? const Color(0xFF00C853)
+                                      : const Color(0xFFDC2626),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
+                      ),
                     ],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 25.0),
-                    child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
+                ),
+              ),
+            ),
+            if (widget.isFav)
+              Positioned(
+                top: -1,
+                right: -1,
+                child: Icon(FontAwesomeIcons.solidStar, size: 10, color: Colors.amber.shade300),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAssetBottomSheet() {
+    Common().vibrate();
+    Common().applyImmersive();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black.withValues(alpha: 0.75),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.onNavigateToFirst != null)
+                ListTile(
+                  dense: false,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  leading: const Icon(Icons.show_chart),
+                  title: Text(
+                    LocalizedStrings.of(context)?.get('viewChartTutorial') ??
+                        'Ver tutorial sobre el grafico',
+                    style: GoogleFonts.montserrat(),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('__tutorial_pending__candles_v1', true);
+                    await prefs.setBool('__tutorial_from_menu__candles_v1', true);
+                    widget.onNavigateToFirst!(widget.asset);
+                  },
+                ),
+              ListTile(
+                dense: false,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                leading: Icon(
+                  widget.isFav ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
+                  color: Colors.white70,
+                ),
+                title: Text(
+                  (widget.isFav
+                      ? LocalizedStrings.of(context)!.get('removeFromFavorites')!
+                      : LocalizedStrings.of(context)!.get('addToFavorites')!),
+                  style: GoogleFonts.montserrat(),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onToggleFavorite(widget.asset.ticker);
+                },
+              ),
+              ListTile(
+                dense: false,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                leading: const Icon(FontAwesomeIcons.crosshairs),
+                title: Text(
+                  LocalizedStrings.of(context)!.get('exactPriceBets') ?? "Exact price bets",
+                  style: GoogleFonts.montserrat(),
+                ),
+                onTap: () async {
+                  final navigator = Navigator.of(context);
+                  List<Candle> candles = await BetsService().fetchCandles(
+                    widget.asset.ticker,
+                    1,
+                    widget.dollarCurrency ? 'USD' : 'EUR',
+                  );
+                  if (!mounted) return;
+                  navigator.push(
+                    MaterialPageRoute(
+                      builder: (context) => ExactPricePage(
+                        name: widget.asset.name,
+                        ticker: widget.asset.ticker,
+                        currentValue: candles.first.close,
+                        iconPath: widget.asset.icon,
+                        isForex: Common().isTickerForex(widget.asset.ticker),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                dense: false,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                leading: const Icon(Icons.info_outline),
+                title: Text(
+                  LocalizedStrings.of(context)!.get('viewDetails') ?? "View details",
+                  style: GoogleFonts.montserrat(),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onShowDetails(context, widget.asset);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ignore: unused_local_variable - required by AutomaticKeepAliveClientMixin
+    super.build(context);
+    final Duration duration = Duration(milliseconds: 400 + (widget.index * 40).clamp(0, 800));
+    final Widget child = widget.compact
+        ? _buildCompactCard()
+        : Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Material(
+                  clipBehavior: Clip.none,
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    highlightColor: Colors.white.withValues(alpha: .1),
+                    splashColor: Colors.white.withValues(alpha: .05),
+                    onTap: () {
+                      widget.onAssetChart(widget.asset);
+                    },
+                    onLongPress: () => _showAssetBottomSheet(),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: widget.isFav
+                            ? Colors.amber.withValues(alpha: 0.15)
+                            : Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: widget.isFav
+                              ? Colors.yellow.withValues(alpha: 0.4)
+                              : Colors.white.withValues(alpha: 0.1),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 8,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 2),
+                          ),
+                          if (widget.isFav)
+                            BoxShadow(
+                              color: Colors.yellow.withValues(alpha: 0.1),
+                              blurRadius: 12,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 0),
+                            ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 25.0),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // Información en dos líneas centradas
+                              // Informacion en dos lÍneas centradas
                               Expanded(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // Primera línea: Nombre
+                                    // Primera lÍnea: Nombre
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -1900,7 +2440,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
                                         ],
                                       ],
                                     ),
-                                    // Segunda línea: Precios centrados
+                                    // Segunda lÍnea: Precios centrados
                                     if (!_effectiveIsLoading && _effectiveCurrentPrice != null)
                                       Transform.translate(
                                         offset: const Offset(-20, 0),
@@ -1919,7 +2459,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
-                                                '→',
+                                                'â†’',
                                                 style: GoogleFonts.montserrat(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w500,
@@ -2028,8 +2568,19 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
               ),
             ],
           ),
-        )
       );
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: duration,
+      curve: Curves.easeOut,
+      builder: (BuildContext context, double value, Widget? animChild) {
+        return Transform.translate(
+          offset: Offset(0, 30 * (1 - value)),
+          child: Opacity(opacity: value, child: animChild),
+        );
+      },
+      child: child,
+    );
   }
 }
 

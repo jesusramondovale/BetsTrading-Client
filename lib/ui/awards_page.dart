@@ -43,7 +43,6 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   String? _userId;
   double _userPoints = 0;
   String _userCountry = "none";
-  String _currency = "eur";
   List<RaffleItem> _raffleItems = [];
   static const double _rowExtent = 45;
   static const double _rowGap = 8;
@@ -59,7 +58,6 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   /// Fetches user information, points, country, currency preference,
   /// and available raffle items from the server.
   Future<void> loadUserIdAndData() async {
-    final prefs = await SharedPreferences.getInstance();
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     await BetsService().getUserInfo(userId);
     final userCountry = await _storage.read(key: "country") ?? "none";
@@ -70,11 +68,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
       {'userId': userId},
     );
     final body = raffleItemsResponse['body'];
-    if (prefs.getBool('dollarCurrency') ?? false) {
-      _currency = "usd";
-    } else {
-      _currency = "eur";
-    }
+
     List<RaffleItem> parsedRaffleItems = [];
     if (body is List) {
       parsedRaffleItems = body
@@ -501,12 +495,12 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                                 controller: _tabController,
                                 children: [
                                   _buildTopUsersView(
-                                    _currency == "eur" ? Config.top5RewardsEur : Config.top5RewardsUsd,
+                                    Config.top5Rewards,
                                     rowExtent: rowExtent,
                                     rowGap: rowGap,
                                   ),
                                   _buildTopUsersView(
-                                    _currency == "eur" ? Config.top5RewardsEur : Config.top5RewardsUsd,
+                                    Config.top5Rewards,
                                     userCountry: _userCountry,
                                     rowExtent: rowExtent,
                                     rowGap: rowGap,
@@ -1240,7 +1234,7 @@ class _TopUsersSkeleton extends StatelessWidget {
       separatorBuilder: (_, __) => SizedBox(height: gap),
       itemBuilder: (_, index) {
         final rank = index + 1;
-        final prize = rank <= Config.top5RewardsEur.length ? Config.top5RewardsEur[rank - 1] : '';
+        final prize = rank <= Config.top5Rewards.length ? Config.top5Rewards[rank - 1] : '';
 
         return Container(
           height: rowExtent,

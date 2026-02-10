@@ -24,16 +24,26 @@ class FinancialAsset {
     this.dailyGain,
   });
 
+  static double? _parseDouble(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v);
+    return null;
+  }
+
   factory FinancialAsset.fromJson(Map<String, dynamic> json) {
+    final current = _parseDouble(json['current']) ?? _parseDouble(json['price']) ?? _parseDouble(json['last']);
+    final close = _parseDouble(json['close']) ?? _parseDouble(json['previousClose']);
+    final dailyGain = _parseDouble(json['dailyGain']) ?? _parseDouble(json['changePercent']) ?? _parseDouble(json['variation']);
     return FinancialAsset(
       name: (json['name']?.toString()) ?? '',
       group: (json['group']?.toString()) ?? '',
       icon: (json['icon']?.toString()) ?? '',
       country: (json['country']?.toString()) ?? '',
       ticker: (json['ticker']?.toString()) ?? '',
-      current: json['current'] != null ? (json['current'] as num).toDouble() : null,
-      close: json['close'] != null ? (json['close'] as num).toDouble() : null,
-      dailyGain: json['dailyGain'] != null ? (json['dailyGain'] as num).toDouble() : null,
+      current: current,
+      close: close,
+      dailyGain: dailyGain,
     );
   }
 

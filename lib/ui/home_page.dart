@@ -95,11 +95,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
 
       // Actualizar datos del usuario primero (solo si cambió)
-      bool userDataChanged = false;
       if (_userId != (userId != "none" ? userId : null) ||
           _userPoints != (double.tryParse(userPoints) ?? 0) ||
           _dollarCurrency != dollarCurrency) {
-        userDataChanged = true;
         setState(() {
           _userId = userId != "none" ? userId : null;
           _userPoints = double.tryParse(userPoints) ?? 0;

@@ -254,9 +254,9 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
       _potentialPrize = _betAmount * zone.odds;
       final maxPoints = double.parse(_points ?? '0.0');
       final minBet = _minBetAmount;
-      // El botÃ³n estÃ¡ habilitado solo si el valor es vÃ¡lido (al menos el mÃnimo y no mayor al mÃ¡ximo permitido)
-      // Permitir mÃ¡ximo + 1 pero mostrarlo en rojo (deshabilitado)
-      // TambiÃ©n debe estar desbloqueado
+      // El boton esta habilitado solo si el valor es valido (al menos el minimo y no mayor al maximo permitido)
+      // Permitir maximo + 1 pero mostrarlo en rojo (deshabilitado)
+      // Tambien debe estar desbloqueado
       _isAcceptButtonEnabled =
           !_isBlocked &&
           _betAmount >= minBet &&
@@ -265,14 +265,14 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
   }
 
   Widget _buildBetDetails(BuildContext context) {
-    // Ya no necesitamos este widget, la informaciÃ³n estÃ¡ en el header
+    // Ya no necesitamos este widget, la informacion esta en el header
     return const SizedBox.shrink();
   }
 
   Widget _buildBetMultiplier(BuildContext context, BoxConstraints constraints) {
     final strings = LocalizedStrings.of(context);
     final maxPoints = double.parse(_points ?? '0.0');
-    // El tachado solo aparece cuando el valor es mayor al mÃ¡ximo permitido (mÃ¡ximo + 1)
+    // El tachado solo aparece cuando el valor es mayor al maximo permitido (maximo + 1)
     final shouldShowStrikethrough = _betAmount > maxPoints;
     final mediaQuery = MediaQuery.of(context);
     final screenHeight = mediaQuery.size.height;
@@ -320,7 +320,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
         Padding(
           padding: EdgeInsets.symmetric(horizontal: (20.0 * scaleFactor).clamp(12.0, 24.0)),
           child: BetAmountSelector(
-            key: ValueKey(_points), // Forzar reconstrucciÃ³n cuando cambien los puntos
+            key: ValueKey(_points), // Forzar reconstruccion cuando cambien los puntos
             minValue: _minBetAmount,
             maxValue: maxPoints.floor().toDouble(),
             initialValue: _betAmount < _minBetAmount ? _minBetAmount : _betAmount,
@@ -511,8 +511,8 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
   /// Formats the time as hours, minutes, and seconds. Blocks betting if time expires.
   void _updateCountdown() {
     final now = DateTime.now().toUtc();
-    // Asegurar que las fechas estÃ©n en UTC para comparaciÃ³n correcta
-    // Si ya estÃ¡n en UTC, no hacer conversiÃ³n (evita doble conversiÃ³n incorrecta)
+    // Asegurar que las fechas estan en UTC para comparacion correcta
+    // Si ya estan en UTC, no hacer conversion (evita doble conversion incorrecta)
     final rawStartDate = _currentZone?.startDate ?? widget.zone.startDate;
     final startDate = rawStartDate.isUtc ? rawStartDate : rawStartDate.toUtc();
 
@@ -654,7 +654,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
           
           setState(() {
             _currentZone = newZone;
-            // Actualizar el premio potencial si cambiÃ³ el odds
+            // Actualizar el premio potencial si cambio el odds
             _potentialPrize = _betAmount * newZone.odds;
           });
           
@@ -706,7 +706,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                   ),
                 ),
               ),
-              // Contenido de la pÃ¡gina
+              // Contenido de la pagina
               SafeArea(
                 child: Column(
                   children: [
@@ -823,7 +823,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                   ),
                   Stack(
                     children: [
-                    // PatrÃ³n decorativo de fondo
+                    // Patron decorativo de fondo
                     Positioned.fill(
                       child: CustomPaint(
                         painter: _ZonePatternPainter(
@@ -847,7 +847,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                         ),
                       ),
                     ),
-                    // Precio alto - mÃ¡s arriba
+                    // Precio alto - mas arriba
                     Positioned(
                       top: headerHeight * 0.18,
                       left: 0,
@@ -942,7 +942,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                         ),
                       ),
                     ),
-                    // Precio bajo - mÃ¡s abajo
+                    // Precio bajo - mas abajo
                     Positioned(
                       bottom: headerHeight * 0.18,
                       left: 0,
@@ -988,7 +988,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                         ],
                       ),
                     ),
-                    // Tarjetas flotantes de informaciÃ³n
+                    // Tarjetas flotantes de informacion
                     Positioned(
                       top: 8 * scaleFactor,
                       left: 8 * scaleFactor,
@@ -1279,7 +1279,7 @@ class _ZonePatternPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 
-    // Dibujar lÃ­neas diagonales sutiles
+    // Dibujar lineas diagonales sutiles
     for (int i = 0; i < 20; i++) {
       final y = (size.height / 20) * i;
       canvas.drawLine(
