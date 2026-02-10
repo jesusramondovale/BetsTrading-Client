@@ -1203,8 +1203,8 @@ class Common {
       Map<String, dynamic> data,
       {clearingOnForbidden = true, includeJwt = true}
       ) async {
+    final client = HttpClient();
     try {
-      final client = HttpClient();
       final url = Uri.parse(
           "https://${Config.publicDomain}/api/$controller/$endpoint");
       final HttpClientRequest request = await client.postUrl(url);
@@ -1216,7 +1216,12 @@ class Common {
         request.headers.set('Authorization', 'Bearer $jwtToken');
       }
 
-      request.write(jsonEncode(data));
+      try {
+        request.write(jsonEncode(data));
+      } on StateError catch (e) {
+        // "Bad State: Cannot add event after closing" - conexión cerrada antes de escribir el body
+        return {'statusCode': 500, 'body': {'message': 'Connection closed before send'}};
+      }
 
       final HttpClientResponse response = await request.close();
       final String responseBody = await response.transform(utf8.decoder).join();
@@ -1238,10 +1243,6 @@ class Common {
           body = jsonDecode(responseBody);
           // If body is a List, wrap it or keep it as is (client expects it directly in response['body'])
         } catch (e) {
-          if (kDebugMode) {
-            print('Error decoding JSON response: $e');
-            print('Response body: ${responseBody.substring(0, responseBody.length > 200 ? 200 : responseBody.length)}');
-          }
           body = {'message': 'Invalid JSON response from server', 'error': e.toString()};
         }
       }
@@ -1255,8 +1256,12 @@ class Common {
         return {'statusCode': 503, 'body': {}};
       }
       return {'statusCode': 500, 'body': {}};
+    } on StateError catch (e) {
+      return {'statusCode': 500, 'body': {'message': 'Connection error: ${e.message}'}};
     } catch (e) {
       return {'statusCode': 500, 'body': {}};
+    } finally {
+      client.close(force: true);
     }
   }
 

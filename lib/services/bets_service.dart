@@ -130,8 +130,8 @@ class BetsService {
   }
 
   Future<Favorites> fetchFavouritesData(String userId, String currency) async {
-    final response =
-        await Common().postRequestWrapper('Info', 'Favorites', {});
+    final response = await Common().postRequestWrapper(
+        'Info', 'Favorites', {'currency': currency});
     if (response['statusCode'] == 200) {
       List<Favorite> favorites = (response['body']['favorites'] as List)
           .map((json) => Favorite.fromJson(json))
@@ -174,8 +174,10 @@ class BetsService {
   }
 
   Future<bool> postNewFavorite(String userId, String ticker) async {
+    // Normalizar ticker para coincidir con el backend (evitar duplicados por mayúsculas/minúsculas)
+    final normalizedTicker = (ticker ?? '').trim().toUpperCase();
     final response = await Common().postRequestWrapper(
-        'Info', 'NewFavorite', {'userId': userId, 'ticker': ticker});
+        'Info', 'NewFavorite', {'userId': userId, 'ticker': normalizedTicker});
     return response['statusCode'] == 200;
   }
 
