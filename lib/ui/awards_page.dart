@@ -43,7 +43,6 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   String? _userId;
   double _userPoints = 0;
   String _userCountry = "none";
-  String _currency = "eur";
   List<RaffleItem> _raffleItems = [];
   static const double _rowExtent = 45;
   static const double _rowGap = 8;
@@ -59,7 +58,6 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   /// Fetches user information, points, country, currency preference,
   /// and available raffle items from the server.
   Future<void> loadUserIdAndData() async {
-    final prefs = await SharedPreferences.getInstance();
     final userId = await _storage.read(key: "sessionToken") ?? "none";
     await BetsService().getUserInfo(userId);
     final userCountry = await _storage.read(key: "country") ?? "none";
@@ -70,11 +68,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
       {'userId': userId},
     );
     final body = raffleItemsResponse['body'];
-    if (prefs.getBool('dollarCurrency') ?? false) {
-      _currency = "usd";
-    } else {
-      _currency = "eur";
-    }
+
     List<RaffleItem> parsedRaffleItems = [];
     if (body is List) {
       parsedRaffleItems = body

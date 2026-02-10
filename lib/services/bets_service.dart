@@ -175,7 +175,7 @@ class BetsService {
 
   Future<bool> postNewFavorite(String userId, String ticker) async {
     // Normalizar ticker para coincidir con el backend (evitar duplicados por mayúsculas/minúsculas)
-    final normalizedTicker = (ticker ?? '').trim().toUpperCase();
+    final normalizedTicker = (ticker).trim().toUpperCase();
     final response = await Common().postRequestWrapper(
         'Info', 'NewFavorite', {'userId': userId, 'ticker': normalizedTicker});
     return response['statusCode'] == 200;

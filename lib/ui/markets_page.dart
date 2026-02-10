@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:betrader/services/assets_service.dart';
 import 'package:country_flags/country_flags.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -31,7 +32,7 @@ class MarketsView extends StatefulWidget {
   @override
   MarketsViewState createState() => MarketsViewState();
 
-  // Variables estÃ¡ticas para almacenar datos precargados
+  // Variables estaticas para almacenar datos precargados
   static Map<int, List<FinancialAsset>>? _preloadedAssets;
   static Map<String, double>? _preloadedPrices;
   static Map<String, double>? _preloadedPreviousPrices; // Precios anteriores para calcular porcentajes
@@ -46,7 +47,7 @@ class MarketsView extends StatefulWidget {
   /// If already preloading, waits for the current preload to complete.
   static Future<void> preloadAllMarketData() async {
     if (_isPreloading) {
-      // Si ya se estÃ¡ precargando, esperar a que termine
+      // Si ya se esta precargando, esperar a que termine
       while (_isPreloading) {
         await Future.delayed(const Duration(milliseconds: 100));
       }
@@ -151,7 +152,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Map<int, List<FinancialAsset>> assetsPerTab = {};
   Map<String, double> _assetPrices = {};
-  Set<String> _loadedPriceTickers = {}; // Track quÃ© tickers ya tienen precio cargado
+  Set<String> _loadedPriceTickers = {}; // Track tickers ya tienen precio cargado
   bool _isLoading = true;
   bool _hasLoadedData = false;
   Set<String> _favTickers = {};
@@ -558,37 +559,9 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     );
   }
 
-  /// Builds the same card in compact mode for grid/carousel.
-  Widget _buildLeafCardCompact({
-    required FinancialAsset asset,
-    required bool isFav,
-    required int index,
-    required int tabIndex,
-  }) {
-    final tickerKey = asset.ticker.toUpperCase().trim();
-    final currentPrice = asset.current;
-    final closePrice = asset.close;
-    final dailyGain = asset.dailyGain;
-    final fallbackPrice = _assetPrices[tickerKey];
-    return _LeafCardWidget(
-      key: ValueKey('compact_${asset.ticker}'),
-      asset: asset,
-      isFav: isFav,
-      index: index,
-      dollarCurrency: _dollarCurrency,
-      currentPrice: currentPrice ?? fallbackPrice,
-      closePrice: closePrice,
-      dailyGain: dailyGain,
-      onAssetChart: _openAssetChart,
-      onToggleFavorite: toggleFavorite,
-      onShowDetails: _showAssetDetails,
-      assetFallbackBadge: _assetFallbackBadge,
-      onNavigateToFirst: (asset) => _openAssetChart(asset, tutorialMode: true),
-      compact: true,
-    );
-  }
 
-  /// Navega al primer elemento de la lista y abre su grÃ¡fico.
+
+  /// Navega al primer elemento de la lista y abre su grafico.
   void _navigateToFirstAndOpen(int tabIndex) {
     final controller = _scrollControllers[tabIndex];
     if (controller != null && controller.hasClients) {
@@ -931,7 +904,11 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
               if (!mounted) return;
               try {
                 _coach?.finish();
-              } catch (e) {}
+              } catch (e) {
+                if (kDebugMode) {
+                  print("TutorialCoachMark error ${e.toString()}");
+                }
+              }
             });
             Future.delayed(const Duration(milliseconds: 400), () {
               if (mounted && _anyAssetRef != null) {
@@ -1017,7 +994,7 @@ class _MarketListRowState extends State<_MarketListRow> {
   @override
   void initState() {
     super.initState();
-    if (_price == null) _loadPrice();
+    if (_price == null) { _loadPrice(); }
     else if (_dailyGain == null && _price != null && (widget.initialClose != null && widget.initialClose! > 0)) {
       setState(() {
         _loadedDailyGain = ((_price! - widget.initialClose!) / widget.initialClose!) * 100;
@@ -1147,20 +1124,20 @@ class _MarketListRowState extends State<_MarketListRow> {
                           children: [
                             if (dailyGain != null)
                               Icon(
-                                dailyGain! >= 0 ? FontAwesomeIcons.arrowTrendUp : FontAwesomeIcons.arrowTrendDown,
+                                dailyGain >= 0 ? FontAwesomeIcons.arrowTrendUp : FontAwesomeIcons.arrowTrendDown,
                                 size: 14,
-                                color: dailyGain! >= 0 ? const Color(0xFF00C853) : const Color(0xFFDC2626),
+                                color: dailyGain >= 0 ? const Color(0xFF00C853) : const Color(0xFFDC2626),
                               ),
                             if (dailyGain != null) const SizedBox(width: 4),
                             Text(
                               dailyGain != null
-                                  ? '${dailyGain!.toStringAsFixed(2)}%'
+                                  ? '${dailyGain.toStringAsFixed(2)}%'
                                   : '—',
                               style: GoogleFonts.montserrat(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: dailyGain != null
-                                    ? (dailyGain! >= 0 ? const Color(0xFF00C853) : const Color(0xFFDC2626))
+                                    ? (dailyGain >= 0 ? const Color(0xFF00C853) : const Color(0xFFDC2626))
                                     : Colors.white54,
                               ),
                             ),
@@ -1502,13 +1479,13 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
   double _lastIndex = 0.0;
   VoidCallback? _animationListener;
   
-  static const double _rotationSensitivity = 0.02; // Sensibilidad de rotaciÃ³n
-  static const double _friction = 0.92; // FricciÃ³n para inercia
-  static const double _minVelocity = 0.5; // Velocidad mÃ­nima para continuar
-  static const int _visibleItems = 5; // NÃºmero de elementos visibles a la vez
+  static const double _rotationSensitivity = 0.02; // Sensibilidad de rotacion
+  static const double _friction = 0.92; // Friccion para inercia
+  static const double _minVelocity = 0.5; // Velocidad minima para continuar
+  static const int _visibleItems = 5; // Numero de elementos visibles a la vez
   
-  // Ãndice base que representa el elemento central
-  double _baseIndex = 0.0; // Usamos double para permitir valores fraccionarios durante animaciÃ³n
+  // Indice base que representa el elemento central
+  double _baseIndex = 0.0; // Usamos double para permitir valores fraccionarios durante animacion
 
   @override
   void initState() {
@@ -1542,7 +1519,7 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
     
     if (deltaTime > 0 && widget.assets.isNotEmpty) {
       final deltaX = details.globalPosition.dx - _dragStartX;
-      // Convertir desplazamiento horizontal a cambio de Ã­ndice
+      // Convertir desplazamiento horizontal a cambio de Indice
       final newIndex = _dragStartRotation - (deltaX * _rotationSensitivity);
       
       final deltaIndex = newIndex - _lastIndex;
@@ -1622,7 +1599,7 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
       _rotationAnimation!.removeListener(_animationListener!);
     }
     
-    // Snap al Ã­ndice mÃ¡s cercano
+    // Snap al Indice mas cercano
     final targetIndex = _baseIndex.round().clamp(0, widget.assets.length - 1).toDouble();
     
     final tween = Tween<double>(
@@ -1651,14 +1628,14 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
     });
   }
 
-  // Determinar quÃ© elementos estÃ¡n visibles
+  // Determinar que elementos estan visibles
   List<int> _getVisibleIndices() {
     if (widget.assets.isEmpty) return [];
     
     final centerOffset = (_visibleItems - 1) / 2;
     final baseIndexInt = _baseIndex.round();
     
-    // Obtener Ã­ndices visibles alrededor del base (2 antes, base, 2 despuÃ©s = 5 total)
+    // Obtener Índices visibles alrededor del base (2 antes, base, 2 despues = 5 total)
     final visibleIndices = <int>[];
     for (int i = 0; i < _visibleItems; i++) {
       final index = baseIndexInt + i - centerOffset.round();
@@ -1673,7 +1650,7 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
   Widget _buildAssetTile(FinancialAsset? asset, int assetIndex, int positionInVisible, Size size) {
     if (asset == null && !widget.isSkeleton) return const SizedBox.shrink();
     
-    // ParÃ¡metros del arco
+    // Parametros del arco
     final centerX = size.width / 2;
     final centerY = size.height * 0.35;
     final radius = math.min(size.width, size.height) * 0.38;
@@ -1684,24 +1661,24 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
     final anglePerItem = arcAngle / (_visibleItems - 1);
     final centerOffset = (_visibleItems - 1) / 2.0;
     
-    // Calcular posiciÃ³n relativa del elemento en el arco visible
+    // Calcular posicion relativa del elemento en el arco visible
     final relativePosition = positionInVisible - centerOffset;
     
-    // Calcular el offset fraccional desde el Ã­ndice base
+    // Calcular el offset fraccional desde el Índice base
     final fractionalOffset = _baseIndex - _baseIndex.round();
     
-    // Ãngulo del elemento ajustado por el offset fraccional
+    // Angulo del elemento ajustado por el offset fraccional
     final adjustedPosition = relativePosition - fractionalOffset;
     final itemAngle = startAngle + (centerOffset * anglePerItem) + (adjustedPosition * anglePerItem);
     
     // Normalizar al rango [0, 2Ï€]
     final normalizedAngle = (itemAngle % (math.pi * 2) + (math.pi * 2)) % (math.pi * 2);
     
-    // Calcular posiciÃ³n en el arco
+    // Calcular posicion en el arco
     final x = centerX + radius * math.cos(normalizedAngle);
     final y = centerY + radius * math.sin(normalizedAngle);
     
-    // TamaÃ±o del tile
+    // Tamaño del tile
     const tileSize = 110.0;
     const tileHalf = tileSize / 2;
 
@@ -1870,7 +1847,7 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
       builder: (context, constraints) {
         final size = Size(constraints.maxWidth, constraints.maxHeight);
         
-        // Obtener solo los Ã­ndices visibles
+        // Obtener solo los Índices visibles
         final visibleIndices = widget.isSkeleton 
             ? List.generate(math.min(_visibleItems, widget.assets.length), (i) => i)
             : _getVisibleIndices();
@@ -1909,7 +1886,7 @@ class _ArcSelectorState extends State<ArcSelector> with SingleTickerProviderStat
 class _ArcPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    // Opcional: dibujar guÃ­a del arco si se necesita
+    // Opcional: dibujar guÍa del arco si se necesita
     final paint = Paint()
       ..color = Colors.white.withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
@@ -1918,7 +1895,7 @@ class _ArcPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height * 0.3);
     final radius = math.min(size.width, size.height) * 0.32;
     
-    // Dibujar arco guÃ­a (semicÃ­rculo superior)
+    // Dibujar arco guÍa (semicÍrculo superior)
     final rect = Rect.fromCircle(center: center, radius: radius);
     canvas.drawArc(
       rect,
@@ -1956,20 +1933,19 @@ class _LeafCardWidget extends StatefulWidget {
   final bool compact;
 
   const _LeafCardWidget({
-    super.key,
     required this.asset,
     required this.isFav,
     required this.index,
     required this.dollarCurrency,
-    this.currentPrice,
-    this.closePrice,
-    this.dailyGain,
+    this.currentPrice, // ignore: unused_element_parameter
+    this.closePrice, // ignore: unused_element_parameter
+    this.dailyGain, // ignore: unused_element_parameter
     required this.onAssetChart,
     required this.onToggleFavorite,
     required this.onShowDetails,
     required this.assetFallbackBadge,
-    this.onNavigateToFirst,
-    this.compact = false,
+    this.onNavigateToFirst, // ignore: unused_element_parameter
+    this.compact = false, // ignore: unused_element_parameter
   });
 
   @override
@@ -1982,7 +1958,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
   double? _dailyGain;
   bool _isLoadingPrice = true;
   String _currency = 'â‚¬';
-  bool _hasLoadedAsync = false; // Track si ya se cargaron de forma asÃ­ncrona
+  bool _hasLoadedAsync = false; // Track si ya se cargaron de forma asÍncrona
 
   @override
   bool get wantKeepAlive => true;
@@ -1990,7 +1966,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
   @override
   void initState() {
     super.initState();
-    // Para Forex, no mostrar sÃ­mbolo de moneda
+    // Para Forex, no mostrar sÍmbolo de moneda
     final isForex = Common().isTickerForex(widget.asset.ticker);
     _currency = isForex ? '' : (widget.dollarCurrency ? '\$' : 'â‚¬');
     _updatePricesFromWidget();
@@ -2025,24 +2001,24 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
         _hasLoadedAsync = false; // Resetear flag ya que tenemos precios del widget
       });
     } else if (!_hasLoadedAsync) {
-      // Si no hay precios pasados y aÃºn no se han cargado de forma asÃ­ncrona, intentar cargarlos
+      // Si no hay precios pasados y aun no se han cargado de forma asÍncrona, intentar cargarlos
       setState(() {
         _currency = newCurrency;
       });
       _loadPriceData();
     } else {
-      // Ya se cargaron de forma asÃ­ncrona, solo actualizar moneda
+      // Ya se cargaron de forma asÍncrona, solo actualizar moneda
       setState(() {
         _currency = newCurrency;
       });
     }
   }
 
-  // MÃ©todo helper para obtener los precios actuales (prioriza widget, luego estado interno)
+  // Metodo helper para obtener los precios actuales (prioriza widget, luego estado interno)
   double? get _effectiveCurrentPrice => widget.currentPrice ?? _currentPrice;
   double? get _effectiveClosePrice => widget.closePrice ?? _closePrice;
   double? get _effectiveDailyGain => widget.dailyGain ?? _dailyGain;
-  // Solo mostrar loading si no hay precio efectivo Y aÃºn estÃ¡ cargando
+  // Solo mostrar loading si no hay precio efectivo Y aun esta cargando
   bool get _effectiveIsLoading => _effectiveCurrentPrice == null && _isLoadingPrice;
 
   /// Loads price data for the asset, preferring preloaded data if available.
@@ -2084,7 +2060,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
           final currentCandle = candles.first;
           final previousCandle = candles.length > 1 ? candles[1] : currentCandle;
           
-          // Validar que los precios sean vÃ¡lidos y no sospechosos
+          // Validar que los precios sean validos y no sospechosos
           final currentPrice = currentCandle.close;
           final previousPrice = previousCandle.close;
           
@@ -2098,7 +2074,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
                 !previousPrice.isNaN &&
                 previousPrice != 1.0 &&
                 !(currentPrice == 1.0 && previousPrice == 1.0)) {
-              // Tenemos ambos precios vÃ¡lidos
+              // Tenemos ambos precios validos
               setState(() {
                 _currentPrice = currentPrice;
                 _closePrice = previousPrice;
@@ -2107,7 +2083,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
                 _hasLoadedAsync = true;
               });
             } else {
-              // Solo tenemos precio actual vÃ¡lido
+              // Solo tenemos precio actual valido
               setState(() {
                 _currentPrice = currentPrice;
                 _isLoadingPrice = false;
@@ -2115,7 +2091,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
               });
             }
           } else {
-            // Si los precios no son vÃ¡lidos, marcar como no cargado
+            // Si los precios no son validos, marcar como no cargado
             if (mounted) {
               setState(() {
                 _isLoadingPrice = false;
@@ -2290,7 +2266,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
                   leading: const Icon(Icons.show_chart),
                   title: Text(
                     LocalizedStrings.of(context)?.get('viewChartTutorial') ??
-                        'Ver tutorial sobre el grÃ¡fico',
+                        'Ver tutorial sobre el grafico',
                     style: GoogleFonts.montserrat(),
                   ),
                   onTap: () async {
@@ -2429,14 +2405,14 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // InformaciÃ³n en dos lÃ­neas centradas
+                              // Informacion en dos lÍneas centradas
                               Expanded(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // Primera lÃ­nea: Nombre
+                                    // Primera lÍnea: Nombre
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -2464,7 +2440,7 @@ class _LeafCardWidgetState extends State<_LeafCardWidget> with AutomaticKeepAliv
                                         ],
                                       ],
                                     ),
-                                    // Segunda lÃ­nea: Precios centrados
+                                    // Segunda lÍnea: Precios centrados
                                     if (!_effectiveIsLoading && _effectiveCurrentPrice != null)
                                       Transform.translate(
                                         offset: const Offset(-20, 0),

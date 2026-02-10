@@ -764,7 +764,7 @@ class MaxOddRectangleZone extends StatelessWidget {
   final double currentPrice;
   final bool isLarge;
 
-  const MaxOddRectangleZone({
+  const MaxOddRectangleZone({super.key,
     required this.maxOdd,
     required this.direction,
     required this.currentPrice,

@@ -1218,9 +1218,8 @@ class Common {
 
       try {
         request.write(jsonEncode(data));
-      } on StateError catch (e) {
-        // "Bad State: Cannot add event after closing" - conexión cerrada antes de escribir el body
-        return {'statusCode': 500, 'body': {'message': 'Connection closed before send'}};
+      } on StateError catch (e){
+        return {'statusCode': 500, 'body': {'message': 'Connection closed before send. Exception: ${e.message}'}};
       }
 
       final HttpClientResponse response = await request.close();
