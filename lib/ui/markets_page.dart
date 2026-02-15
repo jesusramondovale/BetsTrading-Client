@@ -799,7 +799,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     for (int i = 0; i < 30; i++) {
       final tabIndex = _tabController.index;
       final anyKey = tabIndex < _kAnyAssetByTab.length ? _kAnyAssetByTab[tabIndex] : null;
-      final ready = _kTabs.currentContext != null && (anyKey?.currentContext != null ?? false);
+      final ready = _kTabs.currentContext != null && (anyKey?.currentContext != null);
       if (ready) break;
     }
   }

@@ -15,6 +15,8 @@ import '../services/bets_service.dart';
 import '../ui/candlesticks_view.dart';
 import '../ui/layout_page.dart';
 
+import 'trends.dart';
+
 class Favorite {
   final String id;
   final String name;
@@ -24,11 +26,14 @@ class Favorite {
   final double current;
   final String userId;
   final String ticker;
+  final double? currentMaxOdd;
+  final int? currentMaxOddDirection;
 
   Favorite(this.id, this.icon, this.dailyGain, this.name, this.close,
-      this.current, this.userId, this.ticker);
+      this.current, this.userId, this.ticker, {this.currentMaxOdd, this.currentMaxOddDirection});
 
   static double _d(dynamic v) => (v == null) ? 0.0 : (v as num).toDouble();
+  static int? _toIntOrNull(dynamic v) => (v == null) ? null : (v as num).toInt();
 
   Favorite.fromJson(Map<String, dynamic> json)
       : id = (json['id']?.toString()) ?? '',
@@ -38,7 +43,9 @@ class Favorite {
         close = _d(json['close']),
         current = _d(json['current']),
         userId = (json['userId']?.toString()) ?? '',
-        ticker = (json['ticker']?.toString()) ?? '';
+        ticker = (json['ticker']?.toString()) ?? '',
+        currentMaxOdd = json['currentMaxOdd'] != null ? _d(json['currentMaxOdd']) : null,
+        currentMaxOddDirection = _toIntOrNull(json['currentMaxOddDirection']);
 }
 
 class Favorites {
@@ -247,7 +254,17 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                               ),
                             ],
                           ),
-
+                          const SizedBox(height: 12),
+                          Row(mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              MaxOddRectangleZone(
+                                maxOdd: widget.favorite.currentMaxOdd ?? widget.favorite.current,
+                                direction: widget.favorite.currentMaxOddDirection ??
+                                    (widget.favorite.dailyGain >= 0 ? 1 : -1),
+                                currentPrice: widget.favorite.current,
+                                isLarge: true,
+                              ),
+                            ],),
                           Row(
                             children: [
                               Column(
