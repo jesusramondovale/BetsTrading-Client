@@ -38,6 +38,8 @@ class MarketsView extends StatefulWidget {
   static Map<String, double>? _preloadedPreviousPrices; // Precios anteriores para calcular porcentajes
   static Map<String, double>? _preloadedDailyGains; // Porcentajes calculados
   static Set<String>? _preloadedFavTickers;
+  /// Max odds por ticker y timeframe (1, 2, 4, 24) desde backend.
+  static Map<String, Map<int, ({double maxOdd, int direction})>>? _preloadedMaxOdds;
   static bool _isPreloading = false;
 
   /// Preloads all market data before displaying the view.
@@ -85,7 +87,17 @@ class MarketsView extends StatefulWidget {
           .map((f) => f.ticker.toUpperCase().trim())
           .where((t) => t.isNotEmpty)
           .toSet();
-      
+
+      // Cargar max odds por ticker/timeframe (requiere token)
+      Map<String, Map<int, ({double maxOdd, int direction})>>? maxOddsMap;
+      if (token.isNotEmpty) {
+        try {
+          maxOddsMap = await BetsService().fetchMaxOdds(currency);
+        } catch (_) {
+          maxOddsMap = null;
+        }
+      }
+
       // Extraer precios directamente de los assets (ya vienen del backend)
       final allAssets = assetsPerTab.values.expand((list) => list).toList();
       final Map<String, double> prices = {};
@@ -111,6 +123,7 @@ class MarketsView extends StatefulWidget {
       _preloadedPreviousPrices = previousPrices;
       _preloadedDailyGains = dailyGains;
       _preloadedFavTickers = favTickers;
+      _preloadedMaxOdds = maxOddsMap;
     } finally {
       _isPreloading = false;
     }
@@ -130,7 +143,10 @@ class MarketsView extends StatefulWidget {
   
   /// Gets preloaded favorite tickers set.
   static Set<String>? getPreloadedFavTickers() => _preloadedFavTickers;
-  
+
+  /// Gets preloaded max odds by ticker and timeframe (1, 2, 4, 24).
+  static Map<String, Map<int, ({double maxOdd, int direction})>>? getPreloadedMaxOdds() => _preloadedMaxOdds;
+
   /// Clears all preloaded market data.
   ///
   /// Should be called when data becomes stale or when memory needs to be freed.
@@ -140,13 +156,15 @@ class MarketsView extends StatefulWidget {
     _preloadedPreviousPrices = null;
     _preloadedDailyGains = null;
     _preloadedFavTickers = null;
+    _preloadedMaxOdds = null;
   }
 }
 
 class MarketsViewState extends State<MarketsView> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
   final _kTabs = GlobalKey();
-  final _kAnyAsset = GlobalKey();
+  /// Una GlobalKey por tab para el primer ítem; evita "key specified multiple times" al cambiar de tab.
+  final List<GlobalKey> _kAnyAssetByTab = List.generate(3, (_) => GlobalKey());
   FinancialAsset? _anyAssetRef;
   List<String> groups = [];
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -444,9 +462,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                   final asset = assets[index];
                   final isFav = _isFavTicker(asset.ticker);
                   Widget row = _buildMarketListRow(asset, index, tabIndex, isFav);
-                  if (index == 0 && tabIndex == _tabController.index) {
+                  if (index == 0) {
                     _anyAssetRef = asset;
-                    row = KeyedSubtree(key: _kAnyAsset, child: row);
+                    final key = tabIndex < _kAnyAssetByTab.length ? _kAnyAssetByTab[tabIndex] : null;
+                    if (key != null) row = KeyedSubtree(key: key, child: row);
                   }
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
@@ -472,6 +491,10 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       final prev = asset.close ?? MarketsView.getPreloadedPreviousPrices()?[tickerKey];
       if (prev != null && prev > 0) dailyGain = ((price - prev) / prev) * 100;
     }
+    final maxOddsAll = MarketsView.getPreloadedMaxOdds();
+    final maxOddsForTicker = maxOddsAll == null
+        ? null
+        : (maxOddsAll[asset.ticker] ?? maxOddsAll[asset.ticker.toUpperCase()] ?? maxOddsAll[asset.ticker.toLowerCase()]);
     return _MarketListRow(
       key: ValueKey(asset.ticker),
       asset: asset,
@@ -483,6 +506,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       assetFallbackBadge: _assetFallbackBadge,
       onTap: () => _openAssetChart(asset),
       onLongPress: () => _showMarketRowBottomSheet(asset, isFav),
+      maxOddsByTimeframe: maxOddsForTicker,
     );
   }
 
@@ -773,7 +797,9 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
 
   Future<void> _waitForTargetsReady() async {
     for (int i = 0; i < 30; i++) {
-      final ready = _kTabs.currentContext != null && _kAnyAsset.currentContext != null;
+      final tabIndex = _tabController.index;
+      final anyKey = tabIndex < _kAnyAssetByTab.length ? _kAnyAssetByTab[tabIndex] : null;
+      final ready = _kTabs.currentContext != null && (anyKey?.currentContext != null ?? false);
       if (ready) break;
     }
   }
@@ -798,7 +824,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       ),
       TargetFocus(
         identify: 'mv_anyasset',
-        keyTarget: _kAnyAsset,
+        keyTarget: _kAnyAssetByTab[_tabController.index.clamp(0, _kAnyAssetByTab.length - 1)],
         shape: ShapeLightFocus.RRect,
         radius: 12,
         contents: [
@@ -927,10 +953,11 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
             if (controller != null && controller.hasClients) {
               controller.jumpTo(0.0);
               await Future.delayed(const Duration(milliseconds: 200));
-              if (mounted && _kAnyAsset.currentContext == null) {
+              final ki = _tabController.index.clamp(0, _kAnyAssetByTab.length - 1);
+              if (mounted && _kAnyAssetByTab[ki].currentContext == null) {
                 for (int i = 0; i < 10; i++) {
                   await Future.delayed(const Duration(milliseconds: 50));
-                  if (_kAnyAsset.currentContext != null) break;
+                  if (_kAnyAssetByTab[ki].currentContext != null) break;
                 }
               }
             }
@@ -965,6 +992,8 @@ class _MarketListRow extends StatefulWidget {
   final Widget Function(FinancialAsset, double) assetFallbackBadge;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  /// Max odds por timeframe (1, 2, 4, 24) para este ticker; si null se usan valores por defecto.
+  final Map<int, ({double maxOdd, int direction})>? maxOddsByTimeframe;
 
   const _MarketListRow({
     super.key,
@@ -977,6 +1006,7 @@ class _MarketListRow extends StatefulWidget {
     required this.assetFallbackBadge,
     required this.onTap,
     required this.onLongPress,
+    this.maxOddsByTimeframe,
   });
 
   @override
@@ -1152,20 +1182,24 @@ class _MarketListRowState extends State<_MarketListRow> {
                     flex: 2,
                     child: LayoutBuilder(
                       builder: (context, constraints) {
+                        final mo = widget.maxOddsByTimeframe;
+                        final o24 = mo?[24] ?? (maxOdd: 1.0, direction: 0);
+                        final o4 = mo?[4] ?? (maxOdd: 1.0, direction: 0);
+                        final o1 = mo?[1] ?? (maxOdd: 1.0, direction: 0);
                         return FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              _MarketsOddZone(maxOdd: 1.5, direction: 0, currentPrice: _price ?? 0.0, timeframeHours: 24),
+                              _MarketsOddZone(maxOdd: o24.maxOdd, direction: o24.direction, currentPrice: _price ?? 0.0, timeframeHours: 24),
                               const SizedBox(height: 14),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  _MarketsOddZone(maxOdd: 1.5, direction: -1, currentPrice: _price ?? 0.0, timeframeHours: 4),
+                                  _MarketsOddZone(maxOdd: o4.maxOdd, direction: o4.direction, currentPrice: _price ?? 0.0, timeframeHours: 4),
                                   const SizedBox(width: 14),
-                                  _MarketsOddZone(maxOdd: 1.5, direction: 1, currentPrice: _price ?? 0.0, timeframeHours: 1),
+                                  _MarketsOddZone(maxOdd: o1.maxOdd, direction: o1.direction, currentPrice: _price ?? 0.0, timeframeHours: 1),
                                 ],
                               ),
                             ],

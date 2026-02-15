@@ -204,6 +204,47 @@ class BetsService {
     return response['statusCode'] == 200;
   }
 
+  /// Max odds por ticker y timeframe (1, 2, 4, 24). Requiere sesión.
+  Future<Map<String, Map<int, ({double maxOdd, int direction})>>> fetchMaxOdds(String currency) async {
+    final response = await Common().postRequestWrapper('Info', 'MaxOdds', {
+      'currency': currency.toUpperCase(),
+    });
+    if (response['statusCode'] != 200) {
+      return {};
+    }
+    try {
+      final raw = response['body'];
+      final maxOddsMap = raw is Map ? (raw['maxOdds'] ?? raw['MaxOdds']) : null;
+      if (maxOddsMap is! Map) return {};
+      final result = <String, Map<int, ({double maxOdd, int direction})>>{};
+      for (final entry in maxOddsMap.entries) {
+        final ticker = entry.key as String;
+        final byTf = entry.value;
+        if (byTf is! Map) continue;
+        final inner = <int, ({double maxOdd, int direction})>{};
+        for (final tfEntry in byTf.entries) {
+          final tf = int.tryParse(tfEntry.key.toString());
+          if (tf == null) continue;
+          final v = tfEntry.value;
+          if (v is Map) {
+            final maxOddVal = v['maxOdd'] ?? v['MaxOdd'];
+            final maxOdd = maxOddVal is num ? maxOddVal.toDouble() : 1.0;
+            final dirVal = v['direction'] ?? v['Direction'];
+            final direction = dirVal is num ? dirVal.toInt() : 0;
+            inner[tf] = (maxOdd: maxOdd, direction: direction);
+          }
+        }
+        if (inner.isNotEmpty) result[ticker] = inner;
+      }
+      return result;
+    } catch (e) {
+      if (kDebugMode) {
+        print('[BetsService] fetchMaxOdds parse error: $e');
+      }
+      return {};
+    }
+  }
+
   Future<Trends> fetchTrendsData(String userId, String currency) async {
     final response =
         await Common().postRequestWrapper('Info', 'Trends', {
@@ -219,6 +260,9 @@ class BetsService {
         final trends = items
             .map((json) => Trend.fromJson(json as Map<String, dynamic>))
             .toList();
+        if (kDebugMode) {
+          print('[BetsService] fetchTrendsData OK: ${trends.length} trends');
+        }
         return Trends(trends, trends.length);
       } catch (e) {
         if (kDebugMode) {
@@ -227,6 +271,9 @@ class BetsService {
         return Trends([], 0);
       }
     } else {
+      if (kDebugMode) {
+        print('[BetsService] fetchTrendsData HTTP ${response['statusCode']}: ${response['body']}');
+      }
       return Trends([], 0);
     }
   }

@@ -192,6 +192,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // Usar datos precargados durante "Cargando..." si existen
     final (cachedTrends, cachedFavs, cachedInvest) = PreloadCache.takeHomeData();
     if (cachedTrends != null && cachedFavs != null && cachedInvest != null && mounted) {
+      if (kDebugMode) {
+        print('[HomeScreen] using cached home data: trends=${cachedTrends.trends.length}');
+      }
       setState(() {
         _userId = userId != "none" ? userId : null;
         _userPoints = double.tryParse(userPoints) ?? 0;
@@ -219,13 +222,24 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _investmentFuture = BetsService()
           .fetchInvestmentData(_userId ?? "none", _dollarCurrency ? 'USD' : 'EUR');
     });
+    if (kDebugMode) {
+      print('[HomeScreen] trends future started (userId=${_userId ?? "none"}, currency=${_dollarCurrency ? "USD" : "EUR"})');
+    }
 
     _trendsFuture.then((trends) {
       if (!mounted) return;
+      if (kDebugMode) {
+        print('[HomeScreen] trends future completed: ${trends.trends.length} trends');
+      }
       setState(() {
         _currentTrends = trends;
       });
-    }).catchError((_) {});
+    }).catchError((e, st) {
+      if (kDebugMode) {
+        print('[HomeScreen] trends future ERROR: $e');
+        print('[HomeScreen] stack: $st');
+      }
+    });
 
     _favsFuture.then((favs) {
       if (!mounted) return;
@@ -807,6 +821,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           : FutureBuilder<Trends>(
                         future: _trendsFuture,
                         builder: (context, snapshot) {
+                          if (kDebugMode && snapshot.connectionState != ConnectionState.none) {
+                            print('[HomeScreen] FutureBuilder trends: state=${snapshot.connectionState}, hasData=${snapshot.hasData}, hasError=${snapshot.hasError}, dataLength=${snapshot.data?.trends.length ?? 0}, _currentTrends=${_currentTrends?.trends.length ?? 0}');
+                          }
                           // Si está cargando pero tenemos datos previos, mostrar esos datos
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -931,6 +948,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           } else if (snapshot.hasData &&
                               snapshot.data!.trends.isNotEmpty) {
                             final data = snapshot.data!;
+                            if (kDebugMode) {
+                              print('[HomeScreen] FutureBuilder showing ${data.trends.length} trends from snapshot');
+                            }
                             // Actualizar datos actuales cuando se reciben nuevos
                             if (_currentTrends != data) {
                               WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -992,7 +1012,25 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 ),
                               ),
                             );
+                          } else if (snapshot.hasData && snapshot.data!.trends.isEmpty) {
+                            // API devolvió 200/404 con lista vacía: no hay trends aún (p. ej. backend no ha corrido UpdateTrends)
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  strings?.get('noTrendsYet') ?? 'No trends yet',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 14,
+                                    color: Colors.white54,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
                           } else {
+                            if (kDebugMode) {
+                              print('[HomeScreen] FutureBuilder trends: showing skeleton (hasData=${snapshot.hasData}, empty=${snapshot.data?.trends.isEmpty ?? true})');
+                            }
                             return Center(
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
