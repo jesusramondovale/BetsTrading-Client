@@ -62,6 +62,7 @@ class ExchangePageState extends State<ExchangePage> {
     final exchangeOptionsResponse = await Common().postRequestWrapper('Info', 'StoreOptions', {'currency': _currency, 'type': 'exchange'});
     final prefs = await SharedPreferences.getInstance();
 
+    if (!mounted) return;
     setState(() {
         _userId = userId;
         _userPoints = points;
@@ -85,7 +86,7 @@ class ExchangePageState extends State<ExchangePage> {
   });
   
   // Reiniciar el timer de autoscroll si estamos en el tab correcto
-  if (widget.controller.selectedIndexNotifier.value == 3 && mounted) {
+  if (mounted && widget.controller.selectedIndexNotifier.value == 3) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {

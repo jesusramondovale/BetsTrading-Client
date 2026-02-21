@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
+import '../ui/bets_page.dart';
 import '../ui/candlesticks_view.dart';
 import '../ui/layout_page.dart';
 
@@ -24,9 +25,11 @@ class Trend {
   final String ticker;
   final double? currentMaxOdd;
   final int? currentMaxOddDirection;
+  final int? currentMaxOddZoneId;
+  final int? currentMaxOddTimeframe;
 
   Trend(this.id, this.icon, this.dailyGain, this.name, this.close, this.current,
-      this.ticker, {this.currentMaxOdd, this.currentMaxOddDirection});
+      this.ticker, {this.currentMaxOdd, this.currentMaxOddDirection, this.currentMaxOddZoneId, this.currentMaxOddTimeframe});
 
   static double _toDouble(dynamic v) =>
       (v == null) ? 0.0 : (v as num).toDouble();
@@ -45,7 +48,9 @@ class Trend {
         currentMaxOdd = json['currentMaxOdd'] != null
             ? _toDouble(json['currentMaxOdd'])
             : null,
-        currentMaxOddDirection = _toIntOrNull(json['currentMaxOddDirection']);
+        currentMaxOddDirection = _toIntOrNull(json['currentMaxOddDirection']),
+        currentMaxOddZoneId = _toIntOrNull(json['currentMaxOddZoneId']),
+        currentMaxOddTimeframe = _toIntOrNull(json['currentMaxOddTimeframe']);
 }
 
 class Trends {
@@ -76,6 +81,7 @@ class TrendDialog extends StatefulWidget {
 class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStateMixin {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool isFavorite = false;
+  bool _maxOddLoading = false;
   late final AnimationController _pulseCtrl;
 
   @override
@@ -253,16 +259,57 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                           ),
                           if (widget.trend.currentMaxOdd != null && widget.trend.currentMaxOddDirection != null) ...[
                             const SizedBox(height: 12),
-                            Row(mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                              MaxOddRectangleZone(
-                                maxOdd: widget.trend.currentMaxOdd!,
-                                direction: widget.trend.currentMaxOddDirection!,
-                                currentPrice: widget.trend.current,
-                                isLarge: true,
-                                timeframeHours: 24,
+                            GestureDetector(
+                              onTap: _maxOddLoading ? null : () async {
+                                final zoneId = widget.trend.currentMaxOddZoneId;
+                                if (zoneId == null || zoneId <= 0) return;
+                                Common().vibrate(20, 60);
+                                setState(() => _maxOddLoading = true);
+                                try {
+                                  final prefs = await SharedPreferences.getInstance();
+                                  final currency = (prefs.getBool('dollarCurrency') ?? false) ? 'USD' : 'EUR';
+                                  final timeframe = widget.trend.currentMaxOddTimeframe ?? 24;
+                                  final zones = await BetsService().fetchBetZones(widget.trend.ticker, timeframe, null, currency: currency);
+                                  final matching = zones.where((z) => z.id == zoneId).toList();
+                                  final zone = matching.isEmpty ? null : matching.first;
+                                  if (zone == null || !mounted) return;
+                                  final rectZones = Common().getRectangleZonesFromBetZones([zone], widget.trend.current);
+                                  if (rectZones.isEmpty || !mounted) return;
+                                  Navigator.of(context).pop();
+                                  if (!mounted) return;
+                                  await Navigator.of(context).push(
+                                    PageRouteBuilder(
+                                      pageBuilder: (_, __, ___) => BetConfirmationPage(
+                                        name: widget.trend.name,
+                                        zone: rectZones.first,
+                                        currentValue: widget.trend.current,
+                                        iconPath: widget.trend.icon,
+                                        fromDirectMaxOddFlow: true,
+                                        onCancel: () {
+                                          Common().vibrate();
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+                                    ),
+                                  );
+                                } finally {
+                                  if (mounted) setState(() => _maxOddLoading = false);
+                                }
+                              },
+                              child: Row(mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  MaxOddRectangleZone(
+                                    maxOdd: widget.trend.currentMaxOdd!,
+                                    direction: widget.trend.currentMaxOddDirection!,
+                                    currentPrice: widget.trend.current,
+                                    isLarge: true,
+                                    timeframeHours: widget.trend.currentMaxOddTimeframe ?? 24,
+                                    isLoading: _maxOddLoading,
+                                  ),
+                                ],
                               ),
-                            ],)
+                            ),
                           ],
                           Row(
                             children: [
@@ -766,6 +813,8 @@ class MaxOddRectangleZone extends StatelessWidget {
   final bool isLarge;
   /// Timeframe en horas (1, 2, 4, 24). Si no null y isLarge, se muestra "XH" igual que en markets_page pero escalado.
   final int? timeframeHours;
+  /// Mientras true se muestra un CircularProgressIndicator como en store (mismo estilo).
+  final bool isLoading;
 
   const MaxOddRectangleZone({super.key,
     required this.maxOdd,
@@ -773,6 +822,7 @@ class MaxOddRectangleZone extends StatelessWidget {
     required this.currentPrice,
     this.isLarge = false,
     this.timeframeHours,
+    this.isLoading = false,
   });
 
   Color _getFillColor() {
@@ -801,25 +851,21 @@ class MaxOddRectangleZone extends StatelessWidget {
         maxOdd: maxOdd,
         fillColor: _getFillColor(),
         isLarge: isLarge,
+        hideText: isLoading,
       ),
     );
 
+    Widget inner;
     if (!showTimeframe) {
-      return SizedBox(width: w, height: h, child: content);
-    }
-
-    // Mismo estilo que _MarketsOddZone en markets_page (155x90, font 32, top -4, left -15) escalado a 74x45
-    const double refW = 155, refH = 90;
-    final double scaleW = largeW / refW;
-    final double scaleH = largeH / refH;
-    final double timeframeFontSize = 32 * (scaleW + scaleH) / 2;
-    final double timeframeTop = -20 * scaleH;
-    final double timeframeLeft = -15 * scaleW;
-
-    return SizedBox(
-      width: w,
-      height: h,
-      child: Stack(
+      inner = content;
+    } else {
+      const double refW = 155, refH = 90;
+      final double scaleW = largeW / refW;
+      final double scaleH = largeH / refH;
+      final double timeframeFontSize = 32 * (scaleW + scaleH) / 2;
+      final double timeframeTop = -20 * scaleH;
+      final double timeframeLeft = -15 * scaleW;
+      inner = Stack(
         clipBehavior: Clip.none,
         children: [
           content,
@@ -847,9 +893,39 @@ class MaxOddRectangleZone extends StatelessWidget {
               ),
             ),
           ),
+          Positioned(
+            top: timeframeTop,
+            right: -20 * scaleW,
+            child: Icon(
+              FontAwesomeIcons.fireFlameSimple,
+              color: const Color(0xFFE25822),
+              size: timeframeFontSize * 1.3,
+            ),
+          ),
         ],
-      ),
-    );
+      );
+    }
+
+    if (isLoading) {
+      return SizedBox(
+        width: w,
+        height: h,
+        child: Stack(
+          children: [
+            inner,
+            Positioned.fill(
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white70,
+                  strokeWidth: 2.5
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return SizedBox(width: w, height: h, child: inner);
   }
 }
 
@@ -857,11 +933,13 @@ class _MaxOddRectangleZonePainter extends CustomPainter {
   final double maxOdd;
   final Color fillColor;
   final bool isLarge;
+  final bool hideText;
 
   _MaxOddRectangleZonePainter({
     required this.maxOdd,
     required this.fillColor,
     this.isLarge = false,
+    this.hideText = false,
   });
 
   Color oddsToColor(double odds, Color fillColor) {
@@ -971,29 +1049,32 @@ class _MaxOddRectangleZonePainter extends CustomPainter {
       ..strokeWidth = 0.6;
     canvas.drawRRect(rrect, paintBorder);
 
-    // Texto con las odds - más grande y sin tanto padding
-    final fontSize = isLarge ? 20.0 : 12.0;
-    final oddsTextSpan = TextSpan(
-      text: 'x${maxOdd.toStringAsFixed(isLarge ? 2 : 1)}',
-      style: GoogleFonts.montserrat(
-        color: Colors.white,
-        fontSize: fontSize,
-        fontWeight: FontWeight.w400,
-      ),
-    );
+    if (!hideText) {
+      // Texto con las odds - más grande y sin tanto padding
+      final fontSize = isLarge ? 20.0 : 12.0;
+      final oddsTextSpan = TextSpan(
+        text: 'x${maxOdd.toStringAsFixed(isLarge ? 2 : 1)}',
+        style: GoogleFonts.montserrat(
+          color: Colors.white,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w400,
+        ),
+      );
 
-    final textPainter = TextPainter(
-      text: oddsTextSpan,
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout(minWidth: 0, maxWidth: size.width);
-    final textX = (size.width - textPainter.width) / 2;
-    final textY = (size.height - textPainter.height) / 2;
-    textPainter.paint(canvas, Offset(textX, textY));
+      final textPainter = TextPainter(
+        text: oddsTextSpan,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout(minWidth: 0, maxWidth: size.width);
+      final textX = (size.width - textPainter.width) / 2;
+      final textY = (size.height - textPainter.height) / 2;
+      textPainter.paint(canvas, Offset(textX, textY));
+    }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _MaxOddRectangleZonePainter oldDelegate) =>
+      oldDelegate.maxOdd != maxOdd || oldDelegate.fillColor != fillColor || oldDelegate.hideText != hideText;
 }
 
 //------- SKELETON

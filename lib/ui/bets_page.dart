@@ -118,6 +118,9 @@ class BetConfirmationPage extends StatefulWidget {
   /// The name of the asset.
   final String name;
 
+  /// True cuando se abre desde el tap en max_odds de diálogos trends/favs (solo un pop al cerrar).
+  final bool fromDirectMaxOddFlow;
+
   const BetConfirmationPage({
     super.key,
     required this.name,
@@ -125,6 +128,7 @@ class BetConfirmationPage extends StatefulWidget {
     required this.zone,
     required this.currentValue,
     required this.iconPath,
+    this.fromDirectMaxOddFlow = false,
   });
 
   @override
@@ -207,7 +211,10 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
         
         await BetsService().getUserInfo(userId);
         Navigator.pop(context);
-        Navigator.pop(context);
+        if (!widget.fromDirectMaxOddFlow) {
+          Navigator.pop(context);
+        }
+
         homeScreenKey.currentState?.loadUserIdAndData();
         exchangePageKey.currentState?.loadData();
 
@@ -221,7 +228,9 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
           );
         }
         Navigator.pop(context);
-        Navigator.pop(context);
+        if (!widget.fromDirectMaxOddFlow) {
+          Navigator.pop(context);
+        }
       }
     }
   }
@@ -424,7 +433,10 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           ElevatedButton.icon(
-            onPressed: widget.onCancel,
+            onPressed: () {
+              Navigator.of(context).pop();
+              widget.onCancel();
+            },
             icon: Icon(CupertinoIcons.clear, color: Colors.black),
             label: Text(
               strings?.get('cancel') ?? 'Cancel',

@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../services/bets_service.dart';
+import '../ui/bets_page.dart';
 import '../ui/candlesticks_view.dart';
 import '../ui/layout_page.dart';
 
@@ -28,9 +29,11 @@ class Favorite {
   final String ticker;
   final double? currentMaxOdd;
   final int? currentMaxOddDirection;
+  final int? currentMaxOddZoneId;
+  final int? currentMaxOddTimeframe;
 
   Favorite(this.id, this.icon, this.dailyGain, this.name, this.close,
-      this.current, this.userId, this.ticker, {this.currentMaxOdd, this.currentMaxOddDirection});
+      this.current, this.userId, this.ticker, {this.currentMaxOdd, this.currentMaxOddDirection, this.currentMaxOddZoneId, this.currentMaxOddTimeframe});
 
   static double _d(dynamic v) => (v == null) ? 0.0 : (v as num).toDouble();
   static int? _toIntOrNull(dynamic v) => (v == null) ? null : (v as num).toInt();
@@ -45,7 +48,9 @@ class Favorite {
         userId = (json['userId']?.toString()) ?? '',
         ticker = (json['ticker']?.toString()) ?? '',
         currentMaxOdd = json['currentMaxOdd'] != null ? _d(json['currentMaxOdd']) : null,
-        currentMaxOddDirection = _toIntOrNull(json['currentMaxOddDirection']);
+        currentMaxOddDirection = _toIntOrNull(json['currentMaxOddDirection']),
+        currentMaxOddZoneId = _toIntOrNull(json['currentMaxOddZoneId']),
+        currentMaxOddTimeframe = _toIntOrNull(json['currentMaxOddTimeframe']);
 }
 
 class Favorites {
@@ -79,6 +84,7 @@ class FavoriteDialog extends StatefulWidget {
 class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProviderStateMixin {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool isFavorite = true;
+  bool _maxOddLoading = false;
   late final AnimationController _pulseCtrl;
 
   @override
@@ -255,17 +261,58 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                             ],
                           ),
                           const SizedBox(height: 12),
-                          Row(mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              MaxOddRectangleZone(
-                                maxOdd: widget.favorite.currentMaxOdd ?? widget.favorite.current,
-                                direction: widget.favorite.currentMaxOddDirection ??
-                                    (widget.favorite.dailyGain >= 0 ? 1 : -1),
-                                currentPrice: widget.favorite.current,
-                                isLarge: true,
-                                timeframeHours: 24,
-                              ),
-                            ],),
+                          GestureDetector(
+                            onTap: _maxOddLoading ? null : () async {
+                              final zoneId = widget.favorite.currentMaxOddZoneId;
+                              if (zoneId == null || zoneId <= 0) return;
+                              Common().vibrate(20, 60);
+                              setState(() => _maxOddLoading = true);
+                              try {
+                                final prefs = await SharedPreferences.getInstance();
+                                final currency = (prefs.getBool('dollarCurrency') ?? false) ? 'USD' : 'EUR';
+                                final timeframe = widget.favorite.currentMaxOddTimeframe ?? 24;
+                                final zones = await BetsService().fetchBetZones(widget.favorite.ticker, timeframe, null, currency: currency);
+                                final matching = zones.where((z) => z.id == zoneId).toList();
+                                final zone = matching.isEmpty ? null : matching.first;
+                                if (zone == null || !mounted) return;
+                                final rectZones = Common().getRectangleZonesFromBetZones([zone], widget.favorite.current);
+                                if (rectZones.isEmpty || !mounted) return;
+                                Navigator.of(context).pop();
+                                if (!mounted) return;
+                                await Navigator.of(context).push(
+                                  PageRouteBuilder(
+                                    pageBuilder: (_, __, ___) => BetConfirmationPage(
+                                      name: widget.favorite.name,
+                                      zone: rectZones.first,
+                                      currentValue: widget.favorite.current,
+                                      iconPath: widget.favorite.icon,
+                                      fromDirectMaxOddFlow: true,
+                                      onCancel: () {
+                                        Common().vibrate();
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+                                  ),
+                                );
+                              } finally {
+                                if (mounted) setState(() => _maxOddLoading = false);
+                              }
+                            },
+                            child: Row(mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                MaxOddRectangleZone(
+                                  maxOdd: widget.favorite.currentMaxOdd ?? widget.favorite.current,
+                                  direction: widget.favorite.currentMaxOddDirection ??
+                                      (widget.favorite.dailyGain >= 0 ? 1 : -1),
+                                  currentPrice: widget.favorite.current,
+                                  isLarge: true,
+                                  timeframeHours: widget.favorite.currentMaxOddTimeframe ?? 24,
+                                  isLoading: _maxOddLoading,
+                                ),
+                              ],
+                            ),
+                          ),
                           Row(
                             children: [
                               Column(

@@ -39,7 +39,7 @@ class MarketsView extends StatefulWidget {
   static Map<String, double>? _preloadedDailyGains; // Porcentajes calculados
   static Set<String>? _preloadedFavTickers;
   /// Max odds por ticker y timeframe (1, 2, 4, 24) desde backend.
-  static Map<String, Map<int, ({double maxOdd, int direction})>>? _preloadedMaxOdds;
+  static Map<String, Map<int, ({double maxOdd, int direction, int zoneId})>>? _preloadedMaxOdds;
   static bool _isPreloading = false;
 
   /// Preloads all market data before displaying the view.
@@ -89,7 +89,7 @@ class MarketsView extends StatefulWidget {
           .toSet();
 
       // Cargar max odds por ticker/timeframe (requiere token)
-      Map<String, Map<int, ({double maxOdd, int direction})>>? maxOddsMap;
+      Map<String, Map<int, ({double maxOdd, int direction, int zoneId})>>? maxOddsMap;
       if (token.isNotEmpty) {
         try {
           maxOddsMap = await BetsService().fetchMaxOdds(currency);
@@ -145,7 +145,7 @@ class MarketsView extends StatefulWidget {
   static Set<String>? getPreloadedFavTickers() => _preloadedFavTickers;
 
   /// Gets preloaded max odds by ticker and timeframe (1, 2, 4, 24).
-  static Map<String, Map<int, ({double maxOdd, int direction})>>? getPreloadedMaxOdds() => _preloadedMaxOdds;
+  static Map<String, Map<int, ({double maxOdd, int direction, int zoneId})>>? getPreloadedMaxOdds() => _preloadedMaxOdds;
 
   /// Clears all preloaded market data.
   ///
@@ -993,7 +993,7 @@ class _MarketListRow extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   /// Max odds por timeframe (1, 2, 4, 24) para este ticker; si null se usan valores por defecto.
-  final Map<int, ({double maxOdd, int direction})>? maxOddsByTimeframe;
+  final Map<int, ({double maxOdd, int direction, int zoneId})>? maxOddsByTimeframe;
 
   const _MarketListRow({
     super.key,
@@ -1183,9 +1183,9 @@ class _MarketListRowState extends State<_MarketListRow> {
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final mo = widget.maxOddsByTimeframe;
-                        final o24 = mo?[24] ?? (maxOdd: 1.0, direction: 0);
-                        final o4 = mo?[4] ?? (maxOdd: 1.0, direction: 0);
-                        final o1 = mo?[1] ?? (maxOdd: 1.0, direction: 0);
+                        final o24 = mo?[24] ?? (maxOdd: 1.0, direction: 0, zoneId: 0);
+                        final o4 = mo?[4] ?? (maxOdd: 1.0, direction: 0, zoneId: 0);
+                        final o1 = mo?[1] ?? (maxOdd: 1.0, direction: 0, zoneId: 0);
                         return FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
