@@ -260,6 +260,7 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                                 direction: widget.trend.currentMaxOddDirection!,
                                 currentPrice: widget.trend.current,
                                 isLarge: true,
+                                timeframeHours: 24,
                               ),
                             ],)
                           ],
@@ -763,12 +764,15 @@ class MaxOddRectangleZone extends StatelessWidget {
   final int direction; // +1 verde, 0 amarillo, -1 rojo
   final double currentPrice;
   final bool isLarge;
+  /// Timeframe en horas (1, 2, 4, 24). Si no null y isLarge, se muestra "XH" igual que en markets_page pero escalado.
+  final int? timeframeHours;
 
   const MaxOddRectangleZone({super.key,
     required this.maxOdd,
     required this.direction,
     required this.currentPrice,
     this.isLarge = false,
+    this.timeframeHours,
   });
 
   Color _getFillColor() {
@@ -783,15 +787,67 @@ class MaxOddRectangleZone extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const double largeW = 74;
+    const double largeH = 45;
+    const double smallW = 40;
+    const double smallH = 24;
+    final double w = isLarge ? largeW : smallW;
+    final double h = isLarge ? largeH : smallH;
+    final showTimeframe = isLarge && timeframeHours != null;
+
+    final content = CustomPaint(
+      size: Size(w, h),
+      painter: _MaxOddRectangleZonePainter(
+        maxOdd: maxOdd,
+        fillColor: _getFillColor(),
+        isLarge: isLarge,
+      ),
+    );
+
+    if (!showTimeframe) {
+      return SizedBox(width: w, height: h, child: content);
+    }
+
+    // Mismo estilo que _MarketsOddZone en markets_page (155x90, font 32, top -4, left -15) escalado a 74x45
+    const double refW = 155, refH = 90;
+    final double scaleW = largeW / refW;
+    final double scaleH = largeH / refH;
+    final double timeframeFontSize = 32 * (scaleW + scaleH) / 2;
+    final double timeframeTop = -20 * scaleH;
+    final double timeframeLeft = -15 * scaleW;
+
     return SizedBox(
-      width: isLarge ? 74 : 40,
-      height: isLarge ? 45 : 24,
-      child: CustomPaint(
-        painter: _MaxOddRectangleZonePainter(
-          maxOdd: maxOdd,
-          fillColor: _getFillColor(),
-          isLarge: isLarge,
-        ),
+      width: w,
+      height: h,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          content,
+          Positioned(
+            top: timeframeTop,
+            left: timeframeLeft,
+            child: Text(
+              '${timeframeHours!.clamp(1, 24)}H',
+              style: GoogleFonts.montserrat(
+                color: Colors.white,
+                fontSize: timeframeFontSize,
+                fontWeight: FontWeight.w600,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    offset: const Offset(1, 1),
+                    blurRadius: 2,
+                  ),
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    offset: const Offset(0, 2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

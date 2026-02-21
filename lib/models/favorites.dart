@@ -263,6 +263,7 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                                     (widget.favorite.dailyGain >= 0 ? 1 : -1),
                                 currentPrice: widget.favorite.current,
                                 isLarge: true,
+                                timeframeHours: 24,
                               ),
                             ],),
                           Row(
