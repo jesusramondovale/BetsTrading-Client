@@ -287,10 +287,6 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                                       currentValue: widget.favorite.current,
                                       iconPath: widget.favorite.icon,
                                       fromDirectMaxOddFlow: true,
-                                      onCancel: () {
-                                        Common().vibrate();
-                                        Navigator.of(context).pop();
-                                      },
                                     ),
                                     transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
                                   ),

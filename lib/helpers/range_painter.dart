@@ -418,10 +418,6 @@ Future<Future<Object?>> showZoneDialogAnimated(
                                   zone: zone,
                                   currentValue: currentValue,
                                   iconPath: iconPath,
-                                  onCancel: () {
-                                    Common().vibrate();
-                                    Navigator.pop(context);
-                                  },
                                 ),
                             transitionsBuilder: (_, animation, __, child) =>
                                 FadeTransition(

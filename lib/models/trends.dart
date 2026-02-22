@@ -285,10 +285,6 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                                         currentValue: widget.trend.current,
                                         iconPath: widget.trend.icon,
                                         fromDirectMaxOddFlow: true,
-                                        onCancel: () {
-                                          Common().vibrate();
-                                          Navigator.of(context).pop();
-                                        },
                                       ),
                                       transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
                                     ),

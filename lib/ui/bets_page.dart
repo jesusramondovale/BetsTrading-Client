@@ -109,8 +109,8 @@ class BetConfirmationPage extends StatefulWidget {
   /// The path to the asset icon (can be asset path, URL, or base64).
   final String iconPath;
   
-  /// Callback invoked when the user cancels the bet.
-  final VoidCallback onCancel;
+  /// Optional callback when the user cancels (cancel uses Navigator.pop by default).
+  final VoidCallback? onCancel;
   
   /// The bet zone containing price range and odds information.
   final RectangleZone zone;
@@ -124,7 +124,7 @@ class BetConfirmationPage extends StatefulWidget {
   const BetConfirmationPage({
     super.key,
     required this.name,
-    required this.onCancel,
+    this.onCancel,
     required this.zone,
     required this.currentValue,
     required this.iconPath,
@@ -434,8 +434,8 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
         children: [
           ElevatedButton.icon(
             onPressed: () {
+              Common().vibrate();
               Navigator.of(context).pop();
-              widget.onCancel();
             },
             icon: Icon(CupertinoIcons.clear, color: Colors.black),
             label: Text(

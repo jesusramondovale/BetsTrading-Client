@@ -125,10 +125,6 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
           zone: zone,
           currentValue: widget.candles.first.close,
           iconPath: widget.iconPath,
-          onCancel: () {
-            Common().vibrate();
-            Navigator.pop(context);
-          },
         ),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
