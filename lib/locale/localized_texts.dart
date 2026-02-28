@@ -216,6 +216,11 @@ class LocalizedStrings {
       'consent_required': 'Consent Required',
       'consent_message':
           'We need your consent to process your data for the following purposes:',
+      'dailyReward_title': 'Daily reward',
+      'dailyReward_subtitle': 'Log in every day to collect your coins',
+      'dailyReward_day': 'Day {day}',
+      'dailyReward_claim': 'Collect {coins} coins',
+      'dailyReward_accept': 'Collect',
       'advertising_content': 'Personalised advertising and content',
       'advertising_details':
           'Advertising and content measurement, audience insights.',
@@ -578,6 +583,11 @@ class LocalizedStrings {
       'consent_required': 'Se requiere consentimiento',
       'consent_message':
           'Necesitamos tu consentimiento para procesar tus datos con los siguientes propósitos:',
+      'dailyReward_title': 'Premio diario',
+      'dailyReward_subtitle': 'Entra cada día para recoger tus monedas',
+      'dailyReward_day': 'Día {day}',
+      'dailyReward_claim': 'Recoger {coins} monedas',
+      'dailyReward_accept': 'Recoger',
       'advertising_content': 'Publicidad y contenido personalizado',
       'advertising_details':
           'Medición de publicidad y contenido, análisis de audiencia.',
@@ -937,6 +947,11 @@ class LocalizedStrings {
       'consent_required': 'Consentement requis',
       'consent_message':
           'Nous avons besoin de votre consentement pour traiter vos données à des fins suivantes :',
+      'dailyReward_title': 'Récompense quotidienne',
+      'dailyReward_subtitle': 'Connectez-vous chaque jour pour récupérer vos pièces',
+      'dailyReward_day': 'Jour {day}',
+      'dailyReward_claim': 'Récupérer {coins} pièces',
+      'dailyReward_accept': 'Récupérer',
       'advertising_content': 'Publicité et contenu personnalisés',
       'advertising_details':
           'Mesure de la publicité et du contenu, analyse de l\'audience.',
@@ -1296,6 +1311,11 @@ class LocalizedStrings {
       'consent_required': 'Consenso richiesto',
       'consent_message':
           'Abbiamo bisogno del tuo consenso per elaborare i tuoi dati per i seguenti scopi:',
+      'dailyReward_title': 'Premio giornaliero',
+      'dailyReward_subtitle': 'Accedi ogni giorno per ritirare le tue monete',
+      'dailyReward_day': 'Giorno {day}',
+      'dailyReward_claim': 'Ritira {coins} monete',
+      'dailyReward_accept': 'Ritira',
       'advertising_content': 'Pubblicità e contenuti personalizzati',
       'advertising_details':
           'Misurazione della pubblicità e dei contenuti, analisi del pubblico.',
@@ -1654,6 +1674,11 @@ class LocalizedStrings {
       'consent_required': 'Zustimmung erforderlich',
       'consent_message':
           'Wir benötigen Ihre Zustimmung, um Ihre Daten für folgende Zwecke zu verarbeiten:',
+      'dailyReward_title': 'Tägliche Belohnung',
+      'dailyReward_subtitle': 'Melde dich täglich an, um deine Münzen abzuholen',
+      'dailyReward_day': 'Tag {day}',
+      'dailyReward_claim': '{coins} Münzen abholen',
+      'dailyReward_accept': 'Abholen',
       'advertising_content': 'Personalisierte Werbung und Inhalte',
       'advertising_details':
           'Werbe- und Inhaltsmessung, Analyse der Zielgruppe.',

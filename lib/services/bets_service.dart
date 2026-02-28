@@ -319,6 +319,54 @@ class BetsService {
     }
   }
 
+  /// Fetches daily login reward status. Returns map with showDialog, currentDay, canClaim, coinsForCurrentDay, rewardsByDay.
+  Future<Map<String, dynamic>?> getDailyRewardStatus(String userId) async {
+    if (kDebugMode) debugPrint('[DAILY_REWARD API] getDailyRewardStatus REQUEST userId=$userId -> Info/DailyRewardStatus');
+    final response = await Common().postRequestWrapper('Info', 'DailyRewardStatus', {'userId': userId});
+    if (kDebugMode) debugPrint('[DAILY_REWARD API] getDailyRewardStatus RESPONSE statusCode=${response['statusCode']} body=${response['body']}');
+    if (response['statusCode'] == 200 && response['body'] is Map) {
+      final body = response['body'] as Map<String, dynamic>;
+      final result = {
+        'showDialog': body['showDialog'] == true,
+        'currentDay': (body['currentDay'] is int) ? body['currentDay'] as int : (body['currentDay'] as num?)?.toInt() ?? 1,
+        'canClaim': body['canClaim'] == true,
+        'coinsForCurrentDay': (body['coinsForCurrentDay'] is int) ? body['coinsForCurrentDay'] as int : (body['coinsForCurrentDay'] as num?)?.toInt() ?? 5,
+        'nextAvailableAtUtc': body['nextAvailableAtUtc']?.toString(),
+        'rewardsByDay': (body['rewardsByDay'] as List?)?.map((e) => (e is int) ? e : (e as num).toInt()).toList() ?? [5, 10, 15, 25, 40, 50],
+      };
+      if (kDebugMode) debugPrint('[DAILY_REWARD API] getDailyRewardStatus PARSED result=$result');
+      return result;
+    }
+    if (kDebugMode) debugPrint('[DAILY_REWARD API] getDailyRewardStatus returning null (bad status or body)');
+    return null;
+  }
+
+  /// Claims the daily login reward. Returns map with success, coinsAwarded, newStreakDay, message.
+  Future<Map<String, dynamic>> claimDailyReward(String userId) async {
+    if (kDebugMode) debugPrint('[DAILY_REWARD API] claimDailyReward REQUEST userId=$userId -> Info/ClaimDailyReward');
+    final response = await Common().postRequestWrapper('Info', 'ClaimDailyReward', {'userId': userId});
+    if (kDebugMode) debugPrint('[DAILY_REWARD API] claimDailyReward RESPONSE statusCode=${response['statusCode']} body=${response['body']}');
+    if (response['statusCode'] == 200 && response['body'] is Map) {
+      final body = response['body'] as Map<String, dynamic>;
+      final result = {
+        'success': body['success'] == true,
+        'coinsAwarded': (body['coinsAwarded'] is int) ? body['coinsAwarded'] as int : (body['coinsAwarded'] as num?)?.toInt() ?? 0,
+        'newStreakDay': (body['newStreakDay'] is int) ? body['newStreakDay'] as int : (body['newStreakDay'] as num?)?.toInt() ?? 1,
+        'message': body['message']?.toString() ?? '',
+      };
+      if (kDebugMode) debugPrint('[DAILY_REWARD API] claimDailyReward PARSED result=$result');
+      return result;
+    }
+    final fallback = {
+      'success': false,
+      'coinsAwarded': 0,
+      'newStreakDay': 0,
+      'message': (response['body'] is Map ? (response['body'] as Map)['message'] : null)?.toString() ?? 'Claim failed',
+    };
+    if (kDebugMode) debugPrint('[DAILY_REWARD API] claimDailyReward returning fallback (not 200 or not Map): $fallback');
+    return fallback;
+  }
+
   Future<bool> uploadProfilePic(String? id, String? profilepic) async {
     final response = await Common().postRequestWrapper(
         'Info', 'UploadPic', {'userId': id, 'profilePic': profilepic});

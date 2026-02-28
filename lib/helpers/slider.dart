@@ -472,7 +472,7 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
     final effectiveMax = baseMax + 1.0; // Añadir 1 al máximo para el rango extendido
     final clampedValue = _sliderValue.clamp(0.0, 1.0);
 
-    int _sliderDivisions(double baseMax, double effectiveMax) {
+    int sliderDivisions(double baseMax, double effectiveMax) {
       final range = effectiveMax - widget.minValue;
       if (baseMax <= 19) {
         return range.round().clamp(1, 1000); // Paso 1
@@ -495,7 +495,7 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
                   inactiveTrackColor: Colors.grey[700]?.withValues(alpha: 0.2),
                 ),
                 child: Slider(
-                  divisions: _sliderDivisions(baseMax, effectiveMax),
+                  divisions: sliderDivisions(baseMax, effectiveMax),
                   value: clampedValue,
                   onChanged: (value) {
                     final rawValue = widget.minValue + (value * (effectiveMax - widget.minValue));

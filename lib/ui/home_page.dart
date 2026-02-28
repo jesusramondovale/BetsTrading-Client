@@ -72,11 +72,22 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _dollarCurrency = false;
   bool _isRefreshing = false; // Flag para evitar múltiples refreshes simultáneos
 
+  /// Re-reads user points from storage and updates the UI.
+  /// Call after points have been updated server-side (e.g. after claiming daily reward).
+  void refreshUserPoints() async {
+    final p = await _storage.read(key: 'points') ?? '0';
+    if (mounted) {
+      setState(() {
+        _userPoints = double.tryParse(p) ?? 0;
+      });
+    }
+  }
+
   /// Refreshes user data, trends, and favorites without reloading investments.
   ///
   /// Updates user points, currency preference, and fetches latest trends
   /// and favorites data from the server. Mantiene los datos actuales mientras
-  /// se cargan los nuevos para evitar mostrar skeletons.
+  /// se cargan los nuevos para evitar skeletons.
   void _refreshData() async {
     // Evitar múltiples refreshes simultáneos
     if (_isRefreshing) return;
