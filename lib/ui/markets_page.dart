@@ -20,6 +20,13 @@ import 'candlesticks_view.dart';
 import 'exact_price_view.dart';
 import 'layout_page.dart';
 
+/// Criterios de ordenación de la lista de mercados.
+enum MarketsSortOrder {
+  alphabet,
+  value,
+  odd,
+}
+
 /// A view displaying financial markets organized by asset type (Shares, Crypto, Forex).
 ///
 /// Supports data preloading for faster initial load, displays assets in tabs,
@@ -186,6 +193,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
   late final VoidCallback _tabListener;
   bool _dollarCurrency = false;
   final Map<int, ScrollController> _scrollControllers = {};
+  MarketsSortOrder _sortOrder = MarketsSortOrder.value;
 
   void _initGroups() {
     final strings = LocalizedStrings.of(context);
@@ -466,6 +474,44 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     homeScreenKey.currentState?.refreshFavorites();
   }
 
+  /// Ordena la lista de activos según el criterio seleccionado (_sortOrder).
+  List<FinancialAsset> _sortAssets(List<FinancialAsset> assets, int tabIndex) {
+    final list = List<FinancialAsset>.from(assets);
+    final maxOddsAll = MarketsView.getPreloadedMaxOdds();
+    double maxOddFor(FinancialAsset a) {
+      if (maxOddsAll == null) return 0.0;
+      final mo = maxOddsAll[a.ticker] ?? maxOddsAll[a.ticker.toUpperCase()] ?? maxOddsAll[a.ticker.toLowerCase()];
+      final o24 = mo?[24];
+      return o24?.maxOdd ?? 0.0;
+    }
+    list.sort((a, b) {
+      final aIsFav = _isFavTicker(a.ticker);
+      final bIsFav = _isFavTicker(b.ticker);
+      if (aIsFav && !bIsFav) return -1;
+      if (!aIsFav && bIsFav) return 1;
+      switch (_sortOrder) {
+        case MarketsSortOrder.alphabet:
+          return (a.name).toLowerCase().compareTo((b.name).toLowerCase());
+        case MarketsSortOrder.value: {
+          final aTicker = a.ticker.toUpperCase().trim();
+          final bTicker = b.ticker.toUpperCase().trim();
+          final aPrice = _assetPrices[aTicker] ?? MarketsView.getPreloadedPrices()?[aTicker];
+          final bPrice = _assetPrices[bTicker] ?? MarketsView.getPreloadedPrices()?[bTicker];
+          if (aPrice != null && bPrice != null) return bPrice.compareTo(aPrice);
+          if (aPrice != null && bPrice == null) return -1;
+          if (aPrice == null && bPrice != null) return 1;
+          return 0;
+        }
+        case MarketsSortOrder.odd: {
+          final oA = maxOddFor(a);
+          final oB = maxOddFor(b);
+          return oB.compareTo(oA);
+        }
+      }
+    });
+    return list;
+  }
+
   Widget _buildLeafCardLayout(List<FinancialAsset> assets, int tabIndex) {
     if (!_scrollControllers.containsKey(tabIndex)) {
       _scrollControllers[tabIndex] = ScrollController();
@@ -734,6 +780,77 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     }
   }
 
+  Widget _buildSortSelector() {
+    final strings = LocalizedStrings.of(context);
+    final labels = {
+      MarketsSortOrder.alphabet: strings?.get('sortByAlphabet') ?? 'Alfabeto',
+      MarketsSortOrder.value: strings?.get('sortByValue') ?? 'Precio',
+      MarketsSortOrder.odd: strings?.get('sortByOdd') ?? 'Cuota',
+    };
+    final selectedLabel = labels[_sortOrder]!;
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 12, top: 2, bottom: 2),
+        child: PopupMenuButton<MarketsSortOrder>(
+          offset: const Offset(0, 40),
+          color: Colors.grey.shade900,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          onSelected: (MarketsSortOrder order) {
+            setState(() => _sortOrder = order);
+          },
+          itemBuilder: (BuildContext context) => MarketsSortOrder.values.map((order) {
+            final isSelected = _sortOrder == order;
+            return PopupMenuItem<MarketsSortOrder>(
+              value: order,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Text(
+                    labels[order]!,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 15,
+                      color: isSelected ? Colors.white : Colors.white70,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                  ),
+                  if (isSelected)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: Icon(FontAwesomeIcons.check, size: 16, color: Colors.purple.shade200),
+                    ),
+                ],
+              ),
+            );
+          }).toList(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  FontAwesomeIcons.arrowUpShortWide,
+                  size: 20,
+                  color: Colors.white70,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  selectedLabel,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -784,25 +901,13 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
               : TabBarView(
                   controller: _tabController,
                   children: List.generate(groups.length, (index) {
-                    final List<FinancialAsset> assets = List.from(assetsPerTab[index] ?? []);
-                    assets.sort((a, b) {
-                      final aIsFav = _isFavTicker(a.ticker);
-                      final bIsFav = _isFavTicker(b.ticker);
-                      if (aIsFav && !bIsFav) return -1;
-                      if (!aIsFav && bIsFav) return 1;
-                      final aTicker = a.ticker.toUpperCase().trim();
-                      final bTicker = b.ticker.toUpperCase().trim();
-                      final aPrice = _assetPrices[aTicker];
-                      final bPrice = _assetPrices[bTicker];
-                      if (aPrice != null && bPrice != null) return bPrice.compareTo(aPrice);
-                      if (aPrice != null && bPrice == null) return -1;
-                      if (aPrice == null && bPrice != null) return 1;
-                      return 0;
-                    });
+                    final raw = assetsPerTab[index] ?? [];
+                    final assets = _sortAssets(raw, index);
                     return _buildLeafCardLayout(assets, index);
                   }),
                 ),
         ),
+        if (!_isLoading) _buildSortSelector(),
       ],
     );
   }

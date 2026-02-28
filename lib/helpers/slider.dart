@@ -366,10 +366,11 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
     final range = effectiveMax - widget.minValue;
     
     if (range > 0 && baseMax > 0) {
-      // Calcular el valor inicial como máximo/4, redondeado al múltiplo de 10 más cercano
+      // Calcular el valor inicial: si máximo <= 19 paso 1, si no múltiplo de 10
       final quarterMax = baseMax / 4.0;
-      final roundedValue = (quarterMax / 10.0).round() * 10.0;
-      // Asegurarse de que esté dentro del rango válido
+      final roundedValue = baseMax <= 19
+          ? quarterMax.round().toDouble()
+          : (quarterMax / 10.0).round() * 10.0;
       final initialValue = roundedValue.clamp(widget.minValue, baseMax);
       
       // Convertir el valor a la posición del slider (0.0 a 1.0)
@@ -393,6 +394,19 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
     ui.decodeImageFromList(bytes, (ui.Image img) => completer.complete(img));
     _thumbImage = await completer.future;
     if (mounted) setState(() {});
+  }
+
+  /// Paso del selector: 1 si valor <= 19, si no 5.
+  double _stepForValue(double value) {
+    return value <= 19 ? 1.0 : 5.0;
+  }
+
+  /// Redondea al paso correcto según el valor (<=19 → entero, >=20 → múltiplo de 5).
+  double _roundToStep(double value) {
+    if (value <= 19) {
+      return value.round().toDouble();
+    }
+    return (value / 5).round() * 5.0;
   }
 
   // Función para hacer "snap" a valores que terminan en 00 o 50
@@ -432,11 +446,10 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
     
     // Obtener el valor actual
     final currentValue = widget.minValue + (_sliderValue * range);
-    // Ajustar el valor
-    final newValue = (currentValue + delta).clamp(widget.minValue, effectiveMax);
-    // Redondear a múltiplos de 5
-    final roundedValue = (newValue / 5).round() * 5.0;
-    final finalValue = roundedValue.clamp(widget.minValue, effectiveMax);
+    final step = _stepForValue(currentValue);
+    final actualDelta = delta > 0 ? step : -step;
+    final newValue = (currentValue + actualDelta).clamp(widget.minValue, effectiveMax);
+    final finalValue = _roundToStep(newValue).clamp(widget.minValue, effectiveMax);
     
     // Actualizar el slider value
     final newSliderValue = range > 0 
@@ -459,6 +472,14 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
     final effectiveMax = baseMax + 1.0; // Añadir 1 al máximo para el rango extendido
     final clampedValue = _sliderValue.clamp(0.0, 1.0);
 
+    int _sliderDivisions(double baseMax, double effectiveMax) {
+      final range = effectiveMax - widget.minValue;
+      if (baseMax <= 19) {
+        return range.round().clamp(1, 1000); // Paso 1
+      }
+      return (range / 5).round().clamp(1, 1000); // Paso 5
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -474,12 +495,12 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
                   inactiveTrackColor: Colors.grey[700]?.withValues(alpha: 0.2),
                 ),
                 child: Slider(
-                  divisions: ((effectiveMax - widget.minValue) / 5).round().clamp(1, 1000), // Incrementos de 5, máximo 1000 divisiones para rendimiento
+                  divisions: _sliderDivisions(baseMax, effectiveMax),
                   value: clampedValue,
                   onChanged: (value) {
                     final rawValue = widget.minValue + (value * (effectiveMax - widget.minValue));
-                    // Redondear a múltiplos de 5
-                    final roundedValue = (rawValue / 5).round() * 5.0;
+                    // Paso 1 si <= 19, si no múltiplos de 5
+                    final roundedValue = _roundToStep(rawValue);
                     
                     // Calcular el valor medio (mitad del rango)
                     final midValue = (baseMax - widget.minValue) / 2.0 + widget.minValue;

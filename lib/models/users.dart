@@ -346,7 +346,7 @@ class UserDialog extends StatelessWidget {
                                         const SizedBox(width: 4),
                                         Flexible(
                                           child: Text(
-                                            'Copy-betting',
+                                            'Copy-Betting',
                                             overflow: TextOverflow.ellipsis,
                                             style: GoogleFonts.montserrat(
                                               color: Colors.white70,
