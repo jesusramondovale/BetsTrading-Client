@@ -436,6 +436,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _refreshTimer = Timer.periodic(const Duration(seconds: 60), (_) async {
       _refreshData();
       await refreshInvestments();
+      // Actualizar max odds de la vista Markets (etiquetas por activo) sin bloquear
+      marketsPageKey.currentState?.refreshMaxOdds();
     });
   }
 
@@ -450,6 +452,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         // El método _refreshData ya maneja la actualización inteligente de Futures
         _refreshData();
         refreshInvestments();
+        marketsPageKey.currentState?.refreshMaxOdds();
       }
     }
   }
@@ -821,8 +824,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           : FutureBuilder<Trends>(
                         future: _trendsFuture,
                         builder: (context, snapshot) {
-                          if (kDebugMode && snapshot.connectionState != ConnectionState.none) {
-                            print('[HomeScreen] FutureBuilder trends: state=${snapshot.connectionState}, hasData=${snapshot.hasData}, hasError=${snapshot.hasError}, dataLength=${snapshot.data?.trends.length ?? 0}, _currentTrends=${_currentTrends?.trends.length ?? 0}');
+                          if (snapshot.connectionState != ConnectionState.none) {
+                            if (kDebugMode){
+                              print('[HomeScreen] FutureBuilder trends: state=${snapshot.connectionState}, hasData=${snapshot.hasData}, hasError=${snapshot.hasError}, dataLength=${snapshot.data?.trends.length ?? 0}, _currentTrends=${_currentTrends?.trends.length ?? 0}');
+                            }
                           }
                           // Si está cargando pero tenemos datos previos, mostrar esos datos
                           if (snapshot.connectionState ==

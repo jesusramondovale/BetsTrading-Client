@@ -5,6 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class User {
   final String id;
@@ -130,12 +131,12 @@ class UserDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      backgroundColor: Colors.transparent.withValues(alpha: 0.1),
+    final isActive = user.isActive;
+    final statusColor = isActive ? Colors.green : Colors.red;
+
+    // No usar Dialog (centra en pantalla); solo el contenido para respetar posición del padre.
+    return Material(
+      color: Colors.transparent,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
@@ -143,7 +144,7 @@ class UserDialog extends StatelessWidget {
           child: SingleChildScrollView(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.transparent.withValues(alpha: 0.02),
+                color: Colors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: Colors.white70.withValues(alpha: 0.12),
@@ -151,136 +152,217 @@ class UserDialog extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: .6),
+                    color: Colors.black.withValues(alpha: 0.6),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Header: avatar + nombre + cerrar en una sola fila
                     Row(
                       children: [
-                        if (user.profilePic != null && user.profilePic!.isNotEmpty)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(50.0),
-                            child: user.profilePic!.startsWith('http')
-                                ? Image.network(
-                              user.profilePic!,
-                              height: 80,
-                              width: 80,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Image.asset(
-                                    "assets/new_icon.png",
-                                    height: 80,
-                                    width: 80,
-                                    fit: BoxFit.cover,
-                                  ),
-                            )
-                                : Image.memory(
-                              base64Decode(user.profilePic!),
-                              height: 80,
-                              width: 80,
-                              fit: BoxFit.cover,
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white.withValues(alpha: 0.4),
+                                  Colors.white.withValues(alpha: 0.15),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: statusColor.withValues(alpha: 0.35),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: statusColor.withValues(alpha: isActive ? 0.5 : 0.3),
+                              ),
+                              child: user.profilePic != null && user.profilePic!.isNotEmpty
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(50.0),
+                                      child: user.profilePic!.startsWith('http')
+                                          ? Image.network(
+                                              user.profilePic!,
+                                              height: 56,
+                                              width: 56,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) => Image.asset(
+                                                "assets/new_icon.png",
+                                                height: 56,
+                                                width: 56,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )
+                                          : Image.memory(
+                                              base64Decode(user.profilePic!),
+                                              height: 56,
+                                              width: 56,
+                                              fit: BoxFit.cover,
+                                            ),
+                                    )
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(50.0),
+                                      child: Image.asset(
+                                        "assets/new_icon.png",
+                                        height: 56,
+                                        width: 56,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
                             ),
                           ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AutoSizeText(
-                              (user.fullname.length < 12
-                                  ? user.fullname
-                                  : '${user.fullname.substring(0, 12)}...'),
-                              maxLines: 1,
-                              style: GoogleFonts.robotoCondensed(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            AutoSizeText(
-                              '@${(user.username.length < 20 ? user.username : '${user.username.substring(0, 17)}...')}',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
                           ],
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AutoSizeText(
+                                user.fullname.length < 14
+                                    ? user.fullname
+                                    : '${user.fullname.substring(0, 12)}...',
+                                maxLines: 1,
+                                style: GoogleFonts.syncopate(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 1),
+                              AutoSizeText(
+                                '@${user.username}',
+                                maxLines: 1,
+                                style: GoogleFonts.montserrat(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
 
-                    // Correo electrónico
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.email,
-                          color: Colors.white, size: 20),
-                      title: Text(
-                        (user.email.length < 35
-                            ? user.email
-                            : '${user.email.substring(0, 30)}...'),
-                        maxLines: 1,
-                        style: GoogleFonts.montserrat(
-                            color: Colors.white, fontSize: 12),
-                      ),
-                    ),
+                    const SizedBox(height: 10),
+                    Divider(height: 1, color: Colors.white.withValues(alpha: 0.12)),
+                    const SizedBox(height: 8),
 
-                    // País
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.location_on,
-                          color: Colors.white, size: 20),
-                      title: Row(
+                    // País, Puntos y Copy-betting en fila compacta (menos ancho a país, más al botón)
+                    IntrinsicHeight(
+                      child: Row(
                         children: [
-                          CountryFlag.fromCountryCode(
-                            user.country,
-                            height: 18,
-                            width: 25,
+                          Expanded(
+                            flex: 1,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.location_on, color: Colors.white70, size: 18),
+                                const SizedBox(width: 4),
+                                CountryFlag.fromCountryCode(
+                                  user.country,
+                                  height: 16,
+                                  width: 22,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            color: Colors.white.withValues(alpha: 0.12),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/coin.png',
+                                  width: 22,
+                                  height: 22,
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    NumberFormat.compact().format(user.points),
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.montserrat(
+                                      color: const Color(0xFFFFD54F),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            color: Colors.white.withValues(alpha: 0.12),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Center(
+                              // TODO: Navegar a vista de copybetting/copytrading para este usuario
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    // TODO: Abrir pantalla de copybetting con user.id / user
+                                  },
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.copy_all,
+                                          color: Colors.white70,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            'Copy-betting',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.montserrat(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ],
-                      ),
-                    ),
-
-                    // Puntos
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        margin: const EdgeInsets.fromLTRB(0, 5, 0, 10),
-                        child: Image.asset(
-                          'assets/coin.png',
-                          width: 25,
-                          height: 25,
-                        ),
-                      ),
-                      title: Text(
-                        user.points.toString(),
-                        style: GoogleFonts.montserrat(
-                            color: Colors.white, fontSize: 20),
-                      ),
-                    ),
-
-                    // Estado activo
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(
-                        user.isActive ? Icons.check_circle : Icons.block,
-                        color: user.isActive ? Colors.green : Colors.red,
-                        size: 20,
-                      ),
-                      title: Text(
-                        user.isActive ? 'Cuenta activa' : 'Cuenta inactiva',
-                        style: GoogleFonts.montserrat(
-                            color: Colors.white, fontSize: 20),
                       ),
                     ),
                   ],
@@ -291,6 +373,5 @@ class UserDialog extends StatelessWidget {
         ),
       ),
     );
-
   }
 }

@@ -268,17 +268,29 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   void popUserDialog(BuildContext context, User user) {
     showGeneralDialog(
       context: context,
-      pageBuilder: (context, a, b) => UserDialog(user: user),
+      pageBuilder: (context, a, b) {
+        final topOffset = MediaQuery.of(context).size.height * 0.25;
+        final horizontalMargin = 20.0;
+        return SizedBox.expand(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(horizontalMargin, topOffset, horizontalMargin, 0),
+              child: UserDialog(user: user),
+            ),
+          ),
+        );
+      },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black.withValues(alpha: 0.5),
-      transitionDuration: const Duration(milliseconds: 300),
+      transitionDuration: const Duration(milliseconds: 350),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
           opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
           child: ScaleTransition(
-            scale: Tween<double>(begin: 0.8, end: 1.0).animate(
-              CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+            scale: Tween<double>(begin: 0.85, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: Curves.elasticOut),
             ),
             child: child,
           ),

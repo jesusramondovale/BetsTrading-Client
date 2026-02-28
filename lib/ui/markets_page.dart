@@ -147,6 +147,11 @@ class MarketsView extends StatefulWidget {
   /// Gets preloaded max odds by ticker and timeframe (1, 2, 4, 24).
   static Map<String, Map<int, ({double maxOdd, int direction, int zoneId})>>? getPreloadedMaxOdds() => _preloadedMaxOdds;
 
+  /// Updates only max odds (e.g. from periodic refresh). Does not clear other preloaded data.
+  static void updatePreloadedMaxOdds(Map<String, Map<int, ({double maxOdd, int direction, int zoneId})>>? value) {
+    _preloadedMaxOdds = value;
+  }
+
   /// Clears all preloaded market data.
   ///
   /// Should be called when data becomes stale or when memory needs to be freed.
@@ -191,6 +196,23 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
     ];
   }
 
+  /// Refreshes max odds from the server and updates the UI. Called periodically from HomeScreen timer.
+  Future<void> refreshMaxOdds() async {
+    if (!mounted) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
+      final currency = dollarCurrency ? 'USD' : 'EUR';
+      final token = await _storage.read(key: 'sessionToken') ?? '';
+      if (token.isEmpty) return;
+      final map = await BetsService().fetchMaxOdds(currency);
+      if (!mounted) return;
+      MarketsView.updatePreloadedMaxOdds(map);
+      setState(() {});
+    } catch (_) {
+      // Silently ignore; next cycle will retry
+    }
+  }
 
   /// Loads market data, preferring preloaded data if available.
   ///
