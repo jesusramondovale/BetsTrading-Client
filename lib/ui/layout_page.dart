@@ -193,40 +193,40 @@ class MainMenuPageState extends State<MainMenuPage> {
   }
 
   Future<void> _checkDailyReward() async {
-    debugPrint('[DAILY_REWARD] _checkDailyReward START');
+    if (kDebugMode) debugPrint('[DAILY_REWARD] _checkDailyReward START');
     if (!mounted) return;
     final userId = await _storage.read(key: 'sessionToken');
-    debugPrint('[DAILY_REWARD] userId from storage: ${userId ?? "NULL"} (isEmpty: ${userId?.isEmpty ?? true})');
+    if (kDebugMode) debugPrint('[DAILY_REWARD] userId from storage: ${userId ?? "NULL"} (isEmpty: ${userId?.isEmpty ?? true})');
     if (userId == null || userId.isEmpty) {
-      debugPrint('[DAILY_REWARD] ABORT: no userId');
+      if (kDebugMode) debugPrint('[DAILY_REWARD] ABORT: no userId');
       return;
     }
-    debugPrint('[DAILY_REWARD] calling getDailyRewardStatus(userId)...');
+    if (kDebugMode) debugPrint('[DAILY_REWARD] calling getDailyRewardStatus(userId)...');
     final status = await BetsService().getDailyRewardStatus(userId);
-    debugPrint('[DAILY_REWARD] getDailyRewardStatus returned: $status');
+    if (kDebugMode) debugPrint('[DAILY_REWARD] getDailyRewardStatus returned: $status');
     if (!mounted) return;
     final showDialog = status?['showDialog'] == true;
     final canClaim = status?['canClaim'] == true;
-    debugPrint('[DAILY_REWARD] showDialog=$showDialog canClaim=$canClaim -> showIfNeeded? ${showDialog && canClaim}');
+    if (kDebugMode) debugPrint('[DAILY_REWARD] showDialog=$showDialog canClaim=$canClaim -> showIfNeeded? ${showDialog && canClaim}');
     await DailyRewardDialog.showIfNeeded(
       context,
       status: status,
       userId: userId,
       onClaimSuccess: () async {
-        debugPrint('[DAILY_REWARD] onClaimSuccess CALLED - about to claimDailyReward(userId)');
+        if (kDebugMode) debugPrint('[DAILY_REWARD] onClaimSuccess CALLED - about to claimDailyReward(userId)');
         final ok = await BetsService().claimDailyReward(userId);
-        debugPrint('[DAILY_REWARD] claimDailyReward returned: $ok (success=${ok['success']})');
+        if (kDebugMode) debugPrint('[DAILY_REWARD] claimDailyReward returned: $ok (success=${ok['success']})');
         if (ok['success'] == true && mounted) {
-          debugPrint('[DAILY_REWARD] success=true -> calling getUserInfo(userId) to refresh points');
+          if (kDebugMode) debugPrint('[DAILY_REWARD] success=true -> calling getUserInfo(userId) to refresh points');
           await BetsService().getUserInfo(userId);
-          debugPrint('[DAILY_REWARD] getUserInfo done');
+          if (kDebugMode) debugPrint('[DAILY_REWARD] getUserInfo done');
           homeScreenKey.currentState?.refreshUserPoints();
         } else {
-          debugPrint('[DAILY_REWARD] success=false or !mounted, NOT calling getUserInfo');
+          if (kDebugMode) debugPrint('[DAILY_REWARD] success=false or !mounted, NOT calling getUserInfo');
         }
       },
     );
-    debugPrint('[DAILY_REWARD] showIfNeeded returned (dialog closed)');
+    if (kDebugMode) debugPrint('[DAILY_REWARD] showIfNeeded returned (dialog closed)');
   }
 
   @override
