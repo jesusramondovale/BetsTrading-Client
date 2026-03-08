@@ -362,16 +362,18 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
     final baseMax = widget.maxAllowedValue != null 
         ? (widget.maxAllowedValue! < widget.maxValue ? widget.maxAllowedValue! : widget.maxValue)
         : widget.maxValue;
-    final effectiveMax = baseMax + 1.0; // Añadir 1 al máximo para el rango extendido
+    // Asegurar baseMax >= minValue (p. ej. cuando points < 5 y son decimales)
+    final safeBaseMax = baseMax >= widget.minValue ? baseMax : widget.minValue;
+    final effectiveMax = safeBaseMax + 1.0; // Añadir 1 al máximo para el rango extendido
     final range = effectiveMax - widget.minValue;
     
-    if (range > 0 && baseMax > 0) {
+    if (range > 0 && safeBaseMax >= widget.minValue) {
       // Calcular el valor inicial: si máximo <= 19 paso 1, si no múltiplo de 10
-      final quarterMax = baseMax / 4.0;
-      final roundedValue = baseMax <= 19
+      final quarterMax = safeBaseMax / 4.0;
+      final roundedValue = safeBaseMax <= 19
           ? quarterMax.round().toDouble()
           : (quarterMax / 10.0).round() * 10.0;
-      final initialValue = roundedValue.clamp(widget.minValue, baseMax);
+      final initialValue = roundedValue.clamp(widget.minValue, safeBaseMax);
       
       // Convertir el valor a la posición del slider (0.0 a 1.0)
       _sliderValue = ((initialValue - widget.minValue) / range).clamp(0.0, 1.0);
@@ -384,6 +386,11 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
       });
     } else {
       _sliderValue = 0.0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          widget.onChanged(widget.minValue);
+        }
+      });
     }
   }
 
@@ -441,8 +448,15 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
     final baseMax = widget.maxAllowedValue != null 
         ? (widget.maxAllowedValue! < widget.maxValue ? widget.maxAllowedValue! : widget.maxValue)
         : widget.maxValue;
-    final effectiveMax = baseMax + 1.0;
+    final safeBaseMax = baseMax >= widget.minValue ? baseMax : widget.minValue;
+    final effectiveMax = safeBaseMax + 1.0;
     final range = effectiveMax - widget.minValue;
+    
+    if (range <= 0) {
+      widget.onChanged(widget.minValue);
+      Common().vibrate(20, 30);
+      return;
+    }
     
     // Obtener el valor actual
     final currentValue = widget.minValue + (_sliderValue * range);
@@ -452,9 +466,7 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
     final finalValue = _roundToStep(newValue).clamp(widget.minValue, effectiveMax);
     
     // Actualizar el slider value
-    final newSliderValue = range > 0 
-        ? ((finalValue - widget.minValue) / range).clamp(0.0, 1.0)
-        : 0.0;
+    final newSliderValue = ((finalValue - widget.minValue) / range).clamp(0.0, 1.0);
     
     setState(() {
       _sliderValue = newSliderValue;
@@ -463,22 +475,37 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
     Common().vibrate(20, 30);
   }
 
+  /// Redondea el valor del slider (0..1) al paso válido para [divisions],
+  /// para evitar "Invalid argument(s)" del Slider de Flutter.
+  double _valueToValidDivision(double value, int divisions) {
+    if (divisions <= 0) return value.clamp(0.0, 1.0);
+    final step = 1.0 / divisions;
+    final index = (value / step).round().clamp(0, divisions);
+    return (index * step).clamp(0.0, 1.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     // El effectiveMax es el máximo permitido + 1 para mostrar el rango extendido
     final baseMax = widget.maxAllowedValue != null 
         ? (widget.maxAllowedValue! < widget.maxValue ? widget.maxAllowedValue! : widget.maxValue)
         : widget.maxValue;
-    final effectiveMax = baseMax + 1.0; // Añadir 1 al máximo para el rango extendido
-    final clampedValue = _sliderValue.clamp(0.0, 1.0);
+    final safeBaseMax = baseMax >= widget.minValue ? baseMax : widget.minValue;
+    final effectiveMax = safeBaseMax + 1.0; // Añadir 1 al máximo para el rango extendido
+    final range = effectiveMax - widget.minValue;
 
     int sliderDivisions(double baseMax, double effectiveMax) {
-      final range = effectiveMax - widget.minValue;
+      final r = effectiveMax - widget.minValue;
+      if (r <= 0) return 1;
       if (baseMax <= 19) {
-        return range.round().clamp(1, 1000); // Paso 1
+        return r.round().clamp(1, 1000); // Paso 1
       }
-      return (range / 5).round().clamp(1, 1000); // Paso 5
+      return (r / 5).round().clamp(1, 1000); // Paso 5
     }
+
+    final divisions = sliderDivisions(safeBaseMax, effectiveMax);
+    final clampedValue = _sliderValue.clamp(0.0, 1.0);
+    final sliderValue = _valueToValidDivision(clampedValue, divisions);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -495,15 +522,18 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
                   inactiveTrackColor: Colors.grey[700]?.withValues(alpha: 0.2),
                 ),
                 child: Slider(
-                  divisions: sliderDivisions(baseMax, effectiveMax),
-                  value: clampedValue,
+                  divisions: divisions,
+                  value: sliderValue,
                   onChanged: (value) {
-                    final rawValue = widget.minValue + (value * (effectiveMax - widget.minValue));
+                    final rangeForValue = effectiveMax - widget.minValue;
+                    final rawValue = rangeForValue > 0
+                        ? widget.minValue + (value * rangeForValue)
+                        : widget.minValue;
                     // Paso 1 si <= 19, si no múltiplos de 5
                     final roundedValue = _roundToStep(rawValue);
                     
                     // Calcular el valor medio (mitad del rango)
-                    final midValue = (baseMax - widget.minValue) / 2.0 + widget.minValue;
+                    final midValue = (safeBaseMax - widget.minValue) / 2.0 + widget.minValue;
                     final distanceToMid = (roundedValue - midValue).abs();
                     
                     // Snap MUY fuerte al valor medio (tolerancia de 40 unidades y también por posición del slider)
@@ -521,15 +551,14 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
                     
                     // Permitir valores hasta el máximo + 1, pero mantener el valor seleccionado
                     double finalValue;
-                    if (snappedValue > baseMax) {
+                    if (snappedValue > safeBaseMax) {
                       // Permitir el valor máximo + 1, pero se mostrará en rojo
                       finalValue = snappedValue.clamp(widget.minValue, effectiveMax);
                     } else {
-                      finalValue = snappedValue.clamp(widget.minValue, baseMax);
+                      finalValue = snappedValue.clamp(widget.minValue, safeBaseMax);
                     }
                     
                     // Actualizar el slider value basado en el valor final
-                    final range = effectiveMax - widget.minValue;
                     final newSliderValue = range > 0 
                         ? ((finalValue - widget.minValue) / range).clamp(0.0, 1.0)
                         : 0.0;
@@ -553,7 +582,9 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
                   child: CustomPaint(
                     painter: _SliderMarkersPainter(
                       midPosition: 0.5, // Mitad del slider
-                      maxPosition: (baseMax - widget.minValue) / (effectiveMax - widget.minValue), // Posición del máximo permitido
+                      maxPosition: range > 0
+                          ? (safeBaseMax - widget.minValue) / range
+                          : 0.5,
                     ),
                   ),
 

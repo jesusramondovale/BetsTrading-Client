@@ -160,6 +160,15 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     final maxPoints = double.parse(_points ?? '0.0');
     return maxPoints < 5.0 ? maxPoints : 5.0;
   }
+
+  /// Maximum value for the bet selector. Ensures max >= min when points < 5
+  /// (e.g. 4.45 points: floor is 4 but min is 4.45, so we use maxPoints so min never > max).
+  double _maxBetValue(double maxPoints) {
+    final floorMax = maxPoints.floor().toDouble();
+    final minBet = _minBetAmount;
+    return floorMax >= minBet ? floorMax : maxPoints;
+  }
+
   /// Loads user points and currency preference from storage.
   ///
   /// Updates the bet amount to ensure it's at least the minimum required.
@@ -331,7 +340,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
           child: BetAmountSelector(
             key: ValueKey(_points), // Forzar reconstruccion cuando cambien los puntos
             minValue: _minBetAmount,
-            maxValue: maxPoints.floor().toDouble(),
+            maxValue: _maxBetValue(maxPoints),
             initialValue: _betAmount < _minBetAmount ? _minBetAmount : _betAmount,
             maxAllowedValue: _points != null ? double.tryParse(_points!) : null,
             onChanged: _onBetAmountChanged,
@@ -786,10 +795,12 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     final expandedHeight = screenHeight - safeAreaTop - safeAreaBottom - countdownTimerHeight - actionButtonsHeight;
     
     // Calcular altura del header: usar un porcentaje del espacio disponible (65%)
-    // pero asegurando que quede espacio suficiente para el slider debajo (mínimo 220px)
+    // pero asegurando que quede espacio suficiente para el slider debajo (mínimo 220px).
+    // En pantallas pequeñas o con poco espacio permitir header más bajo para evitar overflow.
+    const double minHeaderHeight = 220.0;
     final calculatedHeight = expandedHeight * 0.65;
     final maxHeaderHeight = expandedHeight - sliderAndContentHeight - topMargin - (screenHeight * 0.01);
-    final headerHeight = calculatedHeight.clamp(364.0, maxHeaderHeight.clamp(364.0, 520.0));
+    final headerHeight = calculatedHeight.clamp(minHeaderHeight, maxHeaderHeight.clamp(minHeaderHeight, 520.0));
 
     return Container(
       
