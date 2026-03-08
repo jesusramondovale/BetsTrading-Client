@@ -308,6 +308,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
       builder: (context, constraints) {
         final double maxWidth =
             constraints.maxWidth - priceBarWidth + widget.candleWidth * 2;
+        final double chartWidth = constraints.maxWidth - priceBarWidth;
         final double maxHeight = constraints.maxHeight - dateBarHeight;
 
         final int candlesStartIndex = widget.candles.isEmpty
@@ -415,8 +416,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                     ? null
                     : widget.candles[min(
                   max(
-                    (maxWidth - longPressX!) ~/ widget.candleWidth +
-                        widget.index - 1,
+                    (chartWidth - longPressX!) ~/ widget.candleWidth +
+                        widget.index,
                     0,
                   ),
                   widget.candles.length - 1,
@@ -695,10 +696,12 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                     ),
                     if (longPressX != null)
                       Positioned(
-                        right: (maxWidth - longPressX!) ~/
-                            widget.candleWidth *
-                            widget.candleWidth +
-                            priceBarWidth,
+                        left: chartWidth -
+                            (((chartWidth - longPressX!) ~/
+                                        widget.candleWidth +
+                                    1) *
+                                widget.candleWidth) -
+                            widget.candleWidth / 2,
                         child: Container(
                           width: widget.candleWidth,
                           height: maxHeight,
@@ -805,8 +808,9 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
 
                             int currentCandleIndex = min(
                               max(
-                                (maxWidth - longPressX!) ~/ widget.candleWidth +
-                                    widget.index - 1,
+                                (chartWidth - longPressX!) ~/
+                                        widget.candleWidth +
+                                    widget.index,
                                 0,
                               ),
                               widget.candles.length - 1,

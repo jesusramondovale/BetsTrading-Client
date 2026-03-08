@@ -66,7 +66,7 @@ class CandleInfoText extends StatelessWidget {
         Row(
           children: [
             Text(
-              dateFormatter(candle.date),
+              dateFormatter(candle.date.isUtc ? candle.date.toLocal() : candle.date),
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.grey,

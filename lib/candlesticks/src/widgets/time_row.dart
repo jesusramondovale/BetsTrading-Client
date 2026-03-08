@@ -117,6 +117,7 @@ class _TimeRowState extends State<TimeRow> {
             reverse: true,
             itemBuilder: (context, index) {
               DateTime time = _timeCalculator(step, index, dif);
+              final timeLocal = time.isUtc ? time.toLocal() : time;
               return Column(
                 mainAxisSize: MainAxisSize.max,
                 children: [
@@ -127,8 +128,8 @@ class _TimeRowState extends State<TimeRow> {
                     ),
                   ),
                   dif.compareTo(const Duration(days: 1)) > 0
-                      ? _monthDayText(time, widget.style.primaryTextColor)
-                      : _hourMinuteText(time, widget.style.primaryTextColor),
+                      ? _monthDayText(timeLocal, widget.style.primaryTextColor)
+                      : _hourMinuteText(timeLocal, widget.style.primaryTextColor),
                 ],
               );
             },
@@ -144,7 +145,7 @@ class _TimeRowState extends State<TimeRow> {
                     height: 20,
                     child: Center(
                       child: Text(
-                        dateFormatter(widget.indicatorTime!),
+                        dateFormatter(widget.indicatorTime!.isUtc ? widget.indicatorTime!.toLocal() : widget.indicatorTime!),
                         style: TextStyle(
                           color: widget.style.secondaryTextColor,
                           fontSize: 12,
