@@ -144,15 +144,15 @@ class UserDialog extends StatelessWidget {
           child: SingleChildScrollView(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: Colors.white.withValues(alpha: 0.22),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: Colors.white70.withValues(alpha: 0.12),
+                  color: Colors.white70.withValues(alpha: 0.28),
                   width: 1.2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.6),
+                    color: Colors.black.withValues(alpha: 0.35),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -205,7 +205,7 @@ class UserDialog extends StatelessWidget {
                                               width: 56,
                                               fit: BoxFit.cover,
                                               errorBuilder: (_, __, ___) => Image.asset(
-                                                "assets/new_icon.png",
+                                                "assets/neon_icon.png",
                                                 height: 56,
                                                 width: 56,
                                                 fit: BoxFit.cover,
@@ -221,7 +221,7 @@ class UserDialog extends StatelessWidget {
                                   : ClipRRect(
                                       borderRadius: BorderRadius.circular(50.0),
                                       child: Image.asset(
-                                        "assets/new_icon.png",
+                                        "assets/neon_icon.png",
                                         height: 56,
                                         width: 56,
                                         fit: BoxFit.cover,

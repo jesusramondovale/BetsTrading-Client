@@ -46,7 +46,8 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   List<RaffleItem> _raffleItems = [];
   static const double _rowExtent = 45;
   static const double _rowGap = 8;
-  static const int _visibleItems = 5;
+  static const int _visibleItems = 10;
+  static const int _listRowsVisible = 3;
   Timer? _refreshTimer;
   TutorialCoachMark? _coach;
   static const String _pendingFlag  = '__tutorial_pending__awards_v1';
@@ -92,6 +93,206 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     }
   }
 
+  /// Avatar circular para usuario (foto de perfil o asset por defecto).
+  Widget _userAvatar(User user, double size) {
+    final pic = user.profilePic;
+    if (pic != null && pic.isNotEmpty && pic != 'null') {
+      if (pic.startsWith('http')) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(size / 2),
+          child: Image.network(
+            pic,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _defaultAvatar(size),
+          ),
+        );
+      }
+      try {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(size / 2),
+          child: Image.memory(
+            base64Decode(pic),
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _defaultAvatar(size),
+          ),
+        );
+      } catch (_) {
+        return _defaultAvatar(size);
+      }
+    }
+    return _defaultAvatar(size);
+  }
+
+  Widget _defaultAvatar(double size) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size / 2),
+      child: Image.asset(
+        'assets/neon_icon.png',
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  /// Podio: 3 usuarios destacados en horizontal [2º, 1º, 3º] con marcos y fotos.
+  Widget _buildTopThreePodium(List<User> top3, List<String> rewards, double scaleFactor, double rowExtent) {
+    if (top3.length < 3) return const SizedBox.shrink();
+    final u2 = top3[1];
+    final u1 = top3[0];
+    final u3 = top3[2];
+    final r2 = rewards.length > 1 ? rewards[1] : '';
+    final r1 = rewards.isNotEmpty ? rewards[0] : '';
+    final r3 = rewards.length > 2 ? rewards[2] : '';
+    final avatarSizeSide = (44 * scaleFactor).clamp(36.0, 56.0);
+    final avatarSizeCenter = (56 * scaleFactor).clamp(44.0, 68.0);
+    final frameWidth = (2.5 * scaleFactor).clamp(1.5, 3.0);
+    final gold = const Color(0xFFFFC107);
+    final silver = const Color(0xFFB0BEC5);
+    final bronze = const Color(0xFFB87333);
+
+    Widget podiumSlot(User user, int rank, String prize, double avatarSize, Color frameColor) {
+      return Material(
+        color: Colors.transparent,
+        child: GestureDetector(
+          onTap: () {
+            Common().vibrate();
+            Common().applyImmersive();
+            popUserDialog(context, user);
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(frameWidth),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          frameColor.withValues(alpha: 0.95),
+                          frameColor.withValues(alpha: 0.7),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: frameColor.withValues(alpha: 0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: _userAvatar(user, avatarSize),
+                  ),
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: frameColor,
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.2),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '$rank',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: (4 * scaleFactor).clamp(2.0, 6.0)),
+              Text(
+                user.fullname,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: (12 * scaleFactor).clamp(10.0, 15.0),
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.95),
+                ),
+              ),
+              SizedBox(height: (1 * scaleFactor).clamp(0.0, 2.0)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/coin.png',
+                    width: (14 * scaleFactor).clamp(12.0, 18.0),
+                    height: (14 * scaleFactor).clamp(12.0, 18.0),
+                  ),
+                  SizedBox(width: (3 * scaleFactor).clamp(2.0, 4.0)),
+                  Text(
+                    NumberFormat.compact().format(user.points),
+                    style: GoogleFonts.montserrat(
+                      fontSize: (13 * scaleFactor).clamp(11.0, 16.0),
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white.withValues(alpha: 0.95),
+                    ),
+                  ),
+                ],
+              ),
+              if (prize.isNotEmpty) ...[
+                SizedBox(height: (1 * scaleFactor).clamp(0.0, 2.0)),
+                Text(
+                  prize,
+                  style: GoogleFonts.montserrat(
+                    fontSize: (10 * scaleFactor).clamp(9.0, 13.0),
+                    fontWeight: FontWeight.w700,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: (8 * scaleFactor).clamp(6.0, 12.0)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: podiumSlot(u2, 2, r2, avatarSizeSide, silver),
+          ),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: (5 * scaleFactor).clamp(3.0, 8.0)),
+              child: podiumSlot(u1, 1, r1, avatarSizeCenter, gold),
+            ),
+          ),
+          Expanded(
+            child: podiumSlot(u3, 3, r3, avatarSizeSide, bronze),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildUserRow(User user, int rank, String prize, {double? rowExtent}) {
     final scaleFactor = rowExtent != null ? (rowExtent / _rowExtent).clamp(0.75, 1.2) : 1.0;
     final borderRadius = BorderRadius.circular((14 * scaleFactor).clamp(10.0, 18.0));
@@ -126,7 +327,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                width: (45 * scaleFactor).clamp(35.0, 55.0),
+                width: (32 * scaleFactor).clamp(26.0, 40.0),
                 child: Row(
                   children: [
                     if (rank <= 3) ...[
@@ -144,6 +345,9 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                   ],
                 ),
               ),
+              SizedBox(width: (4 * scaleFactor).clamp(2.0, 6.0)),
+              _userAvatar(user, (36 * scaleFactor).clamp(28.0, 44.0)),
+              SizedBox(width: (10 * scaleFactor).clamp(6.0, 14.0)),
 
               Expanded(
                 child: Text(
@@ -208,15 +412,31 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     );
   }
 
-  Widget _buildTopUsersView(List<String> rewards, {userCountry, double? rowExtent, double? rowGap}) {
+  /// Altura aproximada de la sección podio (top 3) para calcular el bloque total.
+  static double podiumSectionHeight(double scaleFactor) =>
+      (128 * scaleFactor).clamp(104.0, 165.0);
+
+  Widget _buildTopUsersView(List<String> rewards,
+      {userCountry, double? rowExtent, double? rowGap, double scaleFactor = 1.0}) {
     final effectiveRowExtent = rowExtent ?? _rowExtent;
     final effectiveRowGap = rowGap ?? _rowGap;
-    final double blockHeight = effectiveRowExtent * _visibleItems + effectiveRowGap * (_visibleItems - 1);
+    final podiumHeight = podiumSectionHeight(scaleFactor);
+    final listVisibleRows = _listRowsVisible;
+    final dividerGap = 1.0 + (4 * scaleFactor).clamp(2.0, 6.0);
+    final double blockHeight = podiumHeight +
+        dividerGap +
+        effectiveRowExtent * listVisibleRows +
+        effectiveRowGap * (listVisibleRows - 1);
 
     if (_userId == null) {
       return SizedBox(
         height: blockHeight,
-        child: _TopUsersSkeleton(count: _visibleItems, rowExtent: effectiveRowExtent, gap: effectiveRowGap),
+        child: _TopUsersSkeleton(
+          listRowCount: _listRowsVisible,
+          rowExtent: effectiveRowExtent,
+          gap: effectiveRowGap,
+          scaleFactor: scaleFactor,
+        ),
       );
     }
 
@@ -228,7 +448,12 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         if (snapshot.connectionState == ConnectionState.waiting) {
           return SizedBox(
             height: blockHeight,
-            child: _TopUsersSkeleton(count: _visibleItems, rowExtent: effectiveRowExtent, gap: effectiveRowGap),
+            child: _TopUsersSkeleton(
+              listRowCount: _listRowsVisible,
+              rowExtent: effectiveRowExtent,
+              gap: effectiveRowGap,
+              scaleFactor: scaleFactor,
+            ),
           );
         } else if (snapshot.hasError) {
           return SizedBox(
@@ -247,17 +472,71 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
           );
         } else {
           final users = snapshot.data!;
-          final count = min(_visibleItems, users.length);
+          final hasPodium = users.length >= 3;
+          final listUsers = hasPodium
+              ? users.sublist(3, min(users.length, _visibleItems))
+              : users;
+          final listStartRank = hasPodium ? 4 : 1;
 
-          return ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: count,
-            padding: EdgeInsets.symmetric(horizontal: (10 * (rowExtent != null ? rowExtent / _rowExtent : 1.0)).clamp(6.0, 14.0)),
-            separatorBuilder: (_, __) => SizedBox(height: effectiveRowGap),
-            itemBuilder: (_, i) => SizedBox(
-              height: effectiveRowExtent,
-              child: _buildUserRow(users[i], i+1 , rewards.elementAt(i), rowExtent: rowExtent),
+          return SizedBox(
+            height: blockHeight,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasPodium) ...[
+                  _buildTopThreePodium(
+                    users.sublist(0, 3),
+                    rewards.length >= 3 ? rewards.sublist(0, 3) : rewards,
+                    scaleFactor,
+                    effectiveRowExtent,
+                  ),
+                  SizedBox(height: (8 * scaleFactor).clamp(6.0, 12.0)),
+                  Divider(
+                    height: 1,
+                    thickness: 0.5,
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
+                  SizedBox(height: (4 * scaleFactor).clamp(2.0, 6.0)),
+                ],
+                if (listUsers.isEmpty)
+                  SizedBox(
+                    height: effectiveRowExtent * listVisibleRows +
+                        effectiveRowGap * (listVisibleRows - 1),
+                  )
+                else
+                  Expanded(
+                    child: ShaderMask(
+                      blendMode: BlendMode.dstIn,
+                      shaderCallback: (bounds) => LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white,
+                          Colors.white.withValues(alpha: 0.0),
+                        ],
+                        stops: const [0.5, 1.0],
+                      ).createShader(bounds),
+                      child: ListView.separated(
+                        itemCount: listUsers.length,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: (10 * (rowExtent != null ? rowExtent / _rowExtent : 1.0)).clamp(6.0, 14.0),
+                        ),
+                        separatorBuilder: (_, __) => SizedBox(height: effectiveRowGap),
+                        itemBuilder: (_, i) => SizedBox(
+                          height: effectiveRowExtent,
+                          child: _buildUserRow(
+                            listUsers[i],
+                            listStartRank + i,
+                            rewards.length > listStartRank + i - 1
+                                ? rewards[listStartRank + i - 1]
+                                : '',
+                            rowExtent: rowExtent,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           );
         }
@@ -335,7 +614,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
             builder: (_, __) => Common().bubble(
                 strings!.get('aw_toplist_title') ?? 'Ranking',
                 strings.get('aw_toplist_body') ??
-                    'See the top 5 users and their prizes. Switch between the worldwide board or your country to compare positions and rewards.'),
+                    'See the top 10 users and their prizes. Switch between the worldwide board or your country to compare positions and rewards.'),
           ),
         ],
       ),
@@ -502,25 +781,30 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                           ),
                           SizedBox(height: (8 * scaleFactor).clamp(6.0, 10.0)),
                           SizedBox(
-                            height: rowExtent * visibleItems + rowGap * (visibleItems - 1),
+                            height: AwardsPageState.podiumSectionHeight(scaleFactor) +
+                                (1.0 + (4 * scaleFactor).clamp(2.0, 6.0)) +
+                                rowExtent * _listRowsVisible +
+                                rowGap * (_listRowsVisible - 1),
                             child: TabBarView(
                                 controller: _tabController,
                                 children: [
                                   _buildTopUsersView(
-                                    Config.top5Rewards,
+                                    Config.top10Rewards,
                                     rowExtent: rowExtent,
                                     rowGap: rowGap,
+                                    scaleFactor: scaleFactor,
                                   ),
                                   _buildTopUsersView(
-                                    Config.top5Rewards,
+                                    Config.top10Rewards,
                                     userCountry: _userCountry,
                                     rowExtent: rowExtent,
                                     rowGap: rowGap,
+                                    scaleFactor: scaleFactor,
                                   ),
                                 ],
                             ),
                           ),
-                          SizedBox(height: (16 * scaleFactor).clamp(12.0, 20.0)),
+                          SizedBox(height: 0),
 
                           ]
                       ),
@@ -587,7 +871,7 @@ class _FolderTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double barHeight = kTextTabBarHeight;
+    final double barHeight = (kTextTabBarHeight * 0.85).clamp(36.0, 42.0);
     final double horizontalPadding = (12 * scaleFactor).clamp(8.0, 16.0);
 
     return SizedBox(
@@ -614,9 +898,9 @@ class _FolderTabs extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.zero,
                   child: Text(
-                    'Top-5',
+                    'Top-10',
                     style: GoogleFonts.syncopate(
-                      fontSize: (28 * scaleFactor).clamp(22.0, 34.0),
+                      fontSize: (20 * scaleFactor).clamp(16.0, 26.0),
                       fontWeight: FontWeight.w300,
                       color: Colors.white70,
                       letterSpacing: 0.5,
@@ -645,11 +929,11 @@ class _FolderTabs extends StatelessWidget {
                       Colors.white.withValues(alpha: 0.02),
                     ),
                     labelStyle: GoogleFonts.comfortaa(
-                      fontSize: (18 * scaleFactor).clamp(14.0, 22.0),
+                      fontSize: (14 * scaleFactor).clamp(12.0, 18.0),
                       fontWeight: FontWeight.w600,
                     ),
                     unselectedLabelStyle: GoogleFonts.comfortaa(
-                      fontSize: (18 * scaleFactor).clamp(14.0, 22.0),
+                      fontSize: (14 * scaleFactor).clamp(12.0, 18.0),
                       fontWeight: FontWeight.w400,
                     ),
                     labelColor: Colors.white,
@@ -1038,18 +1322,23 @@ class RafflesBuilder extends StatelessWidget {
     // Calcular rowExtent y rowGap (mismos valores que en AwardsPage)
     final calculatedRowExtent = (45 * scaleFactor).clamp(35.0, 55.0);
     final calculatedRowGap = (8 * scaleFactor).clamp(6.0, 10.0);
-    final visibleItems = 5; // _VISIBLE_ITEMS
+    final listRowsVisible = 3;
+    final topUsersBlockHeight = AwardsPageState.podiumSectionHeight(scaleFactor) +
+        (1.0 + (4 * scaleFactor).clamp(2.0, 6.0)) +
+        calculatedRowExtent * listRowsVisible +
+        calculatedRowGap * (listRowsVisible - 1);
     
-    // Calcular altura aproximada de los elementos superiores (Top-5 list)
-    // Esto incluye: padding superior, tabs, lista de top users, spacing, título de raffles, divider
+    // Calcular altura aproximada de los elementos superiores (Top-10: podio + 3 filas + tabs)
+    final tabBarHeight = (kTextTabBarHeight * 0.85).clamp(36.0, 42.0) + 1;
     final topSectionHeight = (10 * scaleFactor).clamp(6.0, 14.0) + // padding superior
-                             48 + // altura aproximada de tabs
-                             (calculatedRowExtent * visibleItems + calculatedRowGap * (visibleItems - 1)) + // top users list
-                             (16 * scaleFactor).clamp(12.0, 20.0) + // spacing
-                             30 + // título "Raffles"
-                             1; // divider
+                             tabBarHeight +
+                             (8 * scaleFactor).clamp(6.0, 10.0) + // bajo tabs
+                             topUsersBlockHeight +
+                             0 + // sin margen entre Top-10 y Sorteos
+                             28 + // título "Raffles" + divider
+                             1;
     
-    // Calcular altura máxima disponible para el GridView
+    // Calcular altura máxima disponible para el GridView (aprovechar todo el alto)
     final maxAvailableHeight = screenHeight - 
                                 safeAreaTop - 
                                 safeAreaBottom - 
@@ -1058,31 +1347,21 @@ class RafflesBuilder extends StatelessWidget {
     
     // Calcular número de filas necesarias
     final rowCount = (raffleItems.length / crossAxisCount).ceil();
-    final itemHeight = itemWidth / dynamicAspectRatio;
     final topPadding = (8 * scaleFactor).clamp(4.0, 12.0);
     final bottomPadding = (8 * scaleFactor).clamp(4.0, 12.0);
-    final totalGridHeight = (itemHeight * rowCount) + (mainAxisSpacing * (rowCount - 1));
-    final totalContentHeight = totalGridHeight + topPadding + bottomPadding;
     
-    // Si el contenido es más grande que el espacio disponible, ajustar el aspect ratio
-    double adjustedAspectRatio = dynamicAspectRatio;
-    if (totalContentHeight > maxAvailableHeight && maxAvailableHeight > 0) {
-      // Calcular nuevo aspect ratio para que quepa en el espacio disponible
-      final availableContentHeight = maxAvailableHeight - topPadding - bottomPadding;
-      final maxItemHeight = (availableContentHeight - (mainAxisSpacing * (rowCount - 1))) / rowCount;
-      if (maxItemHeight > 0) {
-        adjustedAspectRatio = itemWidth / maxItemHeight;
-        adjustedAspectRatio = adjustedAspectRatio.clamp(1.2, 2.5);
-      }
-    }
-    
-    // Usar la altura mínima entre la calculada y la máxima disponible
-    final gridHeight = totalContentHeight > maxAvailableHeight 
-        ? maxAvailableHeight 
-        : totalContentHeight;
+    // Siempre usar todo el alto disponible para evitar hueco bajo Sorteos.
+    // Calcular aspect ratio para que las celdas quepan en ese alto (evita overflow).
+    final availableContentHeight = maxAvailableHeight - topPadding - bottomPadding;
+    final maxItemHeight = rowCount > 0
+        ? (availableContentHeight - (mainAxisSpacing * (rowCount - 1))) / rowCount
+        : 0.0;
+    double adjustedAspectRatio = (maxItemHeight > 0 && itemWidth > 0)
+        ? (itemWidth / maxItemHeight).clamp(1.2, 2.5)
+        : dynamicAspectRatio;
     
     return SizedBox(
-      height: gridHeight.clamp(0.0, maxAvailableHeight),
+      height: maxAvailableHeight.clamp(0.0, double.infinity),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -1202,30 +1481,28 @@ class RafflesBuilder extends StatelessWidget {
 //-------------------------- S K E L E T O N S --------------------------
 
 class _TopUsersSkeleton extends StatelessWidget {
-  final int count;
+  final int listRowCount;
   final double rowExtent;
   final double gap;
+  final double scaleFactor;
 
   const _TopUsersSkeleton({
-    required this.count,
+    required this.listRowCount,
     required this.rowExtent,
     required this.gap,
+    this.scaleFactor = 1.0,
   });
 
   static const _pool = <String>[
     'donsuso','estacionvictoria','Ovu','rokusso','pepe',
     'cryptogato','lunaTrader','moriarty','neonbyte','alfaWolf',
-    'pixelito','kiwix','zenith','solanito','nox','bitmaria',
-    'ramenking','asturcoin','pampamon','quarky'
   ];
-
-
 
   String _nameFor(int i) {
     final r = Random(i + 13);
     final base = _pool[i % _pool.length];
-    if (r.nextBool() && base.length > 10) {
-      return '${base.substring(0, 12)}...';
+    if (r.nextBool() && base.length > 8) {
+      return '${base.substring(0, 8)}...';
     }
     return base;
   }
@@ -1236,110 +1513,249 @@ class _TopUsersSkeleton extends StatelessWidget {
     return NumberFormat.compact().format(value);
   }
 
+  Widget _podiumSlotSkeleton(int rank, double avatarSize, Color frameColor) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: avatarSize + (2.5 * scaleFactor).clamp(3.0, 6.0),
+              height: avatarSize + (2.5 * scaleFactor).clamp(3.0, 6.0),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.06),
+                border: Border.all(
+                  color: frameColor.withValues(alpha: 0.6),
+                  width: 1.5,
+                ),
+              ),
+              child: Center(
+                child: Container(
+                  width: avatarSize,
+                  height: avatarSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              top: 0,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: frameColor,
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.2),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$rank',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: (4 * scaleFactor).clamp(2.0, 6.0)),
+        ClipRect(
+          child: ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+            child: Text(
+              '••••••',
+              style: GoogleFonts.montserrat(
+                fontSize: (12 * scaleFactor).clamp(10.0, 15.0),
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.4),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: (2 * scaleFactor).clamp(1.0, 4.0)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/coin.png', width: (14 * scaleFactor).clamp(12.0, 18.0), height: (14 * scaleFactor).clamp(12.0, 18.0)),
+            SizedBox(width: (3 * scaleFactor).clamp(2.0, 4.0)),
+            Text(
+              '•••',
+              style: GoogleFonts.montserrat(
+                fontSize: (13 * scaleFactor).clamp(11.0, 16.0),
+                fontWeight: FontWeight.w700,
+                color: Colors.white.withValues(alpha: 0.4),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _listRowSkeleton(int rank, double scaleFactor) {
+    final prize = rank <= Config.top10Rewards.length ? Config.top10Rewards[rank - 1] : '';
+    final scale = (rowExtent / 45.0).clamp(0.75, 1.2);
+    return Container(
+      height: rowExtent,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular((14 * scale).clamp(10.0, 18.0)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: (10 * scale).clamp(6.0, 14.0),
+        vertical: (6 * scale).clamp(4.0, 8.0),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: (32 * scale).clamp(26.0, 40.0),
+            child: Text(
+              '$rank',
+              style: GoogleFonts.syncopate(
+                fontSize: (16 * scale).clamp(12.0, 20.0),
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.9),
+              ),
+            ),
+          ),
+          SizedBox(width: (4 * scale).clamp(2.0, 6.0)),
+          Container(
+            width: (36 * scale).clamp(28.0, 44.0),
+            height: (36 * scale).clamp(28.0, 44.0),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.08),
+            ),
+          ),
+          SizedBox(width: (10 * scale).clamp(6.0, 14.0)),
+          Expanded(
+            child: ClipRect(
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+                child: Text(
+                  _nameFor(rank - 1),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.montserrat(
+                    fontSize: (17 * scale).clamp(14.0, 20.0),
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.95),
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            width: 1,
+            height: (24 * scale).clamp(18.0, 30.0),
+            margin: EdgeInsets.symmetric(horizontal: (8 * scale).clamp(6.0, 10.0)),
+            color: Colors.white.withValues(alpha: 0.12),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _coinsFor(rank),
+                style: GoogleFonts.montserrat(
+                  fontSize: (18 * scale).clamp(14.0, 22.0),
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.95),
+                ),
+              ),
+              SizedBox(width: (4 * scale).clamp(2.0, 6.0)),
+              Image.asset(
+                'assets/coin.png',
+                width: (18 * scale).clamp(14.0, 22.0),
+                height: (18 * scale).clamp(14.0, 22.0),
+              ),
+              if (prize.isNotEmpty) ...[
+                Container(
+                  width: 1,
+                  height: (24 * scale).clamp(18.0, 30.0),
+                  margin: EdgeInsets.symmetric(horizontal: (8 * scale).clamp(6.0, 10.0)),
+                  color: Colors.white.withValues(alpha: 0.12),
+                ),
+                Text(
+                  prize,
+                  style: GoogleFonts.montserrat(
+                    fontSize: (16 * scale).clamp(12.0, 20.0),
+                    fontWeight: FontWeight.w700,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    const double sigmaName = 3;
-    return ListView.separated(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      itemCount: count,
-      separatorBuilder: (_, __) => SizedBox(height: gap),
-      itemBuilder: (_, index) {
-        final rank = index + 1;
-        final prize = rank <= Config.top5Rewards.length ? Config.top5Rewards[rank - 1] : '';
+    final gold = const Color(0xFFFFC107);
+    final silver = const Color(0xFFB0BEC5);
+    final bronze = const Color(0xFFB87333);
+    final avatarSizeSide = (44 * scaleFactor).clamp(36.0, 56.0);
+    final avatarSizeCenter = (56 * scaleFactor).clamp(44.0, 68.0);
 
-        return Container(
-          height: rowExtent,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.10), width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: (8 * scaleFactor).clamp(6.0, 12.0)),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              SizedBox(
-                width: 45,
-                child: (rank <= 3)
-                    ? MedalBadge(rank: rank, size: 30)
-                    : Text(
-                  '$rank',
-                  style: GoogleFonts.syncopate(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
-                ),
-              ),
-
+              Expanded(child: _podiumSlotSkeleton(2, avatarSizeSide, silver)),
               Expanded(
-                child: ClipRect(
-                  child: ImageFiltered(
-                    imageFilter: ImageFilter.blur(sigmaX: sigmaName, sigmaY: sigmaName),
-                    child: Text(
-                      _nameFor(index),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.95),
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: (5 * scaleFactor).clamp(3.0, 8.0)),
+                  child: _podiumSlotSkeleton(1, avatarSizeCenter, gold),
                 ),
               ),
-
-              Container(
-                width: 1,
-                height: 24,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                color: Colors.white.withValues(alpha: 0.12),
-              ),
-
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _coinsFor(index),
-                    style: GoogleFonts.montserrat(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white.withValues(alpha: 0.95),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Image.asset('assets/coin.png', width: 18, height: 18),
-                  Container(
-                    width: 1,
-                    height: 24,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    color: Colors.white.withValues(alpha: 0.12),
-                  ),
-                  if (prize.isNotEmpty)
-                    Text(
-                      prize,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.green,
-                      ),
-                    ),
-                ],
-              ),
+              Expanded(child: _podiumSlotSkeleton(3, avatarSizeSide, bronze)),
             ],
           ),
-        );
-      },
+        ),
+        SizedBox(height: (8 * scaleFactor).clamp(6.0, 12.0)),
+        Divider(
+          height: 1,
+          thickness: 0.5,
+          color: Colors.white.withValues(alpha: 0.12),
+        ),
+        SizedBox(height: (4 * scaleFactor).clamp(2.0, 6.0)),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: (10 * scaleFactor).clamp(6.0, 14.0)),
+          child: Column(
+            children: [
+              for (int i = 0; i < listRowCount; i++) ...[
+                if (i > 0) SizedBox(height: gap),
+                _listRowSkeleton(4 + i, scaleFactor),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1389,50 +1805,38 @@ class _RafflesSkeletonGrid extends StatelessWidget {
     // Calcular rowExtent y rowGap (mismos valores que en AwardsPage)
     final calculatedRowExtent = (45 * scaleFactor).clamp(35.0, 55.0);
     final calculatedRowGap = (8 * scaleFactor).clamp(6.0, 10.0);
-    final visibleItems = 5; // _VISIBLE_ITEMS
+    final listRowsVisible = 3;
+    final topUsersBlockHeight = AwardsPageState.podiumSectionHeight(scaleFactor) +
+        (1.0 + (4 * scaleFactor).clamp(2.0, 6.0)) +
+        calculatedRowExtent * listRowsVisible +
+        calculatedRowGap * (listRowsVisible - 1);
     
-    // Calcular altura aproximada de los elementos superiores (Top-5 list)
-    final topSectionHeight = (10 * scaleFactor).clamp(6.0, 14.0) + // padding superior
-                             48 + // altura aproximada de tabs
-                             (calculatedRowExtent * visibleItems + calculatedRowGap * (visibleItems - 1)) + // top users list
-                             (16 * scaleFactor).clamp(12.0, 20.0) + // spacing
-                             30 + // título "Raffles"
-                             1; // divider
+    // Calcular altura aproximada de los elementos superiores (misma fórmula que RafflesBuilder)
+    final tabBarHeight = (kTextTabBarHeight * 0.85).clamp(36.0, 42.0) + 1;
+    final topSectionHeight = (10 * scaleFactor).clamp(6.0, 14.0) +
+                             tabBarHeight +
+                             (8 * scaleFactor).clamp(6.0, 10.0) +
+                             topUsersBlockHeight +
+                             0 +
+                             28 + 1;
     
-    // Calcular altura máxima disponible para el GridView
     final maxAvailableHeight = screenHeight - 
                                 safeAreaTop - 
                                 safeAreaBottom - 
                                 topSectionHeight - 
                                 extraBottomPadding;
     
-    // Calcular número de filas necesarias (4 items = 2x2)
     final rowCount = 2;
-    final itemHeight = itemWidth / dynamicAspectRatio;
     final topPadding = (8 * scaleFactor).clamp(4.0, 12.0);
     final bottomPadding = (8 * scaleFactor).clamp(4.0, 12.0);
-    final totalGridHeight = (itemHeight * rowCount) + (mainAxisSpacing * (rowCount - 1));
-    final totalContentHeight = totalGridHeight + topPadding + bottomPadding;
-    
-    // Si el contenido es más grande que el espacio disponible, ajustar el aspect ratio
-    double adjustedAspectRatio = dynamicAspectRatio;
-    if (totalContentHeight > maxAvailableHeight && maxAvailableHeight > 0) {
-      // Calcular nuevo aspect ratio para que quepa en el espacio disponible
-      final availableContentHeight = maxAvailableHeight - topPadding - bottomPadding;
-      final maxItemHeight = (availableContentHeight - (mainAxisSpacing * (rowCount - 1))) / rowCount;
-      if (maxItemHeight > 0) {
-        adjustedAspectRatio = itemWidth / maxItemHeight;
-        adjustedAspectRatio = adjustedAspectRatio.clamp(1.2, 2.5);
-      }
-    }
-    
-    // Usar la altura mínima entre la calculada y la máxima disponible
-    final gridHeight = totalContentHeight > maxAvailableHeight 
-        ? maxAvailableHeight 
-        : totalContentHeight;
+    final availableContentHeight = maxAvailableHeight - topPadding - bottomPadding;
+    final maxItemHeight = (availableContentHeight - (mainAxisSpacing * (rowCount - 1))) / rowCount;
+    double adjustedAspectRatio = (maxItemHeight > 0 && itemWidth > 0)
+        ? (itemWidth / maxItemHeight).clamp(1.2, 2.5)
+        : dynamicAspectRatio;
     
     return SizedBox(
-      height: gridHeight.clamp(0.0, maxAvailableHeight),
+      height: maxAvailableHeight.clamp(0.0, double.infinity),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),

@@ -1,11 +1,16 @@
 import 'dart:async';
+import '../config/config.dart';
 import '../helpers/common.dart';
 import '../models/users.dart';
 
 class TopService {
 
   Future<List<User>> fetchTopUsers(String userId) async {
-    final response = await Common().postRequestWrapper('Info','TopUsers', {});
+    final response = await Common().postRequestWrapper(
+      'Info',
+      'TopUsers',
+      {'limit': Config.topUsersCount},
+    );
 
     if (response['statusCode'] == 200) {
       List<User> topUsers = (response['body']['users'] as List).map((json) => User.fromJson(json)).toList();
@@ -17,7 +22,11 @@ class TopService {
   }
 
   Future<List<User>> fetchTopUsersByCountry(String countryCode) async {
-    final response = await Common().postRequestWrapper('Info','TopUsersByCountry', {'countryCode': countryCode});
+    final response = await Common().postRequestWrapper(
+      'Info',
+      'TopUsersByCountry',
+      {'countryCode': countryCode, 'limit': Config.topUsersCount},
+    );
 
     if (response['statusCode'] == 200) {
       List<User> topUsers = (response['body']['users'] as List).map((json) => User.fromJson(json)).toList();
