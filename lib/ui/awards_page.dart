@@ -158,13 +158,19 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     Widget podiumSlot(User user, int rank, String prize, double avatarSize, Color frameColor) {
       return Material(
         color: Colors.transparent,
-        child: GestureDetector(
+        child: InkWell(
           onTap: () {
             Common().vibrate();
             Common().applyImmersive();
             popUserDialog(context, user);
           },
-          behavior: HitTestBehavior.opaque,
+          borderRadius: BorderRadius.circular(20),
+          overlayColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.pressed)) {
+              return Colors.white.withValues(alpha: 0.12);
+            }
+            return null;
+          }),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

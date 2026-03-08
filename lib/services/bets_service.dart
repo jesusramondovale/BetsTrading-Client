@@ -379,6 +379,16 @@ class BetsService {
     }
   }
 
+  /// Actualiza el modo privado del usuario en el servidor (columna private del modelo users).
+  Future<bool> setUserPrivate(String? userId, bool isPrivate) async {
+    final response = await Common().postRequestWrapper(
+      'Info',
+      'SetUserPrivate',
+      {'userId': userId, 'isPrivate': isPrivate},
+    );
+    return response['statusCode'] == 200;
+  }
+
   Future<List<Candle>> fetchCandles(String symbol, int hoursTimeframe, String currency) async {
     final finalCurrency = Common().isTickerForex(symbol) ? 'EUR' : currency;
 

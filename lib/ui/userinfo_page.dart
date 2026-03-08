@@ -43,7 +43,9 @@ class UserInfoPageState extends State<UserInfoPage> {
   final GlobalKey _kLogout = GlobalKey();
   static const String _seenKey = '__tutorial_seen__userinfo_v1';
   static const String _pendingKey = '__tutorial_pending__userinfo_v1';
+  static const String _privateModeKey = 'userinfo_private_mode';
   bool userVerified = false;
+  bool _privateMode = false;
   late String countryCode = '';
   late String _userId = '';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -141,10 +143,81 @@ class UserInfoPageState extends State<UserInfoPage> {
     }
   }
 
+  Future<void> _loadPrivateMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _privateMode = prefs.getBool(_privateModeKey) ?? false;
+    });
+  }
+
+  Future<void> _savePrivateMode(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_privateModeKey, value);
+  }
+
+  /// Muestra el diálogo de modo privado/público. Al pulsar Aceptar se ejecuta la llamada a la API
+  /// y se actualiza el estado. [newPrivateMode] es el valor que se aplicará al aceptar.
+  Future<bool?> _showPrivateModeDialog({required bool newPrivateMode}) async {
+    final strings = LocalizedStrings.of(context);
+    final isGoingPrivate = newPrivateMode;
+    final title = isGoingPrivate
+        ? (strings?.get('modoPrivado') ?? 'Modo privado')
+        : (strings?.get('modoPublico') ?? 'Modo público');
+    final message = isGoingPrivate
+        ? (strings?.get('privateModeLeaderboardMessage') ??
+            'Cuando uses modo privado, el resto de usuarios no podrá ver tu nombre real en las listas de clasificaciones; se mostrará tu nombre de usuario.')
+        : (strings?.get('publicModeLeaderboardMessage') ??
+            'Cuando uses modo público, el resto de usuarios podrá ver tu nombre real en las listas de clasificaciones.');
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          content: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 16,
+              color: Colors.white70,
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w500),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text(strings?.get('accept') ?? 'Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _loadProfilePic();
+    _loadPrivateMode();
 
     // Agregar el listener inmediatamente para no perder cambios de pestaña
     widget.controller.selectedIndexNotifier.addListener(_onIndexChange);
@@ -283,6 +356,20 @@ class UserInfoPageState extends State<UserInfoPage> {
             ],
           );
         } else {
+          final showCheckNextToFullname = !_privateMode;
+          subtitle = Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(entry.value, textAlign: TextAlign.start),
+              if (showCheckNextToFullname) ...[
+                const SizedBox(width: 5, height: 1),
+                const Icon(Icons.verified, size: 20),
+              ],
+            ],
+          );
+        }
+      } else if (entry.key == 'username') {
+        if (_privateMode && userVerified) {
           subtitle = Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -291,6 +378,8 @@ class UserInfoPageState extends State<UserInfoPage> {
               const Icon(Icons.verified, size: 20),
             ],
           );
+        } else {
+          subtitle = Text(entry.value);
         }
       } else if (entry.key == 'birthday') {
         Locale locale = Localizations.localeOf(context);
@@ -321,28 +410,71 @@ class UserInfoPageState extends State<UserInfoPage> {
                 : Common().getIconForUserInfo(entry.key)),
             title: Text(title, style: GoogleFonts.syncopate(fontSize: 12, fontWeight: FontWeight.w500)),
             subtitle: subtitle,
-            trailing: IconButton(
-              padding: EdgeInsets.zero,
-              key: _kProfileCamera,
-              icon: const Icon(FontAwesomeIcons.cameraRotate),
-              onPressed: () async {
-                String? sessionToken = await _storage.read(key: 'sessionToken');
-                bool result = await BetsService().uploadProfilePic(
-                    sessionToken, await Common().pickImageFromGallery());
-                if (result) {
-                  _loadProfilePic();
-                  // Recargar la info del usuario después de subir foto
-                  _userInfoFuture = _readUserInfo(context);
-                  _cachedUserInfo = null;
-                  setState(() {
-                    Common().popDialog(
-                      strings?.get('success') ?? "Success!",
-                      strings?.get('profilePictureUploadedSuccessfully') ?? "Profile picture uploaded successfully",
-                      context,
-                    );
-                  });
-                }
-              },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  icon: Icon(
+                    _privateMode ? Icons.visibility_off : Icons.visibility,
+                    size: 20,
+                  ),
+                  onPressed: () async {
+                    final newPrivateMode = !_privateMode;
+                    final accepted = await _showPrivateModeDialog(newPrivateMode: newPrivateMode);
+                    if (accepted != true || !mounted) return;
+                    final sessionToken = await _storage.read(key: 'sessionToken');
+                    if (sessionToken == null || sessionToken.isEmpty) {
+                      Common().popDialog(
+                        strings?.get('error') ?? 'Error',
+                        strings?.get('sessionRequired') ?? 'Session required',
+                        context,
+                      );
+                      return;
+                    }
+                    final success = await BetsService().setUserPrivate(sessionToken, newPrivateMode);
+                    if (!mounted) return;
+                    if (success) {
+                      setState(() {
+                        _privateMode = newPrivateMode;
+                      });
+                      await _savePrivateMode(_privateMode);
+                    } else {
+                      Common().popDialog(
+                        strings?.get('error') ?? 'Error',
+                        strings?.get('couldNotUpdatePrivateMode') ?? 'No se pudo actualizar el modo privado.',
+                        context,
+                      );
+                    }
+                  },
+                ),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  key: _kProfileCamera,
+                  icon: const Icon(FontAwesomeIcons.cameraRotate, size: 20),
+                  onPressed: () async {
+                    String? sessionToken = await _storage.read(key: 'sessionToken');
+                    bool result = await BetsService().uploadProfilePic(
+                        sessionToken, await Common().pickImageFromGallery());
+                    if (result) {
+                      _loadProfilePic();
+                      // Recargar la info del usuario después de subir foto
+                      _userInfoFuture = _readUserInfo(context);
+                      _cachedUserInfo = null;
+                      setState(() {
+                        Common().popDialog(
+                          strings?.get('success') ?? "Success!",
+                          strings?.get('profilePictureUploadedSuccessfully') ?? "Profile picture uploaded successfully",
+                          context,
+                        );
+                      });
+                    }
+                  },
+                ),
+              ],
             ),
             onTap: () => {
               Common().vibrate(),
