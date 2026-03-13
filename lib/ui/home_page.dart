@@ -30,7 +30,13 @@ import 'notifications_page.dart';
 class HomeScreen extends StatefulWidget {
   /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
-  const HomeScreen({super.key, required this.controller});
+  /// Llamado cuando el tutorial del home se omite o termina (para mostrar recompensa diaria después).
+  final VoidCallback? onHomeTutorialFinished;
+  const HomeScreen({
+    super.key,
+    required this.controller,
+    this.onHomeTutorialFinished,
+  });
 
   @override
   HomeScreenState createState() => HomeScreenState();
@@ -636,12 +642,16 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       onClickOverlay: (target) {},
       onSkip: () {
         Common().markAllTutorialsSeen();
+        widget.onHomeTutorialFinished?.call();
         return true;
       },
       onFinish: () async {
         await _markSeen('home_onboarding_v1');
         final p = await SharedPreferences.getInstance();
         await p.setBool('__tutorial_pending__awards_v1', true);
+
+        // No llamar onHomeTutorialFinished aquí: el flujo continúa en Awards.
+        // La recompensa diaria se mostrará al omitir o al terminar el último tutorial (UserInfo).
 
         if (!mounted) return;
         Future.delayed(const Duration(milliseconds: 150), () {

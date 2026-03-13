@@ -27,7 +27,13 @@ import 'login_page.dart';
 class UserInfoPage extends StatefulWidget {
   /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
-  const UserInfoPage({super.key, required this.controller});
+  /// Llamado cuando el tutorial se omite o termina (fin del flujo completo).
+  final VoidCallback? onTutorialFlowEnded;
+  const UserInfoPage({
+    super.key,
+    required this.controller,
+    this.onTutorialFlowEnded,
+  });
 
   @override
   UserInfoPageState createState() => UserInfoPageState();
@@ -717,15 +723,15 @@ class UserInfoPageState extends State<UserInfoPage> {
         _markSeen();
         _clearPending();
         Common().markAllTutorialsSeen();
-        // Remover el listener después de completar el tutorial
         widget.controller.selectedIndexNotifier.removeListener(_onIndexChange);
+        widget.onTutorialFlowEnded?.call();
         return true;
-        },
+      },
       onFinish: () async {
         await _markSeen();
         await _clearPending();
-        // Remover el listener después de completar el tutorial
         widget.controller.selectedIndexNotifier.removeListener(_onIndexChange);
+        widget.onTutorialFlowEnded?.call();
       },
     );
     _coach!.show(context: context);

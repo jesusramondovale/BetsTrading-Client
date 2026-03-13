@@ -30,9 +30,12 @@ class CandlesticksView extends StatefulWidget {
   
   /// Optional bet ID if viewing an existing bet.
   final int? betId;
-  
+
   /// Whether tutorial mode is enabled (disables some interactions).
   final bool tutorialMode;
+
+  /// Llamado cuando el usuario omite el tutorial (flujo de tutorial terminado).
+  final VoidCallback? onTutorialFlowEnded;
 
   const CandlesticksView({
     super.key,
@@ -42,6 +45,7 @@ class CandlesticksView extends StatefulWidget {
     this.betId,
     required this.name,
     this.tutorialMode = false,
+    this.onTutorialFlowEnded,
   });
 
   @override
@@ -213,6 +217,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
       onSkip: () {
         _clearFlags();
         Common().markAllTutorialsSeen();
+        widget.onTutorialFlowEnded?.call();
         return true;
       },
       onFinish: () async {

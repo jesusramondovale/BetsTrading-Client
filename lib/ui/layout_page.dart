@@ -205,6 +205,13 @@ class MainMenuPageState extends State<MainMenuPage> {
     final status = await BetsService().getDailyRewardStatus(userId);
     if (kDebugMode) debugPrint('[DAILY_REWARD] getDailyRewardStatus returned: $status');
     if (!mounted) return;
+    // La primera vez, no mostrar el diálogo de recompensa hasta que el tutorial del home se omita o termine
+    final prefs = await SharedPreferences.getInstance();
+    final homeTutorialSeen = prefs.getBool('__tutorial_seen__home_onboarding_v1') ?? false;
+    if (!homeTutorialSeen) {
+      if (kDebugMode) debugPrint('[DAILY_REWARD] SKIP: home tutorial not seen yet, will show after tutorial');
+      return;
+    }
     final showDialog = status?['showDialog'] == true;
     final canClaim = status?['canClaim'] == true;
     if (kDebugMode) debugPrint('[DAILY_REWARD] showDialog=$showDialog canClaim=$canClaim -> showIfNeeded? ${showDialog && canClaim}');
@@ -227,6 +234,14 @@ class MainMenuPageState extends State<MainMenuPage> {
       },
     );
     if (kDebugMode) debugPrint('[DAILY_REWARD] showIfNeeded returned (dialog closed)');
+  }
+
+  /// Llamar cuando el tutorial del home se omite o termina para mostrar
+  /// el diálogo de recompensa diaria si correspondía (evita solapamiento la primera vez).
+  Future<void> tryShowPendingDailyReward() async {
+    await Future.delayed(const Duration(milliseconds: 150));
+    if (!mounted) return;
+    await _checkDailyReward();
   }
 
   @override
@@ -271,19 +286,30 @@ class MainMenuPageState extends State<MainMenuPage> {
       HomeScreen(
         key: homeScreenKey,
         controller: _controller,
+        onHomeTutorialFinished: tryShowPendingDailyReward,
       ),
       // TOP USERS
       AwardsPage(
-          key: awardsScreenKey,
-          controller: _controller),
+        key: awardsScreenKey,
+        controller: _controller,
+        onTutorialFlowEnded: tryShowPendingDailyReward,
+      ),
       // MARKETS
       MarketsView(
         key: marketsPageKey,
         controller: _controller,
+        onTutorialFlowEnded: tryShowPendingDailyReward,
       ),
-      ExchangePage(key: exchangePageKey, controller: _controller),
+      ExchangePage(
+        key: exchangePageKey,
+        controller: _controller,
+        onTutorialFlowEnded: tryShowPendingDailyReward,
+      ),
       // PERSONAL INFO
-      UserInfoPage(controller: _controller)
+      UserInfoPage(
+        controller: _controller,
+        onTutorialFlowEnded: tryShowPendingDailyReward,
+      )
     ];
 
     return Scaffold(

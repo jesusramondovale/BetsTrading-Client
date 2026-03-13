@@ -34,7 +34,13 @@ enum MarketsSortOrder {
 class MarketsView extends StatefulWidget {
   /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
-  const MarketsView({super.key, required this.controller});
+  /// Llamado cuando el usuario omite el tutorial (flujo de tutorial terminado).
+  final VoidCallback? onTutorialFlowEnded;
+  const MarketsView({
+    super.key,
+    required this.controller,
+    this.onTutorialFlowEnded,
+  });
 
   @override
   MarketsViewState createState() => MarketsViewState();
@@ -1000,7 +1006,8 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                       name: asset.name,
                       controller: widget.controller,
                       iconPath: asset.icon,
-                      tutorialMode: tutorialMode
+                      tutorialMode: tutorialMode,
+                      onTutorialFlowEnded: widget.onTutorialFlowEnded,
                     ),
                   ),
                 ],
@@ -1095,6 +1102,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
         _clearPending();
         _markSeen();
         Common().markAllTutorialsSeen();
+        widget.onTutorialFlowEnded?.call();
         return true;
       },
       onFinish: () async {

@@ -28,7 +28,13 @@ import 'home_page.dart';
 class AwardsPage extends StatefulWidget {
   /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
-  const AwardsPage({super.key, required this.controller});
+  /// Llamado cuando el usuario omite el tutorial (flujo de tutorial terminado).
+  final VoidCallback? onTutorialFlowEnded;
+  const AwardsPage({
+    super.key,
+    required this.controller,
+    this.onTutorialFlowEnded,
+  });
 
 
   @override
@@ -685,6 +691,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         _clearPending();
         _markSeen();
         Common().markAllTutorialsSeen();
+        widget.onTutorialFlowEnded?.call();
         return true;
       },
       onFinish: () async {

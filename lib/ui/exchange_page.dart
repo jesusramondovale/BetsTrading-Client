@@ -19,10 +19,16 @@ import 'layout_page.dart';
 /// Displays user balance, pending balance, exchange options, and provides
 /// navigation to withdrawal and verification pages.
 class ExchangePage extends StatefulWidget {
-  const ExchangePage({super.key, required this.controller});
-  
+  const ExchangePage({
+    super.key,
+    required this.controller,
+    this.onTutorialFlowEnded,
+  });
+
   /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
+  /// Llamado cuando el usuario omite el tutorial (flujo de tutorial terminado).
+  final VoidCallback? onTutorialFlowEnded;
   @override
   State<ExchangePage> createState() => ExchangePageState();
 }
@@ -312,6 +318,7 @@ class ExchangePageState extends State<ExchangePage> {
         _clearPending();
         _markSeen();
         Common().markAllTutorialsSeen();
+        widget.onTutorialFlowEnded?.call();
         return true;
       },
       onFinish: () async {
