@@ -12,6 +12,7 @@ import '../config/config.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../services/firebase_service.dart';
+import '../services/secure_auth_service.dart';
 import 'layout_page.dart';
 import 'package:intl/intl.dart';
 
@@ -54,6 +55,7 @@ class _ExactPricePageState extends State<ExactPricePage> {
   DateTime? _holdStart;
   String _selectedMargin = "±0%";
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final SecureAuthService _secureAuthService = SecureAuthService();
   double _userPoints = 0.0;
   String _currency = "eur";
   bool _isAcceptEnabled = false;
@@ -239,6 +241,25 @@ class _ExactPricePageState extends State<ExactPricePage> {
                                 _priceController.text.replaceAll(',', '.')) ??
                             _selectedPrice;
                         String fcm = FirebaseService().firebaseToken ?? "null";
+                        final betCost = _getBetAmountFromMargin(_selectedMargin).toDouble();
+                        String password = "";
+                        String stepUpToken = "";
+                        if (betCost >= 1000) {
+                          final biometricEnabled = await _secureAuthService.isBiometricEnabled();
+                          if (biometricEnabled) {
+                            final token = await _secureAuthService.runStepUpWithBiometric(
+                              context,
+                              purpose: 'bet',
+                              maxAmountCoins: betCost,
+                            );
+                            if (token == null) return;
+                            stepUpToken = token;
+                          } else {
+                            final entered = await _secureAuthService.promptPasswordDialog(context);
+                            if (entered == null || entered.isEmpty) return;
+                            password = entered;
+                          }
+                        }
                         int result = await BetsService().postNewExactPriceBet(
                             userId!,
                             fcm,
@@ -246,7 +267,9 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             _selectedPrice,
                             _getMarginAsDouble(_selectedMargin),
                             _selectedDate,
-                            _currency.toUpperCase());
+                            _currency.toUpperCase(),
+                            password: password,
+                            stepUpToken: stepUpToken);
 
                         if (result == 200) {
                           if (bettingNotifications) {

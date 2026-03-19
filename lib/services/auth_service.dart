@@ -116,9 +116,17 @@ class AuthService {
     }
   }
 
-  Future<int> changePassword(String token, String currentPassword, String newPass) async {
-    final response = await Common().postRequestWrapper('Auth','ChangePassword',
-                            {'currentPassword': currentPassword, 'newPassword': newPass});
+  Future<int> changePassword(
+    String token,
+    String currentPassword,
+    String newPass, {
+    String stepUpToken = "",
+  }) async {
+    final response = await Common().postRequestWrapper('Auth', 'ChangePassword', {
+      'currentPassword': currentPassword,
+      'newPassword': newPass,
+      'stepUpToken': stepUpToken,
+    });
     if (response['statusCode'] == 200) {
       return 0; // SUCCESS
     } else if (response['statusCode'] == 404) {

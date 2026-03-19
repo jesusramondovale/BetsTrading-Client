@@ -9,6 +9,7 @@ import '../helpers/preload_cache.dart';
 import '../locale/localized_texts.dart';
 import '../helpers/common.dart';
 import '../services/bets_service.dart';
+import '../services/secure_auth_service.dart';
 import 'layout_page.dart';
 import 'markets_page.dart';
 
@@ -33,6 +34,7 @@ class _FirstTimePageState extends State<FirstTimePage> {
   String? _passwordError;
   String? _confirmPasswordError;
   bool _isLoading = false;
+  final SecureAuthService _secureAuthService = SecureAuthService();
 
   Future<void> _init() async {
     final bytes = await rootBundle.load('assets/new_icon.png');
@@ -256,6 +258,14 @@ class _FirstTimePageState extends State<FirstTimePage> {
                               { 'password' : _confirmPasswordController.text.trim() });
 
                           if (response['statusCode'] == 200) {
+                            final biometricEnabled = await _secureAuthService.isBiometricEnabled();
+                            if (biometricEnabled) {
+                              final stepUpToken = await _secureAuthService.runStepUpWithBiometric(
+                                context,
+                                purpose: 'new_password',
+                              );
+                              if (stepUpToken == null) return;
+                            }
                             Common().showFloatingSnack(
                               context,
                               strings?.get('successPassword') ?? "Password created successfully",

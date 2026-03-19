@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../config/config.dart';
 import '../services/auth_service.dart';
+import '../services/secure_auth_service.dart';
 import 'layout_page.dart';
 
 /// A settings view widget for managing app preferences and user account.
@@ -43,7 +44,10 @@ class SettingsViewState extends State<SettingsView> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool enableVibration = false;
   bool dollarCurrency = false;
+  bool enableBiometricAuth = false;
+  bool biometricSupported = false;
   bool _loaded = false;
+  final SecureAuthService _secureAuthService = SecureAuthService();
 
 
   /// Shows a dialog for changing user password.
@@ -94,31 +98,31 @@ class SettingsViewState extends State<SettingsView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Current password
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 14),
-                    child: TextFormField(
-                      controller: currentPasswordController,
-                      obscureText: true,
-                      style: GoogleFonts.montserrat(color: textColor),
-                      decoration: InputDecoration(
-                        labelText: strings?.get('currentPassword') ?? "Current Password",
-                        labelStyle: GoogleFonts.montserrat(color: textColor),
-                        filled: true,
-                        fillColor: fieldColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
+                  if (!enableBiometricAuth)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      child: TextFormField(
+                        controller: currentPasswordController,
+                        obscureText: true,
+                        style: GoogleFonts.montserrat(color: textColor),
+                        decoration: InputDecoration(
+                          labelText: strings?.get('currentPassword') ?? "Current Password",
+                          labelStyle: GoogleFonts.montserrat(color: textColor),
+                          filled: true,
+                          fillColor: fieldColor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
+                        validator: (value) {
+                          if (!enableBiometricAuth && (value == null || value.isEmpty)) {
+                            return strings?.get('thisFieldIsRequired') ?? "Required";
+                          }
+                          return null;
+                        },
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return strings?.get('thisFieldIsRequired') ?? "Required";
-                        }
-                        return null;
-                      },
                     ),
-                  ),
 
                   // New password + Confirm password (StatefulBuilder)
                   StatefulBuilder(
@@ -227,10 +231,21 @@ class SettingsViewState extends State<SettingsView> {
                   FocusManager.instance.primaryFocus?.unfocus();
                   if (formKey.currentState?.validate() != true) return;
 
+                  String stepUpToken = "";
+                  if (enableBiometricAuth) {
+                    final token = await _secureAuthService.runStepUpWithBiometric(
+                      context,
+                      purpose: 'change_password',
+                    );
+                    if (token == null) return;
+                    stepUpToken = token;
+                  }
+
                   int result = await AuthService().changePassword(
                     token,
                     currentPasswordController.text,
                     newPasswordController.text,
+                    stepUpToken: stepUpToken,
                   );
 
                   if (result == 0) {
@@ -336,13 +351,72 @@ class SettingsViewState extends State<SettingsView> {
     await prefs.setBool('dollarCurrency', value);
   }
 
+  Future<void> _saveEnableBiometric(bool value) async {
+    await _secureAuthService.saveBiometricEnabled(value);
+  }
+
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    final supported = await _secureAuthService.isBiometricSupported();
+    bool enabled = prefs.getBool(SecureAuthService.biometricPrefKey) ?? false;
+    if (!supported) {
+      enabled = false;
+      await _secureAuthService.saveBiometricEnabled(false);
+    }
     setState(() {
       enableVibration = prefs.getBool('enableVibration') ?? false;
       dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
+      biometricSupported = supported;
+      enableBiometricAuth = enabled;
       _loaded = true;
     });
+  }
+
+  Future<void> _showBiometricUnavailableDialog(BuildContext context) async {
+    final strings = LocalizedStrings.of(context);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          strings?.get('biometricUnavailableTitle') ?? 'Biometrics unavailable',
+          style: GoogleFonts.montserrat(color: Colors.white),
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          strings?.get('biometricUnavailableBody') ??
+              'Your device has no biometric method configured. Please configure fingerprint or face recognition in system settings.',
+          style: GoogleFonts.montserrat(color: Colors.white70),
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+            child: Text(strings?.get('confirm') ?? 'Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _toggleBiometricWithSecurity(BuildContext context, bool nextValue) async {
+    if (!biometricSupported) {
+      await _showBiometricUnavailableDialog(context);
+      return;
+    }
+
+    // Security hardening: disabling biometrics also requires biometric auth.
+    if (enableBiometricAuth && !nextValue) {
+      final ok = await _secureAuthService.authenticateBiometric(context);
+      if (!ok) return;
+    }
+
+    Common().vibrate();
+    setState(() => enableBiometricAuth = nextValue);
+    _saveEnableBiometric(nextValue);
   }
 
   @override
@@ -534,6 +608,27 @@ class SettingsViewState extends State<SettingsView> {
                     setState(() => enableVibration = value);
                     _saveEnableVibration(value);
                   },
+                ),
+
+                ListTile(
+                  title: Text(
+                    strings?.get('enableBiometricAuth') ?? "Enable biometrics",
+                    style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                  ),
+                  onTap: () async {
+                    await _toggleBiometricWithSecurity(context, !enableBiometricAuth);
+                  },
+                  trailing: Switch(
+                    value: biometricSupported ? enableBiometricAuth : false,
+                    inactiveThumbColor: Colors.black,
+                    inactiveTrackColor: Colors.grey,
+                    activeThumbColor: Colors.greenAccent,
+                    onChanged: biometricSupported
+                        ? (value) async {
+                            await _toggleBiometricWithSecurity(context, value);
+                          }
+                        : null,
+                  ),
                 ),
 
                 // Switch currency EUR-USD

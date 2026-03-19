@@ -143,10 +143,22 @@ class BetsService {
     }
   }
 
-  Future<bool> postNewBet(String userId, String fcm, String ticker, double betAmount, double originValue, int betZone, String currency) async {
+  Future<bool> postNewBet(
+    String userId,
+    String fcm,
+    String ticker,
+    double betAmount,
+    double originValue,
+    int betZone,
+    String currency, {
+    String password = "",
+    String stepUpToken = "",
+  }) async {
     final response = await Common().postRequestWrapper('Bet', 'NewBet', {
       'userId': userId,
       'fcm': fcm,
+      'password': password,
+      'stepUpToken': stepUpToken,
       'ticker': ticker,
       'betAmount': betAmount,
       'originValue': originValue,
@@ -157,12 +169,23 @@ class BetsService {
     return response['statusCode'] == 200;
   }
 
-  Future<int> postNewExactPriceBet(String userId, String fcm, String ticker, double priceBet,
-      double margin, DateTime endDate, String currency) async {
+  Future<int> postNewExactPriceBet(
+    String userId,
+    String fcm,
+    String ticker,
+    double priceBet,
+    double margin,
+    DateTime endDate,
+    String currency, {
+    String password = "",
+    String stepUpToken = "",
+  }) async {
 
     final Map<String, dynamic> data = {
       'userId': userId,
       'fcm': fcm,
+      'password': password,
+      'stepUpToken': stepUpToken,
       'ticker': ticker,
       'currency': currency,
       'priceBet': priceBet,

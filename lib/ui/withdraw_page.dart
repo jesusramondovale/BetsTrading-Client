@@ -11,6 +11,7 @@ import '../services/bets_service.dart';
 import '../helpers/common.dart';
 import '../helpers/slider.dart';
 import '../services/firebase_service.dart';
+import '../services/secure_auth_service.dart';
 import 'layout_page.dart';
 import 'package:intl/intl.dart';
 
@@ -151,6 +152,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
   String _currency = 'eur';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final Map<String, Map<String, String>> _userAvailableMethods = {};
+  final SecureAuthService _secureAuthService = SecureAuthService();
 
   /// Loads withdrawal page data including available withdrawal methods
   /// and user information.
@@ -576,63 +578,59 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                     transformThumb: true,
                                     onSlideComplete: () {
                                       Common().vibrate(300, 300);
-                                      String fcm =
-                                          FirebaseService().firebaseToken ??
-                                              "null";
-                                      Common().popPasswordDialog(
-                                        LocalizedStrings.of(context)!
-                                                .get('confirm') ??
-                                            "Confirm Action",
-                                        LocalizedStrings.of(context)!.get(
-                                                'enterPasswordToContinue') ??
-                                            "Please enter your password to continue",
-                                        widget.coins.toDouble(),
-                                        widget.currencyAmount.toDouble(),
-                                        _currency,
-                                        _userAvailableMethods[_selectedMethod]!['text']!,
-                                        context,
-                                        (password) async {
-                                          final response = await Common()
-                                              .postRequestWrapper(
-                                                  'Payments', 'RetireBalance', {
-                                            'userId': _userId,
-                                            'fcm': fcm,
-                                            'password': password,
-                                            'currencyAmount': widget
-                                                .currencyAmount
-                                                .toDouble(),
-                                            'currency': _currency,
-                                            'coins': widget.coins.toDouble(),
-                                            'method': _selectedMethod
-                                          });
-                                          if (response['statusCode'] == 200) {
-                                            Common().showFloatingSnack(
-                                              context,
-                                              Common().interpolate(
-                                                LocalizedStrings.of(context)!.get(
-                                                        'withdrawCompleted') ??
-                                                    "Withdrawal of {coins} coins completed",
-                                                {
-                                                  'coins':
-                                                      widget.coins.toString()
-                                                },
-                                              ),
-                                            );
+                                      () async {
+                                        final strings = LocalizedStrings.of(context);
+                                        String fcm = FirebaseService().firebaseToken ?? "null";
+                                        final useBiometric = await _secureAuthService.isBiometricEnabled();
+                                        String password = "";
+                                        String stepUpToken = "";
 
-                                            await BetsService()
-                                                .getUserInfo(_userId ?? "none");
-                                            homeScreenKey.currentState
-                                                ?.loadUserIdAndData();
-                                            exchangePageKey.currentState
-                                                ?.loadData();
-                                            Navigator.pop(context);
-                                          } else {
-                                            Common().showFloatingSnack(
-                                                context, "Error!",
-                                                backgroundColor: Colors.red);
-                                          }
-                                        },
-                                      );
+                                        if (useBiometric) {
+                                          final token = await _secureAuthService.runStepUpWithBiometric(
+                                            context,
+                                            purpose: 'withdraw',
+                                            maxAmountCoins: widget.coins.toDouble(),
+                                          );
+                                          if (token == null) return;
+                                          stepUpToken = token;
+                                        } else {
+                                          final entered = await _secureAuthService.promptPasswordDialog(context);
+                                          if (entered == null || entered.isEmpty) return;
+                                          password = entered;
+                                        }
+
+                                        final response = await Common().postRequestWrapper('Payments', 'RetireBalance', {
+                                          'userId': _userId,
+                                          'fcm': fcm,
+                                          'password': password,
+                                          'stepUpToken': stepUpToken,
+                                          'currencyAmount': widget.currencyAmount.toDouble(),
+                                          'currency': _currency,
+                                          'coins': widget.coins.toDouble(),
+                                          'method': _selectedMethod
+                                        });
+                                        if (response['statusCode'] == 200) {
+                                          Common().showFloatingSnack(
+                                            context,
+                                            Common().interpolate(
+                                              strings!.get('withdrawCompleted') ??
+                                                  "Withdrawal of {coins} coins completed",
+                                              {'coins': widget.coins.toString()},
+                                            ),
+                                          );
+
+                                          await BetsService().getUserInfo(_userId ?? "none");
+                                          homeScreenKey.currentState?.loadUserIdAndData();
+                                          exchangePageKey.currentState?.loadData();
+                                          Navigator.pop(context);
+                                        } else {
+                                          Common().showFloatingSnack(
+                                            context,
+                                            strings?.get('errorTryAgain') ?? 'Error. Try again',
+                                            backgroundColor: Colors.red,
+                                          );
+                                        }
+                                      }();
                                     },
                                   ),
                                 ]

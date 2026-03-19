@@ -16,6 +16,7 @@ import '../models/rectangle_zone.dart';
 import '../locale/localized_texts.dart';
 import '../services/firebase_service.dart';
 import '../services/bet_zone_refresher.dart';
+import '../services/secure_auth_service.dart';
 import 'layout_page.dart';
 
 
@@ -137,6 +138,7 @@ class BetConfirmationPage extends StatefulWidget {
 
 class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTickerProviderStateMixin {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final SecureAuthService _secureAuthService = SecureAuthService();
   String? _points = '0.0';
   double _betAmount = 0.0;
   String _currency = 'eur';
@@ -206,8 +208,38 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
 
     bool? confirmed = await Common().popConfirmOperationDialog(context, _betAmount, widget.iconPath);
     if (confirmed == true) {
-      String? userId = await _storage.read(key: 'sessionToken');      String fcm = FirebaseService().firebaseToken ?? "null";
-      bool result = await BetsService().postNewBet(userId!, fcm, widget.zone.ticker, _betAmount, widget.currentValue, betZone, _currency.toUpperCase());
+      String? userId = await _storage.read(key: 'sessionToken');
+      String fcm = FirebaseService().firebaseToken ?? "null";
+      String password = "";
+      String stepUpToken = "";
+      if (_betAmount >= 1000) {
+        final biometricEnabled = await _secureAuthService.isBiometricEnabled();
+        if (biometricEnabled) {
+          final token = await _secureAuthService.runStepUpWithBiometric(
+            context,
+            purpose: 'bet',
+            maxAmountCoins: _betAmount,
+          );
+          if (token == null) return;
+          stepUpToken = token;
+        } else {
+          final entered = await _secureAuthService.promptPasswordDialog(context);
+          if (entered == null || entered.isEmpty) return;
+          password = entered;
+        }
+      }
+
+      bool result = await BetsService().postNewBet(
+        userId!,
+        fcm,
+        widget.zone.ticker,
+        _betAmount,
+        widget.currentValue,
+        betZone,
+        _currency.toUpperCase(),
+        password: password,
+        stepUpToken: stepUpToken,
+      );
       
       if (result) {
         if (bettingNotifications) {

@@ -56,6 +56,8 @@
 		</array>
 		<key>FirebaseAppDelegateProxyEnabled</key>
 		<false/>
+		<key>NSFaceIDUsageDescription</key>
+		<string>Se utiliza Face ID para confirmar operaciones sensibles.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
