@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:betrader/helpers/slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../helpers/preload_cache.dart';
@@ -35,6 +36,8 @@ class _FirstTimePageState extends State<FirstTimePage> {
   String? _confirmPasswordError;
   bool _isLoading = false;
   final SecureAuthService _secureAuthService = SecureAuthService();
+  bool _biometricSupported = false;
+  bool _enableBiometricChoice = true;
 
   Future<void> _init() async {
     final bytes = await rootBundle.load('assets/new_icon.png');
@@ -82,10 +85,23 @@ class _FirstTimePageState extends State<FirstTimePage> {
     return hasUppercase && hasNumber && longEnough;
   }
 
+  Future<void> _loadBiometricUiState() async {
+    final supported = await _secureAuthService.isBiometricSupported();
+    final prefs = await SharedPreferences.getInstance();
+    final hasExplicit = prefs.containsKey(SecureAuthService.biometricPrefKey);
+    final choice = supported && (hasExplicit ? (prefs.getBool(SecureAuthService.biometricPrefKey) ?? false) : true);
+    if (!mounted) return;
+    setState(() {
+      _biometricSupported = supported;
+      _enableBiometricChoice = choice;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _init();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadBiometricUiState());
   }
 
   @override
@@ -230,6 +246,27 @@ class _FirstTimePageState extends State<FirstTimePage> {
                           ),
                         ),
                       ),
+                    if (_biometricSupported) ...[
+                      const SizedBox(height: 16),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          strings?.get('enableBiometricAuth') ?? 'Enable biometrics',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white,
+                          ),
+                        ),
+                        value: _enableBiometricChoice,
+                        inactiveThumbColor: Colors.black,
+                        inactiveTrackColor: Colors.grey,
+                        activeThumbColor: Colors.greenAccent,
+                        onChanged: (bool value) {
+                          setState(() => _enableBiometricChoice = value);
+                        },
+                      ),
+                    ],
                     const SizedBox(height: 30),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -254,11 +291,16 @@ class _FirstTimePageState extends State<FirstTimePage> {
 
                           if (_passwordError != null || _confirmPasswordError != null) return;
 
+                          await _secureAuthService.saveBiometricEnabled(
+                            _biometricSupported ? _enableBiometricChoice : false,
+                          );
+
                           final response = await Common().postRequestWrapper('Auth', 'NewPassword',
                               { 'password' : _confirmPasswordController.text.trim() });
 
                           if (response['statusCode'] == 200) {
-                            final biometricEnabled = await _secureAuthService.isBiometricEnabled();
+                            final biometricEnabled =
+                                _biometricSupported && _enableBiometricChoice;
                             if (biometricEnabled) {
                               final stepUpToken = await _secureAuthService.runStepUpWithBiometric(
                                 context,

@@ -18,11 +18,15 @@ class SecureAuthService {
     }
   }
 
+  /// True when device supports biometrics and user has not turned the feature off.
+  /// If the preference was never set, defaults to **on** when the device supports biometrics.
   Future<bool> isBiometricEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    final enabled = prefs.getBool(biometricPrefKey) ?? false;
     final supported = await isBiometricSupported();
-    return enabled && supported;
+    if (!supported) return false;
+    final hasExplicit = prefs.containsKey(biometricPrefKey);
+    final wishOn = hasExplicit ? (prefs.getBool(biometricPrefKey) ?? false) : true;
+    return wishOn;
   }
 
   Future<void> saveBiometricEnabled(bool value) async {

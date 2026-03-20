@@ -409,11 +409,71 @@ class UserInfoPageState extends State<UserInfoPage> {
       }
 
       if (entry.key == 'fullname') {
+        Future<void> uploadProfilePicture() async {
+          String? sessionToken = await _storage.read(key: 'sessionToken');
+          bool result = await BetsService().uploadProfilePic(
+              sessionToken, await Common().pickImageFromGallery());
+          if (result) {
+            _loadProfilePic();
+            _userInfoFuture = _readUserInfo(context);
+            _cachedUserInfo = null;
+            setState(() {
+              Common().popDialog(
+                strings?.get('success') ?? "Success!",
+                strings?.get('profilePictureUploadedSuccessfully') ?? "Profile picture uploaded successfully",
+                context,
+              );
+            });
+          }
+        }
+
+        final avatar = _profilePicBytes != null
+            ? CircleAvatar(radius: 28, backgroundImage: MemoryImage(_profilePicBytes!))
+            : CircleAvatar(
+                radius: 28,
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Common().getIconForUserInfo(entry.key),
+              );
+
         return TouchableTile(
           child: ListTile(
-            leading: (_profilePicBytes != null
-                ? CircleAvatar(radius: 28, backgroundImage: MemoryImage(_profilePicBytes!))
-                : Common().getIconForUserInfo(entry.key)),
+            leading: SizedBox(
+              width: 56,
+              height: 56,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  avatar,
+                  Positioned(
+                    right: -2,
+                    bottom: -2,
+                    child: Material(
+                      key: _kProfileCamera,
+                      color: Colors.black.withValues(alpha: 0.72),
+                      shape: const CircleBorder(),
+                      elevation: 2,
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: uploadProfilePicture,
+                        customBorder: const CircleBorder(),
+                        child: const SizedBox(
+                          width: 26,
+                          height: 26,
+                          child: Center(
+                            child: Icon(
+                              FontAwesomeIcons.cameraRotate,
+                              size: 11,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             title: Text(title, style: GoogleFonts.syncopate(fontSize: 12, fontWeight: FontWeight.w500)),
             subtitle: subtitle,
             trailing: Row(
@@ -453,30 +513,6 @@ class UserInfoPageState extends State<UserInfoPage> {
                         strings?.get('couldNotUpdatePrivateMode') ?? 'No se pudo actualizar el modo privado.',
                         context,
                       );
-                    }
-                  },
-                ),
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                  key: _kProfileCamera,
-                  icon: const Icon(FontAwesomeIcons.cameraRotate, size: 20),
-                  onPressed: () async {
-                    String? sessionToken = await _storage.read(key: 'sessionToken');
-                    bool result = await BetsService().uploadProfilePic(
-                        sessionToken, await Common().pickImageFromGallery());
-                    if (result) {
-                      _loadProfilePic();
-                      // Recargar la info del usuario después de subir foto
-                      _userInfoFuture = _readUserInfo(context);
-                      _cachedUserInfo = null;
-                      setState(() {
-                        Common().popDialog(
-                          strings?.get('success') ?? "Success!",
-                          strings?.get('profilePictureUploadedSuccessfully') ?? "Profile picture uploaded successfully",
-                          context,
-                        );
-                      });
                     }
                   },
                 ),

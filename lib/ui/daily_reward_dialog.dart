@@ -130,12 +130,13 @@ class _DailyRewardDialogState extends State<DailyRewardDialog>
       final minLoading = Future<void>.delayed(const Duration(milliseconds: 500));
       await Future.wait([claimFuture, minLoading]);
       if (!mounted) return;
+      _pulseController.stop();
       setState(() {
         _isClaiming = false;
         _hasClaimed = true;
       });
-      _successController.forward();
-      await Future<void>.delayed(const Duration(milliseconds: 1400));
+      await _successController.forward();
+      await Future<void>.delayed(const Duration(seconds: 2));
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) setState(() => _isClaiming = false);
@@ -200,55 +201,67 @@ class _DailyRewardDialogState extends State<DailyRewardDialog>
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Image.asset(
-                                  'assets/new_icon.png',
-                                  width: 56,
-                                  height: 56,
-                                  fit: BoxFit.cover,
+                        if (!_hasClaimed)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 26, 24, 20),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // El cuadrado de la imagen debe caber dentro del círculo:
+                                // mitad_lado * √2 ≤ radio, p. ej. radio 36 → lado ≤ ~50.9
+                                SizedBox(
+                                  width: 72,
+                                  height: 72,
+                                  child: ClipOval(
+                                    clipBehavior: Clip.antiAlias,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Image.asset(
+                                        'assets/new_icon.png',
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                strings?.get('dailyReward_title') ?? 'Daily reward',
-                                style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 22,
-                                  color: textColor,
+                                const SizedBox(height: 12),
+                                Text(
+                                  strings?.get('dailyReward_title') ?? 'Daily reward',
+                                  style: GoogleFonts.montserrat(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 22,
+                                    color: textColor,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                strings?.get('dailyReward_subtitle') ?? 'Log in every day to collect your coins',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 14,
-                                  color: subtitleColor,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 24),
-                              _buildJourneyRow(strings, textColor, subtitleColor),
-                              const SizedBox(height: 20),
-                              if (widget.canClaim && !_hasClaimed) _buildClaimCta(strings, textColor),
-                              if (widget.canClaim && !_hasClaimed) ...[
                                 const SizedBox(height: 16),
-                                _AnimatedClaimButton(
-                                  label: strings?.get('dailyReward_accept') ?? 'Collect',
-                                  onPressed: _handleClaim,
-                                  isLoading: _isClaiming,
+                                Text(
+                                  strings?.get('dailyReward_subtitle') ?? 'Log in every day to collect your coins',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 14,
+                                    color: subtitleColor,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
+                                const SizedBox(height: 24),
+                                _buildJourneyRow(strings, textColor, subtitleColor),
+                                const SizedBox(height: 20),
+                                if (widget.canClaim) _buildClaimCta(strings, textColor),
+                                if (widget.canClaim) ...[
+                                  const SizedBox(height: 16),
+                                  _AnimatedClaimButton(
+                                    label: strings?.get('dailyReward_accept') ?? 'Collect',
+                                    onPressed: _handleClaim,
+                                    isLoading: _isClaiming,
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                        if (_hasClaimed) _buildSuccessOverlay(textColor),
+                        if (_hasClaimed)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
+                            child: _buildSuccessOverlay(textColor),
+                          ),
                       ],
                     ),
                   ),
@@ -262,7 +275,6 @@ class _DailyRewardDialogState extends State<DailyRewardDialog>
   }
 
   Widget _buildSuccessOverlay(Color textColor) {
-    final strings = LocalizedStrings.of(context);
     return AnimatedBuilder(
       animation: Listenable.merge([_successController, _successScale, _successFade]),
       builder: (context, child) {
@@ -355,20 +367,24 @@ class _DailyRewardDialogState extends State<DailyRewardDialog>
 
   Widget _buildJourneyRow(LocalizedStrings? strings, Color textColor, Color subtitleColor) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: List.generate(6, (index) {
         final day = index + 1;
         final coins = index < widget.rewardsByDay.length
             ? widget.rewardsByDay[index]
             : [5, 10, 15, 25, 40, 50][index];
         final isCurrent = day == widget.currentDay;
-        return _DayCell(
-          day: day,
-          coins: coins,
-          isCurrent: isCurrent,
-          textColor: textColor,
-          subtitleColor: subtitleColor,
-          pulseAnimation: _pulseController,
+        return Expanded(
+          child: Center(
+            child: _DayCell(
+              day: day,
+              coins: coins,
+              isCurrent: isCurrent,
+              textColor: textColor,
+              subtitleColor: subtitleColor,
+              pulseAnimation: _pulseController,
+            ),
+          ),
         );
       }),
     );
@@ -376,6 +392,10 @@ class _DailyRewardDialogState extends State<DailyRewardDialog>
 }
 
 class _DayCell extends StatelessWidget {
+  static const double _circleSize = 44;
+  /// Máximo de escala del pulso: `0.92 + pulse * 0.16` → 1.08.
+  static const double _pulseMaxScale = 1.08;
+
   final int day;
   final int coins;
   final bool isCurrent;
@@ -394,71 +414,85 @@ class _DayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: pulseAnimation,
-      builder: (context, child) {
-        final scale = isCurrent ? 0.92 + (pulseAnimation.value * 0.16) : 1.0;
-        return Transform.scale(
-          scale: scale,
-          child: child,
-        );
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: isCurrent ? Colors.amber : Colors.grey.withValues(alpha: 0.35),
-              shape: BoxShape.circle,
-              border: isCurrent
-                  ? Border.all(color: Colors.orange, width: 2.5)
-                  : null,
-              boxShadow: isCurrent
-                  ? [
-                      BoxShadow(
-                        color: Colors.amber.withValues(alpha: 0.5),
-                        blurRadius: 10,
-                        spreadRadius: 0,
-                      ),
-                    ]
-                  : null,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '$day',
-              style: GoogleFonts.montserrat(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: isCurrent ? Colors.black87 : textColor,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: _circleSize * _pulseMaxScale,
+            height: _circleSize * _pulseMaxScale,
+            child: Center(
+              child: AnimatedBuilder(
+                animation: pulseAnimation,
+                builder: (context, child) {
+                  final scale = isCurrent ? 0.92 + (pulseAnimation.value * 0.16) : 1.0;
+                  return Transform.scale(
+                    scale: scale,
+                    child: child,
+                  );
+                },
+                child: Container(
+                  width: _circleSize,
+                  height: _circleSize,
+                  decoration: BoxDecoration(
+                    color: isCurrent ? Colors.amber : Colors.grey.withValues(alpha: 0.35),
+                    shape: BoxShape.circle,
+                    border: isCurrent
+                        ? Border.all(color: Colors.orange, width: 2.5)
+                        : null,
+                    boxShadow: isCurrent
+                        ? [
+                            BoxShadow(
+                              color: Colors.amber.withValues(alpha: 0.5),
+                              blurRadius: 10,
+                              spreadRadius: 0,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '$day',
+                    style: GoogleFonts.montserrat(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isCurrent ? Colors.black87 : textColor,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 6),
-          Row(
+        ),
+        const SizedBox(height: 6),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.center,
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
                 'assets/coin.png',
-                width: 14,
-                height: 14,
+                width: 16,
+                height: 16,
                 fit: BoxFit.contain,
               ),
-              const SizedBox(width: 2),
+              const SizedBox(width: 3),
               Text(
                 NumberFormat.compact().format(coins),
                 style: GoogleFonts.montserrat(
-                  fontSize: 11,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: subtitleColor,
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

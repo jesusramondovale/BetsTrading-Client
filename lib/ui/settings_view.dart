@@ -358,10 +358,13 @@ class SettingsViewState extends State<SettingsView> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final supported = await _secureAuthService.isBiometricSupported();
-    bool enabled = prefs.getBool(SecureAuthService.biometricPrefKey) ?? false;
+    // Default ON when supported and user never chose otherwise.
+    bool enabled = false;
     if (!supported) {
-      enabled = false;
       await _secureAuthService.saveBiometricEnabled(false);
+    } else {
+      final hasExplicit = prefs.containsKey(SecureAuthService.biometricPrefKey);
+      enabled = hasExplicit ? (prefs.getBool(SecureAuthService.biometricPrefKey) ?? false) : true;
     }
     setState(() {
       enableVibration = prefs.getBool('enableVibration') ?? false;
