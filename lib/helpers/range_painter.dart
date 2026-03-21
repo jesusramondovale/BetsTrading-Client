@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import '../candlesticks/src/models/candle.dart';
 import '../ui/bets_page.dart';
+import '../ui/layout_page.dart';
 import 'common.dart';
 import '../models/rectangle_zone.dart';
 
@@ -360,6 +361,8 @@ Future<Future<Object?>> showZoneDialogAnimated(
     String iconPath,
     Rect originRect,
     bool dollarCurrency,
+    MainMenuPageController menuController,
+    int chartTimeframeHours,
     { bool fromInactive = false }
     ) async {
   final durationHours = zone.endDate.difference(zone.startDate).inHours.abs();
@@ -415,6 +418,8 @@ Future<Future<Object?>> showZoneDialogAnimated(
                             pageBuilder: (_, __, ___) =>
                                 BetConfirmationPage(
                                   name: assetName,
+                                  menuController: menuController,
+                                  chartTimeframeHours: chartTimeframeHours,
                                   zone: zone,
                                   currentValue: currentValue,
                                   iconPath: iconPath,

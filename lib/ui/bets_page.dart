@@ -15,8 +15,8 @@ import '../models/bet_zone.dart';
 import '../models/rectangle_zone.dart';
 import '../locale/localized_texts.dart';
 import '../services/firebase_service.dart';
-import '../services/bet_zone_refresher.dart';
 import '../services/secure_auth_service.dart';
+import 'candlesticks_view.dart';
 import 'layout_page.dart';
 
 
@@ -112,6 +112,12 @@ class BetConfirmationPage extends StatefulWidget {
   
   /// Optional callback when the user cancels (cancel uses Navigator.pop by default).
   final VoidCallback? onCancel;
+
+  /// Controlador del menú principal (abre el gráfico en bottom sheet).
+  final MainMenuPageController menuController;
+
+  /// Marco temporal de la zona (1, 2, 4, 24 horas por vela).
+  final int chartTimeframeHours;
   
   /// The bet zone containing price range and odds information.
   final RectangleZone zone;
@@ -126,6 +132,8 @@ class BetConfirmationPage extends StatefulWidget {
     super.key,
     required this.name,
     this.onCancel,
+    required this.menuController,
+    required this.chartTimeframeHours,
     required this.zone,
     required this.currentValue,
     required this.iconPath,
@@ -465,52 +473,128 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     );
   }
 
+  void _openTickerChart(BuildContext context) {
+    Common().vibrate();
+    Common().applyImmersive();
+    final tf = widget.chartTimeframeHours;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
+      builder: (BuildContext ctx) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
+          child: SizedBox(
+            height: MediaQuery.of(ctx).size.height * 0.56,
+            child: OverflowBox(
+              alignment: Alignment.topCenter,
+              maxHeight: MediaQuery.of(ctx).size.height,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: CandlesticksView(
+                      ticker: widget.zone.ticker,
+                      name: widget.name,
+                      controller: widget.menuController,
+                      iconPath: widget.iconPath,
+                      initialTimeframeHours: tf,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static const double _actionButtonHeight = 50.0;
+  static const double _actionButtonRadius = 20.0;
+
+  Widget _buildElongatedIconAction({
+    required String tooltip,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(_actionButtonRadius),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(_actionButtonRadius),
+          onTap: onPressed,
+          child: SizedBox(
+            height: _actionButtonHeight,
+            width: double.infinity,
+            child: Icon(icon, color: Colors.black),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildActionButtons(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 18.0),
-        child:
-        Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 12.0),
+        child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ElevatedButton.icon(
-            onPressed: () {
-              Common().vibrate();
-              Navigator.of(context).pop();
-            },
-            icon: Icon(CupertinoIcons.clear, color: Colors.black),
-            label: Text(
-              strings?.get('cancel') ?? 'Cancel',
-              style: GoogleFonts.montserrat(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey[300],
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildElongatedIconAction(
+                    tooltip: strings?.get('cancel') ?? 'Cancel',
+                    icon: CupertinoIcons.clear,
+                    onPressed: () {
+                      Common().vibrate();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildElongatedIconAction(
+                    tooltip: strings?.get('viewChart') ?? 'View chart',
+                    icon: CupertinoIcons.chart_bar_alt_fill,
+                    onPressed: () => _openTickerChart(context),
+                  ),
+                ),
+              ],
             ),
           ),
-          ElevatedButton.icon(
-            onPressed: _isAcceptButtonEnabled
-                ? () => _onAccept(widget.zone.id)
-                : () => _handleAcceptPressed(widget.zone.id),
-            icon: Icon(
-              CupertinoIcons.check_mark,
-              color: Colors.black,
-            ),
-            label: Text(
-              strings?.get('accept') ?? 'Accept',
-              style: GoogleFonts.montserrat(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: _isAcceptButtonEnabled
+                  ? () => _onAccept(widget.zone.id)
+                  : () => _handleAcceptPressed(widget.zone.id),
+              icon: Icon(
+                CupertinoIcons.check_mark,
                 color: Colors.black,
               ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isAcceptButtonEnabled ? Colors.green[300] : Colors.grey[600],
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+              label: Text(
+                strings?.get('accept') ?? 'Accept',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isAcceptButtonEnabled ? Colors.green[300] : Colors.grey[600],
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                minimumSize: const Size(double.infinity, _actionButtonHeight),
+                maximumSize: const Size(double.infinity, _actionButtonHeight),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(_actionButtonRadius),
+                ),
+              ),
             ),
           ),
         ],
@@ -660,7 +744,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
     try {
       final List<BetZone> zones = await BetsService().fetchBetZones(
         widget.zone.ticker,
-        TimeframeManager.current.value,
+        widget.chartTimeframeHours,
         null, // No hay betId porque estamos creando una nueva apuesta
         currency: _currency.toUpperCase(),
       );

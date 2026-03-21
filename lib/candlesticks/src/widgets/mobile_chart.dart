@@ -13,6 +13,7 @@ import '../../../models/rectangle_zone.dart';
 import '../../../services/bet_zone_refresher.dart';
 import '../../../ui/bets_page.dart';
 import '../../../ui/exact_price_view.dart';
+import '../../../ui/layout_page.dart';
 import '../../candlesticks.dart';
 import '../constant/view_constants.dart';
 import '../models/main_window_indicator.dart';
@@ -43,6 +44,7 @@ class MobileChart extends StatefulWidget {
   final String iconPath;
   final bool inactiveZone;
   final int finishedIcon;
+  final MainMenuPageController menuController;
 
   const MobileChart(
       {super.key,
@@ -64,6 +66,7 @@ class MobileChart extends StatefulWidget {
         required this.iconPath,
         required this.inactiveZone,
         this.finishedIcon = 0,
+        required this.menuController,
       });
 
   @override
@@ -89,10 +92,32 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
   bool _dollarCurrency = false;
   bool _isZooming = false; // Rastrea si estamos haciendo zoom horizontal
 
+  void _syncUiTimeframeFromManager() {
+    final v = TimeframeManager.current.value;
+    switch (v) {
+      case 2:
+        _currentIndex = 1;
+        _currentRangeTime = '2H';
+        break;
+      case 4:
+        _currentIndex = 2;
+        _currentRangeTime = '4H';
+        break;
+      case 24:
+        _currentIndex = 3;
+        _currentRangeTime = '1D';
+        break;
+      default:
+        _currentIndex = 0;
+        _currentRangeTime = '1H';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _syncUiTimeframeFromManager();
     _initAsync();
   }
 
@@ -122,6 +147,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => BetConfirmationPage(
           name: widget.chartTitle,
+          menuController: widget.menuController,
+          chartTimeframeHours: _mapTimeframe(_currentRangeTime),
           zone: zone,
           currentValue: widget.candles.first.close,
           iconPath: widget.iconPath,
@@ -775,6 +802,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   widget.iconPath,
                                   originRect,
                                   _dollarCurrency,
+                                  widget.menuController,
+                                  _mapTimeframe(_currentRangeTime),
                                   fromInactive: true);
                             } else {
                               showZoneDialogAnimated(
@@ -784,7 +813,9 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   widget.candles.last.close,
                                   widget.iconPath,
                                   originRect,
-                                  _dollarCurrency);
+                                  _dollarCurrency,
+                                  widget.menuController,
+                                  _mapTimeframe(_currentRangeTime));
                             }
                             return;
                           }
@@ -877,6 +908,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                 Rect.fromLTWH(details.globalPosition.dx,
                                     details.globalPosition.dy, 50, 50),
                                 _dollarCurrency,
+                                widget.menuController,
+                                _mapTimeframe(_currentRangeTime),
                                 fromInactive: true);
                           }
                         }

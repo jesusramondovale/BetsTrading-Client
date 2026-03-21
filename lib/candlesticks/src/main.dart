@@ -317,7 +317,8 @@ class CandlesticksState extends State<Candlesticks> {
                       inactiveZone: widget.inactiveZone || widget.isTutorial,
                       chartTitle: widget.chartTitle,
                       iconPath: widget.iconPath,
-                      finishedIcon: widget.finishedIcon);
+                      finishedIcon: widget.finishedIcon,
+                      menuController: widget.controller);
                 }
               },
             ),

@@ -281,6 +281,8 @@ class _TrendDialogState extends State<TrendDialog> with SingleTickerProviderStat
                                     PageRouteBuilder(
                                       pageBuilder: (_, __, ___) => BetConfirmationPage(
                                         name: widget.trend.name,
+                                        menuController: widget.controller,
+                                        chartTimeframeHours: timeframe,
                                         zone: rectZones.first,
                                         currentValue: widget.trend.current,
                                         iconPath: widget.trend.icon,

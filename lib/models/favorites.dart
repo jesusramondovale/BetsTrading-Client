@@ -283,6 +283,8 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
                                   PageRouteBuilder(
                                     pageBuilder: (_, __, ___) => BetConfirmationPage(
                                       name: widget.favorite.name,
+                                      menuController: widget.controller,
+                                      chartTimeframeHours: timeframe,
                                       zone: rectZones.first,
                                       currentValue: widget.favorite.current,
                                       iconPath: widget.favorite.icon,

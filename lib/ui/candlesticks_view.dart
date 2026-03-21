@@ -37,6 +37,9 @@ class CandlesticksView extends StatefulWidget {
   /// Llamado cuando el usuario omite el tutorial (flujo de tutorial terminado).
   final VoidCallback? onTutorialFlowEnded;
 
+  /// Horas por vela al abrir (1, 2, 4, 24). Si es null, se usa 1H por defecto.
+  final int? initialTimeframeHours;
+
   const CandlesticksView({
     super.key,
     required this.controller,
@@ -46,6 +49,7 @@ class CandlesticksView extends StatefulWidget {
     required this.name,
     this.tutorialMode = false,
     this.onTutorialFlowEnded,
+    this.initialTimeframeHours,
   });
 
   @override
@@ -163,7 +167,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    TimeframeManager.set(1);
+    TimeframeManager.set(widget.initialTimeframeHours ?? 1);
     _inactiveZone = widget.betId != null;
     _extraHours = Common().hoursUntilLatestEndDate(
       _inactiveZone ? _frozenZonesNotifier.value : _zonesNotifier.value,
