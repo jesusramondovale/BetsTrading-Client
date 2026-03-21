@@ -12,6 +12,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/bets_service.dart';
+import '../services/secure_auth_service.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
@@ -104,6 +105,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
 
   String _currency = 'eur';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final SecureAuthService _secureAuthService = SecureAuthService();
   late AnimationController _progressController;
   List<Map<String, dynamic>> _buyOptions = [];
   List<Map<String, dynamic>> _adRewardOptions = [];
@@ -444,6 +446,12 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
 
   Future<void> _cardPayment(double coins, double price) async {
     try {
+      final biometricEnabled = await _secureAuthService.isBiometricEnabled();
+      if (biometricEnabled) {
+        if (!mounted) return;
+        final ok = await _secureAuthService.authenticateBiometric(context);
+        if (!ok) return;
+      }
       String? userId = await _storage.read(key: 'sessionToken');
       final billingDetails = stripe.BillingDetails(
         email: 'betsontrading@gmail.com',

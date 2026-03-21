@@ -350,12 +350,60 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
   late double _sliderValue;
   ui.Image? _thumbImage;
 
+  Timer? _holdDelayTimer;
+  Timer? _holdRepeatTimer;
+  bool _holdRepeatActive = false;
+
+  static const Duration _holdStepDelay = Duration(milliseconds: 420);
+  static const Duration _holdStepInterval = Duration(milliseconds: 85);
+  static const double _holdStepAmount = 100.0;
+
   @override
   void initState() {
     super.initState();
     _loadDefaultImage();
     _initializeSliderValue();
   }
+
+  @override
+  void dispose() {
+    _cancelHoldTimers();
+    super.dispose();
+  }
+
+  void _cancelHoldTimers() {
+    _holdDelayTimer?.cancel();
+    _holdDelayTimer = null;
+    _holdRepeatTimer?.cancel();
+    _holdRepeatTimer = null;
+  }
+
+  void _beginHoldRepeat(void Function() step) {
+    _cancelHoldTimers();
+    _holdRepeatActive = false;
+    _holdDelayTimer = Timer(_holdStepDelay, () {
+      if (!mounted) return;
+      _holdRepeatActive = true;
+      step();
+      _holdRepeatTimer = Timer.periodic(_holdStepInterval, (_) {
+        if (!mounted) return;
+        step();
+      });
+    });
+  }
+
+  void _endHoldRepeat(void Function() singleTap) {
+    _holdDelayTimer?.cancel();
+    _holdDelayTimer = null;
+    final didRepeat = _holdRepeatActive;
+    _holdRepeatTimer?.cancel();
+    _holdRepeatTimer = null;
+    _holdRepeatActive = false;
+    if (!didRepeat) singleTap();
+  }
+
+  /// Cancela temporizadores sin pulsar (p. ej. scroll que anula el tap).
+  void _cancelHoldWithoutCommit() => _cancelHoldTimers();
 
   void _initializeSliderValue() {
     // El effectiveMax es el máximo permitido + 1 para mostrar el rango extendido
@@ -473,6 +521,35 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
     });
     widget.onChanged(finalValue);
     Common().vibrate(20, 30);
+  }
+
+  /// Ajuste fijo (p. ej. ±100) al mantener pulsado + / −.
+  void _adjustByFixedStep(double delta) {
+    final baseMax = widget.maxAllowedValue != null
+        ? (widget.maxAllowedValue! < widget.maxValue
+            ? widget.maxAllowedValue!
+            : widget.maxValue)
+        : widget.maxValue;
+    final safeBaseMax = baseMax >= widget.minValue ? baseMax : widget.minValue;
+    final effectiveMax = safeBaseMax + 1.0;
+    final range = effectiveMax - widget.minValue;
+
+    if (range <= 0) {
+      widget.onChanged(widget.minValue);
+      Common().vibrate(20, 30);
+      return;
+    }
+
+    final currentValue = widget.minValue + (_sliderValue * range);
+    final newValue = (currentValue + delta).clamp(widget.minValue, effectiveMax);
+    final newSliderValue =
+        ((newValue - widget.minValue) / range).clamp(0.0, 1.0);
+
+    setState(() {
+      _sliderValue = newSliderValue;
+    });
+    widget.onChanged(newValue);
+    Common().vibrate(18, 28);
   }
 
   /// Redondea el valor del slider (0..1) al paso válido para [divisions],
@@ -598,9 +675,13 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
                 child: Center(
                   child: Material(
                     color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _adjustValue(-5),
-                      borderRadius: BorderRadius.circular(20),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: (_) => _beginHoldRepeat(
+                          () => _adjustByFixedStep(-_holdStepAmount)),
+                      onTapUp: (_) =>
+                          _endHoldRepeat(() => _adjustValue(-5)),
+                      onTapCancel: _cancelHoldWithoutCommit,
                       child: Container(
                         width: 40,
                         height: 40,
@@ -630,9 +711,13 @@ class BetAmountSelectorState extends State<BetAmountSelector> {
                 child: Center(
                   child: Material(
                     color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _adjustValue(5),
-                      borderRadius: BorderRadius.circular(20),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: (_) => _beginHoldRepeat(
+                          () => _adjustByFixedStep(_holdStepAmount)),
+                      onTapUp: (_) =>
+                          _endHoldRepeat(() => _adjustValue(5)),
+                      onTapCancel: _cancelHoldWithoutCommit,
                       child: Container(
                         width: 40,
                         height: 40,
