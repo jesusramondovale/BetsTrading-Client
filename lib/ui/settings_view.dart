@@ -5,7 +5,6 @@ import 'package:app_settings/app_settings.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/retire_methods.dart';
 import 'package:betrader/ui/notifications_page.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -680,7 +679,7 @@ class SettingsViewState extends State<SettingsView> {
       bottomSheet: Container(
         padding: const EdgeInsets.all(16.0),
         child: Text(
-            (strings?.get('versionCode') ?? 'Version code: ') + ((!kReleaseMode) ? 'DEBUG': Config.codeVersion),
+            (strings?.get('versionCode') ?? 'Version code: ') + Config.codeVersion,
             textAlign: TextAlign.center),
       ),
     );

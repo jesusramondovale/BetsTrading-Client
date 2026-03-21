@@ -471,7 +471,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       bottomSheet: Container(
         padding: const EdgeInsets.all(10.0),
         child: Text(
-          ((!kReleaseMode) ? 'DEBUG': Config.codeVersion),
+          Config.codeVersion,
           textAlign: TextAlign.center,
           style: const TextStyle(color: Colors.white),
         ),
@@ -520,7 +520,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
   void logInHelper(LocalizedStrings strings) async {
     if (!mounted) return;
     showDialog(
-      barrierColor: Colors.black.withAlpha(220),
+      barrierColor: Colors.black.withAlpha(100),
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -770,9 +770,30 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
       ),
       onPressed: () async {
         Common().applyImmersive();
-        int? result = await AuthService().googleSignIn();
         if (!mounted) return;
-        
+        showDialog(
+          barrierColor: Colors.black.withAlpha(100),
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext dialogContext) {
+            return const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            );
+          },
+        );
+        int? result;
+        try {
+          result = await AuthService().googleSignIn();
+        } finally {
+          if (mounted && Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        }
+        if (!mounted) return;
+
         if (result != null && result == 0)
         {
           // Validated
