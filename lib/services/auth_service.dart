@@ -31,10 +31,15 @@ class AuthService {
     final response = await Common().postRequestWrapper('Auth','GoogleLogIn', {'userId': googleUserId});
 
     if (response['statusCode'] == 200) {
-      final String token = response['body']['userId'];
+      final body = response['body'] as Map<String, dynamic>? ?? {};
+      final String token = body['userId']?.toString() ?? '';
+      final String? jwtToken = body['jwtToken']?.toString();
       await _storage.write(key: 'sessionToken', value: token);
+      if (jwtToken != null && jwtToken.isNotEmpty) {
+        await _storage.write(key: 'jwtToken', value: jwtToken);
+      }
       AuthService().refreshFCM(token, FirebaseService().firebaseToken!);
-      return {'success': true, 'message': response['body']['message']};
+      return {'success': true, 'message': body['message']};
     } else {
       return {'success': false, 'message': response['body']['message']};
     }
@@ -153,11 +158,27 @@ class AuthService {
 
     final response = await Common().postRequestWrapper('Auth','GoogleQuickRegister', data);
 
-    return response['statusCode'] == 200;
+    if (response['statusCode'] == 200) {
+      final body = response['body'] as Map<String, dynamic>? ?? {};
+      final String? uid = body['userId']?.toString();
+      final String? jwtToken = body['jwtToken']?.toString();
+      if (uid != null && uid.isNotEmpty) {
+        await _storage.write(key: 'sessionToken', value: uid);
+      }
+      if (jwtToken != null && jwtToken.isNotEmpty) {
+        await _storage.write(key: 'jwtToken', value: jwtToken);
+      }
+      return true;
+    }
+    return false;
   }
 
   Future<int?> googleSignIn() async {
     try {
+      // Evita enviar un JWT viejo (otra cuenta o caducado) en llamadas posteriores;
+      // si no, RefreshFCM/UserInfo pueden devolver 401/403 y vaciar el almacén.
+      await _storage.delete(key: 'jwtToken');
+
       const List<String> scopes = <String>[
         'https://www.googleapis.com/auth/user.birthday.read',
       ];
@@ -186,11 +207,6 @@ class AuthService {
         final auth = await user.authentication;
 
         final accessToken = auth.accessToken;
-        final idToken = auth.idToken;
-
-        if (idToken != null) {
-          await _storage.write(key: 'jwtToken', value: idToken);
-        }
 
         final response = await http.get(
           Uri.parse('https://people.googleapis.com/v1/people/me?personFields=birthdays'),
@@ -209,6 +225,7 @@ class AuthService {
             final int response = await _isLoggedIn(user.id, clearingOnForbidden: false);
             if (response == 0) {
               await _storage.write(key: 'sessionToken', value: user.id);
+              await googleLogIn(user.id);
               return 0;
             }
             if (response == 2) {
@@ -217,6 +234,7 @@ class AuthService {
             }
             if (response == 3) {
               await _storage.write(key: 'sessionToken', value: user.id);
+              await googleLogIn(user.id);
               return 3;
             } else {
               bool successfullyRegistered = await _googleQuickRegister(
@@ -287,7 +305,14 @@ class AuthService {
 
 
   Future<Map<String, dynamic>> refreshFCM(String userId, String token) async {
-    final response = await Common().postRequestWrapper('Auth','RefreshFCM', {'user_id':userId ,'token': token});
+    // No borrar sesión si FCM falla (401): IsLoggedIn puede ser 200 sin JWT válido,
+    // p. ej. tras login Google antes de guardar el nuevo token.
+    final response = await Common().postRequestWrapper(
+      'Auth',
+      'RefreshFCM',
+      {'user_id': userId, 'token': token},
+      clearingOnForbidden: false,
+    );
 
     if (response['statusCode'] == 200) {
       await _storage.write(key: 'fcmToken', value: token);
