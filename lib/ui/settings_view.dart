@@ -646,6 +646,8 @@ class SettingsViewState extends State<SettingsView> {
                       Common().applyImmersive();
                       setState(() => dollarCurrency = newValue);
                       _saveDollarCurrency(newValue);
+                      await Future.delayed(const Duration(milliseconds: 1500));
+                      if (!mounted) return;
                       showRestartDialog(context);
                     },
                   ),

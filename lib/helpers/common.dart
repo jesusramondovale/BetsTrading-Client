@@ -65,6 +65,27 @@ class Common {
     textTheme: const TextTheme(
       bodyLarge: TextStyle(color: Colors.white),
     ),
+    // Mismo estilo que Settings: activado en verde (thumb), pista gris apagada.
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
+          return null;
+        }
+        if (states.contains(WidgetState.selected)) {
+          return Colors.greenAccent;
+        }
+        return Colors.black;
+      }),
+      trackColor: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
+          return null;
+        }
+        if (states.contains(WidgetState.selected)) {
+          return Colors.greenAccent.withValues(alpha: 0.45);
+        }
+        return Colors.grey;
+      }),
+    ),
   );
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();

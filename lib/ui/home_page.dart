@@ -57,6 +57,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Favorites? _currentFavorites; // Mantener datos actuales para evitar skeletons
   bool _userIsInteracting = false;
   bool _userIsInteractingFavs = false;
+  /// `true` = auto-scroll activo (candado abierto); `false` = bloqueado (candado cerrado).
+  bool _trendsAutoScrollEnabled = true;
+  bool _favsAutoScrollEnabled = true;
   bool _favsInitialPositionSet = false;
   bool _isLoadingStore = false;
   final ScrollController _trendScrollController = ScrollController();
@@ -335,6 +338,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _ticker = Ticker((Duration elapsed) {
       if (!_trendScrollController.hasClients) return;
       if (_userIsInteracting) return;
+      if (!_trendsAutoScrollEnabled) return;
 
       final max = _trendScrollController.position.maxScrollExtent;
       final min = 0.0;
@@ -397,6 +401,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       if (!_favsScrollController.hasClients) return;
       if (_userIsInteractingFavs) return;
+      if (!_favsAutoScrollEnabled) return;
 
       try {
         final max = _favsScrollController.position.maxScrollExtent;
@@ -818,10 +823,42 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      strings?.get('trends') ?? 'Trends',
-                      style: GoogleFonts.syncopate(
-                          fontSize: 18, fontWeight: FontWeight.w200),
+                    Row(
+                      children: [
+                        Text(
+                          strings?.get('trends') ?? 'Trends',
+                          style: GoogleFonts.syncopate(
+                              fontSize: 18, fontWeight: FontWeight.w200),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 28,
+                            minHeight: 28,
+                          ),
+                          tooltip: _trendsAutoScrollEnabled
+                              ? (strings?.get('trendsAutoScrollOn') ??
+                                  'Auto-scroll activo')
+                              : (strings?.get('trendsAutoScrollOff') ??
+                                  'Auto-scroll pausado'),
+                          icon: Icon(
+                            _trendsAutoScrollEnabled
+                                ? Icons.lock_open_rounded
+                                : Icons.lock_rounded,
+                            size: 16,
+                            color: Colors.white70,
+                          ),
+                          onPressed: () {
+                            Common().vibrate();
+                            setState(() {
+                              _trendsAutoScrollEnabled =
+                                  !_trendsAutoScrollEnabled;
+                            });
+                          },
+                        ),
+                      ],
                     ),
                     const Divider(color: Colors.white, thickness: 0.5, height: 0.5),
                     Expanded(
@@ -1096,6 +1133,34 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             fontSize: 18,
                             fontWeight: FontWeight.w300,
                           ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 28,
+                            minHeight: 28,
+                          ),
+                          tooltip: _favsAutoScrollEnabled
+                              ? (strings?.get('favsAutoScrollOn') ??
+                                  'Auto-scroll activo')
+                              : (strings?.get('favsAutoScrollOff') ??
+                                  'Auto-scroll pausado'),
+                          icon: Icon(
+                            _favsAutoScrollEnabled
+                                ? Icons.lock_open_rounded
+                                : Icons.lock_rounded,
+                            size: 16,
+                            color: Colors.white70,
+                          ),
+                          onPressed: () {
+                            Common().vibrate();
+                            setState(() {
+                              _favsAutoScrollEnabled =
+                                  !_favsAutoScrollEnabled;
+                            });
+                          },
                         ),
                       ],
                     ),

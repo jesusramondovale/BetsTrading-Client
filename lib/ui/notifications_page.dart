@@ -92,6 +92,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                     SwitchListTile(
                       inactiveThumbColor: Colors.black,
                       inactiveTrackColor: Colors.grey,
+                      activeThumbColor: Colors.greenAccent,
                       title: Text(strings?.get('enableNotifications') ?? 'Enable notifications',
                         style: GoogleFonts.montserrat(
                           fontSize: 16,
@@ -106,6 +107,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                     SwitchListTile(
                       inactiveThumbColor: Colors.black,
                       inactiveTrackColor: !_enableNotifications ? Colors.white24 : Colors.grey,
+                      activeThumbColor: Colors.greenAccent,
                       title: Text(strings?.get('trendingNotifications') ?? 'Trending notifications',
                         style: GoogleFonts.montserrat(
                           fontSize: 16,
@@ -122,6 +124,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                     SwitchListTile(
                       inactiveThumbColor: Colors.black,
                       inactiveTrackColor: !_enableNotifications ? Colors.white24 : Colors.grey,
+                      activeThumbColor: Colors.greenAccent,
                       title: Text(strings?.get('bettingNotifications') ?? 'Betting notifications',
                         style: GoogleFonts.montserrat(
                           fontSize: 16,
@@ -138,6 +141,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                     SwitchListTile(
                       inactiveThumbColor: Colors.black,
                       inactiveTrackColor: !_enableNotifications ? Colors.white24 : Colors.grey,
+                      activeThumbColor: Colors.greenAccent,
                       title: Text(strings?.get('newsNotifications') ?? 'News notifications',
                         style: GoogleFonts.montserrat(
                           fontSize: 16,
