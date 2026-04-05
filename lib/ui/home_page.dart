@@ -832,11 +832,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                         const Spacer(),
                         IconButton(
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 28,
-                            minHeight: 28,
+                          style: IconButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
                           ),
                           tooltip: _trendsAutoScrollEnabled
                               ? (strings?.get('trendsAutoScrollOn') ??
@@ -1136,11 +1136,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                         const Spacer(),
                         IconButton(
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 28,
-                            minHeight: 28,
+                          style: IconButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
                           ),
                           tooltip: _favsAutoScrollEnabled
                               ? (strings?.get('favsAutoScrollOn') ??
