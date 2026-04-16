@@ -336,6 +336,8 @@ class BetsService {
       }
       
       await _storage.write(key: 'points', value: decodedBody['points']?.toString() ?? '0');
+      final noAds = decodedBody['noAds'] == true;
+      await _storage.write(key: 'no_ads', value: noAds ? 'true' : 'false');
       return {'success': true, 'message': decodedBody['message']};
     } else {
       return {'success': false, 'message': response['body']['message']};

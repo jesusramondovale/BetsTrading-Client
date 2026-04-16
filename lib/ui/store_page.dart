@@ -12,6 +12,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/bets_service.dart';
+import '../services/mandatory_interstitial_service.dart';
 import '../services/secure_auth_service.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
@@ -113,6 +114,20 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
   Timer? _autoScrollTimer;
   int? _rewardPrize;
   final Map<int, GlobalKey<_StoreSliderState>> _sliderKeys = {};
+  bool _userHasNoAds = false;
+  double _noAdsDisplayPrice = 4.99;
+
+  Future<void> _loadNoAdsState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final eur = prefs.getDouble('cfg_no_ads_price_eur') ?? 4.99;
+    final usd = prefs.getDouble('cfg_no_ads_price_usd') ?? 4.99;
+    final owned = (await _storage.read(key: 'no_ads')) == 'true';
+    if (!mounted) return;
+    setState(() {
+      _userHasNoAds = owned;
+      _noAdsDisplayPrice = _currency == 'usd' ? usd : eur;
+    });
+  }
 
   @override
   void initState() {
@@ -125,6 +140,11 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
     )..forward();
     MobileAds.instance.initialize();
     _loadRewardedAd();
+    unawaited(
+      MandatoryInterstitialService.instance
+          .refreshRemoteConfig()
+          .then((_) => _loadNoAdsState()),
+    );
     
     // Si hay datos precargados, usarlos inmediatamente
     if (widget.preloadedBuyOptions != null && 
@@ -212,6 +232,8 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         _adRewardOptions = adRewardOptions;
         _rewardPrize = rewardPrize;
       });
+
+      await _loadNoAdsState();
 
       final newCount = _buyOptions.length;
       _sliderKeys.removeWhere((key, value) => key >= newCount);
@@ -506,6 +528,99 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
     }
   }
 
+  Future<String> _getNoAdsClientSecret(String userId) async {
+    final response = await Common().postRequestWrapper(
+      'Payments',
+      'CreatePaymentIntent',
+      {
+        'amount': 0,
+        'currency': _currency,
+        'userId': userId,
+        'coins': 0,
+        'productType': 'no_ads',
+      },
+    );
+    if (response['statusCode'] == 200 &&
+        response['body'] != null &&
+        response['body']['client_secret'] != null) {
+      return response['body']['client_secret'];
+    } else {
+      throw Exception('Error al obtener client_secret No Ads');
+    }
+  }
+
+  Future<void> _payNoAds() async {
+    if (_userHasNoAds) return;
+    try {
+      final biometricEnabled = await _secureAuthService.isBiometricEnabled();
+      if (biometricEnabled) {
+        if (!mounted) return;
+        final ok = await _secureAuthService.authenticateBiometric(context);
+        if (!ok) return;
+      }
+      String? userId = await _storage.read(key: 'sessionToken');
+      if (userId == null || !mounted) return;
+      final billingDetails = stripe.BillingDetails(
+        email: 'betsontrading@gmail.com',
+        phone: '',
+        address: stripe.Address(
+          city: 'Carreño',
+          country: 'ES',
+          line1: '',
+          line2: '',
+          postalCode: '33430',
+          state: 'Asturias',
+        ),
+      );
+      final clientSecret = await _getNoAdsClientSecret(userId);
+      await stripe.Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: stripe.SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret,
+          style: ThemeMode.dark,
+          merchantDisplayName: 'Betrader',
+          billingDetails: billingDetails,
+          googlePay: stripe.PaymentSheetGooglePay(
+            merchantCountryCode: 'ES',
+            currencyCode: _currency.toUpperCase(),
+          ),
+        ),
+      );
+      await stripe.Stripe.instance.presentPaymentSheet();
+      await BetsService().getUserInfo(userId);
+      await _loadNoAdsState();
+      if (!mounted) return;
+      Navigator.pop(context);
+      homeScreenKey.currentState?.loadUserIdAndData();
+      awardsScreenKey.currentState?.loadUserIdAndData();
+      Common().showFloatingSnack(
+        context,
+        LocalizedStrings.of(context)!.get('noAdsPurchaseThanks') ??
+            'Thank you. Ads have been disabled.',
+        showIcon: true,
+      );
+    } on stripe.StripeException catch (e) {
+      if (e.error.code != stripe.FailureCode.Canceled) {
+        if (!mounted) return;
+        Navigator.pop(context);
+        Common().showFloatingSnack(
+          context,
+          LocalizedStrings.of(context)!.get('transactionError') ??
+              'Error during transaction process!',
+          backgroundColor: Colors.red,
+        );
+      }
+    } catch (e) {
+      debugPrint('No Ads payment error: $e');
+      if (!mounted) return;
+      Common().showFloatingSnack(
+        context,
+        LocalizedStrings.of(context)!.get('transactionError') ??
+            'Error during transaction process!',
+        backgroundColor: Colors.red,
+      );
+    }
+  }
+
   Future<String> _getClientSecret(double price, String userId, double coins) async {
     final requestData = {
       'amount': (price * 100).toInt(),
@@ -612,6 +727,65 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                       },
                     );
                   }),
+                if (!_userHasNoAds)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Common().vibrate();
+                          Common().applyImmersive();
+                          _payNoAds();
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.white.withAlpha(25),
+                            border: Border.all(color: Colors.deepPurple.withAlpha(120)),
+                          ),
+                          child: Row(
+                            children: [
+                              Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  const Icon(Icons.live_tv, color: Colors.white70, size: 28),
+                                  Positioned(
+                                    right: -12,
+                                    bottom: -10,
+                                    child: Icon(Icons.cancel, color: Colors.redAccent.shade200, size: 16),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  strings.get('noAdsPackLabel') ?? 'No Ads',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Image.asset(
+                                _currency == 'eur' ? 'assets/euro.png' : 'assets/dollar.png',
+                                width: 22,
+                                height: 22,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _noAdsDisplayPrice.toStringAsFixed(2),
+                                style: GoogleFonts.syncopate(fontSize: 16, color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 Container(
                   alignment: Alignment.center,
                   margin: const EdgeInsets.symmetric(vertical: 8),
@@ -959,7 +1133,7 @@ class _StoreSliderState extends State<_StoreSlider> with SingleTickerProviderSta
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
       child: Container(
-        height: 60 * widget.k + 24,
+        height: (60 * widget.k + 24) * 0.8,
         decoration: BoxDecoration(
           color: Colors.transparent.withAlpha(30),
           borderRadius: BorderRadius.circular(50.0),
@@ -1003,7 +1177,7 @@ class _StoreSliderState extends State<_StoreSlider> with SingleTickerProviderSta
                     // Contenedor de monedas (bet-coins) (derecha) - fondo fijo
                     Container(
                       width: 90 * widget.k,
-                      height: 70 * widget.k,
+                      height: 70 * widget.k * 0.8,
                       margin: const EdgeInsets.only(left: 6.0),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -1075,7 +1249,7 @@ class _StoreSliderState extends State<_StoreSlider> with SingleTickerProviderSta
                         borderRadius: BorderRadius.circular(60.0),
                         child: SizedBox(
                           width: containerWidth,
-                          height: 70 * widget.k,
+                          height: 70 * widget.k * 0.8,
                           child: Container(
                             constraints: BoxConstraints(
                               maxWidth: containerWidth,

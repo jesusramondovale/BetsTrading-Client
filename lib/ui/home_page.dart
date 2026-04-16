@@ -684,7 +684,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             Row(
               children: [
                 IconButton(
-                  padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                  // Padding simétrico: con LTRB(10,0,0,0) el icono quedaba desplazado
+                  // respecto al splash material (centrado en el área del botón).
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.center,
                   icon: Icon(key: _kSettings, Icons.settings),
                   iconSize: 25,
                   color: Colors.white70,

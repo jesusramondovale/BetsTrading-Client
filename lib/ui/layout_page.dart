@@ -19,6 +19,7 @@ import 'exchange_page.dart';
 import 'home_page.dart';
 import 'login_page.dart';
 import '../services/bets_service.dart';
+import '../services/mandatory_interstitial_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'notifications_page.dart';
@@ -179,6 +180,8 @@ class MainMenuPageState extends State<MainMenuPage> {
     // Cargar datos de forma asíncrona sin bloquear la UI
     await _loadUserInfo();
     await _loadProfilePic();
+    await MandatoryInterstitialService.instance.refreshRemoteConfig();
+    MandatoryInterstitialService.instance.schedulePreload();
   }
 
   Future<void> _checkFirstRun() async {
@@ -228,6 +231,11 @@ class MainMenuPageState extends State<MainMenuPage> {
           await BetsService().getUserInfo(userId);
           if (kDebugMode) debugPrint('[DAILY_REWARD] getUserInfo done');
           homeScreenKey.currentState?.refreshUserPoints();
+          await Future<void>.delayed(const Duration(milliseconds: 400));
+          if (mounted) {
+            await MandatoryInterstitialService.instance
+                .requestShow(MandatoryInterstitialReason.dailyRewardAfterCoins);
+          }
         } else {
           if (kDebugMode) debugPrint('[DAILY_REWARD] success=false or !mounted, NOT calling getUserInfo');
         }
@@ -247,6 +255,7 @@ class MainMenuPageState extends State<MainMenuPage> {
   @override
   void initState() {
     super.initState();
+    MandatoryInterstitialService.instance.startForegroundUsageTracking();
     _checkFirstRun();
     _initializeData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -260,6 +269,12 @@ class MainMenuPageState extends State<MainMenuPage> {
           message.notification!.body!,
           message.data);
     });
+  }
+
+  @override
+  void dispose() {
+    MandatoryInterstitialService.instance.stopForegroundUsageTracking();
+    super.dispose();
   }
 
   @override

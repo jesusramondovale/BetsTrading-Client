@@ -10,9 +10,11 @@ class SecureAuthService {
 
   Future<bool> isBiometricSupported() async {
     try {
-      final canCheck = await _localAuth.canCheckBiometrics;
-      final isSupported = await _localAuth.isDeviceSupported();
-      return canCheck && isSupported;
+      final r = await Future.wait<bool>([
+        _localAuth.canCheckBiometrics,
+        _localAuth.isDeviceSupported(),
+      ]);
+      return r[0] && r[1];
     } catch (_) {
       return false;
     }

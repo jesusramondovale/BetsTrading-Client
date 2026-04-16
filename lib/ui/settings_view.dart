@@ -45,7 +45,6 @@ class SettingsViewState extends State<SettingsView> {
   bool dollarCurrency = false;
   bool enableBiometricAuth = false;
   bool biometricSupported = false;
-  bool _loaded = false;
   final SecureAuthService _secureAuthService = SecureAuthService();
 
 
@@ -355,22 +354,29 @@ class SettingsViewState extends State<SettingsView> {
   }
 
   Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final supported = await _secureAuthService.isBiometricSupported();
+    // Preferencias y biometría en paralelo (antes eran secuenciales y sumaban latencia).
+    final results = await Future.wait<Object>([
+      SharedPreferences.getInstance(),
+      _secureAuthService.isBiometricSupported(),
+    ]);
+    if (!mounted) return;
+    final prefs = results[0] as SharedPreferences;
+    final supported = results[1] as bool;
     // Default ON when supported and user never chose otherwise.
     bool enabled = false;
     if (!supported) {
       await _secureAuthService.saveBiometricEnabled(false);
+      if (!mounted) return;
     } else {
       final hasExplicit = prefs.containsKey(SecureAuthService.biometricPrefKey);
       enabled = hasExplicit ? (prefs.getBool(SecureAuthService.biometricPrefKey) ?? false) : true;
     }
+    if (!mounted) return;
     setState(() {
       enableVibration = prefs.getBool('enableVibration') ?? false;
       dollarCurrency = prefs.getBool('dollarCurrency') ?? false;
       biometricSupported = supported;
       enableBiometricAuth = enabled;
-      _loaded = true;
     });
   }
 
@@ -429,9 +435,6 @@ class SettingsViewState extends State<SettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_loaded) {
-      return const Center(child: CircularProgressIndicator());
-    }
     final strings = LocalizedStrings.of(context);
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -590,6 +593,27 @@ class SettingsViewState extends State<SettingsView> {
                         style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
                       ),
                       trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ),
+
+                // Notify support (mailto)
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.white.withValues(alpha: 0.1),
+                    highlightColor: Colors.white.withValues(alpha: 0.05),
+                    onTap: () async {
+                      Common().vibrate();
+                      Common().applyImmersive();
+                      await Common().openSupportEmail(context);
+                    },
+                    child: ListTile(
+                      title: Text(
+                        strings?.get('notifyProblem') ?? 'Report a problem',
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                      ),
+                      trailing: const Icon(Icons.mail_outline),
                     ),
                   ),
                 ),

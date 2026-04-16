@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -1368,6 +1369,38 @@ class Common {
     )) {
       Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
     }
+  }
+
+  /// Abre la app de correo con un `mailto:` al soporte (cliente de correo del sistema).
+  /// Asunto: `ID: xxxxxx` (últimos 6 del [sessionToken]). Cuerpo: primera línea = correo
+  /// guardado en la app (`email` en almacenamiento), si existe.
+  Future<void> openSupportEmail(BuildContext context) async {
+    final token = await _storage.read(key: 'sessionToken');
+    final userEmail = (await _storage.read(key: 'email'))?.trim();
+    final suffix = _supportMailIdSuffix(token);
+    final subject = 'ID: $suffix';
+    final hasEmail = userEmail != null &&
+        userEmail.isNotEmpty &&
+        userEmail.contains('@');
+    final body = hasEmail ? '$userEmail\n\n' : '\n\n';
+    final uri = Uri(
+      scheme: 'mailto',
+      path: 'helpme.betstrading@gmail.com',
+      queryParameters: <String, String>{
+        'subject': subject,
+        'body': body,
+      },
+    );
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        context.mounted) {
+      showFloatingSnack(context, 'Error!', backgroundColor: Colors.red);
+    }
+  }
+
+  String _supportMailIdSuffix(String? userId) {
+    if (userId == null || userId.isEmpty) return '______';
+    if (userId.length <= 6) return userId;
+    return userId.substring(userId.length - 6);
   }
 
   Widget bubble(String title, String body) {

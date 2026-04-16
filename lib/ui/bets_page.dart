@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:betrader/services/bets_service.dart';
+import 'package:betrader/services/mandatory_interstitial_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -266,6 +267,13 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
 
         homeScreenKey.currentState?.loadUserIdAndData();
         exchangePageKey.currentState?.loadData();
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future<void>.delayed(const Duration(milliseconds: 600), () {
+            MandatoryInterstitialService.instance
+                .requestShow(MandatoryInterstitialReason.bet);
+          });
+        });
 
       } else {
         if (bettingNotifications) {
@@ -1061,7 +1069,8 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                               key: ValueKey('odds_${zone.odds}'), // Forzar reconstrucción cuando cambie el odds
                               style: GoogleFonts.montserrat(
                                 color: textColor,
-                                fontSize: (54 * scaleFactor).clamp(40.0, 64.0),
+                                // −20% respecto a (54*scale).clamp(40,64); alivia overflow en pantallas bajas
+                                fontSize: ((54 * scaleFactor).clamp(40.0, 64.0)) * 0.8,
                                 fontWeight: FontWeight.w300,
                                 shadows: shadowColor != null
                                     ? [

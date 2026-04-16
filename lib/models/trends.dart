@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' show max, min;
 import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -927,6 +928,76 @@ class MaxOddRectangleZone extends StatelessWidget {
   }
 }
 
+/// Texto del multiplicador en el badge (compacto en tamaño pequeño para evitar desbordes).
+String _maxOddBadgeLabel(double maxOdd, bool isLarge) {
+  if (isLarge) {
+    return 'x${maxOdd.toStringAsFixed(2)}';
+  }
+  if (maxOdd >= 10000) {
+    final k = maxOdd / 1000.0;
+    final r = k.roundToDouble();
+    if ((k - r).abs() < 1e-6) {
+      return 'x${r.toStringAsFixed(0)}k';
+    }
+    return 'x${k.toStringAsFixed(1)}k';
+  }
+  if (maxOdd >= 1000) {
+    return 'x${maxOdd.toStringAsFixed(0)}';
+  }
+  return 'x${maxOdd.toStringAsFixed(1)}';
+}
+
+/// Mayor [fontSize] que cabe en [size] en **una sola línea** (sin salto): búsqueda binaria.
+double _maxOddBadgeFittedFontSize({
+  required Size size,
+  required String label,
+  required bool isLarge,
+}) {
+  const minFont = 4.0;
+  // Techo alto: se reduce por búsqueda hasta el máximo que aún cabe (no capamos en 9–16 px).
+  final maxCap = min(
+    isLarge ? 80.0 : 64.0,
+    max(size.width, size.height) * 3.2,
+  );
+
+  bool fitsOneLine(double fontSize) {
+    final tp = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: GoogleFonts.montserrat(
+          color: Colors.white,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout(minWidth: 0, maxWidth: double.infinity);
+    final maxW = size.width * 0.96;
+    final maxH = size.height * 0.94;
+    return !tp.didExceedMaxLines && tp.width <= maxW && tp.height <= maxH;
+  }
+
+  if (!fitsOneLine(minFont)) return minFont;
+
+  var lo = minFont;
+  var hi = maxCap;
+  if (fitsOneLine(hi)) {
+    return hi;
+  }
+
+  for (var i = 0; i < 30; i++) {
+    if (hi - lo < 0.08) break;
+    final mid = (lo + hi) / 2.0;
+    if (fitsOneLine(mid)) {
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  return lo;
+}
+
 class _MaxOddRectangleZonePainter extends CustomPainter {
   final double maxOdd;
   final Color fillColor;
@@ -1048,10 +1119,14 @@ class _MaxOddRectangleZonePainter extends CustomPainter {
     canvas.drawRRect(rrect, paintBorder);
 
     if (!hideText) {
-      // Texto con las odds - más grande y sin tanto padding
-      final fontSize = isLarge ? 20.0 : 12.0;
+      final label = _maxOddBadgeLabel(maxOdd, isLarge);
+      final fontSize = _maxOddBadgeFittedFontSize(
+        size: size,
+        label: label,
+        isLarge: isLarge,
+      );
       final oddsTextSpan = TextSpan(
-        text: 'x${maxOdd.toStringAsFixed(isLarge ? 2 : 1)}',
+        text: label,
         style: GoogleFonts.montserrat(
           color: Colors.white,
           fontSize: fontSize,
@@ -1062,8 +1137,10 @@ class _MaxOddRectangleZonePainter extends CustomPainter {
       final textPainter = TextPainter(
         text: oddsTextSpan,
         textDirection: TextDirection.ltr,
+        maxLines: 1,
       );
-      textPainter.layout(minWidth: 0, maxWidth: size.width);
+      // Misma medición que en fitsOneLine: una sola línea, ancho intrínseco.
+      textPainter.layout(minWidth: 0, maxWidth: double.infinity);
       final textX = (size.width - textPainter.width) / 2;
       final textY = (size.height - textPainter.height) / 2;
       textPainter.paint(canvas, Offset(textX, textY));
@@ -1072,7 +1149,10 @@ class _MaxOddRectangleZonePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _MaxOddRectangleZonePainter oldDelegate) =>
-      oldDelegate.maxOdd != maxOdd || oldDelegate.fillColor != fillColor || oldDelegate.hideText != hideText;
+      oldDelegate.maxOdd != maxOdd ||
+      oldDelegate.fillColor != fillColor ||
+      oldDelegate.hideText != hideText ||
+      oldDelegate.isLarge != isLarge;
 }
 
 //------- SKELETON
