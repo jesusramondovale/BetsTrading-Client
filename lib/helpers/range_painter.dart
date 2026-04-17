@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:ui' as ui;
+import 'dart:math' as math;
 import 'package:betrader/candlesticks/src/constant/view_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -12,6 +13,7 @@ import '../ui/bets_page.dart';
 import '../ui/layout_page.dart';
 import 'common.dart';
 import '../models/rectangle_zone.dart';
+import '../models/zone_type.dart';
 
 
 class RangePainter extends CustomPainter {
@@ -134,6 +136,63 @@ class RangePainter extends CustomPainter {
     canvas.drawPath(dashedPath, paint);
   }
 
+  void drawDashedHorizontalLine(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint, {
+    double dashWidth = 6,
+    double dashSpace = 4,
+  }) {
+    double x = start.dx;
+    while (x < end.dx) {
+      final nextX = (x + dashWidth).clamp(start.dx, end.dx);
+      canvas.drawLine(Offset(x, start.dy), Offset(nextX, end.dy), paint);
+      x += dashWidth + dashSpace;
+    }
+  }
+
+  void drawLimitBorders(Canvas canvas, RRect rrect, RectangleZone zone, double currentPrice) {
+    final solidPaint = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..color = Colors.white.withValues(alpha: 0.9);
+    final dashedPaint = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..color = Colors.white.withValues(alpha: 0.9);
+
+    final isUpperLimit = zone.lowPrice > currentPrice;
+    // Base dashed border for the whole rectangle.
+    drawDashedRRect(canvas, rrect, dashedPaint, dashWidth: 5, dashSpace: 3);
+
+    final rx = rrect.tlRadiusX;
+    final ry = rrect.tlRadiusY;
+    final limitPath = Path();
+
+    if (isUpperLimit) {
+      final tlRect = Rect.fromLTWH(rrect.left, rrect.top, rx * 2, ry * 2);
+      final trRect = Rect.fromLTWH(rrect.right - rx * 2, rrect.top, rx * 2, ry * 2);
+      limitPath.moveTo(rrect.left, rrect.top + ry);
+      limitPath.addArc(tlRect, math.pi, math.pi / 2);
+      limitPath.lineTo(rrect.right - rx, rrect.top);
+      limitPath.addArc(trRect, -math.pi / 2, math.pi / 2);
+      limitPath.lineTo(rrect.right, rrect.top + ry);
+    } else {
+      final blRect = Rect.fromLTWH(rrect.left, rrect.bottom - ry * 2, rx * 2, ry * 2);
+      final brRect = Rect.fromLTWH(rrect.right - rx * 2, rrect.bottom - ry * 2, rx * 2, ry * 2);
+      limitPath.moveTo(rrect.left, rrect.bottom - ry);
+      limitPath.addArc(blRect, math.pi, -math.pi / 2);
+      limitPath.lineTo(rrect.right - rx, rrect.bottom);
+      limitPath.addArc(brRect, math.pi / 2, -math.pi / 2);
+      limitPath.lineTo(rrect.right, rrect.bottom - ry);
+    }
+
+    canvas.drawPath(limitPath, solidPaint);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     if (zones.value.isEmpty){
@@ -220,13 +279,24 @@ class RangePainter extends CustomPainter {
         ..style  = PaintingStyle.fill;
       canvas.drawRRect(rrect, paintFill);
 
-      // Borde fino con efecto cristal pálido para todos los rectangleZones
-      final paintBorder = Paint()
-        ..isAntiAlias = true
-        ..color = Colors.white.withValues(alpha: 0.12)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.8;
-      canvas.drawRRect(rrect, paintBorder);
+      if (zone.zoneType == BetZoneType.standard) {
+        final paintBorder = Paint()
+          ..isAntiAlias = true
+          ..color = Colors.white.withValues(alpha: 0.8)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8;
+        canvas.drawRRect(rrect, paintBorder);
+      } else if (zone.zoneType == BetZoneType.extreme) {
+        final dashedPaint = Paint()
+          ..isAntiAlias = true
+          ..color = Colors.white.withValues(alpha: 0.88)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.9;
+        drawDashedRRect(canvas, rrect, dashedPaint, dashWidth: 4.5, dashSpace: 3);
+      } else if (zone.zoneType == BetZoneType.limit) {
+        final currentReference = candles.isNotEmpty ? candles.first.close : zone.targetPrice;
+        drawLimitBorders(canvas, rrect, zone, currentReference);
+      }
 
       if (finishedIcon != 0) {
         const double padding = 4.0;
@@ -280,15 +350,6 @@ class RangePainter extends CustomPainter {
         }
       }
 
-
-      if (zone.type == 1) {
-        final paintStroke = Paint()
-          ..color = Colors.white.withAlpha(200)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5;
-
-        drawDashedRRect(canvas, rrect, paintStroke, dashWidth: 5, dashSpace: 3);
-      }
 
       double fontSize = Common().calculateMaxFontSize('x${zone.odds.toStringAsFixed(2)}', FontWeight.bold, endX - startX);
       final oddsTextSpan = TextSpan(
@@ -433,7 +494,7 @@ Future<Future<Object?>> showZoneDialogAnimated(
                     },
                     child: CustomPaint(
                       size: const Size(250, 260),
-                      painter: _ZoneDialogPainter(zone, durationHours, dollarCurrency, image),
+                      painter: _ZoneDialogPainter(zone, durationHours, dollarCurrency, image, currentValue),
                     ),
                   ),
                 ),
@@ -451,8 +512,25 @@ class _ZoneDialogPainter extends CustomPainter {
   final int durationHours;
   final bool dollarCurrency;
   final ui.Image? image;
+  final double currentValue;
 
-  _ZoneDialogPainter(this.zone, this.durationHours, this.dollarCurrency, this.image);
+  _ZoneDialogPainter(this.zone, this.durationHours, this.dollarCurrency, this.image, this.currentValue);
+
+  void drawDashedHorizontalLine(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint, {
+    double dashWidth = 8,
+    double dashSpace = 5,
+  }) {
+    double x = start.dx;
+    while (x < end.dx) {
+      final nextX = (x + dashWidth).clamp(start.dx, end.dx);
+      canvas.drawLine(Offset(x, start.dy), Offset(nextX, end.dy), paint);
+      x += dashWidth + dashSpace;
+    }
+  }
 
   String _formatPrice(double value, bool dollarCurrency) {
     final thresholds = {
@@ -595,20 +673,55 @@ class _ZoneDialogPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     canvas.drawRRect(highlightRrect, paintHighlight);
 
-    final border = Paint()
-      ..isAntiAlias = true
-      ..color = Colors.white.withValues(alpha: 0.12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8;
-    canvas.drawRRect(rrect, border);
-
-    if (zone.type == 1) {
-      final dashedPaint = Paint()
-        ..color = Colors.white.withValues(alpha: .9)
+    if (zone.zoneType == BetZoneType.standard) {
+      final border = Paint()
+        ..isAntiAlias = true
+        ..color = Colors.white.withValues(alpha: 0.9)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 4;
-
+        ..strokeWidth = 0.8;
+      canvas.drawRRect(rrect, border);
+    } else if (zone.zoneType == BetZoneType.extreme) {
+      final dashedPaint = Paint()
+        ..isAntiAlias = true
+        ..color = Colors.white.withValues(alpha: 0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2;
       drawDashedRRect(canvas, rrect, dashedPaint, dashWidth: 6, dashSpace: 4);
+    } else if (zone.zoneType == BetZoneType.limit) {
+      final isUpperLimit = zone.lowPrice > currentValue;
+      final solidPaint = Paint()
+        ..isAntiAlias = true
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0
+        ..color = Colors.white.withValues(alpha: 0.9);
+      final dashedPaint = Paint()
+        ..isAntiAlias = true
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0
+        ..color = Colors.white.withValues(alpha: 0.9);
+      drawDashedRRect(canvas, rrect, dashedPaint, dashWidth: 8, dashSpace: 5);
+
+      final rx = rrect.tlRadiusX;
+      final ry = rrect.tlRadiusY;
+      final limitPath = Path();
+      if (isUpperLimit) {
+        final tlRect = Rect.fromLTWH(rrect.left, rrect.top, rx * 2, ry * 2);
+        final trRect = Rect.fromLTWH(rrect.right - rx * 2, rrect.top, rx * 2, ry * 2);
+        limitPath.moveTo(rrect.left, rrect.top + ry);
+        limitPath.addArc(tlRect, math.pi, math.pi / 2);
+        limitPath.lineTo(rrect.right - rx, rrect.top);
+        limitPath.addArc(trRect, -math.pi / 2, math.pi / 2);
+        limitPath.lineTo(rrect.right, rrect.top + ry);
+      } else {
+        final blRect = Rect.fromLTWH(rrect.left, rrect.bottom - ry * 2, rx * 2, ry * 2);
+        final brRect = Rect.fromLTWH(rrect.right - rx * 2, rrect.bottom - ry * 2, rx * 2, ry * 2);
+        limitPath.moveTo(rrect.left, rrect.bottom - ry);
+        limitPath.addArc(blRect, math.pi, -math.pi / 2);
+        limitPath.lineTo(rrect.right - rx, rrect.bottom);
+        limitPath.addArc(brRect, math.pi / 2, -math.pi / 2);
+        limitPath.lineTo(rrect.right, rrect.bottom - ry);
+      }
+      canvas.drawPath(limitPath, solidPaint);
     }
 
     final oddsText = 'x${zone.odds.toStringAsFixed(2)}';

@@ -1,3 +1,5 @@
+import 'package:betrader/models/zone_type.dart';
+
 //DTO
 class BetZone {
   int id;
@@ -53,6 +55,7 @@ class BetZone {
 
   static double _toDouble(dynamic v) => (v == null) ? 0.0 : (v as num).toDouble();
   static int _toInt(dynamic v) => (v == null) ? 0 : (v as num).toInt();
+  BetZoneType get betZoneType => BetZoneType.fromCode(betType);
 
   BetZone.fromJson(Map<String, dynamic> json)
       : id = _toInt(json['id']),

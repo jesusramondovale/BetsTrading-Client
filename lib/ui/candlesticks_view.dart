@@ -1,10 +1,12 @@
 import 'package:betrader/candlesticks/candlesticks.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/bet_zone.dart';
+import 'package:betrader/models/zone_type.dart';
 import 'package:betrader/services/bets_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'dart:math' as math;
 import '../helpers/common.dart';
 import '../models/bets.dart';
 import '../models/rectangle_zone.dart';
@@ -200,8 +202,9 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
     return topLeft & rb.size;
   }
 
-  void _continueFromChartHint() {
+  Future<void> _continueFromChartHint() async {
     _removeChartHintOverlay();
+    await _showZoneTypesTutorialDialog();
 
     final targets = _buildTargets(includeChartStep: false)
         .where((t) => t.keyTarget?.currentContext != null)
@@ -251,6 +254,360 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _coach?.show(context: context);
     });
+  }
+
+  Future<void> _showZoneTypesTutorialDialog() async {
+    if (!mounted) return;
+    final strings = LocalizedStrings.of(context);
+    final random = math.Random();
+
+    final examples = [
+      (
+        type: BetZoneType.standard,
+        odds: 1.35 + random.nextDouble() * 0.8,
+        upper: random.nextBool(),
+      ),
+      (
+        type: BetZoneType.extreme,
+        odds: 3.2 + random.nextDouble() * 2.5,
+        upper: random.nextBool(),
+      ),
+    ]..shuffle(random);
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: const Color(0xFF121212),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.white.withValues(alpha: .14)),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    strings?.get('cv_zone_types_title') ?? 'Bet zone types',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    strings?.get('cv_zone_types_body') ??
+                        'Each zone type has a different rule. Learn them before placing bets.',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: .82),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  ...examples.map((e) => _buildZoneTypeExampleCard(
+                        zoneType: e.type,
+                        odds: e.odds,
+                        isUpper: e.upper,
+                        strings: strings,
+                      )),
+                  _buildLimitExamplesCard(strings: strings, random: random),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: FilledButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: Text(strings?.get('tutorial_continue') ?? 'Continuar'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildZoneTypeExampleCard({
+    required BetZoneType zoneType,
+    required double odds,
+    required bool isUpper,
+    required LocalizedStrings? strings,
+  }) {
+    final color = switch (zoneType) {
+      BetZoneType.standard => const Color(0xFFDA3C3C),
+      BetZoneType.extreme => const Color(0xFFB400FF),
+      BetZoneType.limit => const Color(0xFFC74646),
+    };
+
+    final title = switch (zoneType) {
+      BetZoneType.standard =>
+        strings?.get('cv_zone_standard_title') ?? 'Standard zone',
+      BetZoneType.extreme =>
+        strings?.get('cv_zone_extreme_title') ?? 'Extreme zone',
+      BetZoneType.limit =>
+        strings?.get('cv_zone_limit_title') ?? 'Limit zone',
+    };
+
+    final body = switch (zoneType) {
+      BetZoneType.standard =>
+        strings?.get('cv_zone_standard_body') ??
+            'You win only if price stays inside the zone during the whole time window.',
+      BetZoneType.extreme =>
+        strings?.get('cv_zone_extreme_body') ??
+            'You win if price touches the zone at least once, even if it stays outside the rest of the time.',
+      BetZoneType.limit =>
+        strings?.get('cv_zone_limit_body') ??
+            'You win if price touches the zone but never breaks the continuous limit side.',
+    };
+
+    final border = switch (zoneType) {
+      BetZoneType.standard => Border.all(
+          color: Colors.white.withValues(alpha: .85),
+          width: 1,
+        ),
+      BetZoneType.extreme => Border.all(
+          color: Colors.white.withValues(alpha: .85),
+          width: 1,
+        ),
+      BetZoneType.limit => Border.all(
+          color: Colors.white.withValues(alpha: .55),
+          width: 1,
+          style: BorderStyle.solid,
+        ),
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: .15)),
+        color: Colors.white.withValues(alpha: .03),
+      ),
+      child: Row(
+        children: [
+          (zoneType == BetZoneType.extreme)
+              ? _buildExtremePreview(
+                  color: color,
+                  odds: odds,
+                )
+              : _buildZonePreview(
+                  color: color,
+                  border: border,
+                  odds: odds,
+                ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: .84),
+                    fontSize: 12.8,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLimitExamplesCard({
+    required LocalizedStrings? strings,
+    required math.Random random,
+  }) {
+    final upperOdds = 2.3 + random.nextDouble() * 1.2;
+    final lowerOdds = 2.3 + random.nextDouble() * 1.2;
+    final title = strings?.get('cv_zone_limit_title') ?? 'Limit zone';
+    final body = strings?.get('cv_zone_limit_body') ??
+        'You win if price touches the zone but never breaks the continuous limit side.';
+    final upperLabel = (strings?.get('aboveShort') ?? 'Above').toUpperCase();
+    final lowerLabel = (strings?.get('belowShort') ?? 'Below').toUpperCase();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: .15)),
+        color: Colors.white.withValues(alpha: .03),
+      ),
+      child: Row(
+        children: [
+          Column(
+            children: [
+              _buildLimitPreview(
+                color: const Color(0xFF2DBB63),
+                odds: upperOdds,
+                isUpperLimit: true,
+              ),
+              const SizedBox(height: 6),
+              _buildLimitPreview(
+                color: const Color(0xFFCF4343),
+                odds: lowerOdds,
+                isUpperLimit: false,
+              ),
+            ],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$title · $upperLabel / $lowerLabel',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: .84),
+                    fontSize: 12.8,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildZonePreview({
+    required Color color,
+    required Border border,
+    required double odds,
+  }) {
+    return Container(
+      width: 90,
+      height: 62,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: border,
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: .65),
+            color.withValues(alpha: .9),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          'x${odds.toStringAsFixed(2)}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLimitPreview({
+    required Color color,
+    required double odds,
+    required bool isUpperLimit,
+  }) {
+    return SizedBox(
+      width: 90,
+      height: 62,
+      child: CustomPaint(
+        painter: _TutorialLimitBorderPainter(
+          isUpperLimit: isUpperLimit,
+          borderColor: Colors.white.withValues(alpha: .92),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              colors: [
+                color.withValues(alpha: .65),
+                color.withValues(alpha: .9),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              'x${odds.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExtremePreview({
+    required Color color,
+    required double odds,
+  }) {
+    return SizedBox(
+      width: 90,
+      height: 62,
+      child: CustomPaint(
+        painter: _TutorialDashedBorderPainter(
+          borderColor: Colors.white.withValues(alpha: .9),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              colors: [
+                color.withValues(alpha: .65),
+                color.withValues(alpha: .9),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              'x${odds.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _showChartHintOverlay() {
@@ -574,6 +931,7 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
 
   @override
   Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
     return Scaffold(
       backgroundColor: CandleSticksStyle.dark().background,
       body: SafeArea(
@@ -659,6 +1017,37 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
                             },
                           ),
                         ),
+                        Positioned(
+                          left: 8,
+                          top: 48,
+                          child: Material(
+                            color: Colors.black.withValues(alpha: 0.35),
+                            shape: const CircleBorder(),
+                            child: IconButton(
+                              tooltip: strings?.get('howItWorks') ?? 'How does it work?',
+                              iconSize: 19.2,
+                              constraints: const BoxConstraints(
+                                minWidth: 38,
+                                minHeight: 38,
+                              ),
+                              padding: const EdgeInsets.all(6),
+                              icon: const Icon(
+                                Icons.info_outline,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 3.0,
+                                    color: Colors.black54,
+                                    offset: Offset(1.5, 1.5),
+                                  ),
+                                ],
+                              ),
+                              onPressed: () {
+                                _showZoneTypesTutorialDialog();
+                              },
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -677,4 +1066,99 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
+}
+
+class _TutorialLimitBorderPainter extends CustomPainter {
+  final bool isUpperLimit;
+  final Color borderColor;
+
+  _TutorialLimitBorderPainter({
+    required this.isUpperLimit,
+    required this.borderColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(12));
+    final paint = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..color = borderColor;
+
+    final path = Path()..addRRect(rrect);
+    final dashedPath = Path();
+    for (final metric in path.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final next = distance + 5;
+        dashedPath.addPath(metric.extractPath(distance, next), Offset.zero);
+        distance += 8;
+      }
+    }
+    canvas.drawPath(dashedPath, paint);
+
+    final rx = rrect.tlRadiusX;
+    final ry = rrect.tlRadiusY;
+    final limitPath = Path();
+    if (isUpperLimit) {
+      final tlRect = Rect.fromLTWH(rrect.left, rrect.top, rx * 2, ry * 2);
+      final trRect = Rect.fromLTWH(rrect.right - rx * 2, rrect.top, rx * 2, ry * 2);
+      limitPath.moveTo(rrect.left, rrect.top + ry);
+      limitPath.addArc(tlRect, math.pi, math.pi / 2);
+      limitPath.lineTo(rrect.right - rx, rrect.top);
+      limitPath.addArc(trRect, -math.pi / 2, math.pi / 2);
+      limitPath.lineTo(rrect.right, rrect.top + ry);
+    } else {
+      final blRect = Rect.fromLTWH(rrect.left, rrect.bottom - ry * 2, rx * 2, ry * 2);
+      final brRect = Rect.fromLTWH(rrect.right - rx * 2, rrect.bottom - ry * 2, rx * 2, ry * 2);
+      limitPath.moveTo(rrect.left, rrect.bottom - ry);
+      limitPath.addArc(blRect, math.pi, -math.pi / 2);
+      limitPath.lineTo(rrect.right - rx, rrect.bottom);
+      limitPath.addArc(brRect, math.pi / 2, -math.pi / 2);
+      limitPath.lineTo(rrect.right, rrect.bottom - ry);
+    }
+    canvas.drawPath(limitPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TutorialLimitBorderPainter oldDelegate) =>
+      oldDelegate.isUpperLimit != isUpperLimit ||
+      oldDelegate.borderColor != borderColor;
+}
+
+class _TutorialDashedBorderPainter extends CustomPainter {
+  final Color borderColor;
+
+  _TutorialDashedBorderPainter({
+    required this.borderColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(12));
+    final paint = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..color = borderColor;
+
+    final path = Path()..addRRect(rrect);
+    final dashedPath = Path();
+    for (final metric in path.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final next = distance + 5;
+        dashedPath.addPath(metric.extractPath(distance, next), Offset.zero);
+        distance += 8;
+      }
+    }
+    canvas.drawPath(dashedPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TutorialDashedBorderPainter oldDelegate) =>
+      oldDelegate.borderColor != borderColor;
 }

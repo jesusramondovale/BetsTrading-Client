@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:betrader/services/bets_service.dart';
 import 'package:betrader/services/mandatory_interstitial_service.dart';
@@ -14,6 +15,7 @@ import '../helpers/common.dart';
 import '../helpers/slider.dart';
 import '../models/bet_zone.dart';
 import '../models/rectangle_zone.dart';
+import '../models/zone_type.dart';
 import '../locale/localized_texts.dart';
 import '../services/firebase_service.dart';
 import '../services/secure_auth_service.dart';
@@ -794,7 +796,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
             strokeColor: updatedZone.strokeColor,
             odds: updatedZone.odds,
             ticker: updatedZone.ticker,
-            type: updatedZone.type,
+            zoneType: updatedZone.zoneType,
           );
           
           setState(() {
@@ -944,10 +946,6 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
               height: headerHeight,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                border: zone.type == 1 ? null : Border.all(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  width: 1.2,
-                ),
               ),
               child: Stack(
                 children: [
@@ -1003,7 +1001,19 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            (strings?.get('alwaysBelow') ?? 'Always below').toUpperCase(),
+                            (() {
+                              if (zone.zoneType == BetZoneType.extreme) {
+                                return (strings?.get('aboveShort') ?? 'Above').toUpperCase();
+                              }
+                              if (zone.zoneType == BetZoneType.limit) {
+                                final isUpperLimit = zone.lowPrice > widget.currentValue;
+                                if (!isUpperLimit) {
+                                  // Límite inferior: el borde superior es discontinuo.
+                                  return (strings?.get('aboveShort') ?? 'Above').toUpperCase();
+                                }
+                              }
+                              return (strings?.get('alwaysBelow') ?? 'Always below').toUpperCase();
+                            })(),
                             style: GoogleFonts.figtree(
                               color: Colors.white.withValues(alpha: 0.8),
                               fontSize: (16 * scaleFactor).clamp(12.0, 18.0),
@@ -1126,7 +1136,19 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                           ),
                           SizedBox(height: 4 * scaleFactor),
                           Text(
-                            (strings?.get('alwaysAbove') ?? 'Always above').toUpperCase(),
+                            (() {
+                              if (zone.zoneType == BetZoneType.extreme) {
+                                return (strings?.get('belowShort') ?? 'Below').toUpperCase();
+                              }
+                              if (zone.zoneType == BetZoneType.limit) {
+                                final isUpperLimit = zone.lowPrice > widget.currentValue;
+                                if (isUpperLimit) {
+                                  // Límite superior: el borde inferior es discontinuo.
+                                  return (strings?.get('belowShort') ?? 'Below').toUpperCase();
+                                }
+                              }
+                              return (strings?.get('alwaysAbove') ?? 'Always above').toUpperCase();
+                            })(),
                             style: GoogleFonts.figtree(
                               color: Colors.white.withValues(alpha: 0.8),
                               fontSize: (16 * scaleFactor).clamp(12.0, 18.0),
@@ -1304,14 +1326,34 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                     ),
                     ],
                   ),
-                  // Borde discontinuo cuando type == 1
-                  if (zone.type == 1)
+                  if (zone.zoneType == BetZoneType.standard)
                     Positioned.fill(
                       child: CustomPaint(
-                        painter: _DashedBorderPainter(
+                        painter: _SolidBorderPainter(
                           borderColor: Colors.white.withValues(alpha: 0.9),
-                          borderWidth: 2.5,
+                          borderWidth: 1.0,
                           borderRadius: 20,
+                        ),
+                      ),
+                    ),
+                  if (zone.zoneType == BetZoneType.extreme)
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _DashedFullBorderPainter(
+                          borderColor: Colors.white.withValues(alpha: 0.9),
+                          borderWidth: 1.0,
+                          borderRadius: 20,
+                        ),
+                      ),
+                    ),
+                  if (zone.zoneType == BetZoneType.limit)
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _LimitBorderPainter(
+                          borderColor: Colors.white.withValues(alpha: 0.9),
+                          borderWidth: 1.2,
+                          borderRadius: 20,
+                          isUpperLimit: zone.lowPrice > widget.currentValue,
                         ),
                       ),
                     ),
@@ -1442,51 +1484,16 @@ class _ZonePatternPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-/// A custom painter that draws a dashed border around bet zones.
-///
-/// Used for special bet zone types (type == 1) to distinguish them visually.
-class _DashedBorderPainter extends CustomPainter {
+class _SolidBorderPainter extends CustomPainter {
   final Color borderColor;
   final double borderWidth;
   final double borderRadius;
 
-  _DashedBorderPainter({
+  _SolidBorderPainter({
     required this.borderColor,
     required this.borderWidth,
     required this.borderRadius,
   });
-
-  /// Draws a dashed rounded rectangle border.
-  ///
-  /// [canvas] The canvas to draw on.
-  /// [rrect] The rounded rectangle to draw.
-  /// [paint] The paint style to use.
-  /// [dashWidth] Width of each dash segment.
-  /// [dashSpace] Space between dash segments.
-  void _drawDashedRRect(
-    Canvas canvas,
-    RRect rrect,
-    Paint paint, {
-    double dashWidth = 5,
-    double dashSpace = 3,
-  }) {
-    final Path path = Path()..addRRect(rrect);
-    final Path dashedPath = Path();
-
-    for (final PathMetric metric in path.computeMetrics()) {
-      double distance = 0;
-      while (distance < metric.length) {
-        final double next = distance + dashWidth;
-        dashedPath.addPath(
-          metric.extractPath(distance, next),
-          Offset.zero,
-        );
-        distance += dashWidth + dashSpace;
-      }
-    }
-
-    canvas.drawPath(dashedPath, paint);
-  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1498,12 +1505,119 @@ class _DashedBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = borderWidth;
 
-    _drawDashedRRect(canvas, rrect, paintStroke, dashWidth: 6, dashSpace: 4);
+    canvas.drawRRect(rrect, paintStroke);
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+class _LimitBorderPainter extends CustomPainter {
+  final Color borderColor;
+  final double borderWidth;
+  final double borderRadius;
+  final bool isUpperLimit;
+
+  _LimitBorderPainter({
+    required this.borderColor,
+    required this.borderWidth,
+    required this.borderRadius,
+    required this.isUpperLimit,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
+    final linePaint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = borderWidth;
+
+    final path = Path()..addRRect(rrect);
+    final dashedPath = Path();
+    for (final metric in path.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final double next = distance + 6;
+        dashedPath.addPath(metric.extractPath(distance, next), Offset.zero);
+        distance += 10;
+      }
+    }
+    canvas.drawPath(dashedPath, linePaint);
+
+    final rx = rrect.tlRadiusX;
+    final ry = rrect.tlRadiusY;
+    final limitPath = Path();
+
+    if (isUpperLimit) {
+      final tlRect = Rect.fromLTWH(rrect.left, rrect.top, rx * 2, ry * 2);
+      final trRect = Rect.fromLTWH(rrect.right - rx * 2, rrect.top, rx * 2, ry * 2);
+      limitPath.moveTo(rrect.left, rrect.top + ry);
+      limitPath.addArc(tlRect, math.pi, math.pi / 2);
+      limitPath.lineTo(rrect.right - rx, rrect.top);
+      limitPath.addArc(trRect, -math.pi / 2, math.pi / 2);
+      limitPath.lineTo(rrect.right, rrect.top + ry);
+    } else {
+      final blRect = Rect.fromLTWH(rrect.left, rrect.bottom - ry * 2, rx * 2, ry * 2);
+      final brRect = Rect.fromLTWH(rrect.right - rx * 2, rrect.bottom - ry * 2, rx * 2, ry * 2);
+      limitPath.moveTo(rrect.left, rrect.bottom - ry);
+      limitPath.addArc(blRect, math.pi, -math.pi / 2);
+      limitPath.lineTo(rrect.right - rx, rrect.bottom);
+      limitPath.addArc(brRect, math.pi / 2, -math.pi / 2);
+      limitPath.lineTo(rrect.right, rrect.bottom - ry);
+    }
+
+    canvas.drawPath(limitPath, linePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _LimitBorderPainter oldDelegate) =>
+      oldDelegate.isUpperLimit != isUpperLimit ||
+      oldDelegate.borderColor != borderColor ||
+      oldDelegate.borderWidth != borderWidth ||
+      oldDelegate.borderRadius != borderRadius;
+}
+
+class _DashedFullBorderPainter extends CustomPainter {
+  final Color borderColor;
+  final double borderWidth;
+  final double borderRadius;
+
+  _DashedFullBorderPainter({
+    required this.borderColor,
+    required this.borderWidth,
+    required this.borderRadius,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
+    final paint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = borderWidth
+      ..isAntiAlias = true;
+
+    final path = Path()..addRRect(rrect);
+    final dashedPath = Path();
+    for (final metric in path.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final next = distance + 5;
+        dashedPath.addPath(metric.extractPath(distance, next), Offset.zero);
+        distance += 8;
+      }
+    }
+    canvas.drawPath(dashedPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedFullBorderPainter oldDelegate) =>
+      oldDelegate.borderColor != borderColor ||
+      oldDelegate.borderWidth != borderWidth ||
+      oldDelegate.borderRadius != borderRadius;
+}
 
 

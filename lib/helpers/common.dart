@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:betrader/candlesticks/candlesticks.dart';
 import 'package:betrader/helpers/slider.dart';
 import 'package:betrader/models/rectangle_zone.dart';
+import 'package:betrader/models/zone_type.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/favorites.dart';
 import 'package:betrader/services/bets_service.dart';
@@ -526,13 +527,16 @@ class Common {
     const Color strokeColor = Colors.white;
 
     return betZones.map((betZone) {
+      final zoneType = betZone.betZoneType;
       final double halfMargin = (betZone.betMargin / 200) * betZone.targetValue;
       final double upperBound = betZone.targetValue + halfMargin;
       final double lowerBound = betZone.targetValue - halfMargin;
 
       Color fillColor;
 
-      if (lowerBound > current) {
+      if (zoneType == BetZoneType.extreme) {
+        fillColor = const Color(0xFFB400FF).withValues(alpha: 1);
+      } else if (lowerBound > current) {
         fillColor = Colors.green.withValues(alpha: 1);
       } else if (upperBound < current) {
         fillColor = Colors.red.withValues(alpha: 1);
@@ -551,7 +555,7 @@ class Common {
         strokeColor: strokeColor,
         odds: betZone.targetOdds,
         ticker: betZone.ticker,
-        type: betZone.betType
+        zoneType: zoneType
       );
     }).toList();
   }

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:betrader/models/zone_type.dart';
 
 
 class RectangleZone {
@@ -12,7 +13,7 @@ class RectangleZone {
   Color fillColor, strokeColor;
   double odds;
   String ticker;
-  int type;
+  BetZoneType zoneType;
 
   RectangleZone({
     required this.id,
@@ -25,8 +26,10 @@ class RectangleZone {
     required this.strokeColor,
     required this.odds,
     required this.ticker,
-    this.type = 0
+    this.zoneType = BetZoneType.standard
   })
       : centerPrice = (highPrice + lowPrice) / 2, targetPrice = (highPrice + lowPrice) / 2;
+
+  int get type => zoneType.code;
 
 }
