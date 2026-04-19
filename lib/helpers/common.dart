@@ -1365,6 +1365,29 @@ class Common {
     });
   }
 
+  /// Pantalla rápida centrada (estilo check + monedas como el snack de recompensa),
+  /// para compras en tienda. Se cierra sola a los [visibleMs] ms (por defecto 2,5 s).
+  void showStorePurchaseSuccessOverlay(
+    BuildContext context, {
+    required String message,
+    String? coinsLine,
+    int visibleMs = 2500,
+  }) {
+    final overlay = Overlay.of(context);
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => _StorePurchaseSuccessOverlay(
+        coinsLine: coinsLine,
+        message: message,
+        visibleMs: visibleMs,
+        onFinished: () {
+          entry.remove();
+        },
+      ),
+    );
+    overlay.insert(entry);
+  }
+
   Future<void> openInAppBrowser(BuildContext context, String url) async {
     final Uri uri = Uri.parse(url);
     if (!await launchUrl(
@@ -1531,6 +1554,142 @@ class _FloatingSnackState extends State<_FloatingSnack> with SingleTickerProvide
     );
   }
 
+}
+
+class _StorePurchaseSuccessOverlay extends StatefulWidget {
+  final String? coinsLine;
+  final String message;
+  final int visibleMs;
+  final VoidCallback onFinished;
+
+  const _StorePurchaseSuccessOverlay({
+    required this.coinsLine,
+    required this.message,
+    required this.visibleMs,
+    required this.onFinished,
+  });
+
+  @override
+  State<_StorePurchaseSuccessOverlay> createState() => _StorePurchaseSuccessOverlayState();
+}
+
+class _StorePurchaseSuccessOverlayState extends State<_StorePurchaseSuccessOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    const fadeMs = 280;
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: fadeMs),
+    );
+    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    _controller.forward();
+
+    final fadeOutStart = widget.visibleMs - fadeMs;
+    Future.delayed(Duration(milliseconds: fadeOutStart < 0 ? 0 : fadeOutStart), () {
+      if (!mounted) return;
+      _controller.reverse();
+    });
+    Future.delayed(Duration(milliseconds: widget.visibleMs), () {
+      if (!mounted) return;
+      widget.onFinished();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showCoins = widget.coinsLine != null && widget.coinsLine!.isNotEmpty;
+
+    return Material(
+      color: Colors.transparent,
+      child: FadeTransition(
+        opacity: _opacity,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Container(color: Colors.black.withValues(alpha: 0.58)),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 340),
+                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 22),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          color: Colors.white.withValues(alpha: 0.95),
+                          size: 56,
+                        ),
+                        if (showCoins) ...[
+                          const SizedBox(height: 14),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Image.asset('assets/coin.png', width: 36, height: 36),
+                              const SizedBox(width: 10),
+                              Flexible(
+                                child: Text(
+                                  widget.coinsLine!,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.syncopate(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 14),
+                        Text(
+                          widget.message,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.montserrat(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 

@@ -506,13 +506,14 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       Navigator.pop(context);
       homeScreenKey.currentState?.loadUserIdAndData();
       awardsScreenKey.currentState?.loadUserIdAndData();
-      Common().showFloatingSnack(
+      final earnedMsg = Common().interpolate(
+        LocalizedStrings.of(context)!.get('youEarnedCoins') ?? 'You earned {coins}',
+        {'coins': coins.toStringAsFixed(0)},
+      );
+      Common().showStorePurchaseSuccessOverlay(
         context,
-        Common().interpolate(
-          LocalizedStrings.of(context)!.get('youEarnedCoins') ?? 'You earned {coins}',
-          {'coins': coins.toStringAsFixed(0)},
-        ),
-        showIcon: true,
+        coinsLine: coins.toStringAsFixed(0),
+        message: earnedMsg,
       );
     } on stripe.StripeException catch (e) {
       if (e.error.code != stripe.FailureCode.Canceled) {
@@ -592,11 +593,11 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       Navigator.pop(context);
       homeScreenKey.currentState?.loadUserIdAndData();
       awardsScreenKey.currentState?.loadUserIdAndData();
-      Common().showFloatingSnack(
+      Common().showStorePurchaseSuccessOverlay(
         context,
-        LocalizedStrings.of(context)!.get('noAdsPurchaseThanks') ??
+        coinsLine: null,
+        message: LocalizedStrings.of(context)!.get('noAdsPurchaseThanks') ??
             'Thank you. Ads have been disabled.',
-        showIcon: true,
       );
     } on stripe.StripeException catch (e) {
       if (e.error.code != stripe.FailureCode.Canceled) {

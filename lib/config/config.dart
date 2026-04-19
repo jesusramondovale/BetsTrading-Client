@@ -5,13 +5,14 @@ class Config {
 
   static const String instagramPage = 'https://www.instagram.com/betstrading/';
   static const String stripePublicKey = 'pk_test_51Ro4wcIoWhLn7aPbiJW4oRV3Gtvyijmw9hSGkn7pVMcOYZ4wpKmjRX1SA4tDPlJa8iKS1iRD5edE894KWgrRkqnM007ZLfNfKr'; //TEST
+  static const String stripePublicRealKey = 'pk_live_51Ro4wQIXoMzVIHug9YI9hVDENlIIGqUIGIsIPapb4GHnAwtf7Vr3TxbfUHKRnk6sQk2tYTj963a5NWAICZD9XFFD00caAloHeS'; //REAL
+
   static const String termsNConditionsPage = 'https://raw.githubusercontent.com/jesusramondovale/BetsTrading-Client/refs/heads/android-master/policies/privacy_policy_en.md';
-  static const String codeVersion = '26.107.1';
+  static const String codeVersion = '26.109.1';
   static const String admobAppId = 'ca-app-pub-2465898294053562/1629478765';
   static const String admobAdToken = 'ca-app-pub-2465898294053562/4804536511'; // REAL
   /// Intersticial obligatorio (apuestas / umbral API / daily reward).
-  static const String admobInterstitialMandatoryId =
-      'ca-app-pub-2465898294053562/3036757295';
+  static const String admobInterstitialMandatoryId = 'ca-app-pub-2465898294053562/3036757295';
   //static const String admobAdToken = 'ca-app-pub-3940256099942544/5224354917'; //TEST
   static const String ipGeolocalizerToken = 'd99daa2befa6f8';
   static const String serverCertificateHash = 'E475D88044C231E073B0B4F40B124D496FF01B0D0A964A26D458BFA9BC2BF249';

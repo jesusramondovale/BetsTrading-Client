@@ -1009,7 +1009,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                                 final isUpperLimit = zone.lowPrice > widget.currentValue;
                                 if (!isUpperLimit) {
                                   // Límite inferior: el borde superior es discontinuo.
-                                  return (strings?.get('aboveShort') ?? 'Above').toUpperCase();
+                                  return (strings?.get('belowShort') ?? 'Below').toUpperCase();
                                 }
                               }
                               return (strings?.get('alwaysBelow') ?? 'Always below').toUpperCase();
@@ -1144,7 +1144,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                                 final isUpperLimit = zone.lowPrice > widget.currentValue;
                                 if (isUpperLimit) {
                                   // Límite superior: el borde inferior es discontinuo.
-                                  return (strings?.get('belowShort') ?? 'Below').toUpperCase();
+                                  return (strings?.get('aboveShort') ?? 'Above').toUpperCase();
                                 }
                               }
                               return (strings?.get('alwaysAbove') ?? 'Always above').toUpperCase();
