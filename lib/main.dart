@@ -17,6 +17,7 @@ import 'package:betrader/services/bets_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'dart:async';
 
