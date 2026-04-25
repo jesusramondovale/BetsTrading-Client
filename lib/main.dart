@@ -190,7 +190,8 @@ Future<void> main() async {
     overlays: [SystemUiOverlay.top],
   );
 
-  stripe.Stripe.publishableKey = Config.stripePublicKey;
+  stripe.Stripe.publishableKey =
+      kDebugMode ? Config.stripePublicKey : Config.stripePublicRealKey;
   await stripe.Stripe.instance.applySettings();
 
   runApp(MyApp());
