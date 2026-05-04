@@ -494,10 +494,6 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
           style: ThemeMode.dark,
           merchantDisplayName: 'Betrader',
           billingDetails: billingDetails,
-          googlePay: stripe.PaymentSheetGooglePay(
-            merchantCountryCode: 'ES',
-            currencyCode: _currency.toUpperCase(),
-          ),
         ),
       );
       await stripe.Stripe.instance.presentPaymentSheet();
@@ -580,10 +576,6 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
           style: ThemeMode.dark,
           merchantDisplayName: 'Betrader',
           billingDetails: billingDetails,
-          googlePay: stripe.PaymentSheetGooglePay(
-            merchantCountryCode: 'ES',
-            currencyCode: _currency.toUpperCase(),
-          ),
         ),
       );
       await stripe.Stripe.instance.presentPaymentSheet();

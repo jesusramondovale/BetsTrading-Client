@@ -4,7 +4,6 @@ class Config {
   static const String statusPage = 'https://api.betstrading.online/status';
 
   static const String instagramPage = 'https://www.instagram.com/betstrading/';
-  static const String stripePublicKey = 'pk_test_51Ro4wcIoWhLn7aPbiJW4oRV3Gtvyijmw9hSGkn7pVMcOYZ4wpKmjRX1SA4tDPlJa8iKS1iRD5edE894KWgrRkqnM007ZLfNfKr'; //TEST
   static const String stripePublicRealKey = 'pk_live_51Ro4wQIXoMzVIHug9YI9hVDENlIIGqUIGIsIPapb4GHnAwtf7Vr3TxbfUHKRnk6sQk2tYTj963a5NWAICZD9XFFD00caAloHeS'; //REAL
 
   static const String termsNConditionsPage = 'https://raw.githubusercontent.com/jesusramondovale/BetsTrading-Client/refs/heads/android-master/policies/privacy_policy_en.md';
