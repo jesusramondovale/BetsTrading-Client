@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../locale/localized_texts.dart';
+import '../ui/copy_betting_profile_page.dart';
+
 class User {
   final String id;
   final String fullname;
@@ -272,18 +275,18 @@ class UserDialog extends StatelessWidget {
                     IntrinsicHeight(
                       child: Row(
                         children: [
-                          Expanded(
-                            flex: 1,
+                          SizedBox(
+                            width: 56,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.location_on, color: Colors.white70, size: 18),
-                                const SizedBox(width: 4),
+                                const Icon(Icons.location_on, color: Colors.white70, size: 16),
+                                const SizedBox(width: 3),
                                 CountryFlag.fromCountryCode(
                                   user.country,
-                                  height: 16,
-                                  width: 22,
+                                  height: 14,
+                                  width: 20,
                                 ),
                               ],
                             ),
@@ -293,7 +296,6 @@ class UserDialog extends StatelessWidget {
                             color: Colors.white.withValues(alpha: 0.12),
                           ),
                           Expanded(
-                            flex: 2,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -321,19 +323,22 @@ class UserDialog extends StatelessWidget {
                             width: 1,
                             color: Colors.white.withValues(alpha: 0.12),
                           ),
-                          Expanded(
-                            flex: 2,
+                          SizedBox(
+                            width: 116,
                             child: Center(
-                              // TODO: Navegar a vista de copybetting/copytrading para este usuario
                               child: Material(
                                 color: Colors.transparent,
                                 child: InkWell(
                                   onTap: () {
-                                    // TODO: Abrir pantalla de copybetting con user.id / user
+                                    Navigator.of(context).push<void>(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => CopyBettingProfilePage(user: user),
+                                      ),
+                                    );
                                   },
                                   borderRadius: BorderRadius.circular(20),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(vertical: 6),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       mainAxisAlignment: MainAxisAlignment.center,
@@ -346,7 +351,7 @@ class UserDialog extends StatelessWidget {
                                         const SizedBox(width: 4),
                                         Flexible(
                                           child: Text(
-                                            'Copy-Betting',
+                                            'Copy-Trade',
                                             overflow: TextOverflow.ellipsis,
                                             style: GoogleFonts.montserrat(
                                               color: Colors.white70,

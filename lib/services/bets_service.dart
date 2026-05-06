@@ -494,4 +494,68 @@ class BetsService {
     ];
   }
 
+  /// Perfil Copy-Betting: estadísticas de apuestas de zona archivadas y hasta 15 últimas apuestas (zona + precio exacto).
+  Future<Map<String, dynamic>?> fetchPublicCopyBettingSnapshot(String targetUserId) async {
+    final response = await Common().postRequestWrapper(
+      'Bet',
+      'PublicCopyBettingSnapshot',
+      {'targetUserId': targetUserId},
+    );
+    if (response['statusCode'] == 200 && response['body'] is Map<String, dynamic>) {
+      return response['body'] as Map<String, dynamic>;
+    }
+    if (kDebugMode) {
+      print('[BetsService] fetchPublicCopyBettingSnapshot HTTP ${response['statusCode']}: ${response['body']}');
+    }
+    return null;
+  }
+
+  /// Configura el copy-trading entre el usuario autenticado (follower) y el usuario objetivo.
+  Future<Map<String, dynamic>> configureCopyTrading({
+    required String targetUserId,
+    required double copyPercent,
+    required bool autoAdjustByBalance,
+    required bool stopAfterOneLoss,
+    bool isEnabled = true,
+  }) async {
+    final userId = await _storage.read(key: 'sessionToken');
+    final fcm = await _storage.read(key: 'fcmToken') ?? 'null';
+
+    if (userId == null || userId.trim().isEmpty) {
+      return {
+        'success': false,
+        'statusCode': 401,
+        'message': 'Invalid session',
+      };
+    }
+
+    final response = await Common().postRequestWrapper(
+      'Bet',
+      'ConfigureCopyTrading',
+      {
+        'userId': userId,
+        'fcm': fcm,
+        'targetUserId': targetUserId,
+        'isEnabled': isEnabled,
+        'copyPercent': copyPercent,
+        'autoAdjustByBalance': autoAdjustByBalance,
+        'stopAfterOneLoss': stopAfterOneLoss,
+      },
+    );
+
+    final body = response['body'];
+    final statusCode = response['statusCode'] as int? ?? 500;
+    final success = statusCode == 200;
+    final message = body is Map<String, dynamic>
+        ? (body['message']?.toString() ?? (success ? 'OK' : 'Error'))
+        : (success ? 'OK' : 'Error');
+
+    return {
+      'success': success,
+      'statusCode': statusCode,
+      'message': message,
+      'body': body,
+    };
+  }
+
 }

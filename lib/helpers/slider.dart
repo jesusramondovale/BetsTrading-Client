@@ -18,6 +18,8 @@ class SlideToConfirm extends StatefulWidget {
   final bool transformThumb;
   final bool scaleUp;
   final bool disabled;
+  final bool circularThumb;
+  final String fallbackAssetPath;
 
   const SlideToConfirm({
     super.key,
@@ -28,6 +30,8 @@ class SlideToConfirm extends StatefulWidget {
     this.scaleUp = false,
     this.transformThumb = false,
     this.disabled = false,
+    this.circularThumb = false,
+    this.fallbackAssetPath = 'assets/new_icon.png',
   });
 
   @override
@@ -51,11 +55,11 @@ class SlideToConfirmState extends State<SlideToConfirm> {
 
   Future<void> _loadInitialThumb() async {
     if (widget.icon.startsWith("http")) {
-      _loadImageFromUrl(widget.icon);
+      await _loadImageFromUrl(widget.icon);
     } else if (widget.icon != "null") {
-      _loadImageFromBase64(widget.icon);
+      await _loadImageFromBase64(widget.icon);
     } else {
-      _loadSimpleLogoImage();
+      await _loadSimpleLogoImage();
     }
 
     final prefs = await SharedPreferences.getInstance();
@@ -64,38 +68,53 @@ class SlideToConfirmState extends State<SlideToConfirm> {
     }
   }
 
+  Future<ui.Image> _decodeUiImage(Uint8List bytes) async {
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    return frame.image;
+  }
+
   Future<void> _loadSimpleLogoImage() async {
-    ByteData data = await rootBundle.load("assets/new_icon.png");
-    Uint8List bytes = data.buffer.asUint8List();
-    final completer = Completer<ui.Image>();
-    ui.decodeImageFromList(bytes, (ui.Image img) => completer.complete(img));
-    _thumbImage = await completer.future;
-    if (mounted) setState(() {});
+    try {
+      final data = await rootBundle.load(widget.fallbackAssetPath);
+      final bytes = data.buffer.asUint8List();
+      _thumbImage = await _decodeUiImage(bytes);
+      if (mounted) setState(() {});
+    } catch (_) {
+      // Fallback final al icono histórico de la app si el asset configurable falla.
+      final data = await rootBundle.load("assets/new_icon.png");
+      final bytes = data.buffer.asUint8List();
+      _thumbImage = await _decodeUiImage(bytes);
+      if (mounted) setState(() {});
+    }
   }
 
   Future<void> _loadImageFromUrl(String url) async {
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        Uint8List bytes = response.bodyBytes;
-        final completer = Completer<ui.Image>();
-        ui.decodeImageFromList(bytes, (ui.Image img) => completer.complete(img));
-        _thumbImage = await completer.future;
+        final bytes = response.bodyBytes;
+        _thumbImage = await _decodeUiImage(bytes);
         if (mounted) setState(() {});
       } else {
-        _loadSimpleLogoImage();
+        await _loadSimpleLogoImage();
       }
     } catch (_) {
-      _loadSimpleLogoImage();
+      await _loadSimpleLogoImage();
     }
   }
 
   Future<void> _loadImageFromBase64(String base64String) async {
-    Uint8List bytes = base64Decode(base64String);
-    final completer = Completer<ui.Image>();
-    ui.decodeImageFromList(bytes, (ui.Image img) => completer.complete(img));
-    _thumbImage = await completer.future;
-    if (mounted) setState(() {});
+    try {
+      final normalized = base64String
+          .replaceFirst(RegExp(r'^data:image\/[a-zA-Z0-9.+-]+;base64,'), '')
+          .replaceAll(RegExp(r'\s+'), '');
+      final bytes = base64Decode(normalized);
+      _thumbImage = await _decodeUiImage(bytes);
+      if (mounted) setState(() {});
+    } catch (_) {
+      await _loadSimpleLogoImage();
+    }
   }
 
   Future<void> _loadEuroImage() async {
@@ -207,7 +226,8 @@ class SlideToConfirmState extends State<SlideToConfirm> {
                       transformImage: _euroImage,
                       transformProgress: _sliderValue,
                       useFade: widget.transformThumb,
-                      scaleUpIcon: widget.scaleUp
+                      scaleUpIcon: widget.scaleUp,
+                      circularClip: widget.circularThumb,
                   ),
                   trackHeight: 40.0,
                   thumbColor: Colors.transparent,
@@ -260,13 +280,15 @@ class _FadeThumbShape extends SliderComponentShape {
   final double transformProgress;
   final bool useFade;
   final bool scaleUpIcon;
+  final bool circularClip;
 
   _FadeThumbShape({
     required this.baseImage,
     this.transformImage,
     required this.transformProgress,
     required this.useFade,
-    required this.scaleUpIcon
+    required this.scaleUpIcon,
+    required this.circularClip,
   });
 
   @override
@@ -293,6 +315,12 @@ class _FadeThumbShape extends SliderComponentShape {
         width: scaleUpIcon ? 120.0 : 80.0,
         height: scaleUpIcon ? 120.0 : 80.0 );
     final inner = thumbRect.deflate(8);
+    final circleRect = Rect.fromCircle(center: center, radius: inner.shortestSide / 2);
+
+    if (circularClip) {
+      canvas.save();
+      canvas.clipPath(Path()..addOval(circleRect));
+    }
 
     if (useFade && transformImage != null) {
       final t = transformProgress.clamp(0.0, 1.0);
@@ -300,16 +328,16 @@ class _FadeThumbShape extends SliderComponentShape {
       paintImage(
         canvas: canvas,
         image: baseImage,
-        rect: inner,
-        fit: BoxFit.contain,
+        rect: circularClip ? circleRect : inner,
+        fit: circularClip ? BoxFit.cover : BoxFit.contain,
         filterQuality: FilterQuality.high,
         opacity: 1.0 - t*1.1,
       );
       paintImage(
         canvas: canvas,
         image: transformImage!,
-        rect: inner,
-        fit: BoxFit.contain,
+        rect: circularClip ? circleRect : inner,
+        fit: circularClip ? BoxFit.cover : BoxFit.contain,
         filterQuality: FilterQuality.high,
         opacity: t*1.1,
       );
@@ -318,10 +346,14 @@ class _FadeThumbShape extends SliderComponentShape {
       paintImage(
         canvas: canvas,
         image: baseImage,
-        rect: inner,
-        fit: BoxFit.contain,
+        rect: circularClip ? circleRect : inner,
+        fit: circularClip ? BoxFit.cover : BoxFit.contain,
         filterQuality: FilterQuality.high,
       );
+    }
+
+    if (circularClip) {
+      canvas.restore();
     }
   }
 }
