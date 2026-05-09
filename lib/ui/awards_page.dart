@@ -45,7 +45,11 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   late TabController _tabController;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final _kTopList = GlobalKey();
-  final _kRaffles  = GlobalKey();
+  /// Podio: usuario TOP-1 (centro, oro).
+  final GlobalKey _kTop1Podium = GlobalKey();
+  final _kRaffles = GlobalKey();
+  User? _cachedRank1User;
+  bool _awardsCopyTutorialFlowActive = false;
   String? _userId;
   double _userPoints = 0;
   String _userCountry = "none";
@@ -151,6 +155,12 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     final u2 = top3[1];
     final u1 = top3[0];
     final u3 = top3[2];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_cachedRank1User?.id != u1.id) {
+        setState(() => _cachedRank1User = u1);
+      }
+    });
     final r2 = rewards.length > 1 ? rewards[1] : '';
     final r1 = rewards.isNotEmpty ? rewards[0] : '';
     final r3 = rewards.length > 2 ? rewards[2] : '';
@@ -161,14 +171,34 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     final silver = const Color(0xFFB0BEC5);
     final bronze = const Color(0xFFB87333);
 
-    Widget podiumSlot(User user, int rank, String prize, double avatarSize, Color frameColor) {
+    Widget podiumSlot(
+      User user,
+      int rank,
+      String prize,
+      double avatarSize,
+      Color frameColor, {
+      bool openRankingTutorialFlow = false,
+    }) {
       return Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
             Common().vibrate();
             Common().applyImmersive();
-            popUserDialog(context, user);
+            popUserDialog(
+              context,
+              user,
+              awardsCopyTutorialFlow:
+                  openRankingTutorialFlow && _awardsCopyTutorialFlowActive,
+              onCopyTutorialDemoComplete:
+                  openRankingTutorialFlow && _awardsCopyTutorialFlowActive
+                      ? _handleCopyTutorialDemoDone
+                      : null,
+              onCopyTutorialDemoAborted:
+                  openRankingTutorialFlow && _awardsCopyTutorialFlowActive
+                      ? _handleCopyTutorialDemoAborted
+                      : null,
+            );
           },
           borderRadius: BorderRadius.circular(20),
           overlayColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
@@ -294,7 +324,17 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(bottom: (5 * scaleFactor).clamp(3.0, 8.0)),
-              child: podiumSlot(u1, 1, r1, avatarSizeCenter, gold),
+              child: KeyedSubtree(
+                key: _kTop1Podium,
+                child: podiumSlot(
+                  u1,
+                  1,
+                  r1,
+                  avatarSizeCenter,
+                  gold,
+                  openRankingTutorialFlow: true,
+                ),
+              ),
             ),
           ),
           Expanded(
@@ -556,27 +596,38 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     );
   }
 
-  void popUserDialog(BuildContext context, User user) {
+  void popUserDialog(
+    BuildContext context,
+    User user, {
+    bool awardsCopyTutorialFlow = false,
+    VoidCallback? onCopyTutorialDemoComplete,
+    VoidCallback? onCopyTutorialDemoAborted,
+  }) {
     showGeneralDialog(
       context: context,
-      pageBuilder: (context, a, b) {
-        final topOffset = MediaQuery.of(context).size.height * 0.25;
+      pageBuilder: (dialogCtx, a, b) {
+        final topOffset = MediaQuery.of(dialogCtx).size.height * 0.25;
         final horizontalMargin = 20.0;
         return SizedBox.expand(
           child: Align(
             alignment: Alignment.topCenter,
             child: Padding(
               padding: EdgeInsets.fromLTRB(horizontalMargin, topOffset, horizontalMargin, 0),
-              child: UserDialog(user: user),
+              child: UserDialog(
+                user: user,
+                awardsCopyTutorialFlow: awardsCopyTutorialFlow,
+                onCopyTutorialDemoComplete: onCopyTutorialDemoComplete,
+                onCopyTutorialDemoAborted: onCopyTutorialDemoAborted,
+              ),
             ),
           ),
         );
       },
-      barrierDismissible: true,
+      barrierDismissible: !awardsCopyTutorialFlow,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       transitionDuration: const Duration(milliseconds: 350),
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
+      transitionBuilder: (dialogCtx, animation, secondaryAnimation, child) {
         return FadeTransition(
           opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
           child: ScaleTransition(
@@ -605,16 +656,77 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     for (int i = 0; i < 30; i++) {
       if (!mounted) return;
       final ready =
-              _kTopList.currentContext != null &&
-              _kRaffles.currentContext != null;
+          _kTopList.currentContext != null && _kRaffles.currentContext != null;
       if (ready) break;
       await Future.delayed(const Duration(milliseconds: 10));
     }
   }
 
-  List<TargetFocus> _buildAwardsTargets() {
-    LocalizedStrings? strings = LocalizedStrings.of(context);
-    return [
+  Future<void> _waitForTop1PodiumReady() async {
+    for (int i = 0; i < 80; i++) {
+      if (!mounted) return;
+      if (_kTop1Podium.currentContext != null && _cachedRank1User != null) {
+        break;
+      }
+      await Future.delayed(const Duration(milliseconds: 25));
+    }
+  }
+
+  void _dismissCoachSafely() {
+    try {
+      _coach?.finish();
+    } catch (_) {}
+    _coach = null;
+  }
+
+  Future<void> _awardsTutorialSkipHandler() async {
+    _dismissCoachSafely();
+    _awardsCopyTutorialFlowActive = false;
+    await _clearPending();
+    await _markSeen();
+    Common().markAllTutorialsSeen();
+    widget.onTutorialFlowEnded?.call();
+  }
+
+  Future<void> _completeAwardsTutorialChainToMarkets() async {
+    await _clearPending();
+    await _markSeen();
+    final p = await SharedPreferences.getInstance();
+    await p.setBool('__tutorial_pending__markets_v1', true);
+    if (!mounted) return;
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (!mounted) return;
+      widget.controller.updateIndex(2);
+    });
+  }
+
+  void _handleCopyTutorialDemoDone() {
+    _awardsCopyTutorialFlowActive = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      _showAwardsTutorialRafflesCoach();
+    });
+  }
+
+  void _handleCopyTutorialDemoAborted() {
+    _awardsCopyTutorialFlowActive = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      if (Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      await _awardsTutorialSkipHandler();
+    });
+  }
+
+  Future<void> _showAwardsTutorialIntroCoach() async {
+    final strings = LocalizedStrings.of(context);
+    if (!mounted) return;
+
+    final targets = [
       TargetFocus(
         identify: 'aw_toplist',
         keyTarget: _kTopList,
@@ -624,12 +736,125 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
           TargetContent(
             align: ContentAlign.bottom,
             builder: (_, __) => Common().bubble(
-                strings!.get('aw_toplist_title') ?? 'Ranking',
-                strings.get('aw_toplist_body') ??
-                    'See the top 10 users and their prizes. Switch between the worldwide board or your country to compare positions and rewards.'),
+              strings!.get('aw_toplist_title') ?? 'Ranking',
+              strings.get('aw_toplist_body') ??
+                  'See the top 10 users and their prizes. Switch between the worldwide board or your country to compare positions and rewards.',
+            ),
           ),
         ],
       ),
+    ].where((t) => t.keyTarget?.currentContext != null).toList();
+
+    if (targets.isEmpty) {
+      await _clearPending();
+      return;
+    }
+
+    _coach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.75,
+      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
+      hideSkip: false,
+      useSafeArea: true,
+      pulseEnable: true,
+      alignSkip: Alignment.bottomRight,
+      initialFocus: 0,
+      disableBackButton: true,
+      onSkip: () {
+        _awardsTutorialSkipHandler();
+        return true;
+      },
+      onFinish: () {
+        _awardsCopyTutorialFlowActive = true;
+        Future.delayed(const Duration(milliseconds: 120), () {
+          if (mounted) _showAwardsTutorialTop1Coach();
+        });
+      },
+    );
+
+    _coach!.show(context: context);
+  }
+
+  Future<void> _showAwardsTutorialTop1Coach() async {
+    final strings = LocalizedStrings.of(context);
+    if (!mounted) return;
+
+    await _waitForTop1PodiumReady();
+    if (!mounted) return;
+
+    if (_cachedRank1User == null) {
+      await _clearPending();
+      return;
+    }
+
+    final targets = [
+      TargetFocus(
+        identify: 'aw_top1',
+        keyTarget: _kTop1Podium,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        enableOverlayTab: false,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (_, __) => Common().bubble(
+              strings!.get('tutorial_awards_top1_title') ?? 'Number 1',
+              strings.get('tutorial_awards_top1_body') ??
+                  'Tap the top-ranked player to open their profile.',
+            ),
+          ),
+        ],
+      ),
+    ].where((t) => t.keyTarget?.currentContext != null).toList();
+
+    if (targets.isEmpty) {
+      await _clearPending();
+      return;
+    }
+
+    _coach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.75,
+      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
+      hideSkip: false,
+      useSafeArea: true,
+      pulseEnable: true,
+      alignSkip: Alignment.bottomRight,
+      initialFocus: 0,
+      disableBackButton: true,
+      onClickTarget: (target) async {
+        if (target.identify == 'aw_top1' &&
+            _cachedRank1User != null &&
+            mounted) {
+          popUserDialog(
+            context,
+            _cachedRank1User!,
+            awardsCopyTutorialFlow: true,
+            onCopyTutorialDemoComplete: _handleCopyTutorialDemoDone,
+            onCopyTutorialDemoAborted: _handleCopyTutorialDemoAborted,
+          );
+        }
+      },
+      onSkip: () {
+        _awardsTutorialSkipHandler();
+        return true;
+      },
+      onFinish: () {},
+    );
+
+    _coach!.show(context: context);
+  }
+
+  Future<void> _showAwardsTutorialRafflesCoach() async {
+    await _waitForTargetsReady();
+    if (!mounted) return;
+
+    final strings = LocalizedStrings.of(context);
+    final targets = [
       TargetFocus(
         identify: 'aw_raffles',
         keyTarget: _kRaffles,
@@ -639,13 +864,42 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
           TargetContent(
             align: ContentAlign.top,
             builder: (_, __) => Common().bubble(
-                strings!.get('aw_raffles_title') ?? 'Raffles',
-                strings.get('aw_raffles_body') ??
-                    'Pick a prize and join using your coins. Check cost and remaining time; entries are summed as participants update live.'),
+              strings!.get('aw_raffles_title') ?? 'Raffles',
+              strings.get('aw_raffles_body') ??
+                  'Pick a prize and join using your coins. Check cost and remaining time; entries are summed as participants update live.',
+            ),
           ),
         ],
       ),
-    ];
+    ].where((t) => t.keyTarget?.currentContext != null).toList();
+
+    if (targets.isEmpty) {
+      await _completeAwardsTutorialChainToMarkets();
+      return;
+    }
+
+    _coach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.75,
+      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
+      hideSkip: false,
+      useSafeArea: true,
+      pulseEnable: true,
+      alignSkip: Alignment.bottomRight,
+      initialFocus: 0,
+      disableBackButton: true,
+      onSkip: () {
+        _awardsTutorialSkipHandler();
+        return true;
+      },
+      onFinish: () async {
+        await _completeAwardsTutorialChainToMarkets();
+      },
+    );
+
+    _coach!.show(context: context);
   }
 
   Future<void> _tryStartAwardsTutorial() async {
@@ -662,55 +916,10 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   }
 
   Future<void> _startAwardsTutorial() async {
-    LocalizedStrings? strings = LocalizedStrings.of(context);
-
     if (!mounted) return;
-
-    final targets = _buildAwardsTargets()
-        .where((t) => t.keyTarget?.currentContext != null)
-        .toList();
-
-    if (targets.isEmpty) {
-      await _clearPending();
-      return;
-    }
-
-    _coach = TutorialCoachMark(
-      targets: targets,
-      colorShadow: Colors.black,
-      opacityShadow: 0.75,
-      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
-      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
-      hideSkip: false,
-      useSafeArea: true,
-      pulseEnable: true,
-      alignSkip: Alignment.bottomRight,
-      initialFocus: 0,
-      disableBackButton: true,
-      onSkip: () {
-        _clearPending();
-        _markSeen();
-        Common().markAllTutorialsSeen();
-        widget.onTutorialFlowEnded?.call();
-        return true;
-      },
-      onFinish: () async {
-        await _clearPending();
-        await _markSeen();
-
-        final p = await SharedPreferences.getInstance();
-        await p.setBool('__tutorial_pending__markets_v1', true);
-
-        if (!mounted) return;
-        Future.delayed(const Duration(milliseconds: 150), () {
-          if (!mounted) return;
-          widget.controller.updateIndex(2);
-        });
-
-      },
-    );
-
-    _coach!.show(context: context);
+    await _waitForTargetsReady();
+    if (!mounted) return;
+    await _showAwardsTutorialIntroCoach();
   }
 
   @override

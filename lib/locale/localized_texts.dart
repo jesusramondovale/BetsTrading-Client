@@ -64,6 +64,29 @@ class LocalizedStrings {
       'aw_toplist_body': 'See the top 10 users and their prizes. Switch between the worldwide board or your country to compare positions and rewards.',
       'aw_raffles_title': 'Raffles',
       'aw_raffles_body': 'Pick a prize and join using your coins. Check cost and remaining time; entries are summed as participants update live.',
+      'tutorial_awards_top1_title': 'Number 1',
+      'tutorial_awards_top1_body':
+          'Tap the top-ranked player on the podium (gold) to open their profile card. From there you can continue to copy-trading.',
+      'tutorial_userdialog_copy_trade_title': 'Copy-Trade',
+      'tutorial_userdialog_copy_trade_body':
+          'Tap here to open this player\'s copy-trading profile.',
+      'tutorial_copy_trade_intro_title': 'Copy-trading',
+      'tutorial_copy_trade_intro_body':
+          'Copy-trading mirrors another player\'s bets automatically. You choose what share of their stake to copy and optional safeguards. Stats and recent bets help you decide.',
+      'tutorial_copy_profile_title': 'Confirm copy-trading',
+      'tutorial_copy_profile_body':
+          'Use this button to open the confirmation screen where you set copy percentage, auto-adjust by balance, and stop-after-loss options.',
+      'tutorial_copy_confirm_body':
+          'Practice the slider like a real confirmation. Nothing is saved during this tour — afterwards you continue in the ranking flow.',
+      'tutorial_copy_confirm_phase_percent_title': 'Copy percentage',
+      'tutorial_copy_confirm_phase_percent_body':
+          'In manual mode, drag the slider to set the copy share. Turn on auto-adjust in the next step and balances drive the ratio instead—the preview updates either way.',
+      'tutorial_copy_confirm_phase_options_title': 'Safeguards',
+      'tutorial_copy_confirm_phase_options_body':
+          'Turn on auto-adjust so your copied size tracks both coin balances, or stop copying automatically after one losing bet.',
+      'tutorial_copy_confirm_phase_slide_title': 'Slide to confirm',
+      'tutorial_copy_confirm_phase_slide_body':
+          'Nothing is saved during this tour. Tap the dimmed area outside the highlighted bar to dismiss this hint, then slide to the end like a real confirmation.',
       'tutorial_history_title': 'Bet history',
       'tutorial_bets_title': 'Recent bets',
       'tutorial_store_title': 'Store',
@@ -478,6 +501,29 @@ class LocalizedStrings {
       'aw_toplist_body': 'Aquí ves a los 10 primeros y sus premios. Puedes cambiar entre el ranking mundial o tu país para comparar posiciones y recompensas.',
       'aw_raffles_title': 'Sorteos',
       'aw_raffles_body': 'Elige un premio y participa con tus monedas. Comprueba el coste y el tiempo restante; los participantes se actualizan en tiempo real.',
+      'tutorial_awards_top1_title': 'Número 1',
+      'tutorial_awards_top1_body':
+          'Toca al jugador líder del podio (oro) para abrir su tarjeta. Desde ahí sigues el flujo normal hasta el copy-trading.',
+      'tutorial_userdialog_copy_trade_title': 'Copy-Trade',
+      'tutorial_userdialog_copy_trade_body':
+          'Toca aquí para abrir el perfil de copy-trading de este jugador.',
+      'tutorial_copy_trade_intro_title': 'Copy-trading',
+      'tutorial_copy_trade_intro_body':
+          'El copy-trading replica automáticamente las apuestas de otro jugador. Tú eliges qué parte de su importe copiar y opciones de seguridad. Las estadísticas y apuestas recientes te ayudan a decidir.',
+      'tutorial_copy_profile_title': 'Confirmar copy-trading',
+      'tutorial_copy_profile_body':
+          'Este botón abre la pantalla donde fijas el porcentaje de copia, el ajuste automático por saldos y parar tras una pérdida.',
+      'tutorial_copy_confirm_body':
+          'Desliza como en una confirmación real. En este tour no se guarda nada; después sigues el flujo del ranking.',
+      'tutorial_copy_confirm_phase_percent_title': 'Porcentaje de copia',
+      'tutorial_copy_confirm_phase_percent_body':
+          'En modo manual, arrastra la barra para fijar el porcentaje. Con el ajuste automático del siguiente paso, los saldos marcan la proporción; la vista previa se actualiza en ambos casos.',
+      'tutorial_copy_confirm_phase_options_title': 'Opciones',
+      'tutorial_copy_confirm_phase_options_body':
+          'Activa el ajuste automático para seguir ambos saldos, o detén la copia automáticamente tras una apuesta perdedora.',
+      'tutorial_copy_confirm_phase_slide_title': 'Deslizar para confirmar',
+      'tutorial_copy_confirm_phase_slide_body':
+          'En este tour no se guarda nada. Toca la zona oscura fuera de la barra resaltada para quitar el foco y luego desliza hasta el final como en una confirmación real.',
       'tutorial_history_title': 'Historial de apuestas',
       'tutorial_bets_title': 'Apuestas recientes',
       'tutorial_store_title': 'Tienda',
@@ -892,6 +938,29 @@ class LocalizedStrings {
       'aw_toplist_body': 'Découvrez le top 10 et leurs récompenses. Basculez entre le classement mondial ou votre pays pour comparer positions et gains.',
       'aw_raffles_title': 'Tirages',
       'aw_raffles_body': 'Choisissez un lot et participez avec vos pièces. Vérifiez le coût et le temps restant ; les participants se mettent à jour en direct.',
+      'tutorial_awards_top1_title': 'Numéro 1',
+      'tutorial_awards_top1_body':
+          'Appuyez sur le joueur en tête du podium (or) pour ouvrir sa fiche. Vous poursuivez ensuite le flux habituel vers le copy-trading.',
+      'tutorial_userdialog_copy_trade_title': 'Copy-trading',
+      'tutorial_userdialog_copy_trade_body':
+          'Appuyez ici pour ouvrir le profil copy-trading de ce joueur.',
+      'tutorial_copy_trade_intro_title': 'Copy-trading',
+      'tutorial_copy_trade_intro_body':
+          'Le copy-trading reproduit automatiquement les paris d’un autre joueur. Vous choisissez la part copiée et des garde-fous. Les stats et derniers paris vous guident.',
+      'tutorial_copy_profile_title': 'Confirmer le copy-trading',
+      'tutorial_copy_profile_body':
+          'Ce bouton ouvre l’écran où vous réglez le pourcentage copié, l’ajustement auto selon les soldes et l’arrêt après une perte.',
+      'tutorial_copy_confirm_body':
+          'Faites glisser comme pour une vraie confirmation. Rien n’est enregistré pendant cette visite — vous poursuivez ensuite le classement.',
+      'tutorial_copy_confirm_phase_percent_title': 'Pourcentage copié',
+      'tutorial_copy_confirm_phase_percent_body':
+          'En mode manuel, faites glisser le curseur pour le pourcentage. Avec l’ajustement auto à l’étape suivante, les soldes fixent la proportion ; l’exemple se met à jour dans les deux cas.',
+      'tutorial_copy_confirm_phase_options_title': 'Options',
+      'tutorial_copy_confirm_phase_options_body':
+          'Activez l’ajustement auto pour suivre les deux soldes, ou arrêtez la copie automatiquement après un pari perdant.',
+      'tutorial_copy_confirm_phase_slide_title': 'Glisser pour confirmer',
+      'tutorial_copy_confirm_phase_slide_body':
+          'Rien n’est enregistré pendant cette visite. Touchez la zone assombrie en dehors de la barre mise en avant pour fermer l’aide, puis glissez jusqu’au bout comme en réel.',
       'tutorial_history_title': 'Historique des paris',
       'tutorial_bets_title': 'Paris récents',
       'tutorial_store_title': 'Boutique',
@@ -1299,6 +1368,29 @@ class LocalizedStrings {
       'aw_toplist_body': 'Vedi i primi 10 e i loro premi. Passa tra classifica mondiale o il tuo paese per confrontare posizioni e ricompense.',
       'aw_raffles_title': 'Estrazioni',
       'aw_raffles_body': 'Scegli un premio e partecipa usando le tue monete. Controlla costo e tempo rimanente; i partecipanti si aggiornano in tempo reale.',
+      'tutorial_awards_top1_title': 'Numero 1',
+      'tutorial_awards_top1_body':
+          'Tocca il giocatore in vetta al podio (oro) per aprire la scheda. Da lì continui il flusso verso il copy-trading.',
+      'tutorial_userdialog_copy_trade_title': 'Copy-trading',
+      'tutorial_userdialog_copy_trade_body':
+          'Tocca qui per aprire il profilo copy-trading di questo giocatore.',
+      'tutorial_copy_trade_intro_title': 'Copy-trading',
+      'tutorial_copy_trade_intro_body':
+          'Il copy-trading replica automaticamente le scommesse di un altro giocatore. Scegli quanto copiare e le protezioni. Statistiche e ultime giocate ti aiutano.',
+      'tutorial_copy_profile_title': 'Conferma copy-trading',
+      'tutorial_copy_profile_body':
+          'Questo pulsante apre la schermata per percentuale di copia, adeguamento automatico ai saldi e stop dopo una perdita.',
+      'tutorial_copy_confirm_body':
+          'Scorri come in una conferma reale. Nel tour non viene salvato nulla; poi continui nel flusso della classifica.',
+      'tutorial_copy_confirm_phase_percent_title': 'Percentuale di copia',
+      'tutorial_copy_confirm_phase_percent_body':
+          'In modalità manuale usa il cursore per la quota. Con l’adeguamento automatico nel passo successivo i saldi definiscono il rapporto; l’esempio si aggiorna comunque.',
+      'tutorial_copy_confirm_phase_options_title': 'Opzioni',
+      'tutorial_copy_confirm_phase_options_body':
+          'Attiva l’adeguamento automatico per seguire entrambi i saldi, o interrompi la copia dopo una puntata persa.',
+      'tutorial_copy_confirm_phase_slide_title': 'Scorri per confermare',
+      'tutorial_copy_confirm_phase_slide_body':
+          'Nel tour non viene salvato nulla. Tocca l’area scura fuori dalla barra evidenziata per chiudere il suggerimento, poi scorri fino in fondo come in una conferma reale.',
       'tutorial_history_title': 'Storico scommesse',
       'tutorial_bets_title': 'Scommesse recenti',
       'tutorial_store_title': 'Negozio',
@@ -1704,6 +1796,29 @@ class LocalizedStrings {
       'aw_toplist_body': 'Hier siehst du die Top 10 und ihre Preise. Wechsle zwischen weltweiter Rangliste oder deinem Land, um Plätze und Belohnungen zu vergleichen.',
       'aw_raffles_title': 'Verlosungen',
       'aw_raffles_body': 'Wähle einen Preis und nimm mit deinen Coins teil. Prüfe Kosten und verbleibende Zeit; die Teilnehmerzahlen aktualisieren sich live.',
+      'tutorial_awards_top1_title': 'Platz 1',
+      'tutorial_awards_top1_body':
+          'Tippe auf den Spitzenreiter auf dem Podest (Gold), um die Karte zu öffnen. Von dort geht der normale Ablauf weiter zum Copy-Trading.',
+      'tutorial_userdialog_copy_trade_title': 'Copy-Trading',
+      'tutorial_userdialog_copy_trade_body':
+          'Tippe hier, um das Copy-Trading-Profil dieses Spielers zu öffnen.',
+      'tutorial_copy_trade_intro_title': 'Copy-Trading',
+      'tutorial_copy_trade_intro_body':
+          'Copy-Trading spiegelt die Wetten eines anderen Spielers automatisch. Du wählst den Anteil und Schutzoptionen. Statistiken und letzte Wetten helfen bei der Entscheidung.',
+      'tutorial_copy_profile_title': 'Copy-Trading bestätigen',
+      'tutorial_copy_profile_body':
+          'Diese Schaltfläche öffnet die Maske für Kopier-Prozent, automatische Anpassung an Salden und Stopp nach einem Verlust.',
+      'tutorial_copy_confirm_body':
+          'Wische wie bei einer echten Bestätigung. In dieser Tour wird nichts gespeichert — danach geht der Ablauf in der Rangliste weiter.',
+      'tutorial_copy_confirm_phase_percent_title': 'Kopier-Prozent',
+      'tutorial_copy_confirm_phase_percent_body':
+          'Im manuellen Modus bestimmt der Schieberegler den Anteil. Mit Auto-Anpassung im nächsten Schritt leiten die Salden das Verhältnis; die Vorschau aktualisiert sich in beiden Fällen.',
+      'tutorial_copy_confirm_phase_options_title': 'Optionen',
+      'tutorial_copy_confirm_phase_options_body':
+          'Schalte Auto-Anpassung ein, damit die Kopie beide Kontostände berücksichtigt, oder stoppe nach einem verlorenen Tipp automatisch.',
+      'tutorial_copy_confirm_phase_slide_title': 'Zum Bestätigen wischen',
+      'tutorial_copy_confirm_phase_slide_body':
+          'In dieser Tour wird nichts gespeichert. Tippe auf den abgedunkelten Bereich außerhalb des markierten Balkens, um den Hinweis zu schließen, und wische dann bis zum Ende wie bei einer echten Bestätigung.',
       'tutorial_history_title': 'Wettverlauf',
       'tutorial_bets_title': 'Kürzliche Wetten',
       'tutorial_store_title': 'Shop',

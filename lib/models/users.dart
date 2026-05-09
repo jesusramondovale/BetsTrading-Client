@@ -6,7 +6,9 @@ import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
+import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../ui/copy_betting_profile_page.dart';
 
@@ -92,12 +94,121 @@ class User {
   }
 }
 
-class UserDialog extends StatelessWidget {
+class UserDialog extends StatefulWidget {
   final User user;
+  /// Flujo tutorial Awards: coach en Copy-Trade; la confirmación final no persiste cambios.
+  final bool awardsCopyTutorialFlow;
+  final VoidCallback? onCopyTutorialDemoComplete;
+  final VoidCallback? onCopyTutorialDemoAborted;
 
-  const UserDialog({super.key, required this.user});
+  const UserDialog({
+    super.key,
+    required this.user,
+    this.awardsCopyTutorialFlow = false,
+    this.onCopyTutorialDemoComplete,
+    this.onCopyTutorialDemoAborted,
+  });
+
+  @override
+  State<UserDialog> createState() => _UserDialogState();
+}
+
+class _UserDialogState extends State<UserDialog> {
+  final GlobalKey _kCopyTradeTutorial = GlobalKey();
+  TutorialCoachMark? _copyTradeCoach;
+  int _copyTradeCoachRetries = 0;
 
   static Null get decodedBody => null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.awardsCopyTutorialFlow) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showMandatoryCopyTradeCoach());
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposeCopyTradeCoach();
+    super.dispose();
+  }
+
+  void _disposeCopyTradeCoach() {
+    try {
+      _copyTradeCoach?.finish();
+    } catch (_) {}
+    _copyTradeCoach = null;
+  }
+
+  void _pushCopyProfile(BuildContext context) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => CopyBettingProfilePage(
+          user: widget.user,
+          tutorialDemoMode: widget.awardsCopyTutorialFlow,
+          onCopyTutorialDemoComplete: widget.onCopyTutorialDemoComplete,
+          onCopyTutorialDemoAborted: widget.onCopyTutorialDemoAborted,
+        ),
+      ),
+    );
+  }
+
+  void _showMandatoryCopyTradeCoach() {
+    if (!mounted || !widget.awardsCopyTutorialFlow) return;
+    final strings = LocalizedStrings.of(context);
+    final targets = [
+      TargetFocus(
+        identify: 'ud_copy_trade',
+        keyTarget: _kCopyTradeTutorial,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        enableOverlayTab: false,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (_, __) => Common().bubble(
+              strings?.get('tutorial_userdialog_copy_trade_title') ?? 'Copy-Trade',
+              strings?.get('tutorial_userdialog_copy_trade_body') ??
+                  'Tap here to open this player\'s copy-trading profile.',
+            ),
+          ),
+        ],
+      ),
+    ].where((t) => t.keyTarget?.currentContext != null).toList();
+
+    if (targets.isEmpty) {
+      if (_copyTradeCoachRetries < 35) {
+        _copyTradeCoachRetries++;
+        Future.delayed(const Duration(milliseconds: 60), () {
+          if (mounted) _showMandatoryCopyTradeCoach();
+        });
+      }
+      return;
+    }
+    _copyTradeCoachRetries = 0;
+
+    _copyTradeCoach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.75,
+      textSkip: strings?.get('tutorial_skip') ?? 'Skip',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
+      hideSkip: true,
+      useSafeArea: true,
+      pulseEnable: true,
+      alignSkip: Alignment.bottomRight,
+      initialFocus: 0,
+      disableBackButton: true,
+      onClickTarget: (_) async {
+        _disposeCopyTradeCoach();
+        if (!mounted) return;
+        _pushCopyProfile(context);
+      },
+      onFinish: () {},
+    );
+    _copyTradeCoach!.show(context: context);
+  }
 
   void showPopup(BuildContext context, String message, Offset position) {
     int xOffset;
@@ -134,11 +245,12 @@ class UserDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isActive = user.isActive;
+    final u = widget.user;
+    final isActive = u.isActive;
     final statusColor = isActive ? Colors.green : Colors.red;
 
     // No usar Dialog (centra en pantalla); solo el contenido para respetar posición del padre.
-    return Material(
+    final shell = Material(
       color: Colors.transparent,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -198,12 +310,12 @@ class UserDialog extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 color: statusColor.withValues(alpha: isActive ? 0.5 : 0.3),
                               ),
-                              child: user.profilePic != null && user.profilePic!.isNotEmpty
+                              child: u.profilePic != null && u.profilePic!.isNotEmpty
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(50.0),
-                                      child: user.profilePic!.startsWith('http')
+                                      child: u.profilePic!.startsWith('http')
                                           ? Image.network(
-                                              user.profilePic!,
+                                              u.profilePic!,
                                               height: 56,
                                               width: 56,
                                               fit: BoxFit.cover,
@@ -215,7 +327,7 @@ class UserDialog extends StatelessWidget {
                                               ),
                                             )
                                           : Image.memory(
-                                              base64Decode(user.profilePic!),
+                                              base64Decode(u.profilePic!),
                                               height: 56,
                                               width: 56,
                                               fit: BoxFit.cover,
@@ -241,9 +353,9 @@ class UserDialog extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               AutoSizeText(
-                                user.fullname.length < 14
-                                    ? user.fullname
-                                    : '${user.fullname.substring(0, 12)}...',
+                                u.fullname.length < 14
+                                    ? u.fullname
+                                    : '${u.fullname.substring(0, 12)}...',
                                 maxLines: 1,
                                 style: GoogleFonts.syncopate(
                                   fontSize: 18,
@@ -253,7 +365,7 @@ class UserDialog extends StatelessWidget {
                               ),
                               const SizedBox(height: 1),
                               AutoSizeText(
-                                '@${user.username}',
+                                '@${u.username}',
                                 maxLines: 1,
                                 style: GoogleFonts.montserrat(
                                   color: Colors.white70,
@@ -284,7 +396,7 @@ class UserDialog extends StatelessWidget {
                                 const Icon(Icons.location_on, color: Colors.white70, size: 16),
                                 const SizedBox(width: 3),
                                 CountryFlag.fromCountryCode(
-                                  user.country,
+                                  u.country,
                                   height: 14,
                                   width: 20,
                                 ),
@@ -307,7 +419,7 @@ class UserDialog extends StatelessWidget {
                                 const SizedBox(width: 6),
                                 Flexible(
                                   child: Text(
-                                    NumberFormat.compact().format(user.points),
+                                    NumberFormat.compact().format(u.points),
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.montserrat(
                                       color: const Color(0xFFFFD54F),
@@ -325,42 +437,39 @@ class UserDialog extends StatelessWidget {
                           ),
                           SizedBox(
                             width: 116,
-                            child: Center(
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).push<void>(
-                                      MaterialPageRoute<void>(
-                                        builder: (_) => CopyBettingProfilePage(user: user),
-                                      ),
-                                    );
-                                  },
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 6),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.copy_all,
-                                          color: Colors.white70,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Flexible(
-                                          child: Text(
-                                            'Copy-Trade',
-                                            overflow: TextOverflow.ellipsis,
-                                            style: GoogleFonts.montserrat(
-                                              color: Colors.white70,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
+                            child: KeyedSubtree(
+                              key: _kCopyTradeTutorial,
+                              child: Center(
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () => _pushCopyProfile(context),
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 6),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.copy_all,
+                                            color: Colors.white70,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              'Copy-Trade',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.montserrat(
+                                                color: Colors.white70,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -378,5 +487,9 @@ class UserDialog extends StatelessWidget {
         ),
       ),
     );
+    if (widget.awardsCopyTutorialFlow) {
+      return PopScope(canPop: false, child: shell);
+    }
+    return shell;
   }
 }

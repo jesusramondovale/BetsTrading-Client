@@ -12,12 +12,24 @@ import '../locale/localized_texts.dart';
 import '../models/users.dart';
 import '../services/bets_service.dart';
 import 'copy_trading_confirm_page.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import '../helpers/common.dart';
 
 /// Pantalla de rendimiento y últimas apuestas de un usuario (Copy-Betting).
 class CopyBettingProfilePage extends StatefulWidget {
-  const CopyBettingProfilePage({super.key, required this.user});
+  const CopyBettingProfilePage({
+    super.key,
+    required this.user,
+    this.tutorialDemoMode = false,
+    this.onCopyTutorialDemoComplete,
+    this.onCopyTutorialDemoAborted,
+  });
 
   final User user;
+  /// Tour guiado Awards: explica copy-trade y la pantalla de confirmación sin aplicar cambios.
+  final bool tutorialDemoMode;
+  final VoidCallback? onCopyTutorialDemoComplete;
+  final VoidCallback? onCopyTutorialDemoAborted;
 
   @override
   State<CopyBettingProfilePage> createState() => _CopyBettingProfilePageState();
@@ -28,12 +40,141 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
   List<Map<String, dynamic>> _rows = [];
   bool _loading = true;
   bool _loadFailed = false;
-  final LayerLink _lastBetsSectionLayerLink = LayerLink();
+  final GlobalKey _kCopyTutorialIntro = GlobalKey();
+  final GlobalKey _kTutorialConfirmBtn = GlobalKey();
+  TutorialCoachMark? _profileTutorialCoach;
+  bool _profileTutorialScheduled = false;
+  int _profileTutorialLayoutRetries = 0;
+
+  void _disposeProfileTutorialCoach() {
+    try {
+      _profileTutorialCoach?.finish();
+    } catch (_) {}
+    _profileTutorialCoach = null;
+  }
+
+  void _scheduleProfileTutorialIfNeeded() {
+    if (!widget.tutorialDemoMode ||
+        _profileTutorialScheduled ||
+        _loading ||
+        _loadFailed ||
+        !mounted) {
+      return;
+    }
+    _profileTutorialScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _runProfileTutorialCoach();
+    });
+  }
+
+  void _runProfileTutorialCoach() {
+    if (!mounted || !widget.tutorialDemoMode || _loadFailed) return;
+    final strings = LocalizedStrings.of(context);
+
+    final targets = [
+      TargetFocus(
+        identify: 'copy_profile_intro',
+        keyTarget: _kCopyTutorialIntro,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        enableOverlayTab: false,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (_, __) => Common().bubble(
+              strings?.get('tutorial_copy_trade_intro_title') ?? 'Copy-trading',
+              strings?.get('tutorial_copy_trade_intro_body') ??
+                  'Copy-trading mirrors another player\'s bets with a percentage you choose.',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'copy_profile_confirm',
+        keyTarget: _kTutorialConfirmBtn,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        enableOverlayTab: false,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (_, __) => Common().bubble(
+              strings?.get('tutorial_copy_profile_title') ?? 'Confirm',
+              strings?.get('tutorial_copy_profile_body') ??
+                  'Open the confirmation screen to adjust percentage and safeguards.',
+            ),
+          ),
+        ],
+      ),
+    ].where((t) => t.keyTarget?.currentContext != null).toList();
+
+    if (targets.length < 2) {
+      if (_profileTutorialLayoutRetries < 30) {
+        _profileTutorialLayoutRetries++;
+        Future.delayed(const Duration(milliseconds: 80), () {
+          if (mounted &&
+              widget.tutorialDemoMode &&
+              _profileTutorialCoach == null) {
+            _runProfileTutorialCoach();
+          }
+        });
+      }
+      return;
+    }
+    _profileTutorialLayoutRetries = 0;
+
+    _profileTutorialCoach = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.75,
+      textSkip: strings?.get('tutorial_skip') ?? 'Skip tutorial',
+      textStyleSkip: const TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
+      hideSkip: false,
+      useSafeArea: true,
+      pulseEnable: true,
+      alignSkip: Alignment.bottomRight,
+      initialFocus: 0,
+      disableBackButton: true,
+      onClickTarget: (target) async {
+        if (target.identify != 'copy_profile_confirm') return;
+        _disposeProfileTutorialCoach();
+        await Future.delayed(const Duration(milliseconds: 40));
+        if (!mounted) return;
+        final ok = await Navigator.of(context).push<bool>(
+          MaterialPageRoute<bool>(
+            builder: (_) => CopyTradingConfirmPage(
+              user: widget.user,
+              tutorialDemoMode: true,
+            ),
+          ),
+        );
+        if (!mounted) return;
+        if (ok == true) {
+          Navigator.of(context).pop();
+          widget.onCopyTutorialDemoComplete?.call();
+        }
+      },
+      onSkip: () {
+        _disposeProfileTutorialCoach();
+        Navigator.of(context).pop();
+        widget.onCopyTutorialDemoAborted?.call();
+        return true;
+      },
+      onFinish: () {},
+    );
+    _profileTutorialCoach!.show(context: context);
+  }
 
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _disposeProfileTutorialCoach();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -82,6 +223,7 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
       _loading = false;
       _loadFailed = false;
     });
+    _scheduleProfileTutorialIfNeeded();
   }
 
   static dynamic _get(Map<String, dynamic> row, List<String> keys) {
@@ -462,7 +604,15 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (widget.tutorialDemoMode) {
+              _disposeProfileTutorialCoach();
+              Navigator.of(context).pop();
+              widget.onCopyTutorialDemoAborted?.call();
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
         ),
       ),
       body: Stack(
@@ -524,148 +674,165 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
                         return [
                           SliverToBoxAdapter(
                             child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                perf,
-                                style: GoogleFonts.roboto(
-                                  fontSize: 16,
-                                  color: Colors.white70,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                strings?.get('copyBettingNoStatsHint') ?? '',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 9,
-                                  height: 1.0,
-                                  color: Colors.white54,
-                                ),
-                                strutStyle: const StrutStyle(
-                                  fontSize: 9,
-                                  height: 1.0,
-                                  leading: 0,
-                                  forceStrutHeight: true,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                KeyedSubtree(
+                                  key: _kCopyTutorialIntro,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
-                                      Expanded(
-                                        child: _statTile(
-                                          strings?.get('copyBettingFinishedBetsCount') ?? 'Finished bets',
-                                          '$finished',
-                                          valueFontSize: 30,
+                                      Text(
+                                        perf,
+                                        style: GoogleFonts.roboto(
+                                          fontSize: 16,
+                                          color: Colors.white70,
+                                          fontWeight: FontWeight.w400,
                                         ),
                                       ),
-                                      const SizedBox(width: 6),
-                                      Expanded(
-                                        child: _statTile(
-                                          strings?.get('copyBettingWinRate') ?? 'Win rate',
-                                          winRate == null ? '—' : '${winRate.toStringAsFixed(1)}%',
-                                          valueFontSize: 30,
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        strings?.get('copyBettingNoStatsHint') ?? '',
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 9,
+                                          height: 1.0,
+                                          color: Colors.white54,
+                                        ),
+                                        strutStyle: const StrutStyle(
+                                          fontSize: 9,
+                                          height: 1.0,
+                                          leading: 0,
+                                          forceStrutHeight: true,
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: _statTile(
-                                          strings?.get('copyBettingWins') ?? 'Wins',
-                                          '$wins',
-                                          valueColor: Colors.greenAccent.shade100,
-                                          valueFontSize: 30,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Expanded(
-                                        child: _statTile(
-                                          strings?.get('copyBettingLosses') ?? 'Losses',
-                                          '$losses',
-                                          valueColor: Colors.redAccent.shade100,
-                                          valueFontSize: 30,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: _statTile(
-                                          strings?.get('copyBettingTotalStaked') ?? 'Total staked',
-                                          stakedStr,
-                                          valueFontSize: 24,
-                                          showCoinAfterValue: true,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Expanded(
-                                        child: _statTile(
-                                          strings?.get('copyBettingTotalProfitLoss') ?? 'PnL',
-                                          pnlStr,
-                                          valueColor: plColor,
-                                          valueFontSize: 24,
-                                          showCoinAfterValue: true,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Align(
-                                alignment: Alignment.center,
-                                child: SizedBox(
-                                  height: 44,
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(14),
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.amber.shade700.withValues(alpha: 0.95),
-                                          Colors.deepOrange.shade800.withValues(alpha: 0.9),
+                                      const SizedBox(height: 10),
+                                      Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: _statTile(
+                                                  strings?.get('copyBettingFinishedBetsCount') ??
+                                                      'Finished bets',
+                                                  '$finished',
+                                                  valueFontSize: 30,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Expanded(
+                                                child: _statTile(
+                                                  strings?.get('copyBettingWinRate') ?? 'Win rate',
+                                                  winRate == null ? '—' : '${winRate.toStringAsFixed(1)}%',
+                                                  valueFontSize: 30,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: _statTile(
+                                                  strings?.get('copyBettingWins') ?? 'Wins',
+                                                  '$wins',
+                                                  valueColor: Colors.greenAccent.shade100,
+                                                  valueFontSize: 30,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Expanded(
+                                                child: _statTile(
+                                                  strings?.get('copyBettingLosses') ?? 'Losses',
+                                                  '$losses',
+                                                  valueColor: Colors.redAccent.shade100,
+                                                  valueFontSize: 30,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: _statTile(
+                                                  strings?.get('copyBettingTotalStaked') ??
+                                                      'Total staked',
+                                                  stakedStr,
+                                                  valueFontSize: 24,
+                                                  showCoinAfterValue: true,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Expanded(
+                                                child: _statTile(
+                                                  strings?.get('copyBettingTotalProfitLoss') ?? 'PnL',
+                                                  pnlStr,
+                                                  valueColor: plColor,
+                                                  valueFontSize: 24,
+                                                  showCoinAfterValue: true,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ],
                                       ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.28),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        borderRadius: BorderRadius.circular(14),
-                                        onTap: () {
-                                          Navigator.of(context).push<void>(
-                                            MaterialPageRoute<void>(
-                                              builder: (_) => CopyTradingConfirmPage(user: widget.user),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: KeyedSubtree(
+                                    key: _kTutorialConfirmBtn,
+                                    child: SizedBox(
+                                      height: 44,
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(14),
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Colors.amber.shade700.withValues(alpha: 0.95),
+                                              Colors.deepOrange.shade800.withValues(alpha: 0.9),
+                                            ],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(alpha: 0.28),
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 2),
                                             ),
-                                          );
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                                          child: Center(
-                                            child: Text(
-                                              strings?.get('copyBettingConfirmCopyTradingButton') ??
-                                                  'Confirm copy-trading',
-                                              style: GoogleFonts.montserrat(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.white,
-                                                letterSpacing: 0.2,
+                                          ],
+                                        ),
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(14),
+                                            onTap: () {
+                                              Navigator.of(context).push<void>(
+                                                MaterialPageRoute<void>(
+                                                  builder: (_) => CopyTradingConfirmPage(
+                                                    user: widget.user,
+                                                    tutorialDemoMode: widget.tutorialDemoMode,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                                              child: Center(
+                                                child: Text(
+                                                  strings?.get('copyBettingConfirmCopyTradingButton') ??
+                                                      'Confirm copy-trading',
+                                                  style: GoogleFonts.montserrat(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.white,
+                                                    letterSpacing: 0.2,
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -674,11 +841,10 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
                                     ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                            ],
+                                const SizedBox(height: 6),
+                              ],
+                            ),
                           ),
-                        ),
                           SliverOverlapAbsorber(
                             handle: overlapHandle,
                             sliver: SliverPersistentHeader(
