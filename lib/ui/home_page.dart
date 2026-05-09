@@ -549,6 +549,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               strings!.get('trends') ?? 'Trends',
               strings.get('tutorial_trends_body') ??
                   'Your first trending asset shows up here with live movement and key stats. Tap to open the detail view and learn how to place a bet on it.',
+              titleSuffix: const FaIcon(
+                FontAwesomeIcons.fireFlameSimple,
+                size: 18,
+                color: Color(0xFFE25822),
+              ),
             ),
           ),
         ],
@@ -828,10 +833,21 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          strings?.get('trends') ?? 'Trends',
-                          style: GoogleFonts.syncopate(
-                              fontSize: 18, fontWeight: FontWeight.w200),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              strings?.get('trends') ?? 'Trends',
+                              style: GoogleFonts.syncopate(
+                                  fontSize: 18, fontWeight: FontWeight.w200),
+                            ),
+                            const SizedBox(width: 8),
+                            const FaIcon(
+                              FontAwesomeIcons.fireFlameSimple,
+                              size: 16,
+                              color: Color(0xFFE25822),
+                            ),
+                          ],
                         ),
                         const Spacer(),
                         IconButton(

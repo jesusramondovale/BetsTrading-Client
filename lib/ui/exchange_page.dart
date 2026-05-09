@@ -860,9 +860,9 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4),
+      margin: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 4),
       child: Container(
-        height: 84,
+        height: 72,
         decoration: BoxDecoration(
           color: Colors.transparent.withAlpha(30),
           borderRadius: BorderRadius.circular(50.0),
@@ -891,7 +891,7 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
                   opacity: 1.0 - (_sliderValue * 1.5).clamp(0.0, 1.0),
                   child: Icon(
                     Icons.double_arrow,
-                    size: 35,
+                    size: 28,
                     color: widget.canExchange ? Colors.white54 : Colors.red[300],
                   ),
                 ),
@@ -900,14 +900,14 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
             // Fondo: Contenedor de moneda (EUR/USD) - fondo fijo a la derecha
             Positioned.fill(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     // Contenedor de moneda (derecha) - fondo fijo
                     Container(
-                      width: 90,
-                      height: 70,
+                      width: 82,
+                      height: 56,
                       margin: const EdgeInsets.only(left: 6.0),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -943,14 +943,14 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
                             widget.currency == 'eur'
                                 ? 'assets/euro.png'
                                 : 'assets/dollar.png',
-                            width: 35,
-                            height: 28,
+                            width: 30,
+                            height: 24,
                           ), 
                           const SizedBox(width: 1),
                           Text(
                             '${widget.currencyAmount}',
                             style: GoogleFonts.syncopate(
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.w200,
                               color: Colors.white,
                               shadows: [
@@ -974,14 +974,14 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
               builder: (context, constraints) {
                 final totalWidth = constraints.maxWidth;
                 // Ancho igual al contenedor fijo de moneda
-                final containerWidth = 100.0;
+                final containerWidth = 94.0;
                 // Calcular el offset: cuando sliderValue es 0, está completamente a la izquierda
                 // Cuando sliderValue es 1, se mueve completamente a la derecha
                 final paddingHorizontal = 8.0;
                 final maxOffset = totalWidth - containerWidth - (paddingHorizontal * 2);
                 final slideOffset = maxOffset * _sliderValue;
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Transform.translate(
@@ -990,7 +990,7 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
                         borderRadius: BorderRadius.circular(60.0),
                         child: SizedBox(
                           width: containerWidth,
-                          height: 70,
+                          height: 56,
                           child: Container(
                             constraints: BoxConstraints(
                               maxWidth: containerWidth,
@@ -1036,14 +1036,14 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
                                 children: [
                                   Image.asset(
                                     'assets/coin.png',
-                                    width: 28,
-                                    height: 28,
+                                    width: 24,
+                                    height: 24,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     NumberFormat.compact().format(widget.coins),
                                     style: GoogleFonts.syncopate(
-                                      fontSize: 16,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.w200,
                                       color: Colors.white,
                                       shadows: [
@@ -1076,8 +1076,8 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
                   ),
                   child: Center(
                     child: SizedBox(
-                      width: 30,
-                      height: 30,
+                      width: 26,
+                      height: 26,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),

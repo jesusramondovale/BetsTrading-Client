@@ -1430,7 +1430,7 @@ class Common {
     return userId.substring(userId.length - 6);
   }
 
-  Widget bubble(String title, String body) {
+  Widget bubble(String title, String body, {Widget? titleSuffix}) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1444,7 +1444,21 @@ class Common {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                  ),
+                ),
+                if (titleSuffix != null) ...[
+                  const SizedBox(width: 8),
+                  titleSuffix,
+                ],
+              ],
+            ),
             const SizedBox(height: 6),
             Text(body, style: const TextStyle(fontSize: 16)),
           ],
