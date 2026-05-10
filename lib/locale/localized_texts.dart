@@ -86,7 +86,7 @@ class LocalizedStrings {
           'Turn on auto-adjust so your copied size tracks both coin balances, or stop copying automatically after one losing bet.',
       'tutorial_copy_confirm_phase_slide_title': 'Slide to confirm',
       'tutorial_copy_confirm_phase_slide_body':
-          'Nothing is saved during this tour. Tap the dimmed area outside the highlighted bar to dismiss this hint, then slide to the end like a real confirmation.',
+          'Nothing is saved during this tour. Tap inside the highlighted bar to continue, or slide to the end like a real confirmation.',
       'tutorial_history_title': 'Bet history',
       'tutorial_bets_title': 'Recent bets',
       'tutorial_store_title': 'Store',
@@ -96,6 +96,21 @@ class LocalizedStrings {
       'tutorial_favorites_body': 'Pinned assets you follow closely. Add or remove favorites to keep this section clean and quick to access.',
       'tutorial_bets_body': 'A quick snapshot of your most recent bets, updated in real time. Use it to review outcomes or jump back into an asset.',
       'tutorial_history_body': 'A complete log of past bets with results and timestamps. Open it to filter, inspect details, and learn from previous moves.',
+      'tutorial_nav_tap_awards_title': 'Awards / Ranking',
+      'tutorial_nav_tap_awards_body':
+          'Use the bottom menu and tap the highlighted tab (trophy) to open Awards and continue the guided tour.',
+      'tutorial_nav_tap_markets_title': 'Live markets',
+      'tutorial_nav_tap_markets_body':
+          'Tap the highlighted tab in the bottom bar to open Markets and continue the tour.',
+      'tutorial_nav_tap_exchange_title': 'Exchange',
+      'tutorial_nav_tap_exchange_body':
+          'Tap the highlighted tab to open Exchange and continue the tour.',
+      'tutorial_nav_tap_profile_title': 'Your profile',
+      'tutorial_nav_tap_profile_body':
+          'Tap the highlighted tab to open your profile and view the last steps of the tour.',
+      'tutorial_flow_complete_title': 'Welcome to Betrader!',
+      'tutorial_flow_complete_body':
+          'You’ve finished the guided tour. We’re glad you’re here — have great luck with your trades, stay curious, and explore the app at your own pace.',
       'raffleParticipated': 'Raffle participated successfully!',
       'participants': 'Participants:',
       'slideToParticipate': 'Slide to participate',
@@ -523,7 +538,7 @@ class LocalizedStrings {
           'Activa el ajuste automático para seguir ambos saldos, o detén la copia automáticamente tras una apuesta perdedora.',
       'tutorial_copy_confirm_phase_slide_title': 'Deslizar para confirmar',
       'tutorial_copy_confirm_phase_slide_body':
-          'En este tour no se guarda nada. Toca la zona oscura fuera de la barra resaltada para quitar el foco y luego desliza hasta el final como en una confirmación real.',
+          'En este tour no se guarda nada. Toca dentro de la barra resaltada para seguir, o desliza hasta el final como en una confirmación real.',
       'tutorial_history_title': 'Historial de apuestas',
       'tutorial_bets_title': 'Apuestas recientes',
       'tutorial_store_title': 'Tienda',
@@ -533,6 +548,21 @@ class LocalizedStrings {
       'tutorial_favorites_body': 'Activos fijados que sigues de cerca. Añade o quita favoritos para mantener esta sección limpia y accesible.',
       'tutorial_bets_body': 'Resumen rápido de tus apuestas más recientes, actualizado al instante. Úsalo para revisar resultados o volver al activo.',
       'tutorial_history_body': 'Registro completo de apuestas con resultado y hora. Ábrelo para filtrar, ver detalles y aprender de jugadas previas.',
+      'tutorial_nav_tap_awards_title': 'Premios / Ranking',
+      'tutorial_nav_tap_awards_body':
+          'Usa el menú inferior y pulsa la pestaña resaltada (trofeo) para abrir Premios y seguir el tour guiado.',
+      'tutorial_nav_tap_markets_title': 'Mercados en vivo',
+      'tutorial_nav_tap_markets_body':
+          'Pulsa la pestaña resaltada en la barra inferior para abrir Mercados y continuar el tour.',
+      'tutorial_nav_tap_exchange_title': 'Exchange',
+      'tutorial_nav_tap_exchange_body':
+          'Pulsa la pestaña resaltada para abrir Exchange y continuar el tour.',
+      'tutorial_nav_tap_profile_title': 'Tu perfil',
+      'tutorial_nav_tap_profile_body':
+          'Pulsa la pestaña resaltada para abrir tu perfil y ver los últimos pasos del tour.',
+      'tutorial_flow_complete_title': '¡Bienvenido a Betrader!',
+      'tutorial_flow_complete_body':
+          'Has terminado el tour guiado. Nos alegra tenerte aquí: mucha suerte con tus operaciones, mantén la curiosidad y explora la app con calma.',
       'raffleParticipated': '¡Te uniste al sorteo!',
       'participants': 'Inscritos:',
       'slideToParticipate': 'Desliza para participar',
@@ -960,7 +990,7 @@ class LocalizedStrings {
           'Activez l’ajustement auto pour suivre les deux soldes, ou arrêtez la copie automatiquement après un pari perdant.',
       'tutorial_copy_confirm_phase_slide_title': 'Glisser pour confirmer',
       'tutorial_copy_confirm_phase_slide_body':
-          'Rien n’est enregistré pendant cette visite. Touchez la zone assombrie en dehors de la barre mise en avant pour fermer l’aide, puis glissez jusqu’au bout comme en réel.',
+          'Rien n’est enregistré pendant cette visite. Touchez l’intérieur de la barre mise en avant pour continuer, ou glissez jusqu’au bout comme en réel.',
       'tutorial_history_title': 'Historique des paris',
       'tutorial_bets_title': 'Paris récents',
       'tutorial_store_title': 'Boutique',
@@ -970,6 +1000,21 @@ class LocalizedStrings {
       'tutorial_favorites_body': 'Actifs épinglés que vous suivez de près. Ajoutez ou retirez des favoris pour garder cette section claire et rapide.',
       'tutorial_bets_body': 'Aperçu de vos paris récents, mis à jour en temps réel. Servez-vous-en pour vérifier les résultats ou revenir à l’actif.',
       'tutorial_history_body': 'Journal complet des paris avec résultats et horodatage. Ouvrez pour filtrer, consulter les détails et tirer des enseignements.',
+      'tutorial_nav_tap_awards_title': 'Récompenses / Classement',
+      'tutorial_nav_tap_awards_body':
+          'Utilisez le menu du bas et touchez l’onglet mis en avant (trophée) pour ouvrir Récompenses et poursuivre la visite.',
+      'tutorial_nav_tap_markets_title': 'Marchés en direct',
+      'tutorial_nav_tap_markets_body':
+          'Touchez l’onglet mis en avant pour ouvrir Marchés et continuer la visite.',
+      'tutorial_nav_tap_exchange_title': 'Exchange',
+      'tutorial_nav_tap_exchange_body':
+          'Touchez l’onglet mis en avant pour ouvrir Exchange et continuer la visite.',
+      'tutorial_nav_tap_profile_title': 'Votre profil',
+      'tutorial_nav_tap_profile_body':
+          'Touchez l’onglet mis en avant pour ouvrir votre profil et terminer la visite.',
+      'tutorial_flow_complete_title': 'Bienvenue sur Betrader !',
+      'tutorial_flow_complete_body':
+          'Vous avez terminé la visite guidée. Nous sommes ravis de vous accueillir — bonne chance pour vos trades, gardez votre curiosité et explorez l’app à votre rythme.',
       'raffleParticipated': 'Saisie au tirage !',
       'participants': 'Participants:',
       'slideToParticipate': 'Faites glisser pour participer',
@@ -1390,7 +1435,7 @@ class LocalizedStrings {
           'Attiva l’adeguamento automatico per seguire entrambi i saldi, o interrompi la copia dopo una puntata persa.',
       'tutorial_copy_confirm_phase_slide_title': 'Scorri per confermare',
       'tutorial_copy_confirm_phase_slide_body':
-          'Nel tour non viene salvato nulla. Tocca l’area scura fuori dalla barra evidenziata per chiudere il suggerimento, poi scorri fino in fondo come in una conferma reale.',
+          'Nel tour non viene salvato nulla. Tocca dentro la barra evidenziata per continuare, oppure scorri fino in fondo come in una conferma reale.',
       'tutorial_history_title': 'Storico scommesse',
       'tutorial_bets_title': 'Scommesse recenti',
       'tutorial_store_title': 'Negozio',
@@ -1400,6 +1445,21 @@ class LocalizedStrings {
       'tutorial_favorites_body': 'Asset fissati che segui da vicino. Aggiungi o rimuovi preferiti per mantenere questa sezione ordinata e veloce.',
       'tutorial_bets_body': 'Panoramica rapida delle scommesse recenti, aggiornata in tempo reale. Usala per verificare gli esiti o tornare all’asset.',
       'tutorial_history_body': 'Registro completo delle scommesse con risultati e orari. Apri per filtrare, rivedere i dettagli e imparare dalle mosse passate.',
+      'tutorial_nav_tap_awards_title': 'Premi / Classifica',
+      'tutorial_nav_tap_awards_body':
+          'Usa il menu in basso e tocca la scheda evidenziata (trofeo) per aprire Premi e continuare il tour.',
+      'tutorial_nav_tap_markets_title': 'Mercati live',
+      'tutorial_nav_tap_markets_body':
+          'Tocca la scheda evidenziata nella barra inferiore per aprire Mercati e continuare il tour.',
+      'tutorial_nav_tap_exchange_title': 'Exchange',
+      'tutorial_nav_tap_exchange_body':
+          'Tocca la scheda evidenziata per aprire Exchange e continuare il tour.',
+      'tutorial_nav_tap_profile_title': 'Il tuo profilo',
+      'tutorial_nav_tap_profile_body':
+          'Tocca la scheda evidenziata per aprire il profilo e completare il tour.',
+      'tutorial_flow_complete_title': 'Benvenuto in Betrader!',
+      'tutorial_flow_complete_body':
+          'Hai completato il tour guidato. Siamo felici di averti qui: in bocca al lupo con le tue operazioni, resta curioso e esplora l’app con calma.',
       'raffleParticipated': 'Entrato nel sorteggio!',
       'participants': 'Partecipanti:',
       'slideToParticipate': 'Scorri per partecipare',
@@ -1818,7 +1878,7 @@ class LocalizedStrings {
           'Schalte Auto-Anpassung ein, damit die Kopie beide Kontostände berücksichtigt, oder stoppe nach einem verlorenen Tipp automatisch.',
       'tutorial_copy_confirm_phase_slide_title': 'Zum Bestätigen wischen',
       'tutorial_copy_confirm_phase_slide_body':
-          'In dieser Tour wird nichts gespeichert. Tippe auf den abgedunkelten Bereich außerhalb des markierten Balkens, um den Hinweis zu schließen, und wische dann bis zum Ende wie bei einer echten Bestätigung.',
+          'In dieser Tour wird nichts gespeichert. Tippe innerhalb des markierten Balkens, um fortzufahren, oder wische bis zum Ende wie bei einer echten Bestätigung.',
       'tutorial_history_title': 'Wettverlauf',
       'tutorial_bets_title': 'Kürzliche Wetten',
       'tutorial_store_title': 'Shop',
@@ -1828,6 +1888,21 @@ class LocalizedStrings {
       'tutorial_favorites_body': 'Angeheftete Assets, die du eng verfolgst. Füge Favoriten hinzu oder entferne sie, um diesen Bereich schlank zu halten.',
       'tutorial_bets_body': 'Kurzüberblick über deine neuesten Wetten, in Echtzeit aktualisiert. Nutze ihn, um Ergebnisse zu prüfen oder zum Asset zu springen.',
       'tutorial_history_body': 'Vollständiges Protokoll vergangener Wetten mit Ergebnis und Zeitstempel. Öffne es zum Filtern, Prüfen und Lernen aus früheren Zügen.',
+      'tutorial_nav_tap_awards_title': 'Auszeichnungen / Rangliste',
+      'tutorial_nav_tap_awards_body':
+          'Nutze die untere Leiste und tippe auf den markierten Tab (Pokal), um Auszeichnungen zu öffnen und fortzufahren.',
+      'tutorial_nav_tap_markets_title': 'Live-Märkte',
+      'tutorial_nav_tap_markets_body':
+          'Tippe auf den markierten Tab, um Märkte zu öffnen und fortzufahren.',
+      'tutorial_nav_tap_exchange_title': 'Exchange',
+      'tutorial_nav_tap_exchange_body':
+          'Tippe auf den markierten Tab, um Exchange zu öffnen und fortzufahren.',
+      'tutorial_nav_tap_profile_title': 'Dein Profil',
+      'tutorial_nav_tap_profile_body':
+          'Tippe auf den markierten Tab, um dein Profil zu öffnen und die Tour abzuschließen.',
+      'tutorial_flow_complete_title': 'Willkommen bei Betrader!',
+      'tutorial_flow_complete_body':
+          'Du hast die geführte Tour beendet. Schön, dass du dabei bist — viel Erfolg beim Trading, bleib neugierig und entdecke die App in deinem Tempo.',
       'raffleParticipated': 'Am Gewinnspiel teilgenommen!',
       'participants': 'Teilnehmer:',
       'slideToParticipate': 'Zum Teilnehmen nach rechts ziehen',

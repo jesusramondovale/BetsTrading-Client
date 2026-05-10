@@ -58,7 +58,7 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
 
   void _disposeConfirmTutorialCoach() {
     try {
-      _confirmTutorialCoach?.finish();
+      _confirmTutorialCoach?.removeOverlayEntry();
     } catch (_) {}
     _confirmTutorialCoach = null;
   }
@@ -132,8 +132,8 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
         keyTarget: _kTutorialSlideControl,
         shape: ShapeLightFocus.RRect,
         radius: 14,
-        enableOverlayTab: true,
-        enableTargetTab: false,
+        enableOverlayTab: false,
+        enableTargetTab: true,
         contents: [
           TargetContent(
             align: ContentAlign.top,
@@ -174,7 +174,14 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
       alignSkip: Alignment.bottomRight,
       initialFocus: 0,
       disableBackButton: true,
-      onFinish: () {},
+      onFinish: () {
+        _confirmTutorialCoach = null;
+        if (!mounted || !widget.tutorialDemoMode) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          Navigator.of(context).pop(true);
+        });
+      },
     );
     _confirmTutorialCoach!.show(context: context);
   }
@@ -383,9 +390,7 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
                       circularThumb: true,
                       onSlideComplete: () async {
                         if (widget.tutorialDemoMode) {
-                          _disposeConfirmTutorialCoach();
-                          if (!mounted) return;
-                          Navigator.of(context).pop(true);
+                          _confirmTutorialCoach?.finish();
                           return;
                         }
                       final requestPercent = _autoAdjustByBalance

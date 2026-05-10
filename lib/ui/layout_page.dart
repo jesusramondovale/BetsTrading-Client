@@ -24,6 +24,22 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'notifications_page.dart';
 
+/// Claves en los iconos de la barra inferior para tutoriales (0–4: Inicio, Exchange, Mercados, Premios, Perfil).
+class MainMenuBottomNavKeys {
+  MainMenuBottomNavKeys()
+      : home = GlobalKey(debugLabel: 'navTabHome'),
+        exchange = GlobalKey(debugLabel: 'navTabExchange'),
+        markets = GlobalKey(debugLabel: 'navTabMarkets'),
+        awards = GlobalKey(debugLabel: 'navTabAwards'),
+        profile = GlobalKey(debugLabel: 'navTabProfile');
+
+  final GlobalKey home;
+  final GlobalKey exchange;
+  final GlobalKey markets;
+  final GlobalKey awards;
+  final GlobalKey profile;
+}
+
 final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 final GlobalKey<AwardsPageState> awardsScreenKey = GlobalKey<AwardsPageState>();
 final GlobalKey<MarketsViewState> marketsPageKey = GlobalKey<MarketsViewState>();
@@ -43,7 +59,7 @@ class MyApp extends StatelessWidget {
 
 /// The main menu page containing bottom navigation and tab management.
 ///
-/// Manages navigation between Home, Awards, Markets, Exchange, and User Info tabs.
+/// Manages navigation between Home, Exchange, Markets, Awards, and User Info tabs.
 /// Handles Firebase messaging and app lifecycle events.
 class MainMenuPage extends StatefulWidget {
   const MainMenuPage({super.key});
@@ -73,6 +89,7 @@ class MainMenuPageState extends State<MainMenuPage> {
   late List<Widget> _pages;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final MainMenuPageController _controller = MainMenuPageController();
+  final MainMenuBottomNavKeys _bottomNavKeys = MainMenuBottomNavKeys();
   String _username = '';
   bool _showNotificationsPage = false;
 
@@ -294,30 +311,34 @@ class MainMenuPageState extends State<MainMenuPage> {
       strings?.get('settings') ?? 'Settings',
       strings?.get('profile') ?? 'Profile'
     ];
-    titles[3] = "Info  |  $_username";
+    titles[4] = "Info  |  $_username";
 
     _pages = [
       // HOME
       HomeScreen(
         key: homeScreenKey,
         controller: _controller,
+        bottomNavKeys: _bottomNavKeys,
         onHomeTutorialFinished: tryShowPendingDailyReward,
       ),
-      // TOP USERS
-      AwardsPage(
-        key: awardsScreenKey,
+      ExchangePage(
+        key: exchangePageKey,
         controller: _controller,
+        bottomNavKeys: _bottomNavKeys,
         onTutorialFlowEnded: tryShowPendingDailyReward,
       ),
       // MARKETS
       MarketsView(
         key: marketsPageKey,
         controller: _controller,
+        bottomNavKeys: _bottomNavKeys,
         onTutorialFlowEnded: tryShowPendingDailyReward,
       ),
-      ExchangePage(
-        key: exchangePageKey,
+      // PREMIOS / RANKING
+      AwardsPage(
+        key: awardsScreenKey,
         controller: _controller,
+        bottomNavKeys: _bottomNavKeys,
         onTutorialFlowEnded: tryShowPendingDailyReward,
       ),
       // PERSONAL INFO
@@ -407,42 +428,57 @@ class MainMenuPageState extends State<MainMenuPage> {
                       unselectedLabelStyle: TextStyle(fontSize: 11),
                       items: <BottomNavigationBarItem>[
                         BottomNavigationBarItem(
-                          icon: Icon(FontAwesomeIcons.house),
+                          icon: KeyedSubtree(
+                            key: _bottomNavKeys.home,
+                            child: Icon(FontAwesomeIcons.house),
+                          ),
                           label: strings?.get('home') ?? "Home",
                         ),
                         BottomNavigationBarItem(
-                          icon: Icon(FontAwesomeIcons.trophy),
-                          label: strings!.get('awards') ?? "Awards",
+                          icon: KeyedSubtree(
+                            key: _bottomNavKeys.exchange,
+                            child: Icon(FontAwesomeIcons.landmark),
+                          ),
+                          label: 'Exchange',
                         ),
                         BottomNavigationBarItem(
-                          icon: SizedBox(
-                            width: 40,
-                            child: Image.asset('assets/new_icon.png'),
+                          icon: KeyedSubtree(
+                            key: _bottomNavKeys.markets,
+                            child: SizedBox(
+                              width: 40,
+                              child: Image.asset('assets/new_icon.png'),
+                            ),
                           ),
                           activeIcon: SizedBox(
                             width: 34,
                             child: Image.asset('assets/new_icon.png'),
                           ),
-                          label: strings.get('liveMarkets') ?? 'Live Markets',
+                          label: strings?.get('liveMarkets') ?? 'Live Markets',
                         ),
                         BottomNavigationBarItem(
-                          icon: Icon(FontAwesomeIcons.landmark),
-                          label: 'Exchange',
+                          icon: KeyedSubtree(
+                            key: _bottomNavKeys.awards,
+                            child: Icon(FontAwesomeIcons.trophy),
+                          ),
+                          label: strings!.get('awards') ?? "Awards",
                         ),
                         BottomNavigationBarItem(
-                          icon: (_profilePicBytes != null
+                          icon: KeyedSubtree(
+                            key: _bottomNavKeys.profile,
+                            child: (_profilePicBytes != null
+                                ? CircleAvatar(
+                                    backgroundImage:
+                                        MemoryImage(_profilePicBytes!),
+                                    radius: 20,
+                                  )
+                                : Icon(Icons.account_circle_outlined)),
+                          ),
+                          activeIcon: (_profilePicBytes != null
                               ? CircleAvatar(
                                   backgroundImage:
                                       MemoryImage(_profilePicBytes!),
-                                  radius: 20,
+                                  radius: 15,
                                 )
-                              : Icon(Icons.account_circle_outlined)),
-                          activeIcon: (_profilePicBytes != null
-                              ? CircleAvatar(
-                            backgroundImage:
-                            MemoryImage(_profilePicBytes!),
-                            radius: 15,
-                          )
                               : Icon(Icons.account_circle_outlined)),
                           label: strings.get('profileTitle') ?? "Your profile",
                         ),

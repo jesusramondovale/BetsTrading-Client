@@ -504,7 +504,8 @@ class Common {
         endDate: endDate,
         finished: false,
         targetOdds: targetOdds,
-        betZone: 999);
+        betZone: 999,
+        zoneType: 0);
   }
 
   int hoursUntilLatestEndDate(List<RectangleZone> rectangleZones, DateTime lastCandleDate, int timeframeHours) {

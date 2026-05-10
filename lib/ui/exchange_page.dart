@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../helpers/common.dart';
+import '../helpers/tutorial_nav_hint.dart';
 import 'exchange_slider_shapes.dart';
 import 'first_time_page.dart';
 import 'layout_page.dart';
@@ -22,11 +23,13 @@ class ExchangePage extends StatefulWidget {
   const ExchangePage({
     super.key,
     required this.controller,
+    required this.bottomNavKeys,
     this.onTutorialFlowEnded,
   });
 
   /// Controller for managing the main menu navigation.
   final MainMenuPageController controller;
+  final MainMenuBottomNavKeys bottomNavKeys;
   /// Llamado cuando el usuario omite el tutorial (flujo de tutorial terminado).
   final VoidCallback? onTutorialFlowEnded;
   @override
@@ -92,7 +95,7 @@ class ExchangePageState extends State<ExchangePage> {
   });
   
   // Reiniciar el timer de autoscroll si estamos en el tab correcto
-  if (mounted && widget.controller.selectedIndexNotifier.value == 3) {
+  if (mounted && widget.controller.selectedIndexNotifier.value == 1) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
@@ -285,7 +288,7 @@ class ExchangePageState extends State<ExchangePage> {
     if (!pending) return;
 
     await _waitForTargetsReady();
-    if (widget.controller.selectedIndexNotifier.value != 3) return;
+    if (widget.controller.selectedIndexNotifier.value != 1) return;
 
     await _startExchangeTutorial();
   }
@@ -322,23 +325,29 @@ class ExchangePageState extends State<ExchangePage> {
         return true;
       },
       onFinish: () async {
-
         await _clearPending();
         await _markSeen();
 
         final p = await SharedPreferences.getInstance();
-        await p.setBool('__tutorial_pending__userinfo_v1', true);
+        await p.setBool('__tutorial_pending__markets_v1', true);
 
-        // Esperar un poco más para asegurar que el tutorial se cierre completamente
         await Future.delayed(const Duration(milliseconds: 300));
-        
         if (!mounted) return;
-        
-        // Cambiar a la pestaña 4 y dar tiempo para que se inicialice
-        widget.controller.updateIndex(4);
-        
-        // Dar tiempo adicional para que UserInfoPage se inicialice y el listener esté activo
-        await Future.delayed(const Duration(milliseconds: 200));
+        final strings = LocalizedStrings.of(context);
+        await showTutorialBottomNavNavigateHint(
+          context: context,
+          controller: widget.controller,
+          navTabKey: widget.bottomNavKeys.markets,
+          expectedTabIndex: 2,
+          title: strings?.get('tutorial_nav_tap_markets_title') ?? 'Markets',
+          body: strings?.get('tutorial_nav_tap_markets_body') ??
+              'Tap the highlighted tab below to open Markets and continue the tour.',
+          onSkipTutorialFlow: () async {
+            await p.remove('__tutorial_pending__markets_v1');
+            await Common().markAllTutorialsSeen();
+            widget.onTutorialFlowEnded?.call();
+          },
+        );
       },
     );
 
@@ -353,7 +362,7 @@ class ExchangePageState extends State<ExchangePage> {
   void _startRandomAutoScroll() {
     _autoScrollTimer?.cancel();
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (!mounted || widget.controller.selectedIndexNotifier.value != 3) {
+      if (!mounted || widget.controller.selectedIndexNotifier.value != 1) {
         return;
       }
 
@@ -380,7 +389,7 @@ class ExchangePageState extends State<ExchangePage> {
     loadData();
 
     _tabListener = () async {
-      if (widget.controller.selectedIndexNotifier.value == 3) {
+      if (widget.controller.selectedIndexNotifier.value == 1) {
         await loadData();
         _tryStartExchangeTutorial();
         // Iniciar el timer de autoscroll aleatorio cuando se selecciona el tab
@@ -399,7 +408,7 @@ class ExchangePageState extends State<ExchangePage> {
     widget.controller.selectedIndexNotifier.addListener(_tabListener);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (widget.controller.selectedIndexNotifier.value == 3) {
+      if (widget.controller.selectedIndexNotifier.value == 1) {
         await loadData();
         _tryStartExchangeTutorial();
         // Iniciar el timer de autoscroll aleatorio

@@ -72,6 +72,8 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
           merged.add(m);
         }
 
+        merged.sort((a, b) => _betMergedSortKey(b).compareTo(_betMergedSortKey(a)));
+
         if (!mounted) return;
         setState(() {
           _rows = merged;
@@ -94,6 +96,27 @@ class _BetsHistoryPageState extends State<BetsHistoryPage> {
       if (v != null) return v;
     }
     return null;
+  }
+
+  static DateTime _coerceUtcDate(dynamic v) {
+    if (v == null) return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    if (v is DateTime) return v.toUtc();
+    if (v is String && v.trim().isNotEmpty) {
+      try {
+        final clean = v.replaceAll(RegExp(r'([+-]\d{2}:\d{2}|[+-]\d{2})$'), '');
+        return DateTime.parse(clean).toUtc();
+      } catch (_) {}
+    }
+    return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  }
+
+  /// Fecha para ordenar el histórico mixto (zona + precio exacto): fin de ventana, o fallback.
+  static DateTime _betMergedSortKey(Map<String, dynamic> row) {
+    final primary = _get(row, ['end_date', 'endDate', 'final_date']);
+    final fallback = primary == null
+        ? _get(row, ['target_date', 'targetDate', 'bet_date', 'betDate'])
+        : null;
+    return _coerceUtcDate(primary ?? fallback);
   }
 
   String _formatDate(dynamic v) {

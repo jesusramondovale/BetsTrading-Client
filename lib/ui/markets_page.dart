@@ -39,8 +39,11 @@ class MarketsView extends StatefulWidget {
   const MarketsView({
     super.key,
     required this.controller,
+    required this.bottomNavKeys,
     this.onTutorialFlowEnded,
   });
+
+  final MainMenuBottomNavKeys bottomNavKeys;
 
   @override
   MarketsViewState createState() => MarketsViewState();
@@ -1007,6 +1010,8 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
                       controller: widget.controller,
                       iconPath: asset.icon,
                       tutorialMode: tutorialMode,
+                      bottomNavKeys:
+                          tutorialMode ? widget.bottomNavKeys : null,
                       onTutorialFlowEnded: widget.onTutorialFlowEnded,
                     ),
                   ),

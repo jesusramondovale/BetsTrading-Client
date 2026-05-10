@@ -19,6 +19,7 @@ import '../services/bets_service.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
 import '../helpers/slider.dart';
+import '../helpers/tutorial_nav_hint.dart';
 import 'home_page.dart';
 
 /// A page displaying leaderboards, top users, and raffle items.
@@ -30,9 +31,11 @@ class AwardsPage extends StatefulWidget {
   final MainMenuPageController controller;
   /// Llamado cuando el usuario omite el tutorial (flujo de tutorial terminado).
   final VoidCallback? onTutorialFlowEnded;
+  final MainMenuBottomNavKeys bottomNavKeys;
   const AwardsPage({
     super.key,
     required this.controller,
+    required this.bottomNavKeys,
     this.onTutorialFlowEnded,
   });
 
@@ -679,6 +682,15 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     _coach = null;
   }
 
+  /// Quita el overlay del coach sin ejecutar [onFinish] (evita saltar a perfil
+  /// si aún había un coach del Top-1 bajo el diálogo de copy-trade).
+  void _removeCoachOverlayOnly() {
+    try {
+      _coach?.removeOverlayEntry();
+    } catch (_) {}
+    _coach = null;
+  }
+
   Future<void> _awardsTutorialSkipHandler() async {
     _dismissCoachSafely();
     _awardsCopyTutorialFlowActive = false;
@@ -688,26 +700,43 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     widget.onTutorialFlowEnded?.call();
   }
 
-  Future<void> _completeAwardsTutorialChainToMarkets() async {
+  Future<void> _completeAwardsTutorialChainToProfile() async {
     await _clearPending();
     await _markSeen();
     final p = await SharedPreferences.getInstance();
-    await p.setBool('__tutorial_pending__markets_v1', true);
+    await p.setBool('__tutorial_pending__userinfo_v1', true);
     if (!mounted) return;
-    Future.delayed(const Duration(milliseconds: 150), () {
-      if (!mounted) return;
-      widget.controller.updateIndex(2);
-    });
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    if (!mounted) return;
+    final strings = LocalizedStrings.of(context);
+    await showTutorialBottomNavNavigateHint(
+      context: context,
+      controller: widget.controller,
+      navTabKey: widget.bottomNavKeys.profile,
+      expectedTabIndex: 4,
+      title: strings?.get('tutorial_nav_tap_profile_title') ?? 'Your profile',
+      body: strings?.get('tutorial_nav_tap_profile_body') ??
+          'Tap the highlighted tab below to open your profile and finish the tour.',
+      onSkipTutorialFlow: () async {
+        await p.remove('__tutorial_pending__userinfo_v1');
+        await Common().markAllTutorialsSeen();
+        widget.onTutorialFlowEnded?.call();
+      },
+    );
   }
 
   void _handleCopyTutorialDemoDone() {
     _awardsCopyTutorialFlowActive = false;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _removeCoachOverlayOnly();
       if (Navigator.of(context, rootNavigator: true).canPop()) {
         Navigator.of(context, rootNavigator: true).pop();
       }
-      _showAwardsTutorialRafflesCoach();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _showAwardsTutorialRafflesCoach();
+      });
     });
   }
 
@@ -830,6 +859,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         if (target.identify == 'aw_top1' &&
             _cachedRank1User != null &&
             mounted) {
+          _removeCoachOverlayOnly();
           popUserDialog(
             context,
             _cachedRank1User!,
@@ -852,6 +882,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
   Future<void> _showAwardsTutorialRafflesCoach() async {
     await _waitForTargetsReady();
     if (!mounted) return;
+    _removeCoachOverlayOnly();
 
     final strings = LocalizedStrings.of(context);
     final targets = [
@@ -874,7 +905,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     ].where((t) => t.keyTarget?.currentContext != null).toList();
 
     if (targets.isEmpty) {
-      await _completeAwardsTutorialChainToMarkets();
+      await _completeAwardsTutorialChainToProfile();
       return;
     }
 
@@ -895,7 +926,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
         return true;
       },
       onFinish: () async {
-        await _completeAwardsTutorialChainToMarkets();
+        await _completeAwardsTutorialChainToProfile();
       },
     );
 
@@ -910,7 +941,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
 
     await _waitForTargetsReady();
 
-    if (widget.controller.selectedIndexNotifier.value != 1) return;
+    if (widget.controller.selectedIndexNotifier.value != 3) return;
 
     await _startAwardsTutorial();
   }
@@ -932,7 +963,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     });
 
     _tabListener = () {
-      if (widget.controller.selectedIndexNotifier.value == 1) {
+      if (widget.controller.selectedIndexNotifier.value == 3) {
         _tryStartAwardsTutorial();
       }
     };
@@ -940,7 +971,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     widget.controller.selectedIndexNotifier.addListener(_tabListener);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.controller.selectedIndexNotifier.value == 1) {
+      if (widget.controller.selectedIndexNotifier.value == 3) {
         _tryStartAwardsTutorial();
       }
     });

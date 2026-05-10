@@ -45,6 +45,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
         for (final it in resp['body'] as List) {
           list.add(Map<String, dynamic>.from(it));
         }
+        list.sort((a, b) => _withdrawalSortKey(b).compareTo(_withdrawalSortKey(a)));
 
         if (!mounted) return;
         setState(() {
@@ -72,6 +73,19 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
   void dispose() {
     _reloadTimer?.cancel();
     super.dispose();
+  }
+
+  static DateTime _withdrawalSortKey(Map<String, dynamic> row) {
+    final v = row['executed_at'] ?? row['executedAt'];
+    if (v == null) return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    if (v is DateTime) return v.toUtc();
+    if (v is String && v.trim().isNotEmpty) {
+      try {
+        final clean = v.replaceAll(RegExp(r'([+-]\d{2}:\d{2}|[+-]\d{2})$'), '');
+        return DateTime.parse(clean).toUtc();
+      } catch (_) {}
+    }
+    return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
   }
 
   String _formatDate(dynamic v) {
@@ -145,7 +159,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
       const Divider(thickness: 0.2),
       _kvRow(strings?.get('completed') ?? 'Completed', status, textColor, statusFlagMode: true),
       const Divider(thickness: 0.2),
-      _kvRow(strings?.get('atDate') ?? 'At date', executed, textColor),
+      _kvRow(strings?.get('atDate') ?? 'At date', executed, textColor, compactValue: true),
       const Divider(thickness: 0.2),
       if (method.isNotEmpty)
         _kvRow(strings?.get('method') ?? 'Method', method.replaceAll('_',' ').toUpperCase(), textColor),
@@ -217,12 +231,26 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
     );
   }
 
-  Widget _kvRow(String k, String v, Color textColor, {bool statusFlagMode = false, bool copyable = false}) {
+  Widget _kvRow(String k, String v, Color textColor,
+      {bool statusFlagMode = false, bool copyable = false, bool compactValue = false}) {
+    final labelStyle = GoogleFonts.montserrat(
+      color: textColor.withValues(alpha: .85),
+      fontSize: 18,
+      fontWeight: FontWeight.w400,
+    );
+    final double valueFontSize = compactValue ? 13 : 18;
+    final valueStyle = GoogleFonts.roboto(
+      color: textColor,
+      fontSize: valueFontSize,
+      fontWeight: FontWeight.w400,
+    );
+
     Widget rightChild;
 
     if (statusFlagMode) {
       rightChild = Row(
         mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             v == 'true' ? FontAwesomeIcons.check : FontAwesomeIcons.xmark,
@@ -234,12 +262,19 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
       Widget valueText = Text(
         v.isEmpty ? '—' : v,
         textAlign: TextAlign.right,
-        style: GoogleFonts.roboto(
-          color: textColor,
-          fontSize: 18,
-          fontWeight: FontWeight.w400,
-        ),
+        maxLines: 1,
+        softWrap: false,
+        overflow: compactValue ? TextOverflow.visible : TextOverflow.ellipsis,
+        style: valueStyle,
       );
+
+      if (compactValue) {
+        valueText = FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerRight,
+          child: valueText,
+        );
+      }
 
       if (copyable && v.isNotEmpty) {
         valueText = InkWell(
@@ -256,21 +291,28 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            flex: 4,
+            flex: 5,
             child: Text(
               k,
-              style: GoogleFonts.montserrat(
-                color: textColor.withValues(alpha: .85),
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
-              ),
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: labelStyle,
             ),
           ),
           const SizedBox(width: 8),
-          Expanded(flex: 6, child: rightChild),
+          Expanded(
+            flex: 5,
+            child: statusFlagMode
+                ? Align(
+                    alignment: Alignment.centerRight,
+                    child: rightChild,
+                  )
+                : rightChild,
+          ),
         ],
       ),
     );

@@ -150,8 +150,11 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
         );
         if (!mounted) return;
         if (ok == true) {
-          Navigator.of(context).pop();
-          widget.onCopyTutorialDemoComplete?.call();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            Navigator.of(context).pop();
+            widget.onCopyTutorialDemoComplete?.call();
+          });
         }
       },
       onSkip: () {

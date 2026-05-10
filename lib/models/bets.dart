@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../candlesticks/src/models/candle.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
+import 'zone_type.dart';
 import '../services/bet_zone_refresher.dart';
 import '../ui/candlesticks_view.dart';
 import '../ui/exact_price_view.dart';
@@ -33,6 +34,8 @@ class Bet {
   final DateTime endDate;
   final double targetOdds;
   final int betZone;
+  /// Tipo de zona del backend (`BetDto.Type`): 0 standard, 1 extreme, 2 limit.
+  final int zoneType;
   final bool? targetWon;
   final bool? finished;
   final double? profitLoss;
@@ -55,6 +58,7 @@ class Bet {
     required this.finished,
     required this.targetOdds,
     required this.betZone,
+    this.zoneType = 0,
   });
 
   static double _d(dynamic v) => (v == null) ? 0.0 : (v as num).toDouble();
@@ -77,7 +81,8 @@ class Bet {
         targetWon = json['targetWon'] as bool?,
         finished = json['finished'] as bool?,
         profitLoss = _profitLossFromJson(json),
-        betZone = _i(json['betZone']);
+        betZone = _i(json['betZone']),
+        zoneType = _i(json['type'] ?? json['Type'] ?? json['betType'] ?? 0);
 
   static DateTime _parseDate(dynamic v) {
     if (v == null || v.toString().trim().isEmpty) return DateTime.now().toUtc();
@@ -94,16 +99,90 @@ class Bet {
       final ba = _d(json['betAmount']);
       final tw = json['targetWon'];
       final to = _d(json['targetOdds']);
+      final finished = json['finished'] as bool?;
       final targetDate = (td != null && td.toString().trim().isNotEmpty)
           ? DateTime.tryParse(td.toString())
           : null;
       if (targetDate == null) return null;
-      if (targetDate.isAfter(DateTime.now().toUtc())) return ba;
+      final now = DateTime.now().toUtc();
+      if (targetDate.isAfter(now)) return ba;
+      if (finished != true) return null;
       if (tw == true) return ba * to;
       return ba * (-1);
     } catch (_) {
       return null;
     }
+  }
+}
+
+/// Deriva fechas y flags de UI para una apuesta reciente (UTC + tipo de zona).
+class RecentBetPresentation {
+  RecentBetPresentation({
+    required this.now,
+    required this.isExtremeZone,
+    required this.zoneStarted,
+    required this.windowEnded,
+    required this.finished,
+    required this.won,
+    required this.lost,
+    required this.isAlreadyLost,
+    required this.showWonTitle,
+    required this.showSlidableActions,
+    required this.hoursUntilTarget,
+    required this.minutesUntilTarget,
+    required this.hoursUntilFinal,
+    required this.minutesUntilFinal,
+  });
+
+  final DateTime now;
+  final bool isExtremeZone;
+  final bool zoneStarted;
+  final bool windowEnded;
+  final bool finished;
+  final bool won;
+  final bool lost;
+  final bool isAlreadyLost;
+  final bool showWonTitle;
+  final bool showSlidableActions;
+  final int hoursUntilTarget;
+  final int minutesUntilTarget;
+  final int hoursUntilFinal;
+  final int minutesUntilFinal;
+
+  bool get showBottomCountdownRow => !(finished && won);
+
+  factory RecentBetPresentation.fromBet(Bet bet, double necessaryGain) {
+    final now = DateTime.now().toUtc();
+    final zoneStarted = bet.targetDate.isBefore(now);
+    final windowEnded = bet.endDate.isBefore(now);
+    final finished = bet.finished == true;
+    final won = bet.targetWon == true;
+    final lost = finished && !won;
+    final isExtremeZone = bet.zoneType == BetZoneType.extreme.code;
+
+    final heuristicLost =
+        !isExtremeZone && zoneStarted && !finished && necessaryGain != 0.0;
+    final isAlreadyLost = lost || heuristicLost;
+
+    final showWonTitle = finished && won;
+    final showSlidableActions = isAlreadyLost || windowEnded || finished;
+
+    return RecentBetPresentation(
+      now: now,
+      isExtremeZone: isExtremeZone,
+      zoneStarted: zoneStarted,
+      windowEnded: windowEnded,
+      finished: finished,
+      won: won,
+      lost: lost,
+      isAlreadyLost: isAlreadyLost,
+      showWonTitle: showWonTitle,
+      showSlidableActions: showSlidableActions,
+      hoursUntilTarget: bet.targetDate.difference(now).inHours,
+      minutesUntilTarget: bet.targetDate.difference(now).inMinutes,
+      hoursUntilFinal: bet.endDate.difference(now).inHours,
+      minutesUntilFinal: bet.endDate.difference(now).inMinutes,
+    );
   }
 }
 
@@ -926,13 +1005,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
-    int hoursUntilTarget = widget.bet.targetDate.difference(DateTime.now().toUtc()).inHours;
-    int minutesUntilTarget = widget.bet.targetDate.difference(DateTime.now().toUtc()).inMinutes;
-    int hoursUntilFinal = widget.bet.endDate.difference(DateTime.now().toUtc()).inHours;
-    int minutesUntilFinal = widget.bet.endDate.difference(DateTime.now().toUtc()).inMinutes;
-    bool isActive = widget.bet.targetDate.isBefore(DateTime.now().toUtc());
-    bool isFinished = widget.bet.endDate.isBefore(DateTime.now().toUtc());
-    bool isAlreadyLost = (isActive && widget.bet.finished == true && widget.bet.targetWon == false) || (isActive && widget.bet.necessaryGain != 0.0);
+    final p = RecentBetPresentation.fromBet(widget.bet, widget.necessaryGain);
     double? betAmount = widget.bet.betAmount;
     String betAmountText = NumberFormat('0.##', 'en').format(betAmount);
     String? betMultiplierText = " x${widget.bet.targetOdds}";
@@ -943,7 +1016,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
       children: <Widget>[
         Slidable(
           key: Key(widget.bet.id.toString()),
-          endActionPane: (isAlreadyLost || DateTime.now().toUtc().isAfter(widget.bet.endDate))
+          endActionPane: p.showSlidableActions
               ? ActionPane(
                   motion: const ScrollMotion(),
                   extentRatio: 0.3,
@@ -1095,7 +1168,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                     )
                   : Row(
                       children: [
-                        if (isAlreadyLost) ...[
+                        if (p.isAlreadyLost) ...[
                           Text(
                             strings?.get('betLost') ?? "Bet failed",
                             style: GoogleFonts.rajdhani(
@@ -1104,8 +1177,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                               color: Colors.red,
                             ),
                           ),
-                        ] else if (isFinished &&
-                            widget.bet.targetWon == true) ...[
+                        ] else if (p.showWonTitle) ...[
                           Text(
                             "${strings?.get('betWon') ?? "Bet won"}!",
                             style: GoogleFonts.rajdhani(
@@ -1115,8 +1187,30 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                             ),
                           ),
                         ]
-                        // NOT LOST YET
                         else ...[
+                          if (p.isExtremeZone && !p.finished) ...[
+                            Icon(FontAwesomeIcons.bullseye,
+                                color: const Color(0xFFB400FF), size: 14),
+                            const SizedBox(width: 4),
+                            if (!p.zoneStarted) ...[
+                              Icon(FontAwesomeIcons.hourglassHalf, size: 12),
+                            ],
+                            Text(
+                              !p.zoneStarted
+                                  ? (p.hoursUntilTarget >= 1
+                                      ? '(${p.hoursUntilTarget} h)'
+                                      : '(${p.minutesUntilTarget} m)')
+                                  : " ${strings?.get('onPlay') ?? "On play!"} ",
+                              style: GoogleFonts.rajdhani(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            if (p.zoneStarted) ...[
+                              const Icon(FontAwesomeIcons.eye, size: 12)
+                            ],
+                          ] else ...[
                           if (widget.necessaryGain == 0.0)
                             Row(
                               children: [
@@ -1182,15 +1276,15 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                       : Colors.yellow),
                             ),
                           ),
-                          if (!isActive) ...[
+                          if (!p.zoneStarted) ...[
                             Icon(FontAwesomeIcons.hourglassHalf, size: 12),
                           ],
                           Text(
-                            (!isActive
-                                ? (hoursUntilTarget >= 1
-                                    ? '($hoursUntilTarget h)'
-                                    : '($minutesUntilTarget m)')
-                                : (!isFinished
+                            (!p.zoneStarted
+                                ? (p.hoursUntilTarget >= 1
+                                    ? '(${p.hoursUntilTarget} h)'
+                                    : '(${p.minutesUntilTarget} m)')
+                                : (!p.windowEnded
                                     ? " ${strings?.get('onPlay') ?? "On play!"} "
                                     : "")),
                             style: GoogleFonts.rajdhani(
@@ -1203,10 +1297,11 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                       : Colors.yellow),
                             ),
                           ),
-                          if (isActive) ...[
+                          if (p.zoneStarted) ...[
                             Icon(FontAwesomeIcons.eye, size: 12)
-                          ]
-                        ]
+                          ],
+                          ],
+                        ],
                       ],
                     ),
               trailing: _showEditButtons
@@ -1216,7 +1311,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (isFinished && widget.bet.targetWon == true) ...[
+                            if (p.showWonTitle) ...[
                               Text(
                                 prizeText,
                                 maxLines: 1,
@@ -1234,12 +1329,12 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                               ),
                             ] else ...[
                               Text(
-                                "${(isAlreadyLost ? "-" : "")}$betAmountText${((isAlreadyLost) ? "" : betMultiplierText)}",
+                                "${(p.isAlreadyLost ? "-" : "")}$betAmountText${((p.isAlreadyLost) ? "" : betMultiplierText)}",
                                 maxLines: 1,
                                 style: GoogleFonts.montserrat(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w300,
-                                  color: !isFinished && !isAlreadyLost
+                                  color: !p.windowEnded && !p.isAlreadyLost
                                       ? Colors.grey
                                       : widget.bet.targetWon == true
                                           ? Colors.green
@@ -1261,13 +1356,12 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                           child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                if (!(isFinished &&
-                                    widget.bet.targetWon == true)) ...[
+                                if (p.showBottomCountdownRow) ...[
                                   Text(
-                                    (!isFinished && !isAlreadyLost
-                                        ? (hoursUntilFinal > 0
-                                            ? "$hoursUntilFinal ${strings?.get('hours') ?? "hour/s"}"
-                                            : "${minutesUntilFinal}min.")
+                                    (!p.windowEnded && !p.isAlreadyLost
+                                        ? (p.hoursUntilFinal > 0
+                                            ? "${p.hoursUntilFinal} ${strings?.get('hours') ?? "hour/s"}"
+                                            : "${p.minutesUntilFinal}min.")
                                         : strings?.get('finished') ??
                                             "Finished"),
                                     style: GoogleFonts.rajdhani(
@@ -1277,7 +1371,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                                   ),
                                   const SizedBox(width: 5),
                                   Icon(
-                                    (!isFinished && !isAlreadyLost
+                                    (!p.windowEnded && !p.isAlreadyLost
                                         ? FontAwesomeIcons.hourglassHalf
                                         : Icons.timer_off_outlined),
                                     size: 16,

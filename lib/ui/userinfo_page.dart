@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:betrader/ui/paymenthistory_page.dart';
 import 'package:betrader/ui/verify_account_page.dart';
 import 'package:betrader/ui/withdrawalhistory_page.dart';
@@ -59,6 +60,7 @@ class UserInfoPageState extends State<UserInfoPage> {
   bool isDark = true;
   TutorialCoachMark? _coach;
   bool _tutorialQueued = false;
+  bool _launchingUserInfoTutorial = false;
   Map<String, String>? _cachedUserInfo;
   Future<Map<String, String>>? _userInfoFuture;
 
@@ -263,8 +265,14 @@ class UserInfoPageState extends State<UserInfoPage> {
     return FutureBuilder<Map<String, String>>(
       future: _userInfoFuture,
       builder: (BuildContext context, AsyncSnapshot<Map<String, String>> snapshot) {
-        // Asegurar que _builtOnce se complete en todos los casos
-        if (snapshot.connectionState != ConnectionState.waiting && !_tutorialQueued) {
+        // Solo desbloquear el tour cuando la lista con GlobalKeys está en el árbol
+        // (no en error sin caché ni en "no info" vacío antes de tiempo).
+        final listMounted = snapshot.hasData ||
+            (snapshot.connectionState == ConnectionState.waiting &&
+                _cachedUserInfo != null) ||
+            (snapshot.hasError && _cachedUserInfo != null);
+        final unblockNoList = snapshot.hasError && _cachedUserInfo == null;
+        if ((listMounted || unblockNoList) && !_tutorialQueued) {
           _tutorialQueued = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!_builtOnce.isCompleted) _builtOnce.complete();
@@ -709,38 +717,26 @@ class UserInfoPageState extends State<UserInfoPage> {
   }
 
   Future<void> startUserInfoTutorial() async {
-    LocalizedStrings? strings = LocalizedStrings.of(context);
-    if (!mounted) return;
+    if (_launchingUserInfoTutorial) return;
+    _launchingUserInfoTutorial = true;
+    try {
+      final LocalizedStrings? strings = LocalizedStrings.of(context);
+      if (!mounted) return;
 
-    // Esperar a que los widgets estén listos con delays apropiados
-    for (int i = 0; i < 50; i++) {
-      if (!mounted) return;
-      final ready = _kFirstSixTiles.currentContext != null &&
-          _kProfileCamera.currentContext != null &&
-          _kPaymentHistory.currentContext != null &&
-          _kWithdrawalHistory.currentContext != null &&
-          _kLogout.currentContext != null;
-      if (ready) break;
-      await Future.delayed(const Duration(milliseconds: 50));
-    }
-    
-    if (!mounted) return;
-    final targets = _buildUserInfoTargets();
-    if (targets.isEmpty) {
-      // Si los targets están vacíos, intentar una vez más después de un delay
-      await Future.delayed(const Duration(milliseconds: 200));
-      if (!mounted) return;
-      final retryTargets = _buildUserInfoTargets();
-      if (retryTargets.isEmpty) {
-        await _clearPending();
-        return;
+      // ListView materializa hijos bajo demanda: no exigir payment/logout aquí.
+      // Varios frames hasta que existan los focos visibles (p. ej. tras cambiar de pestaña).
+      for (var i = 0; i < 24; i++) {
+        if (!mounted) return;
+        final targets = _buildUserInfoTargets();
+        if (targets.isNotEmpty) {
+          _showTutorial(targets, strings);
+          return;
+        }
+        await WidgetsBinding.instance.endOfFrame;
       }
-      // Usar los targets del retry
-      _showTutorial(retryTargets, strings);
-      return;
+    } finally {
+      _launchingUserInfoTutorial = false;
     }
-    
-    _showTutorial(targets, strings);
   }
 
   void _showTutorial(List<TargetFocus> targets, LocalizedStrings? strings) {
@@ -749,7 +745,7 @@ class UserInfoPageState extends State<UserInfoPage> {
       targets: targets,
       colorShadow: Colors.black,
       opacityShadow: 0.75,
-      textSkip: strings!.get('tutorial_skip') ?? 'Skip tutorial',
+      textSkip: strings?.get('tutorial_skip') ?? 'Skip tutorial',
       textStyleSkip: const TextStyle(fontWeight: FontWeight.w500 , fontSize: 20),
       hideSkip: false,
       useSafeArea: true,
@@ -767,10 +763,130 @@ class UserInfoPageState extends State<UserInfoPage> {
         await _markSeen();
         await _clearPending();
         widget.controller.selectedIndexNotifier.removeListener(_onIndexChange);
+        if (!mounted) return;
+        await _showTutorialFlowCompleteDialog();
+        if (!mounted) return;
         widget.onTutorialFlowEnded?.call();
       },
     );
     _coach!.show(context: context);
+  }
+
+  Future<void> _showTutorialFlowCompleteDialog() async {
+    final strings = LocalizedStrings.of(context);
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.72),
+      builder: (ctx) {
+        final mq = MediaQuery.of(ctx);
+        final maxCardW = (mq.size.width * 0.9).clamp(0.0, 400.0);
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxCardW),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.10),
+                        Colors.white.withValues(alpha: 0.04),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.18),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        blurRadius: 28,
+                        offset: const Offset(0, 14),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          height: 56,
+                          width: double.infinity,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: Image.asset(
+                              'assets/betstrading_logo.png',
+                              filterQuality: FilterQuality.high,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Text(
+                          strings?.get('tutorial_flow_complete_title') ??
+                              'Welcome!',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 19,
+                            height: 1.2,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          strings?.get('tutorial_flow_complete_body') ??
+                              'You have finished the guided tour. Good luck!',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white.withValues(alpha: 0.78),
+                            height: 1.45,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            style: FilledButton.styleFrom(
+                              backgroundColor:
+                                  Colors.greenAccent.withValues(alpha: 0.88),
+                              foregroundColor: Colors.black87,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              strings?.get('accept') ?? 'OK',
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _clearPending() async {

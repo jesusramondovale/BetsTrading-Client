@@ -17,6 +17,7 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../helpers/common.dart';
 import '../helpers/preload_cache.dart';
+import '../helpers/tutorial_nav_hint.dart';
 import '../models/bets.dart';
 import '../models/trends.dart';
 import 'layout_page.dart';
@@ -32,9 +33,12 @@ class HomeScreen extends StatefulWidget {
   final MainMenuPageController controller;
   /// Llamado cuando el tutorial del home se omite o termina (para mostrar recompensa diaria después).
   final VoidCallback? onHomeTutorialFinished;
+  /// Claves de la barra inferior para el paso “cambia de pestaña manualmente”.
+  final MainMenuBottomNavKeys bottomNavKeys;
   const HomeScreen({
     super.key,
     required this.controller,
+    required this.bottomNavKeys,
     this.onHomeTutorialFinished,
   });
 
@@ -658,16 +662,30 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       onFinish: () async {
         await _markSeen('home_onboarding_v1');
         final p = await SharedPreferences.getInstance();
-        await p.setBool('__tutorial_pending__awards_v1', true);
+        await p.setBool('__tutorial_pending__exchange_v1', true);
 
-        // No llamar onHomeTutorialFinished aquí: el flujo continúa en Awards.
-        // La recompensa diaria se mostrará al omitir o al terminar el último tutorial (UserInfo).
+        // Flujo: Inicio → Exchange → Mercados → Premios → Perfil (orden del menú).
+        // No llamar onHomeTutorialFinished aquí. La recompensa diaria al final del tour (UserInfo).
 
         if (!mounted) return;
-        Future.delayed(const Duration(milliseconds: 150), () {
-          if (!mounted) return;
-          widget.controller.updateIndex(1);
-        });
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+        if (!mounted) return;
+        if (!context.mounted) return;
+        final navStrings = LocalizedStrings.of(context);
+        await showTutorialBottomNavNavigateHint(
+          context: context,
+          controller: widget.controller,
+          navTabKey: widget.bottomNavKeys.exchange,
+          expectedTabIndex: 1,
+          title: navStrings?.get('tutorial_nav_tap_exchange_title') ?? 'Exchange',
+          body: navStrings?.get('tutorial_nav_tap_exchange_body') ??
+              'Tap the highlighted tab below to open Exchange and continue the tour.',
+          onSkipTutorialFlow: () async {
+            await p.remove('__tutorial_pending__exchange_v1');
+            await Common().markAllTutorialsSeen();
+            widget.onHomeTutorialFinished?.call();
+          },
+        );
       },
     );
 

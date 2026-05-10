@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'dart:math' as math;
 import '../helpers/common.dart';
+import '../helpers/tutorial_nav_hint.dart';
 import '../models/bets.dart';
 import '../models/rectangle_zone.dart';
 import '../services/bet_zone_refresher.dart';
@@ -42,6 +43,9 @@ class CandlesticksView extends StatefulWidget {
   /// Horas por vela al abrir (1, 2, 4, 24). Si es null, se usa 1H por defecto.
   final int? initialTimeframeHours;
 
+  /// Claves de la barra inferior (solo flujo tutorial desde mercados).
+  final MainMenuBottomNavKeys? bottomNavKeys;
+
   const CandlesticksView({
     super.key,
     required this.controller,
@@ -52,6 +56,7 @@ class CandlesticksView extends StatefulWidget {
     this.tutorialMode = false,
     this.onTutorialFlowEnded,
     this.initialTimeframeHours,
+    this.bottomNavKeys,
   });
 
   @override
@@ -241,11 +246,33 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
             Navigator.of(context).pop();
           });
         } else {
-          // Flujo normal: continuar con el tutorial de exchange
-          await p.setBool('__tutorial_pending__exchange_v1', true);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          await p.setBool('__tutorial_pending__awards_v1', true);
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (!mounted) return;
             Navigator.of(context).pop();
-            if (mounted) widget.controller.updateIndex(3);
+            await Future<void>.delayed(const Duration(milliseconds: 200));
+            final rootCtx = homeScreenKey.currentContext ??
+                marketsPageKey.currentContext ??
+                exchangePageKey.currentContext;
+            final keys = widget.bottomNavKeys;
+            if (rootCtx != null && rootCtx.mounted && keys != null) {
+              final strings = LocalizedStrings.of(rootCtx);
+              await showTutorialBottomNavNavigateHint(
+                context: rootCtx,
+                controller: widget.controller,
+                navTabKey: keys.awards,
+                expectedTabIndex: 3,
+                title: strings?.get('tutorial_nav_tap_awards_title') ??
+                    'Awards / Ranking',
+                body: strings?.get('tutorial_nav_tap_awards_body') ??
+                    'Tap the highlighted tab below to open Awards and continue the tour.',
+                onSkipTutorialFlow: () async {
+                  await p.remove('__tutorial_pending__awards_v1');
+                  await Common().markAllTutorialsSeen();
+                  widget.onTutorialFlowEnded?.call();
+                },
+              );
+            }
           });
         }
       },
