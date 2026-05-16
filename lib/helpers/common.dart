@@ -18,10 +18,11 @@ import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../main.dart';
 import '../models/bet_zone.dart';
 import '../models/bets.dart';
 import '../models/trends.dart';
+import '../local_notifications.dart';
+import 'forced_logout_ui.dart';
 import '../ui/layout_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -988,35 +989,19 @@ class Common {
     return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 
-  List<String> getAllGenders() {
-    return <String>[
-      'Masculine',
-      'Feminine',
-      'Non-Binary',
-      'Cisgender',
-      'TDI 1.9',
-      'Autobot',
-      'Genderqueer',
-      'Medabot Type KBT',
-      'Sonic the Hedhehog',
-      'Agender',
-      'Bigender',
-      'Napoleón Bonaparte',
-      'Doraemon',
-      'Transgender',
-      'Transfeminine',
-      'Decepticon',
-      'Transmasculine',
-      'LOL',
-      'Apache Combat Helicopter',
-      'Nigga',
-      'Medabot Type KWG',
-      'SSD Toshiba 512GB',
-      'Neutrois',
-      'Dont fucking know',
-      'Snorlax',
-      // Add more if necessary ...............
-    ];
+  List<String> getAllGenders() => const ['male', 'female', 'other'];
+
+  String getGenderLabel(LocalizedStrings? strings, String value) {
+    switch (value) {
+      case 'male':
+        return strings?.get('genderMale') ?? 'Male';
+      case 'female':
+        return strings?.get('genderFemale') ?? 'Female';
+      case 'other':
+        return strings?.get('genderOther') ?? 'Other';
+      default:
+        return value;
+    }
   }
 
   List<Candle> generateConstantCandles(int count) {
@@ -1252,14 +1237,6 @@ class Common {
       final HttpClientResponse response = await request.close();
       final String responseBody = await response.transform(utf8.decoder).join();
 
-      if (clearingOnForbidden && (response.statusCode == 401 || response.statusCode == 403)) { // Unauthorized/Forbidden
-
-        final storage = FlutterSecureStorage();
-        await storage.deleteAll();
-
-        LoginPage.navigateToLogin(null);
-      }
-
       // Handle empty or invalid JSON responses
       dynamic body;
       if (responseBody.isEmpty || responseBody.trim().isEmpty) {
@@ -1271,6 +1248,20 @@ class Common {
         } catch (e) {
           body = {'message': 'Invalid JSON response from server', 'error': e.toString()};
         }
+      }
+
+      if (response.statusCode == 503 &&
+          body is Map &&
+          body['accessLocked'] == true) {
+        final storage = FlutterSecureStorage();
+        await storage.deleteAll();
+        showMaintenanceLogoutFromAccessLock();
+      } else if (clearingOnForbidden &&
+          (response.statusCode == 401 || response.statusCode == 403)) {
+        final storage = FlutterSecureStorage();
+        await storage.deleteAll();
+
+        LoginPage.navigateToLogin(null);
       }
 
       return {
@@ -1355,6 +1346,19 @@ class Common {
     return lengthOK && hasUppercase && hasNumber;
   }
 
+  String oopsErrorMessage(BuildContext context) {
+    return LocalizedStrings.of(context)?.get('oopsError') ?? 'Oops.. error';
+  }
+
+  void showErrorSnack(BuildContext context, {int theDuration = 4}) {
+    showFloatingSnack(
+      context,
+      oopsErrorMessage(context),
+      backgroundColor: Colors.red,
+      theDuration: theDuration,
+    );
+  }
+
   void showFloatingSnack(BuildContext context, String text, {Color backgroundColor = Colors.green , int theDuration = 4, bool showIcon = false}) {
     final overlay = Overlay.of(context);
     final overlayEntry = OverlayEntry(builder: (_) => _FloatingSnack(text: text, bg: backgroundColor, duration: theDuration, mustShowIcon : showIcon));
@@ -1395,7 +1399,7 @@ class Common {
       uri,
       mode: LaunchMode.inAppBrowserView,// navegador interno
     )) {
-      Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+      showErrorSnack(context);
     }
   }
 
@@ -1421,7 +1425,7 @@ class Common {
     );
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
         context.mounted) {
-      showFloatingSnack(context, 'Error!', backgroundColor: Colors.red);
+      showErrorSnack(context);
     }
   }
 

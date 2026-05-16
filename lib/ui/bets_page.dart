@@ -279,12 +279,7 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
 
       } else {
         if (bettingNotifications) {
-          Common().showFloatingSnack(
-              context,
-              (LocalizedStrings.of(context)!.get('errorMakingBet') ?? "Error creating bet!"),
-              
-              backgroundColor: Colors.red
-          );
+          Common().showErrorSnack(context);
         }
         Navigator.pop(context);
         if (!widget.fromDirectMaxOddFlow) {

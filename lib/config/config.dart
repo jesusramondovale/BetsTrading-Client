@@ -7,7 +7,7 @@ class Config {
   static const String stripePublicRealKey = 'pk_live_51Ro4wQIXoMzVIHug9YI9hVDENlIIGqUIGIsIPapb4GHnAwtf7Vr3TxbfUHKRnk6sQk2tYTj963a5NWAICZD9XFFD00caAloHeS'; //REAL
 
   static const String termsNConditionsPage = 'https://raw.githubusercontent.com/jesusramondovale/BetsTrading-Client/refs/heads/android-master/policies/privacy_policy_en.md';
-  static const String codeVersion = '26.129.1';
+  static const String codeVersion = '26.136.1';
   static const String admobAppId = 'ca-app-pub-2465898294053562/1629478765';
   static const String admobAdToken = 'ca-app-pub-2465898294053562/4804536511'; // REAL
   /// Intersticial obligatorio (apuestas / umbral API / daily reward).

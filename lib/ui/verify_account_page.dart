@@ -43,11 +43,7 @@ class VerifyAccountPageState extends State<VerifyAccountPage> {
         _sessionUrl = response['body']["url"];
       });
     } else {
-      Common().showFloatingSnack(
-        context,
-        "Error creando sesión Didit",
-        backgroundColor: Colors.red,
-      );
+      Common().showErrorSnack(context);
     }
 
     setState(() => _loading = false);
@@ -89,12 +85,7 @@ class VerifyAccountPageState extends State<VerifyAccountPage> {
                   MaterialPageRoute(builder: (context) => VerifyAccountPage(userId: widget.userId)),
                       (Route<dynamic> route) => false,
                 );
-                Common().showFloatingSnack(
-                  context,
-                  backgroundColor: Colors.red,
-                  strings.get("accountVerificationError") ??
-                      "Error verifying account",
-                );
+                Common().showErrorSnack(context);
               }
             },
           ),

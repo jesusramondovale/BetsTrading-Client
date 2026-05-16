@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/config.dart';
-import '../main.dart';
+import '../app_navigator.dart';
 
 /// Razón de un intersticial obligatorio (sin recompensa).
 enum MandatoryInterstitialReason { bet, dailyRewardAfterCoins, foregroundTime }

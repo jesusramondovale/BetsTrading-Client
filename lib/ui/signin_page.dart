@@ -170,18 +170,10 @@ class _SignInState extends State<SignIn> {
                               aContext,
                             );
                           } else {
-                            Common().showFloatingSnack(
-                              aContext,
-                              "Oops... error",
-                              backgroundColor: Colors.red,
-                            );
+                            Common().showErrorSnack(aContext);
                           }
                         } catch (e) {
-                          Common().showFloatingSnack(
-                            aContext,
-                            "Error: $e",
-                            backgroundColor: Colors.red,
-                          );
+                          Common().showErrorSnack(aContext);
                         }
                       }
                           : null,
@@ -689,7 +681,7 @@ class _SignInState extends State<SignIn> {
           .map(
             (gender) => DropdownMenuItem(
           value: gender,
-          child: Text(gender),
+          child: Text(Common().getGenderLabel(strings, gender)),
         ),
       )
           .toList(),

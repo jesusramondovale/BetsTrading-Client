@@ -16,7 +16,7 @@ import '../services/bets_service.dart';
 import 'first_time_page.dart';
 import 'layout_page.dart';
 import 'markets_page.dart';
-import '../main.dart' show navigatorKey;
+import '../app_navigator.dart';
 
 /// Helper function to wait for the next frame to be rendered.
 ///
@@ -569,11 +569,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
 
       } else {
         if (!mounted) return;
-        if ("null" == result['message'] || null == result['message']) {
-          Common().showFloatingSnack(context,"Oops... ${strings.get("serverUnavailable")}", backgroundColor: Colors.red);
-        } else {
-          Common().showFloatingSnack(context,"Oops... ${strings.get(result['message'])}", backgroundColor: Colors.red);
-        }
+        Common().showErrorSnack(context);
       }
     } catch (e) {
       if (!mounted) return;
@@ -664,18 +660,10 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
                               "Password changed successfully");
 
                     } else if (response['statusCode'] == 404){
-                      Common().showFloatingSnack(
-                          context,
-                          strings?.get('userOrEmailNotFound') ??
-                              "Mail not found",
-                          backgroundColor: Colors.red);
+                      Common().showErrorSnack(context);
 
                     } else {
-                      Common().showFloatingSnack(
-                          context,
-                          strings?.get('errorChangingPassword') ??
-                              "Error changing password",
-                          backgroundColor: Colors.red);
+                      Common().showErrorSnack(context);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -842,7 +830,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         }
         else {
           if (!mounted) return;
-          Common().showFloatingSnack(context, "Ooops... error!", backgroundColor: Colors.red);
+          Common().showErrorSnack(context);
           if (kDebugMode) {
             print("Error on Google LogIn.");
           }

@@ -1076,7 +1076,10 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
                                   fontWeight: FontWeight.w200),
                             ),
                             Spacer(),
-                            DaysToMinutesCountDown(scaleFactor: scaleFactor)
+                            DaysToMinutesCountDown(
+                              raffleItems: _raffleItems,
+                              scaleFactor: scaleFactor,
+                            )
                           ],
                         ),
                         Divider(color: Colors.white, thickness: 0.5, height: 0.5),
@@ -1299,16 +1302,23 @@ class MedalBadge extends StatelessWidget {
   }
 }
 class DaysToMinutesCountDown extends StatefulWidget {
-  const DaysToMinutesCountDown({super.key, this.showLabel = true, this.scaleFactor = 1.0});
+  const DaysToMinutesCountDown({
+    super.key,
+    this.showLabel = true,
+    this.scaleFactor = 1.0,
+    this.raffleItems,
+  });
   final bool showLabel;
   final double scaleFactor;
+  final List<RaffleItem>? raffleItems;
 
   @override
   State<DaysToMinutesCountDown> createState() => _DaysToMinutesCountDownState();
 }
 class _DaysToMinutesCountDownState extends State<DaysToMinutesCountDown> {
   late Timer _timer;
-  late String formattedRemaining;
+  String formattedRemaining = '';
+  bool _hasUpcoming = false;
 
   @override
   void initState() {
@@ -1317,22 +1327,60 @@ class _DaysToMinutesCountDownState extends State<DaysToMinutesCountDown> {
     _timer = Timer.periodic(const Duration(minutes: 1), (_) => _updateTime());
   }
 
+  @override
+  void didUpdateWidget(covariant DaysToMinutesCountDown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.raffleItems != widget.raffleItems) {
+      _updateTime();
+    }
+  }
+
+  DateTime? _nearestFutureRaffleUtc() {
+    final items = widget.raffleItems;
+    if (items == null || items.isEmpty) return null;
+    final now = DateTime.now().toUtc();
+    DateTime? nearest;
+    for (final item in items) {
+      final target = item.raffleDate.toUtc();
+      if (!target.isAfter(now)) continue;
+      if (nearest == null || target.isBefore(nearest)) {
+        nearest = target;
+      }
+    }
+    return nearest;
+  }
+
   void _updateTime() {
+    final nearest = _nearestFutureRaffleUtc();
+    if (nearest == null) {
+      if (mounted) {
+        setState(() {
+          _hasUpcoming = false;
+          formattedRemaining = '';
+        });
+      }
+      return;
+    }
 
     final now = DateTime.now().toUtc();
-    final nextFirstOfMonth = DateTime(now.year, now.month + 1, 1);
-    final diff = nextFirstOfMonth.difference(now);
+    var diff = nearest.difference(now);
+    if (diff.isNegative) diff = Duration.zero;
 
     final remainingDays = diff.inDays;
     final remainingHours = diff.inHours % 24;
 
-    setState(() {
-      formattedRemaining = '${remainingDays}D ${remainingHours}h';
-    });
+    if (mounted) {
+      setState(() {
+        _hasUpcoming = true;
+        formattedRemaining = '${remainingDays}D ${remainingHours}h';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_hasUpcoming) return const SizedBox.shrink();
+
     final strings = LocalizedStrings.of(context);
     String labelText = '';
     if (widget.showLabel) {
@@ -1369,20 +1417,31 @@ class _DaysToMinutesCountDownState extends State<DaysToMinutesCountDown> {
   }
 }
 
-class RafflesBuilder extends StatelessWidget {
+class RafflesBuilder extends StatefulWidget {
   final List<RaffleItem> raffleItems;
   final double userPoints;
   final String userId;
   final double scaleFactor;
-  final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
   final Future<void> Function()? onRaffleSuccess;
 
-  RafflesBuilder({super.key,
+  const RafflesBuilder({
+    super.key,
     required this.raffleItems,
     required this.userPoints,
     required this.userId,
     this.scaleFactor = 1.0,
-    this.onRaffleSuccess,});
+    this.onRaffleSuccess,
+  });
+
+  @override
+  State<RafflesBuilder> createState() => _RafflesBuilderState();
+}
+
+class _RafflesBuilderState extends State<RafflesBuilder> {
+  final Set<int> _localParticipatedIds = {};
+
+  bool _hasParticipated(RaffleItem item) =>
+      item.alreadyParticipated || _localParticipatedIds.contains(item.id);
 
   Future<bool?> _showConfirmRaffleDialog(
       BuildContext aContext, RaffleItem raffleItem, double userPoints) async {
@@ -1497,21 +1556,47 @@ class RafflesBuilder extends StatelessWidget {
                           icon: betraderIconBase64,
                           betAmount: raffleItem.coins.toDouble(),
                           onSlideComplete: () async {
+                            if (_hasParticipated(raffleItem)) {
+                              Common().vibrate(100, 100);
+                              Common().showFloatingSnack(
+                                context,
+                                LocalizedStrings.of(context)
+                                        ?.get('raffleAlreadyParticipated') ??
+                                    'You have already joined this raffle',
+                                backgroundColor: Colors.orange,
+                              );
+                              return;
+                            }
                             final response = await Common().postRequestWrapper('Info','NewRaffle', {
-                              'userId': userId,
+                              'userId': widget.userId,
                               'itemToken': raffleItem.id.toString(),
                             });
                             if (response['statusCode'] == 200) {
                               Common().vibrate(100,100);
-                              await BetsService().getUserInfo(userId);
-                              if (onRaffleSuccess != null) await onRaffleSuccess!();
+                              if (mounted) {
+                                setState(() => _localParticipatedIds.add(raffleItem.id));
+                              }
+                              await BetsService().getUserInfo(widget.userId);
+                              if (widget.onRaffleSuccess != null) await widget.onRaffleSuccess!();
                               Common().showFloatingSnack(context,
                                   LocalizedStrings.of(context)!.get('raffleParticipated') ?? "Raffle participated successfully!"
                               );
                               Navigator.pop(context);
+                            } else if (response['statusCode'] == 409) {
+                              Common().vibrate(100,100);
+                              if (mounted) {
+                                setState(() => _localParticipatedIds.add(raffleItem.id));
+                              }
+                              Common().showFloatingSnack(
+                                context,
+                                LocalizedStrings.of(context)?.get('raffleAlreadyParticipated') ??
+                                    'You have already joined this raffle',
+                                backgroundColor: Colors.orange,
+                              );
+                              Navigator.pop(context);
                             } else {
                               Common().vibrate(100,100);
-                              Common().showFloatingSnack(context, "Oops... error", backgroundColor: Colors.red);
+                              Common().showErrorSnack(context);
                             }
                           },
                         ),
@@ -1531,11 +1616,22 @@ class RafflesBuilder extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (raffleItems.isEmpty) {
-      return _RafflesSkeletonGrid(scaleFactor: scaleFactor);
+  void didUpdateWidget(covariant RafflesBuilder oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    for (final item in widget.raffleItems) {
+      if (item.alreadyParticipated) {
+        _localParticipatedIds.add(item.id);
+      }
     }
-    
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.raffleItems.isEmpty) {
+      return _RafflesSkeletonGrid(scaleFactor: widget.scaleFactor);
+    }
+
+    final scaleFactor = widget.scaleFactor;
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -1599,7 +1695,7 @@ class RafflesBuilder extends StatelessWidget {
                                 extraBottomPadding;
     
     // Calcular número de filas necesarias
-    final rowCount = (raffleItems.length / crossAxisCount).ceil();
+    final rowCount = (widget.raffleItems.length / crossAxisCount).ceil();
     final topPadding = (8 * scaleFactor).clamp(4.0, 12.0);
     final bottomPadding = (8 * scaleFactor).clamp(4.0, 12.0);
     
@@ -1624,7 +1720,7 @@ class RafflesBuilder extends StatelessWidget {
           top: topPadding,
           bottom: bottomPadding,
         ),
-        itemCount: raffleItems.length,
+        itemCount: widget.raffleItems.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
           crossAxisSpacing: crossAxisSpacing,
@@ -1632,12 +1728,14 @@ class RafflesBuilder extends StatelessWidget {
           childAspectRatio: adjustedAspectRatio,
         ),
       itemBuilder: (context, index) {
-        RaffleItem raffleItem = raffleItems[index];
+        RaffleItem raffleItem = widget.raffleItems[index];
         final name =  raffleItem.name;
         final shortName = raffleItem.shortName;
         final coins = raffleItem.coins;
         final image = raffleItem.icon;
         final borderRadius = BorderRadius.circular(14);
+        final participated = _hasParticipated(raffleItem);
+        final cardPadding = (8.0 * scaleFactor).clamp(6.0, 10.0);
 
         return Material(
           color: Colors.transparent,
@@ -1646,13 +1744,18 @@ class RafflesBuilder extends StatelessWidget {
             onTap: () async {
               Common().vibrate();
               Common().applyImmersive();
-              _showConfirmRaffleDialog(context, raffleItem, userPoints);
+              _showConfirmRaffleDialog(context, raffleItem, widget.userPoints);
             },
             child: Ink(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.06),
                 borderRadius: borderRadius,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.10), width: 1),
+                border: Border.all(
+                  color: participated
+                      ? Colors.greenAccent.withValues(alpha: 0.45)
+                      : Colors.white.withValues(alpha: 0.10),
+                  width: participated ? 1.5 : 1,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.18),
@@ -1661,64 +1764,75 @@ class RafflesBuilder extends StatelessWidget {
                   ),
                 ],
               ),
-              padding: EdgeInsets.all((8.0 * scaleFactor).clamp(6.0, 10.0)),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  if (image.isNotEmpty)
-                    Image.memory(
-                      base64Decode(image),
-                      height: MediaQuery.of(context).size.height * 0.09 * scaleFactor,
-                      fit: BoxFit.fill,
-                    ),
-                  if (name.isNotEmpty) ...[
-                    SizedBox(height: (3 * scaleFactor).clamp(2.0, 4.0)),
-                    Row(
+                  Padding(
+                    padding: EdgeInsets.all(cardPadding),
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          shortName,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.montserrat(
-                            fontSize: (17 * scaleFactor).clamp(14.0, 20.0),
-                            fontWeight: FontWeight.w300,
-                            color: Colors.white.withValues(alpha: 0.95),
-                            letterSpacing: 0.2,
+                        if (image.isNotEmpty)
+                          Image.memory(
+                            base64Decode(image),
+                            height: MediaQuery.of(context).size.height * 0.09 * scaleFactor,
+                            fit: BoxFit.fill,
                           ),
-                        ),
-                        Text.rich(
-                          TextSpan(
+                        if (name.isNotEmpty) ...[
+                          SizedBox(height: (3 * scaleFactor).clamp(2.0, 4.0)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const TextSpan(text: " ("),
-                              TextSpan(text: NumberFormat.compact().format(coins)),
-                              const TextSpan(text: ""),
-                              WidgetSpan(
-                                alignment: PlaceholderAlignment.middle,
-
-                                child: Padding(
-                                  padding: EdgeInsets.zero,
-                                  child: Image.asset(
-                                    'assets/coin.png',
-                                    width: (16 * scaleFactor).clamp(12.0, 20.0),
-                                    height: (16 * scaleFactor).clamp(12.0, 20.0),
-                                  ),
+                              Text(
+                                shortName,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: (17 * scaleFactor).clamp(14.0, 20.0),
+                                  fontWeight: FontWeight.w300,
+                                  color: Colors.white.withValues(alpha: 0.95),
+                                  letterSpacing: 0.2,
                                 ),
                               ),
-                              const TextSpan(text: ")"),
+                              Text.rich(
+                                TextSpan(
+                                  children: [
+                                    const TextSpan(text: " ("),
+                                    TextSpan(text: NumberFormat.compact().format(coins)),
+                                    const TextSpan(text: ""),
+                                    WidgetSpan(
+                                      alignment: PlaceholderAlignment.middle,
+                                      child: Padding(
+                                        padding: EdgeInsets.zero,
+                                        child: Image.asset(
+                                          'assets/coin.png',
+                                          width: (16 * scaleFactor).clamp(12.0, 20.0),
+                                          height: (16 * scaleFactor).clamp(12.0, 20.0),
+                                        ),
+                                      ),
+                                    ),
+                                    const TextSpan(text: ")"),
+                                  ],
+                                ),
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: (17 * scaleFactor).clamp(14.0, 20.0),
+                                  fontWeight: FontWeight.w300,
+                                  color: Colors.white.withValues(alpha: 0.95),
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
                             ],
                           ),
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.montserrat(
-                            fontSize: (17 * scaleFactor).clamp(14.0, 20.0),
-                            fontWeight: FontWeight.w300,
-                            color: Colors.white.withValues(alpha: 0.95),
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-
+                        ],
                       ],
-                    )
-                  ],
+                    ),
+                  ),
+                  if (participated)
+                    Positioned(
+                      top: (5 * scaleFactor).clamp(4.0, 7.0),
+                      right: (5 * scaleFactor).clamp(4.0, 7.0),
+                      child: _RaffleParticipatedBadge(scaleFactor: scaleFactor),
+                    ),
                 ],
               ),
             ),
@@ -1728,6 +1842,37 @@ class RafflesBuilder extends StatelessWidget {
       },
         ),
       );
+  }
+}
+
+class _RaffleParticipatedBadge extends StatelessWidget {
+  const _RaffleParticipatedBadge({required this.scaleFactor});
+
+  final double scaleFactor;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = (22 * scaleFactor).clamp(18.0, 26.0);
+    final iconSize = (14 * scaleFactor).clamp(12.0, 16.0);
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.green.shade600,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.shade900.withValues(alpha: 0.45),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Icon(Icons.check_rounded, color: Colors.white, size: iconSize),
+    );
   }
 }
 

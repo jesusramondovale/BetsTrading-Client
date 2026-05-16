@@ -253,20 +253,10 @@ class SettingsViewState extends State<SettingsView> {
                             "Password changed successfully");
                     Navigator.of(dialogContext).pop(true);
                   } else if (result == 1) { // NOT FOUND
-                    Common().showFloatingSnack(
-                      context,
-                      strings?.get('userOrEmailNotFound') ??
-                          "Mail not found",
-                      backgroundColor: Colors.red,
-                    );
+                    Common().showErrorSnack(context);
                   }
                   else {
-                    Common().showFloatingSnack(
-                      context,
-                      strings?.get('errorChangingPassword') ??
-                          "Error changing password",
-                      backgroundColor: Colors.red,
-                    );
+                    Common().showErrorSnack(context);
                   }
                 },
                 style: ElevatedButton.styleFrom(

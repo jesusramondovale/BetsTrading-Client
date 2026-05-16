@@ -419,13 +419,7 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
                         return;
                       }
 
-                      Common().showFloatingSnack(
-                        context,
-                        (result['message']?.toString().isNotEmpty ?? false)
-                            ? result['message'].toString()
-                            : 'Error configurando copy-trading',
-                        backgroundColor: Colors.red,
-                      );
+                      Common().showErrorSnack(context);
                     },
                   ),
                 ),

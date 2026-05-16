@@ -515,12 +515,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       if (e.error.code != stripe.FailureCode.Canceled) {
         if (!mounted) return;
         Navigator.pop(context);
-        Common().showFloatingSnack(
-          context,
-          LocalizedStrings.of(context)!.get('transactionError') ??
-              "Error during transaction process!",
-          backgroundColor: Colors.red,
-        );
+        Common().showErrorSnack(context);
       }
     }
   }
@@ -595,22 +590,12 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       if (e.error.code != stripe.FailureCode.Canceled) {
         if (!mounted) return;
         Navigator.pop(context);
-        Common().showFloatingSnack(
-          context,
-          LocalizedStrings.of(context)!.get('transactionError') ??
-              'Error during transaction process!',
-          backgroundColor: Colors.red,
-        );
+        Common().showErrorSnack(context);
       }
     } catch (e) {
       debugPrint('No Ads payment error: $e');
       if (!mounted) return;
-      Common().showFloatingSnack(
-        context,
-        LocalizedStrings.of(context)!.get('transactionError') ??
-            'Error during transaction process!',
-        backgroundColor: Colors.red,
-      );
+      Common().showErrorSnack(context);
     }
   }
 

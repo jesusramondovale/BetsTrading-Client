@@ -296,34 +296,14 @@ class _ExactPricePageState extends State<ExactPricePage> {
                             });
                           });
                         } else if (result == 410) {
-                          Common().showFloatingSnack(
-                              context,
-                              "${LocalizedStrings.of(context)!
-                                          .get('errorMakingBet') ??
-                                      "Error creating price bet!"}(NO TIME)",
-                              backgroundColor: Colors.red);
+                          Common().showErrorSnack(context);
                         } else if (result == 420) {
-                          Common().showFloatingSnack(
-                              context,
-                              (LocalizedStrings.of(context)!
-                                      .get('betErrorPoints') ??
-                                  "Not enough points!"),
-                              backgroundColor: Colors.red);
+                          Common().showErrorSnack(context);
                         } else if (result == 430) {
-                          Common().showFloatingSnack(
-                              context,
-                              (LocalizedStrings.of(context)!
-                                      .get('betAlreadyExists') ??
-                                  "Bet already exists!"),
-                              backgroundColor: Colors.red);
+                          Common().showErrorSnack(context);
                         } else {
                           if (bettingNotifications) {
-                            Common().showFloatingSnack(
-                                context,
-                                (LocalizedStrings.of(context)!
-                                        .get('errorMakingBet') ??
-                                    "Error creating price bet!"),
-                                backgroundColor: Colors.red);
+                            Common().showErrorSnack(context);
                           }
                           Navigator.pop(context);
                           Navigator.pop(context);

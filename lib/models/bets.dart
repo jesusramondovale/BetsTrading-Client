@@ -1029,10 +1029,10 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                       try {
                         final ok = await BetsService().deleteRecentBet(widget.bet.id.toString());
                         if (!ok) {
-                          Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+                          Common().showErrorSnack(context);
                         }
                       } catch (_) {
-                        Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+                        Common().showErrorSnack(context);
                       }
                     },
                   ),
@@ -1502,10 +1502,10 @@ class RecentPriceBetContainerState extends State<RecentPriceBetContainer> {
                       try {
                         final ok = await BetsService().deleteRecentPriceBet(widget.priceBet.id.toString(), _currency.toUpperCase());
                         if (!ok) {
-                          Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+                          Common().showErrorSnack(context);
                         }
                       } catch (_) {
-                        Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+                        Common().showErrorSnack(context);
                       }
                     },
                   ),

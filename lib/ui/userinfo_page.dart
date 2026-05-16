@@ -636,7 +636,7 @@ class UserInfoPageState extends State<UserInfoPage> {
             } else {
               if (mounted) {
                 setState(() {
-                  Common().popDialog("Oops...", "${response['message']}", context);
+                  Common().popDialog('', Common().oopsErrorMessage(context), context);
                 });
               }
             }

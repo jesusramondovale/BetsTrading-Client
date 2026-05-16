@@ -8,8 +8,18 @@ class RaffleItem {
   final DateTime raffleDate;
   final String icon;
   final int participants;
+  final bool alreadyParticipated;
 
-  RaffleItem(this.id, this.name, this.shortName, this.coins, this.raffleDate, this.icon, this.participants);
+  RaffleItem(
+    this.id,
+    this.name,
+    this.shortName,
+    this.coins,
+    this.raffleDate,
+    this.icon,
+    this.participants, {
+    this.alreadyParticipated = false,
+  });
 
   RaffleItem.fromJson(Map<String, dynamic> json)
       : id = (json['id'] as num?)?.toInt() ?? 0,
@@ -18,7 +28,8 @@ class RaffleItem {
         coins = (json['coins'] as num?)?.toInt() ?? 0,
         raffleDate = _parseRaffleDate(json['raffleDate']),
         icon = (json['icon']?.toString()) ?? '',
-        participants = (json['participants'] as num?)?.toInt() ?? 0;
+        participants = (json['participants'] as num?)?.toInt() ?? 0,
+        alreadyParticipated = json['alreadyParticipated'] == true;
 
   static DateTime _parseRaffleDate(dynamic v) {
     if (v == null || v.toString().trim().isEmpty) return DateTime.now().toUtc();

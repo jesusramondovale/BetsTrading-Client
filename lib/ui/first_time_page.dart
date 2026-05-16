@@ -328,11 +328,7 @@ class _FirstTimePageState extends State<FirstTimePage> {
                               MaterialPageRoute(builder: (context) => const MainMenuPage()),
                             );
                           } else {
-                            Common().showFloatingSnack(
-                              context,
-                              strings?.get('errorChangingPassword') ?? "Oops... error",
-                              backgroundColor: Colors.red,
-                            );
+                            Common().showErrorSnack(context);
                           }
                         },
                       ),

@@ -48,19 +48,11 @@ class SecureAuthService {
         ),
       );
       if (!ok) {
-        Common().showFloatingSnack(
-          context,
-          LocalizedStrings.of(context)?.get('errorTryAgain') ?? 'Error. Try again',
-          backgroundColor: Colors.red,
-        );
+        Common().showErrorSnack(context);
       }
       return ok;
     } catch (_) {
-      Common().showFloatingSnack(
-        context,
-        LocalizedStrings.of(context)?.get('errorTryAgain') ?? 'Error. Try again',
-        backgroundColor: Colors.red,
-      );
+      Common().showErrorSnack(context);
       return false;
     }
   }
@@ -92,11 +84,7 @@ class SecureAuthService {
     if (!biomOk) return null;
     final token = await requestStepUpToken(purpose, maxAmountCoins: maxAmountCoins);
     if (token == null && context.mounted) {
-      Common().showFloatingSnack(
-        context,
-        LocalizedStrings.of(context)?.get('errorTryAgain') ?? 'Error. Try again',
-        backgroundColor: Colors.red,
-      );
+      Common().showErrorSnack(context);
     }
     return token;
   }

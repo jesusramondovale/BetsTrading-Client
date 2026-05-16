@@ -473,7 +473,7 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
           _favTickers.add(key);
         }
       });
-      Common().showFloatingSnack(context, "Error updating favorites", backgroundColor: Colors.red);
+      Common().showErrorSnack(context);
     } else {
       if (mounted) {
         await _loadFavorites();

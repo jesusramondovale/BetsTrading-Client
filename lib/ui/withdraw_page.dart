@@ -624,11 +624,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                           exchangePageKey.currentState?.loadData();
                                           Navigator.pop(context);
                                         } else {
-                                          Common().showFloatingSnack(
-                                            context,
-                                            strings?.get('errorTryAgain') ?? 'Error. Try again',
-                                            backgroundColor: Colors.red,
-                                          );
+                                          Common().showErrorSnack(context);
                                         }
                                       }();
                                     },

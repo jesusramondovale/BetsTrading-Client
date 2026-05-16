@@ -102,9 +102,7 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
       }
     } else {
       if (mounted) {
-        Common().showFloatingSnack(
-            context, LocalizedStrings.of(context)?.get('error') ?? 'Error',
-            backgroundColor: Colors.red);
+        Common().showErrorSnack(context);
       }
     }
   }
@@ -959,7 +957,7 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
         Navigator.pop(context,true);
       }
       else{
-        Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+        Common().showErrorSnack(context);
       }
     }
 
@@ -975,7 +973,7 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
         Navigator.pop(context,true);
       }
       else{
-        Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+        Common().showErrorSnack(context);
       }
     }
 
@@ -993,7 +991,7 @@ class _NewMethodSheetState extends State<_NewMethodSheet> {
         Navigator.pop(context, true);
       }
       else{
-        Common().showFloatingSnack(context, "Error!", backgroundColor: Colors.red);
+        Common().showErrorSnack(context);
       }
     }
 
