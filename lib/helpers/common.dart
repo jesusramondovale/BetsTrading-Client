@@ -1270,13 +1270,13 @@ class Common {
       };
     } on SocketException catch (e) {
       if (e.osError?.errorCode == 111 || e.osError?.errorCode == 7) {
-        return {'statusCode': 503, 'body': {}};
+        return {'statusCode': 503, 'body': {'message': 'Service unavailable'}};
       }
-      return {'statusCode': 500, 'body': {}};
+      return {'statusCode': 500, 'body': {'message': 'Network error'}};
     } on StateError catch (e) {
       return {'statusCode': 500, 'body': {'message': 'Connection error: ${e.message}'}};
     } catch (e) {
-      return {'statusCode': 500, 'body': {}};
+      return {'statusCode': 500, 'body': {'message': 'Unexpected error'}};
     } finally {
       client.close(force: true);
     }

@@ -351,33 +351,36 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
     debugPrint('StorePage requestRewardNonce: Enviando payload: $payload');
 
     final client = HttpClient();
-    final req = await client.postUrl(url);
-    req.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
-    req.headers.add('X-UserId', userId);
+    try {
+      final req = await client.postUrl(url);
+      req.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
 
-    final jwtToken = await _storage.read(key: 'jwtToken');
-    if (jwtToken != null && jwtToken.isNotEmpty) {
-      req.headers.set('Authorization', 'Bearer $jwtToken');
-    }
-
-    final jsonBody = jsonEncode(payload);
-    req.add(utf8.encode(jsonBody));
-
-    final res = await req.close();
-    final body = await res.transform(utf8.decoder).join();
-
-    if (res.statusCode == 200) {
-      final data = jsonDecode(body) as Map<String, dynamic>;
-      final nonce = data['nonce'] as String?;
-      if (nonce == null || nonce.isEmpty) {
-        throw Exception('Nonce vacío del servidor');
+      final jwtToken = await _storage.read(key: 'jwtToken');
+      if (jwtToken != null && jwtToken.isNotEmpty) {
+        req.headers.set('Authorization', 'Bearer $jwtToken');
       }
-      debugPrint('StorePage requestRewardNonce: Respuesta del servidor: $data');
-      return nonce;
-    }
 
-    debugPrint('StorePage requestRewardNonce: Error ${res.statusCode}: $body');
-    throw Exception('requestRewardNonce failed: ${res.statusCode} $body');
+      final jsonBody = jsonEncode(payload);
+      req.add(utf8.encode(jsonBody));
+
+      final res = await req.close();
+      final body = await res.transform(utf8.decoder).join();
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(body) as Map<String, dynamic>;
+        final nonce = data['nonce'] as String?;
+        if (nonce == null || nonce.isEmpty) {
+          throw Exception('Nonce vacío del servidor');
+        }
+        debugPrint('StorePage requestRewardNonce: Respuesta del servidor: $data');
+        return nonce;
+      }
+
+      debugPrint('StorePage requestRewardNonce: Error ${res.statusCode}: $body');
+      throw Exception('requestRewardNonce failed: ${res.statusCode} $body');
+    } finally {
+      client.close(force: true);
+    }
   }
 
   Future<void> _showRewardedAd(String localizedWarning) async {
@@ -488,6 +491,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         ),
       );
       final clientSecret = await _getClientSecret(price, userId!, coins);
+      final paymentIntentId = _paymentIntentIdFromSecret(clientSecret);
       await stripe.Stripe.instance.initPaymentSheet(
         paymentSheetParameters: stripe.SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
@@ -497,6 +501,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         ),
       );
       await stripe.Stripe.instance.presentPaymentSheet();
+      await _confirmPaymentIntent(paymentIntentId);
       await BetsService().getUserInfo(userId);
       if (!mounted) return;
       Navigator.pop(context);
@@ -517,6 +522,10 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         Navigator.pop(context);
         Common().showErrorSnack(context);
       }
+    } catch (e) {
+      debugPrint('Coin payment error: $e');
+      if (!mounted) return;
+      Common().showErrorSnack(context);
     }
   }
 
@@ -565,6 +574,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         ),
       );
       final clientSecret = await _getNoAdsClientSecret(userId);
+      final paymentIntentId = _paymentIntentIdFromSecret(clientSecret);
       await stripe.Stripe.instance.initPaymentSheet(
         paymentSheetParameters: stripe.SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
@@ -574,6 +584,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         ),
       );
       await stripe.Stripe.instance.presentPaymentSheet();
+      await _confirmPaymentIntent(paymentIntentId);
       await BetsService().getUserInfo(userId);
       await _loadNoAdsState();
       if (!mounted) return;
@@ -599,12 +610,41 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
     }
   }
 
+  static String _paymentIntentIdFromSecret(String clientSecret) {
+    final separator = '_secret_';
+    final index = clientSecret.indexOf(separator);
+    if (index > 0) return clientSecret.substring(0, index);
+    return clientSecret;
+  }
+
+  Future<void> _confirmPaymentIntent(String paymentIntentId) async {
+    final response = await Common().postRequestWrapper(
+      'Payments',
+      'ConfirmPaymentIntent',
+      {'paymentIntentId': paymentIntentId},
+    );
+    debugPrint('ConfirmPaymentIntent: status=${response['statusCode']} body=${response['body']}');
+    if (response['statusCode'] != 200) {
+      throw Exception(
+        (response['body'] is Map ? response['body']['message'] : null)?.toString() ??
+            'Payment confirmation failed',
+      );
+    }
+  }
+
+  static int _parseCoins(dynamic value) {
+    if (value is int) return value;
+    if (value is double) return value.round();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
   Future<String> _getClientSecret(double price, String userId, double coins) async {
     final requestData = {
-      'amount': (price * 100).toInt(),
+      'amount': (price * 100).round(),
       'currency': _currency,
       'userId': userId,
-      'coins': coins.toInt(),
+      'coins': coins.round(),
     };
     final response = await Common().postRequestWrapper(
       'Payments',
@@ -616,7 +656,16 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         response['body']['client_secret'] != null) {
       return response['body']['client_secret'];
     } else {
-      throw Exception('Error al obtener client_secret desde el backend');
+      final body = response['body'];
+      final backendMsg = body is Map
+          ? (body['message'] ?? body['error'] ?? body['Message'])?.toString()
+          : null;
+      debugPrint(
+        'CreatePaymentIntent failed: status=${response['statusCode']} body=$body',
+      );
+      throw Exception(
+        backendMsg ?? 'Error al obtener client_secret desde el backend',
+      );
     }
   }
 
@@ -682,7 +731,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                     final item = entry.value;
 
                     final double price = (item['euros'] ?? 0).toDouble();
-                    final int coins = (item['coins'] ?? 0) as int;
+                    final int coins = _parseCoins(item['coins']);
 
                     final colors = [Colors.brown, Colors.grey, Colors.amber, Colors.deepPurple];
                     final scales = [1.20, 1.28, 1.33, 1.37];

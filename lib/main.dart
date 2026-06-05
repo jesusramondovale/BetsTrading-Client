@@ -72,8 +72,8 @@ Future<void> main() async {
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
-  } catch (_) {
-
+  } catch (e) {
+    debugPrint('Firebase initialization failed: $e');
   }
   await FirebaseService().initFirebase();
 
@@ -161,6 +161,7 @@ class SplashScreenState extends State<SplashScreen> {
 
   Future<void> _checkConsent() async {
     await ConsentPage.showConsentDialog(context);
+    if (!mounted) return;
     _checkAuthentication();
   }
 
@@ -170,7 +171,9 @@ class SplashScreenState extends State<SplashScreen> {
     // Realizar las operaciones necesarias
     if (isLoggedIn) {
       String? id = await _storage.read(key: 'sessionToken');
-      await BetsService().getUserInfo(id!);
+      if (id != null && id.isNotEmpty && id != 'empty') {
+        await BetsService().getUserInfo(id);
+      }
     }
     
     // Precargar assets del LoginPage para evitar pantallazo negro

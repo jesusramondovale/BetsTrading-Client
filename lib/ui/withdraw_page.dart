@@ -619,7 +619,9 @@ class _WithdrawPageState extends State<WithdrawPage> {
                                             ),
                                           );
 
-                                          await BetsService().getUserInfo(_userId ?? "none");
+                                          if (_userId != null && _userId!.isNotEmpty) {
+                                            await BetsService().getUserInfo(_userId!);
+                                          }
                                           homeScreenKey.currentState?.loadUserIdAndData();
                                           exchangePageKey.currentState?.loadData();
                                           Navigator.pop(context);

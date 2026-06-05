@@ -12,7 +12,6 @@ class Config {
   static const String admobAdToken = 'ca-app-pub-2465898294053562/4804536511'; // REAL
   /// Intersticial obligatorio (apuestas / umbral API / daily reward).
   static const String admobInterstitialMandatoryId = 'ca-app-pub-2465898294053562/3036757295';
-  //static const String admobAdToken = 'ca-app-pub-3940256099942544/5224354917'; //TEST
   static const String ipGeolocalizerToken = 'd99daa2befa6f8';
   static const String serverCertificateHash = 'E475D88044C231E073B0B4F40B124D496FF01B0D0A964A26D458BFA9BC2BF249';
   static const String serverClientId = '1020559524014-ge0t5b3bhkpdpg8h958b4rf8o716l12r.apps.googleusercontent.com';

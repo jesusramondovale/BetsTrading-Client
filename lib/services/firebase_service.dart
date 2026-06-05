@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -7,6 +8,7 @@ import 'auth_service.dart';
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
   String? _firebaseToken;
+  StreamSubscription<String>? _tokenRefreshSubscription;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   factory FirebaseService() {
@@ -32,13 +34,24 @@ class FirebaseService {
       print("Firebase Instance ID (Token): $_firebaseToken");
     }
 
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+    await _tokenRefreshSubscription?.cancel();
+    _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
       _firebaseToken = newToken;
       if (kDebugMode) {
         print("New FCM Token: $newToken");
       }
-      AuthService().refreshFCM(userId!, _firebaseToken!);
+      final activeUserId = await _storage.read(key: 'sessionToken');
+      if (activeUserId != null &&
+          activeUserId.isNotEmpty &&
+          activeUserId != 'empty') {
+        await AuthService().refreshFCM(activeUserId, newToken);
+      }
     });
+  }
+
+  void dispose() {
+    _tokenRefreshSubscription?.cancel();
+    _tokenRefreshSubscription = null;
   }
 
   String? get firebaseToken => _firebaseToken;

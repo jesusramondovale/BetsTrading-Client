@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
@@ -45,18 +46,6 @@ final GlobalKey<AwardsPageState> awardsScreenKey = GlobalKey<AwardsPageState>();
 final GlobalKey<MarketsViewState> marketsPageKey = GlobalKey<MarketsViewState>();
 final GlobalKey<ExchangePageState> exchangePageKey= GlobalKey<ExchangePageState>();
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      initialRoute: '/login',
-      home: LoginPage(),
-    );
-  }
-}
-
 /// The main menu page containing bottom navigation and tab management.
 ///
 /// Manages navigation between Home, Exchange, Markets, Awards, and User Info tabs.
@@ -92,6 +81,7 @@ class MainMenuPageState extends State<MainMenuPage> {
   final MainMenuBottomNavKeys _bottomNavKeys = MainMenuBottomNavKeys();
   String _username = '';
   bool _showNotificationsPage = false;
+  StreamSubscription<RemoteMessage>? _firebaseMessageSubscription;
 
   Future<void> _loadProfilePic() async {
     try {
@@ -279,17 +269,21 @@ class MainMenuPageState extends State<MainMenuPage> {
       _checkDailyReward();
     });
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    _firebaseMessageSubscription = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final title = message.notification?.title ?? message.data['title'] ?? '';
+      final body = message.notification?.body ?? message.data['body'] ?? '';
+      if (title.isEmpty && body.isEmpty) return;
       Common().showLocalNotification(
-          message.data['type'],
-          message.notification!.title!,
-          message.notification!.body!,
+          message.data['type'] ?? '',
+          title,
+          body,
           message.data);
     });
   }
 
   @override
   void dispose() {
+    _firebaseMessageSubscription?.cancel();
     MandatoryInterstitialService.instance.stopForegroundUsageTracking();
     super.dispose();
   }

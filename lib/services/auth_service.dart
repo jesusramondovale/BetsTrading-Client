@@ -20,15 +20,21 @@ class AuthService {
       final String jwtToken = response['body']['jwtToken'];
       await _storage.write(key: 'sessionToken', value: token);
       await _storage.write(key: 'jwtToken', value: jwtToken);
-      AuthService().refreshFCM(token, FirebaseService().firebaseToken!);
-      return {'success': true, 'message': response['body']['message']};
+      final fcm = FirebaseService().firebaseToken;
+      if (fcm != null && fcm.isNotEmpty) {
+        AuthService().refreshFCM(token, fcm);
+      }
+      return {'success': true, 'message': _readMessage(response)};
     } else {
-      return {'success': false, 'message': response['body']['message']};
+      return {'success': false, 'message': _readMessage(response)};
     }
   }
 
-  Future<Map<String, dynamic>> googleLogIn(String googleUserId) async {
-    final response = await Common().postRequestWrapper('Auth','GoogleLogIn', {'userId': googleUserId});
+  Future<Map<String, dynamic>> googleLogIn(String googleUserId, {String? idToken}) async {
+    final response = await Common().postRequestWrapper('Auth','GoogleLogIn', {
+      'userId': googleUserId,
+      if (idToken != null && idToken.isNotEmpty) 'idToken': idToken,
+    });
 
     if (response['statusCode'] == 200) {
       final body = response['body'] as Map<String, dynamic>? ?? {};
@@ -38,10 +44,13 @@ class AuthService {
       if (jwtToken != null && jwtToken.isNotEmpty) {
         await _storage.write(key: 'jwtToken', value: jwtToken);
       }
-      AuthService().refreshFCM(token, FirebaseService().firebaseToken!);
+      final fcm = FirebaseService().firebaseToken;
+      if (fcm != null && fcm.isNotEmpty) {
+        AuthService().refreshFCM(token, fcm);
+      }
       return {'success': true, 'message': body['message']};
     } else {
-      return {'success': false, 'message': response['body']['message']};
+      return {'success': false, 'message': _readMessage(response)};
     }
   }
 
@@ -49,10 +58,10 @@ class AuthService {
     final response = await Common().postRequestWrapper('Auth', 'LogOut', {});
 
     if (response['statusCode'] == 200) {
-      await _storage.write(key: 'sessionToken', value: "empty");
-      return {'success': true, 'message': response['body']['message']};
+      await _storage.deleteAll();
+      return {'success': true, 'message': _readMessage(response)};
     } else {
-      return {'success': false, 'message': response['body']['message']};
+      return {'success': false, 'message': _readMessage(response)};
     }
   }
 
@@ -91,10 +100,18 @@ class AuthService {
       final String jwtToken = response['body']['jwtToken'];
       await _storage.write(key: 'sessionToken', value: token);
       await _storage.write(key: 'jwtToken', value: jwtToken);
-      return {'success': true, 'message': response['body']['message']};
+      return {'success': true, 'message': _readMessage(response)};
     } else {
-      return {'success': false, 'message': response['body']['message']};
+      return {'success': false, 'message': _readMessage(response)};
     }
+  }
+
+  String _readMessage(Map<String, dynamic> response) {
+    final body = response['body'];
+    if (body is Map && body['message'] != null) {
+      return body['message'].toString();
+    }
+    return 'Request failed';
   }
 
   Future<bool> isLoggedIn() async {
@@ -109,7 +126,10 @@ class AuthService {
   Future<int> _isLoggedIn(String token, {clearingOnForbidden = true}) async {
     final response = await Common().postRequestWrapper('Auth','IsLoggedIn', {'id': token}, clearingOnForbidden: clearingOnForbidden);
     if (response['statusCode'] == 200) {
-      AuthService().refreshFCM(token, FirebaseService().firebaseToken!);
+      final fcm = FirebaseService().firebaseToken;
+      if (fcm != null && fcm.isNotEmpty) {
+        AuthService().refreshFCM(token, fcm);
+      }
       return 0; // VALID TOKEN
     } else if (response['statusCode'] == 400) {
       return 2; // VALID TOKEN BUT EXPIRED SESSION
@@ -146,9 +166,11 @@ class AuthService {
         "${birthday.month.toString().padLeft(2,'0')}-"
         "${birthday.day.toString().padLeft(2,'0')}";
 
+    final auth = await user.authentication;
     final Map<String, dynamic> data = {
       'id': user.id,
-      'fcm': FirebaseService().firebaseToken!,
+      'idToken': auth.idToken,
+      'fcm': FirebaseService().firebaseToken ?? '-',
       'birthday': bdayStr,
       'country': country,
       'displayName': user.displayName,
@@ -217,24 +239,36 @@ class AuthService {
           final data = jsonDecode(response.body);
 
           if (data['birthdays'] != null && data['birthdays'].isNotEmpty) {
-            Map birthdayData = data['birthdays'][0]['date'];
-            int year = (birthdayData['year'] ?? data['birthdays'][1]['date']['year']) ?? data['birthdays'][2]['date']['year'] ?? 1970 ;
-            int month = (birthdayData['month'] ?? data['birthdays'][1]['date']['month']) ?? data['birthdays'][2]['date']['month'] ?? 1;
-            int day = (birthdayData['day'] ?? data['birthdays'][1]['date']['day']) ?? data['birthdays'][2]['date']['day'] ?? 1 ;
+            final birthdays = data['birthdays'] as List;
+            Map birthdayData = birthdays[0]['date'];
+            int year = birthdayData['year'] as int? ?? 1970;
+            int month = birthdayData['month'] as int? ?? 1;
+            int day = birthdayData['day'] as int? ?? 1;
+            for (final entry in birthdays) {
+              final date = entry['date'] as Map?;
+              if (date != null && date['year'] != null) {
+                birthdayData = date;
+                year = date['year'] as int? ?? year;
+                month = date['month'] as int? ?? month;
+                day = date['day'] as int? ?? day;
+                break;
+              }
+            }
 
             final int response = await _isLoggedIn(user.id, clearingOnForbidden: false);
+            final idToken = auth.idToken;
             if (response == 0) {
               await _storage.write(key: 'sessionToken', value: user.id);
-              await googleLogIn(user.id);
+              await googleLogIn(user.id, idToken: idToken);
               return 0;
             }
             if (response == 2) {
-              await googleLogIn(user.id);
+              await googleLogIn(user.id, idToken: idToken);
               return 0;
             }
             if (response == 3) {
               await _storage.write(key: 'sessionToken', value: user.id);
-              await googleLogIn(user.id);
+              await googleLogIn(user.id, idToken: idToken);
               return 3;
             } else {
               bool successfullyRegistered = await _googleQuickRegister(
@@ -258,7 +292,7 @@ class AuthService {
         }
       }
       else if (user == null){
-        return 0;
+        return 1;
       }
     } catch (error)
     {
@@ -323,8 +357,7 @@ class AuthService {
   }
 
 
-  //TODO
   Future<bool> appleSignIn() async {
-    return true;
+    return false;
   }
 }

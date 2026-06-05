@@ -64,8 +64,17 @@ class VerifyAccountPageState extends State<VerifyAccountPage> {
               mediaPlaybackRequiresUserGesture: false,
             ),
             onPermissionRequest: (controller, request) async {
+              final allowed = request.resources.where((resource) =>
+                  resource == PermissionResourceType.CAMERA ||
+                  resource == PermissionResourceType.MICROPHONE).toList();
+              if (allowed.isEmpty) {
+                return PermissionResponse(
+                  resources: request.resources,
+                  action: PermissionResponseAction.DENY,
+                );
+              }
               return PermissionResponse(
-                resources: request.resources,
+                resources: allowed,
                 action: PermissionResponseAction.GRANT,
               );
             },

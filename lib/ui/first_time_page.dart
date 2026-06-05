@@ -341,4 +341,11 @@ class _FirstTimePageState extends State<FirstTimePage> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 }

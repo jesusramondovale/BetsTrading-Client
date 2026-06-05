@@ -62,6 +62,13 @@ class _ExactPricePageState extends State<ExactPricePage> {
   bool _isAcceptEnabled = false;
   final TextEditingController _priceController = TextEditingController();
 
+  @override
+  void dispose() {
+    _holdTimer?.cancel();
+    _priceController.dispose();
+    super.dispose();
+  }
+
   /// Loads user points and currency preference from storage.
   ///
   /// Updates the accept button enabled state based on available points
