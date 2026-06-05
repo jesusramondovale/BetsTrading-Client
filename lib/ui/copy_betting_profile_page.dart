@@ -40,6 +40,8 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
   List<Map<String, dynamic>> _rows = [];
   bool _loading = true;
   bool _loadFailed = false;
+  bool _isCopyingTarget = false;
+  Map<String, dynamic>? _viewerCopyTrading;
   final GlobalKey _kCopyTutorialIntro = GlobalKey();
   final GlobalKey _kTutorialConfirmBtn = GlobalKey();
   TutorialCoachMark? _profileTutorialCoach;
@@ -220,11 +222,21 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
         }
       }
     }
+    final viewerRaw = body['viewerCopyTrading'];
+    final viewerCopyTrading = viewerRaw is Map<String, dynamic>
+        ? Map<String, dynamic>.from(viewerRaw)
+        : viewerRaw is Map
+            ? Map<String, dynamic>.from(viewerRaw)
+            : null;
+    final isCopying = viewerCopyTrading?['isActive'] == true;
+
     setState(() {
       _stats = stats;
       _rows = rows;
       _loading = false;
       _loadFailed = false;
+      _isCopyingTarget = isCopying;
+      _viewerCopyTrading = viewerCopyTrading;
     });
     _scheduleProfileTutorialIfNeeded();
   }
@@ -813,22 +825,34 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
                                           color: Colors.transparent,
                                           child: InkWell(
                                             borderRadius: BorderRadius.circular(14),
-                                            onTap: () {
-                                              Navigator.of(context).push<void>(
-                                                MaterialPageRoute<void>(
+                                            onTap: () async {
+                                              final result = await Navigator.of(context).push<dynamic>(
+                                                MaterialPageRoute<dynamic>(
                                                   builder: (_) => CopyTradingConfirmPage(
                                                     user: widget.user,
                                                     tutorialDemoMode: widget.tutorialDemoMode,
+                                                    isAlreadyCopying: _isCopyingTarget,
+                                                    initialCopyPercent: (_viewerCopyTrading?['copyPercent'] as num?)?.toDouble(),
+                                                    initialAutoAdjustByBalance:
+                                                        _viewerCopyTrading?['autoAdjustByBalance'] == true,
+                                                    initialStopAfterOneLoss:
+                                                        _viewerCopyTrading?['stopAfterOneLoss'] == true,
                                                   ),
                                                 ),
                                               );
+                                              if (!mounted || result == null) return;
+                                              await _load();
                                             },
                                             child: Padding(
                                               padding: const EdgeInsets.symmetric(horizontal: 14),
                                               child: Center(
                                                 child: Text(
-                                                  strings?.get('copyBettingConfirmCopyTradingButton') ??
-                                                      'Confirm copy-trading',
+                                                  strings?.get(_isCopyingTarget
+                                                          ? 'copyBettingCancelCopyTradingButton'
+                                                          : 'copyBettingConfirmCopyTradingButton') ??
+                                                      (_isCopyingTarget
+                                                          ? 'Cancel copy-trading'
+                                                          : 'Confirm copy-trading'),
                                                   style: GoogleFonts.montserrat(
                                                     fontSize: 15,
                                                     fontWeight: FontWeight.w700,

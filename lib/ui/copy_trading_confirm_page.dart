@@ -18,11 +18,20 @@ class CopyTradingConfirmPage extends StatefulWidget {
     super.key,
     required this.user,
     this.tutorialDemoMode = false,
+    this.isAlreadyCopying = false,
+    this.initialCopyPercent,
+    this.initialAutoAdjustByBalance = false,
+    this.initialStopAfterOneLoss = false,
   });
 
   final User user;
   /// Tour guiado: muestra la pantalla sin ejecutar la confirmación real.
   final bool tutorialDemoMode;
+  /// El usuario autenticado ya sigue a este perfil con copy-trading activo.
+  final bool isAlreadyCopying;
+  final double? initialCopyPercent;
+  final bool initialAutoAdjustByBalance;
+  final bool initialStopAfterOneLoss;
 
   @override
   State<CopyTradingConfirmPage> createState() => _CopyTradingConfirmPageState();
@@ -47,6 +56,14 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.isAlreadyCopying) {
+      _autoAdjustByBalance = widget.initialAutoAdjustByBalance;
+      _stopAfterOneLoss = widget.initialStopAfterOneLoss;
+      final pct = widget.initialCopyPercent;
+      if (pct != null && pct > 0) {
+        _manualPercent = pct.clamp(1, 100).toDouble();
+      }
+    }
     _loadMyPoints();
   }
 
@@ -199,13 +216,21 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
-    final title = strings?.get('copyTradingConfirmTitle') ?? 'Confirm copy-trading';
+    final isCancelling = widget.isAlreadyCopying && !widget.tutorialDemoMode;
+    final title = strings?.get(isCancelling
+            ? 'copyTradingCancelTitle'
+            : 'copyTradingConfirmTitle') ??
+        (isCancelling ? 'Cancel copy-trading' : 'Confirm copy-trading');
 
     final effectivePercent = _effectivePercent.clamp(0, 9999);
     final percentLabel =
         _autoAdjustByBalance ? 'X%' : '${effectivePercent.toStringAsFixed(0)}%';
-    final confirmText = strings?.get('confirmOperation') ?? 'Confirm operation';
-    final slideText = strings?.get('confirmBet') ?? 'Slide to confirm the operation';
+    final confirmText = isCancelling
+        ? (strings?.get('copyTradingCancelTitle') ?? 'Cancel copy-trading')
+        : (strings?.get('confirmOperation') ?? 'Confirm operation');
+    final slideText = isCancelling
+        ? (strings?.get('cancelCopyTrading') ?? 'Slide to cancel copy-trading')
+        : (strings?.get('confirmBet') ?? 'Slide to confirm the operation');
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -295,14 +320,23 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
                                   overlayColor:
                                       Colors.greenAccent.withValues(alpha: 0.2),
                                   trackHeight: 6,
+                                  disabledActiveTrackColor:
+                                      Colors.greenAccent.withValues(alpha: 0.45),
+                                  disabledInactiveTrackColor:
+                                      Colors.white.withValues(alpha: 0.12),
+                                  disabledThumbColor:
+                                      Colors.greenAccent.withValues(alpha: 0.55),
                                 ),
                                 child: Slider(
                                   min: 1,
                                   max: 100,
                                   divisions: 99,
                                   value: _manualPercent.clamp(1, 100),
-                                  onChanged: (v) =>
-                                      setState(() => _manualPercent = v.roundToDouble()),
+                                  onChanged: isCancelling
+                                      ? null
+                                      : (v) => setState(
+                                            () => _manualPercent = v.roundToDouble(),
+                                          ),
                                 ),
                               ),
                             ] else ...[
@@ -333,16 +367,20 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
                               title: strings?.get('copyBettingAutoAdjustTitle') ??
                                   'Adjust percentage automatically by balances',
                               value: _autoAdjustByBalance,
-                              onChanged: (value) =>
-                                  setState(() => _autoAdjustByBalance = value),
+                              onChanged: isCancelling
+                                  ? null
+                                  : (value) =>
+                                      setState(() => _autoAdjustByBalance = value),
                             ),
                             _buildToggleRow(
                               context: context,
                               title: strings?.get('copyBettingStopAfterLossTitle') ??
                                   'Stop copying automatically after 1 failed bet',
                               value: _stopAfterOneLoss,
-                              onChanged: (value) =>
-                                  setState(() => _stopAfterOneLoss = value),
+                              onChanged: isCancelling
+                                  ? null
+                                  : (value) =>
+                                      setState(() => _stopAfterOneLoss = value),
                             ),
                             const SizedBox(height: 8),
                             _buildPreview(
@@ -393,34 +431,41 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
                           _confirmTutorialCoach?.finish();
                           return;
                         }
-                      final requestPercent = _autoAdjustByBalance
-                          ? 50.0
-                          : _manualPercent.clamp(1, 100).toDouble();
-                      final result = await BetsService().configureCopyTrading(
-                        targetUserId: widget.user.id,
-                        copyPercent: requestPercent,
-                        autoAdjustByBalance: _autoAdjustByBalance,
-                        stopAfterOneLoss: _stopAfterOneLoss,
-                        isEnabled: true,
-                      );
-
-                      if (!mounted) return;
-                      if (result['success'] == true) {
-                        Common().showFloatingSnack(
-                          context,
-                          strings?.get('copyBettingConfigured') ??
-                              'Copy-betting configured successfully',
+                        final requestPercent = _autoAdjustByBalance
+                            ? 50.0
+                            : _manualPercent.clamp(1, 100).toDouble();
+                        final result = await BetsService().configureCopyTrading(
+                          targetUserId: widget.user.id,
+                          copyPercent: requestPercent,
+                          autoAdjustByBalance: _autoAdjustByBalance,
+                          stopAfterOneLoss: _stopAfterOneLoss,
+                          isEnabled: !isCancelling,
                         );
-                        Navigator.of(context).pop({
-                          'percent': effectivePercent.toDouble(),
-                          'autoAdjustByBalance': _autoAdjustByBalance,
-                          'stopAfterOneLoss': _stopAfterOneLoss,
-                        });
-                        return;
-                      }
 
-                      Common().showErrorSnack(context);
-                    },
+                        if (!mounted) return;
+                        if (result['success'] == true) {
+                          Common().showFloatingSnack(
+                            context,
+                            isCancelling
+                                ? (strings?.get('copyBettingCopyTradingCancelled') ??
+                                    'Copy-trading cancelled')
+                                : (strings?.get('copyBettingConfigured') ??
+                                    'Copy-betting configured successfully'),
+                          );
+                          if (isCancelling) {
+                            Navigator.of(context).pop(false);
+                          } else {
+                            Navigator.of(context).pop({
+                              'percent': effectivePercent.toDouble(),
+                              'autoAdjustByBalance': _autoAdjustByBalance,
+                              'stopAfterOneLoss': _stopAfterOneLoss,
+                            });
+                          }
+                          return;
+                        }
+
+                        Common().showErrorSnack(context);
+                      },
                   ),
                 ),
                 ],
@@ -491,7 +536,7 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
     required BuildContext context,
     required String title,
     required bool value,
-    required ValueChanged<bool> onChanged,
+    required ValueChanged<bool>? onChanged,
   }) {
     return ListTile(
       dense: true,
@@ -512,7 +557,7 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
         activeThumbColor: Colors.greenAccent,
         onChanged: onChanged,
       ),
-      onTap: () => onChanged(!value),
+      onTap: onChanged == null ? null : () => onChanged(!value),
     );
   }
 }
