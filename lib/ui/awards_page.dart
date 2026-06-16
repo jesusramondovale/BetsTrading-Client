@@ -618,6 +618,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
               padding: EdgeInsets.fromLTRB(horizontalMargin, topOffset, horizontalMargin, 0),
               child: UserDialog(
                 user: user,
+                viewerUserId: _userId,
                 awardsCopyTutorialFlow: awardsCopyTutorialFlow,
                 onCopyTutorialDemoComplete: onCopyTutorialDemoComplete,
                 onCopyTutorialDemoAborted: onCopyTutorialDemoAborted,

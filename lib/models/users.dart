@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
@@ -96,6 +97,8 @@ class User {
 
 class UserDialog extends StatefulWidget {
   final User user;
+  /// ID del usuario autenticado; si coincide con [user], no se muestra copy-trade.
+  final String? viewerUserId;
   /// Flujo tutorial Awards: coach en Copy-Trade; la confirmación final no persiste cambios.
   final bool awardsCopyTutorialFlow;
   final VoidCallback? onCopyTutorialDemoComplete;
@@ -104,6 +107,7 @@ class UserDialog extends StatefulWidget {
   const UserDialog({
     super.key,
     required this.user,
+    this.viewerUserId,
     this.awardsCopyTutorialFlow = false,
     this.onCopyTutorialDemoComplete,
     this.onCopyTutorialDemoAborted,
@@ -115,14 +119,29 @@ class UserDialog extends StatefulWidget {
 
 class _UserDialogState extends State<UserDialog> {
   final GlobalKey _kCopyTradeTutorial = GlobalKey();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   TutorialCoachMark? _copyTradeCoach;
   int _copyTradeCoachRetries = 0;
+  String? _resolvedViewerUserId;
 
-  static Null get decodedBody => null;
+  bool get _isOwnProfile {
+    final viewerId = (_resolvedViewerUserId ?? widget.viewerUserId ?? '').trim();
+    if (viewerId.isEmpty) return false;
+    return viewerId.toLowerCase() == widget.user.id.trim().toLowerCase();
+  }
+
+  bool get _showCopyTradeButton =>
+      !_isOwnProfile || widget.awardsCopyTutorialFlow;
 
   @override
   void initState() {
     super.initState();
+    if (widget.viewerUserId == null) {
+      _storage.read(key: 'sessionToken').then((id) {
+        if (!mounted) return;
+        setState(() => _resolvedViewerUserId = id);
+      });
+    }
     if (widget.awardsCopyTutorialFlow) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _showMandatoryCopyTradeCoach());
     }
@@ -155,7 +174,7 @@ class _UserDialogState extends State<UserDialog> {
   }
 
   void _showMandatoryCopyTradeCoach() {
-    if (!mounted || !widget.awardsCopyTutorialFlow) return;
+    if (!mounted || !widget.awardsCopyTutorialFlow || !_showCopyTradeButton) return;
     final strings = LocalizedStrings.of(context);
     final targets = [
       TargetFocus(
@@ -431,51 +450,53 @@ class _UserDialogState extends State<UserDialog> {
                               ],
                             ),
                           ),
-                          Container(
-                            width: 1,
-                            color: Colors.white.withValues(alpha: 0.12),
-                          ),
-                          SizedBox(
-                            width: 116,
-                            child: KeyedSubtree(
-                              key: _kCopyTradeTutorial,
-                              child: Center(
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () => _pushCopyProfile(context),
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 6),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.copy_all,
-                                            color: Colors.white70,
-                                            size: 16,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Flexible(
-                                            child: Text(
-                                              'Copy-Trade',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.montserrat(
-                                                color: Colors.white70,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
+                          if (_showCopyTradeButton) ...[
+                            Container(
+                              width: 1,
+                              color: Colors.white.withValues(alpha: 0.12),
+                            ),
+                            SizedBox(
+                              width: 116,
+                              child: KeyedSubtree(
+                                key: _kCopyTradeTutorial,
+                                child: Center(
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () => _pushCopyProfile(context),
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 6),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.copy_all,
+                                              color: Colors.white70,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Flexible(
+                                              child: Text(
+                                                'Copy-Trade',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: GoogleFonts.montserrat(
+                                                  color: Colors.white70,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),

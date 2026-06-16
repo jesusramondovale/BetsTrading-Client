@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -36,17 +37,28 @@ class CopyBettingProfilePage extends StatefulWidget {
 }
 
 class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Map<String, dynamic>? _stats;
   List<Map<String, dynamic>> _rows = [];
   bool _loading = true;
   bool _loadFailed = false;
   bool _isCopyingTarget = false;
   Map<String, dynamic>? _viewerCopyTrading;
+  String? _viewerUserId;
   final GlobalKey _kCopyTutorialIntro = GlobalKey();
   final GlobalKey _kTutorialConfirmBtn = GlobalKey();
   TutorialCoachMark? _profileTutorialCoach;
   bool _profileTutorialScheduled = false;
   int _profileTutorialLayoutRetries = 0;
+
+  bool get _isOwnProfile {
+    final viewerId = (_viewerUserId ?? '').trim();
+    if (viewerId.isEmpty) return false;
+    return viewerId.toLowerCase() == widget.user.id.trim().toLowerCase();
+  }
+
+  bool get _showCopyTradingActions =>
+      !_isOwnProfile || widget.tutorialDemoMode;
 
   void _disposeProfileTutorialCoach() {
     try {
@@ -57,6 +69,7 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
 
   void _scheduleProfileTutorialIfNeeded() {
     if (!widget.tutorialDemoMode ||
+        !_showCopyTradingActions ||
         _profileTutorialScheduled ||
         _loading ||
         _loadFailed ||
@@ -173,6 +186,10 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
   @override
   void initState() {
     super.initState();
+    _storage.read(key: 'sessionToken').then((id) {
+      if (!mounted) return;
+      setState(() => _viewerUserId = id);
+    });
     _load();
   }
 
@@ -798,66 +815,68 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: KeyedSubtree(
-                                    key: _kTutorialConfirmBtn,
-                                    child: SizedBox(
-                                      height: 44,
-                                      child: DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(14),
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              Colors.amber.shade700.withValues(alpha: 0.95),
-                                              Colors.deepOrange.shade800.withValues(alpha: 0.9),
+                                if (_showCopyTradingActions)
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: KeyedSubtree(
+                                      key: _kTutorialConfirmBtn,
+                                      child: SizedBox(
+                                        height: 44,
+                                        child: DecoratedBox(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(14),
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.amber.shade700.withValues(alpha: 0.95),
+                                                Colors.deepOrange.shade800.withValues(alpha: 0.9),
+                                              ],
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(alpha: 0.28),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
+                                              ),
                                             ],
                                           ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.28),
-                                              blurRadius: 6,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Material(
-                                          color: Colors.transparent,
-                                          child: InkWell(
-                                            borderRadius: BorderRadius.circular(14),
-                                            onTap: () async {
-                                              final result = await Navigator.of(context).push<dynamic>(
-                                                MaterialPageRoute<dynamic>(
-                                                  builder: (_) => CopyTradingConfirmPage(
-                                                    user: widget.user,
-                                                    tutorialDemoMode: widget.tutorialDemoMode,
-                                                    isAlreadyCopying: _isCopyingTarget,
-                                                    initialCopyPercent: (_viewerCopyTrading?['copyPercent'] as num?)?.toDouble(),
-                                                    initialAutoAdjustByBalance:
-                                                        _viewerCopyTrading?['autoAdjustByBalance'] == true,
-                                                    initialStopAfterOneLoss:
-                                                        _viewerCopyTrading?['stopAfterOneLoss'] == true,
+                                          child: Material(
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              borderRadius: BorderRadius.circular(14),
+                                              onTap: () async {
+                                                final result = await Navigator.of(context).push<dynamic>(
+                                                  MaterialPageRoute<dynamic>(
+                                                    builder: (_) => CopyTradingConfirmPage(
+                                                      user: widget.user,
+                                                      tutorialDemoMode: widget.tutorialDemoMode,
+                                                      isAlreadyCopying: _isCopyingTarget,
+                                                      initialCopyPercent: (_viewerCopyTrading?['copyPercent'] as num?)?.toDouble(),
+                                                      initialAutoAdjustByBalance:
+                                                          _viewerCopyTrading?['autoAdjustByBalance'] == true,
+                                                      initialStopAfterOneLoss:
+                                                          _viewerCopyTrading?['stopAfterOneLoss'] == true,
+                                                    ),
                                                   ),
-                                                ),
-                                              );
-                                              if (!mounted || result == null) return;
-                                              await _load();
-                                            },
-                                            child: Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                                              child: Center(
-                                                child: Text(
-                                                  strings?.get(_isCopyingTarget
-                                                          ? 'copyBettingCancelCopyTradingButton'
-                                                          : 'copyBettingConfirmCopyTradingButton') ??
-                                                      (_isCopyingTarget
-                                                          ? 'Cancel copy-trading'
-                                                          : 'Confirm copy-trading'),
-                                                  style: GoogleFonts.montserrat(
-                                                    fontSize: 15,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: Colors.white,
-                                                    letterSpacing: 0.2,
+                                                );
+                                                if (!mounted || result == null) return;
+                                                await _load();
+                                              },
+                                              child: Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 14),
+                                                child: Center(
+                                                  child: Text(
+                                                    strings?.get(_isCopyingTarget
+                                                            ? 'copyBettingCancelCopyTradingButton'
+                                                            : 'copyBettingConfirmCopyTradingButton') ??
+                                                        (_isCopyingTarget
+                                                            ? 'Cancel copy-trading'
+                                                            : 'Confirm copy-trading'),
+                                                    style: GoogleFonts.montserrat(
+                                                      fontSize: 15,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: Colors.white,
+                                                      letterSpacing: 0.2,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
@@ -867,7 +886,6 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
                                       ),
                                     ),
                                   ),
-                                ),
                                 const SizedBox(height: 6),
                               ],
                             ),
