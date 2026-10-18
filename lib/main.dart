@@ -9,6 +9,7 @@ import 'app_navigator.dart';
 import 'local_notifications.dart';
 import 'helpers/common.dart';
 import 'helpers/forced_logout_ui.dart';
+import 'helpers/status_background.dart';
 import 'ui/login_page.dart';
 import 'services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -75,31 +76,40 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Firebase initialization failed: $e');
   }
-  await FirebaseService().initFirebase();
 
-  FirebaseMessaging.onMessage.listen(handleForcedLogoutFirebaseMessage);
+  // En web: no Ads / notificaciones locales / Stripe (cuelgan el arranque).
+  if (!kIsWeb) {
+    await FirebaseService().initFirebase();
 
-  FirebaseMessaging.onMessageOpenedApp.listen(handleForcedLogoutFirebaseMessage);
+    FirebaseMessaging.onMessage.listen(handleForcedLogoutFirebaseMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen(handleForcedLogoutFirebaseMessage);
 
-  var initializationSettingsAndroid = AndroidInitializationSettings('@drawable/notification');
-  var initializationSettingsDarwin = const DarwinInitializationSettings();
+    var initializationSettingsAndroid =
+        AndroidInitializationSettings('@drawable/notification');
+    var initializationSettingsDarwin = const DarwinInitializationSettings();
+    var initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsDarwin,
+    );
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  var initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    iOS: initializationSettingsDarwin,
-  );
+    MobileAds.instance.initialize();
 
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [SystemUiOverlay.top],
+    );
 
-  MobileAds.instance.initialize();
-
-  SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.manual,
-    overlays: [SystemUiOverlay.top],
-  );
-
-  stripe.Stripe.publishableKey = Config.stripePublicRealKey;
-  await stripe.Stripe.instance.applySettings();
+    stripe.Stripe.publishableKey = Config.stripePublicRealKey;
+    await stripe.Stripe.instance.applySettings();
+  } else {
+    // Firebase messaging / FCM no críticos en web para el shell.
+    try {
+      await FirebaseService().initFirebase();
+    } catch (e) {
+      debugPrint('FirebaseService web init skipped/failed: $e');
+    }
+  }
 
   runApp(MyApp());
 }
@@ -229,20 +239,23 @@ class SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Obtener el código de idioma del contexto o del dispatcher
-    final locale = Localizations.maybeLocaleOf(context) ?? 
-                   WidgetsBinding.instance.platformDispatcher.locale;
+    // En web usamos el mismo fondo que /status (sin splash de ticker).
+    if (kIsWeb) {
+      return const Scaffold(
+        backgroundColor: StatusBackgroundColors.top,
+        body: StatusBackground(),
+      );
+    }
+
+    final locale = Localizations.maybeLocaleOf(context) ??
+        WidgetsBinding.instance.platformDispatcher.locale;
     String languageCode = locale.languageCode;
-    
-    // Verificar que el idioma esté soportado (en, es, fr, it, de)
     const supportedLanguages = ['en', 'es', 'fr', 'it', 'de'];
     if (!supportedLanguages.contains(languageCode)) {
-      languageCode = 'en'; // Fallback a inglés
+      languageCode = 'en';
     }
-    
-    // Construir la ruta del asset dinámicamente
     final splashAsset = 'assets/android12splash-$languageCode.png';
-    
+
     return Scaffold(
       body: Container(
         width: double.infinity,

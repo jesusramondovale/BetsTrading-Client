@@ -17,7 +17,19 @@ import '../../helpers/common.dart';
 const double kWebShellBreakpoint = 900;
 
 /// Contenido centrado estilo Polymarket.
-const double kWebContentMaxWidth = 1200;
+const double kWebContentMaxWidth = 1100;
+
+/// Paneles secundarios (ajustes, tienda, historiales).
+const double kWebPanelMaxWidth = 720;
+
+/// Layouts pensados para móvil (premios, perfiles) en desktop.
+const double kWebPhoneMaxWidth = 520;
+
+/// Formularios / listas de acciones (botones de tienda, etc.).
+const double kWebFormMaxWidth = 480;
+
+/// Diálogos y modales en web.
+const double kWebDialogMaxWidth = 440;
 
 /// `true` en Flutter Web o en pantallas anchas.
 bool useWebShell(BuildContext context) {
@@ -26,13 +38,55 @@ bool useWebShell(BuildContext context) {
 }
 
 /// Envuelve [child] en un contenedor centrado con ancho máximo en shell web.
-Widget webConstrainedBody({required BuildContext context, required Widget child}) {
+Widget webConstrainedBody({
+  required BuildContext context,
+  required Widget child,
+  double maxWidth = kWebContentMaxWidth,
+}) {
   if (!useWebShell(context)) return child;
   return Align(
     alignment: Alignment.topCenter,
     child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: kWebContentMaxWidth),
+      constraints: BoxConstraints(maxWidth: maxWidth),
       child: child,
+    ),
+  );
+}
+
+/// Ancho estrecho para paneles/listas que no deben estirarse en desktop.
+Widget webNarrowBody({
+  required BuildContext context,
+  required Widget child,
+  double maxWidth = kWebPanelMaxWidth,
+}) {
+  return webConstrainedBody(
+    context: context,
+    child: child,
+    maxWidth: maxWidth,
+  );
+}
+
+/// Marco para diálogos/modales: centra y limita ancho (evita estirar a full-bleed).
+Widget webDialogFrame({
+  required Widget child,
+  double maxWidth = kWebDialogMaxWidth,
+  Alignment alignment = Alignment.center,
+  EdgeInsetsGeometry padding =
+      const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+}) {
+  return SafeArea(
+    child: Align(
+      alignment: alignment,
+      child: Padding(
+        padding: padding,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: Material(
+            type: MaterialType.transparency,
+            child: child,
+          ),
+        ),
+      ),
     ),
   );
 }
@@ -167,6 +221,15 @@ class _WebTopNavBarState extends State<WebTopNavBar> {
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Web',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white54,
                   ),
                 ),
                 const SizedBox(width: 28),

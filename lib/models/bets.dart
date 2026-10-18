@@ -371,11 +371,14 @@ class RecentBetDialog extends StatelessWidget {
 
     return Dialog(
       elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
       backgroundColor: Colors.transparent.withValues(alpha: 0.1),
-      child: ClipRRect(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
@@ -606,6 +609,7 @@ class RecentBetDialog extends StatelessWidget {
             ),
           ),
         ),
+        ),
       ),
     );
   }
@@ -702,11 +706,14 @@ class RecentPriceBetDialog extends StatelessWidget {
 
     return Dialog(
       elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
       backgroundColor: Colors.transparent.withValues(alpha: 0.1),
-      child: ClipRRect(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
@@ -934,6 +941,7 @@ class RecentPriceBetDialog extends StatelessWidget {
               ),
             ),
           ),
+        ),
         ),
       ),
     );

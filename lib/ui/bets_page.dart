@@ -21,6 +21,7 @@ import '../services/firebase_service.dart';
 import '../services/secure_auth_service.dart';
 import 'candlesticks_view.dart';
 import 'layout_page.dart';
+import 'web/web_layout.dart';
 
 
 /// A widget that displays a background image for bet confirmation pages.
@@ -848,38 +849,53 @@ class BetConfirmationPageState extends State<BetConfirmationPage> with SingleTic
                   ),
                 ),
               ),
-              // Contenido de la pagina
-              SafeArea(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: screenWidth * 0.02,
-                          vertical: screenHeight * 0.005,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              flex: 3,
-                              child: _buildBetHeader(context, constraints),
+              // Contenido centrado en web (columna tipo móvil ~480px).
+              Positioned.fill(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: useWebShell(context)
+                        ? math.min(kWebFormMaxWidth, constraints.maxWidth)
+                        : constraints.maxWidth,
+                    height: constraints.maxHeight,
+                    child: SafeArea(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: useWebShell(context)
+                                    ? 16
+                                    : screenWidth * 0.02,
+                                vertical: screenHeight * 0.005,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Flexible(
+                                    flex: 3,
+                                    child:
+                                        _buildBetHeader(context, constraints),
+                                  ),
+                                  SizedBox(height: screenHeight * 0.01),
+                                  _buildBetDetails(context),
+                                  const Spacer(),
+                                  Flexible(
+                                    flex: 2,
+                                    child: _buildBetMultiplier(
+                                        context, constraints),
+                                  ),
+                                ],
+                              ),
                             ),
-                            SizedBox(height: screenHeight * 0.01),
-                            _buildBetDetails(context),
-                            Spacer(),
-                            Flexible(
-                              flex: 2,
-                              child: _buildBetMultiplier(context, constraints),
-                            ),
-                          ],
-                        ),
+                          ),
+                          _buildCountdownTimer(context),
+                          _buildActionButtons(context),
+                        ],
                       ),
                     ),
-                    _buildCountdownTimer(context),
-                    _buildActionButtons(context),
-                  ],
+                  ),
                 ),
               ),
             ],

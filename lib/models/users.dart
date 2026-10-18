@@ -269,7 +269,10 @@ class _UserDialogState extends State<UserDialog> {
     final statusColor = isActive ? Colors.green : Colors.red;
 
     // No usar Dialog (centra en pantalla); solo el contenido para respetar posición del padre.
-    final shell = Material(
+    // En web el padre debe limitar el ancho; aquí también, por si se abre sin marco.
+    final shell = ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 420),
+      child: Material(
       color: Colors.transparent,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -277,6 +280,7 @@ class _UserDialogState extends State<UserDialog> {
           filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
           child: SingleChildScrollView(
             child: Container(
+              width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.22),
                 borderRadius: BorderRadius.circular(20),
@@ -506,6 +510,7 @@ class _UserDialogState extends State<UserDialog> {
             ),
           ),
         ),
+      ),
       ),
     );
     if (widget.awardsCopyTutorialFlow) {

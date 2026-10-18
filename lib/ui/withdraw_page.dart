@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/retire_methods.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/bets_service.dart';
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
 import '../helpers/slider.dart';
 import '../services/firebase_service.dart';
 import '../services/secure_auth_service.dart';
@@ -269,6 +269,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: StatusBackgroundColors.top,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         automaticallyImplyLeading: true,
@@ -283,24 +284,9 @@ class _WithdrawPageState extends State<WithdrawPage> {
           ),
         ),
       ),
-      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Fondo blur
-          Positioned.fill(
-            child: Image.asset(
-              'assets/android12splash.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.2),
-              ),
-            ),
-          ),
+          const Positioned.fill(child: StatusBackground()),
 
           // Contenido principal
           Positioned.fill(

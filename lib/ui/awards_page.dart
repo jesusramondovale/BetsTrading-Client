@@ -21,6 +21,7 @@ import '../helpers/common.dart';
 import '../helpers/slider.dart';
 import '../helpers/tutorial_nav_hint.dart';
 import 'home_page.dart';
+import 'web/web_layout.dart';
 
 /// A page displaying leaderboards, top users, and raffle items.
 ///
@@ -609,21 +610,17 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     showGeneralDialog(
       context: context,
       pageBuilder: (dialogCtx, a, b) {
-        final topOffset = MediaQuery.of(dialogCtx).size.height * 0.25;
-        final horizontalMargin = 20.0;
-        return SizedBox.expand(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(horizontalMargin, topOffset, horizontalMargin, 0),
-              child: UserDialog(
-                user: user,
-                viewerUserId: _userId,
-                awardsCopyTutorialFlow: awardsCopyTutorialFlow,
-                onCopyTutorialDemoComplete: onCopyTutorialDemoComplete,
-                onCopyTutorialDemoAborted: onCopyTutorialDemoAborted,
-              ),
-            ),
+        final topOffset = MediaQuery.of(dialogCtx).size.height * 0.18;
+        return webDialogFrame(
+          alignment: Alignment.topCenter,
+          maxWidth: kWebDialogMaxWidth,
+          padding: EdgeInsets.fromLTRB(24, topOffset, 24, 24),
+          child: UserDialog(
+            user: user,
+            viewerUserId: _userId,
+            awardsCopyTutorialFlow: awardsCopyTutorialFlow,
+            onCopyTutorialDemoComplete: onCopyTutorialDemoComplete,
+            onCopyTutorialDemoAborted: onCopyTutorialDemoAborted,
           ),
         );
       },
@@ -998,7 +995,10 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
     final additionalPadding = (16 * scaleFactor).clamp(12.0, 20.0);
     final totalBottomPadding = bottomNavBarHeight + additionalPadding;
     
-    return SingleChildScrollView(
+    return webNarrowBody(
+      context: context,
+      maxWidth: kWebPhoneMaxWidth,
+      child: SingleChildScrollView(
       physics: NeverScrollableScrollPhysics(),
       padding: EdgeInsets.only(bottom: totalBottomPadding),
       child: Material(
@@ -1102,6 +1102,7 @@ class AwardsPageState extends State<AwardsPage> with SingleTickerProviderStateMi
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -1632,9 +1633,13 @@ class _RafflesBuilderState extends State<RafflesBuilder> {
       return _RafflesSkeletonGrid(scaleFactor: widget.scaleFactor);
     }
 
+    return LayoutBuilder(builder: (context, constraints) {
     final scaleFactor = widget.scaleFactor;
     final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
+    // Usar el ancho del padre (webNarrowBody), no el del viewport completo.
+    final screenWidth = constraints.maxWidth.isFinite
+        ? constraints.maxWidth
+        : mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     final screenAspectRatio = screenWidth / screenHeight;
     final horizontalPadding = (10 * scaleFactor).clamp(6.0, 14.0);
@@ -1843,6 +1848,7 @@ class _RafflesBuilderState extends State<RafflesBuilder> {
       },
         ),
       );
+    });
   }
 }
 
@@ -2165,8 +2171,11 @@ class _RafflesSkeletonGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
     final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
+    final screenWidth = constraints.maxWidth.isFinite
+        ? constraints.maxWidth
+        : mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     final screenAspectRatio = screenWidth / screenHeight;
     final horizontalPadding = (10 * scaleFactor).clamp(6.0, 14.0);
@@ -2297,5 +2306,6 @@ class _RafflesSkeletonGrid extends StatelessWidget {
       },
         ),
       );
+    });
   }
 }

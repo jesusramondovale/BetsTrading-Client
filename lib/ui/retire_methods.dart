@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
 import '../locale/localized_texts.dart';
 import 'package:crypto/crypto.dart';
 import 'package:bech32/bech32.dart';
@@ -414,7 +414,7 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
       },
       child: Scaffold(
         extendBodyBehindAppBar: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: StatusBackgroundColors.top,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -438,20 +438,7 @@ class _RetireMethodsPageState extends State<RetireMethodsPage> {
         body: Stack(
           children: [
             // Fondo
-            Positioned.fill(
-              child: Image.asset(
-                'assets/android12splash.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  color: Colors.transparent.withValues(alpha: 0.2),
-                ),
-              ),
-            ),
+            const Positioned.fill(child: StatusBackground()),
             // Contenido
             Padding(
               padding: EdgeInsets.fromLTRB(

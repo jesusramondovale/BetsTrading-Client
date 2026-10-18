@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:betrader/helpers/slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../helpers/preload_cache.dart';
 import '../locale/localized_texts.dart';
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
 import '../services/bets_service.dart';
 import '../services/secure_auth_service.dart';
 import 'layout_page.dart';
@@ -110,8 +110,8 @@ class _FirstTimePageState extends State<FirstTimePage> {
     final strings = LocalizedStrings.of(context);
 
     return Scaffold(
+      backgroundColor: StatusBackgroundColors.top,
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
@@ -119,20 +119,7 @@ class _FirstTimePageState extends State<FirstTimePage> {
       ),
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/android12splash.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.3),
-              ),
-            ),
-          ),
+          const Positioned.fill(child: StatusBackground()),
           if (_isLoading)
             Positioned.fill(
               child: Container(

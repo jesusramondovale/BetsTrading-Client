@@ -1,11 +1,11 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
 import '../locale/localized_texts.dart';
+import 'web/web_layout.dart';
 
 /// A page for managing notification preferences.
 ///
@@ -33,6 +33,7 @@ class NotificationsPageState extends State<NotificationsPage> {
       _enableNotifications = prefs.getBool('enableNotifications') ?? true;
       _trendingNotifications = prefs.getBool('trendingNotifications') ?? true;
       _bettingNotifications = prefs.getBool('bettingNotifications') ?? true;
+      _newsNotifications = prefs.getBool('newsNotifications') ?? true;
     });
   }
 
@@ -47,130 +48,133 @@ class NotificationsPageState extends State<NotificationsPage> {
     final strings = LocalizedStrings.of(context);
 
     return Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          title: Text(
-            strings?.get('notifications') ?? 'Notifications',
-            style: GoogleFonts.montserrat(
-              fontSize: 28,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: widget.onBack,
+      backgroundColor: StatusBackgroundColors.top,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        title: Text(
+          strings?.get('notifications') ?? 'Notifications',
+          style: GoogleFonts.montserrat(
+            fontSize: 28,
+            fontWeight: FontWeight.w400,
           ),
         ),
-        body: Stack(
-          children: [
-
-            // Fondo
-            Positioned.fill(
-              child: Image.asset(
-                'assets/android12splash.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.2),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: widget.onBack,
+        ),
+      ),
+      body: StatusPageScaffoldBody(
+        child: webNarrowBody(
+          context: context,
+          child: ListView(
+            children: ListTile.divideTiles(
+              color: Colors.white70.withValues(alpha: 0.25),
+              context: context,
+              tiles: [
+                SwitchListTile(
+                  inactiveThumbColor: Colors.black,
+                  inactiveTrackColor: Colors.grey,
+                  activeThumbColor: Colors.greenAccent,
+                  title: Text(
+                    strings?.get('enableNotifications') ?? 'Enable notifications',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  value: _enableNotifications,
+                  onChanged: (bool value) {
+                    setState(() => _enableNotifications = value);
+                    Common().savePreference('enableNotifications', value);
+                  },
                 ),
-              ),
-            ),
-
-
-
-            ListView(
-              children: ListTile.divideTiles(
-                  color: Colors.white70.withValues(alpha: 0.25),
-                  context: context,
-                  tiles:
-                  [
-                    SwitchListTile(
-                      inactiveThumbColor: Colors.black,
-                      inactiveTrackColor: Colors.grey,
-                      activeThumbColor: Colors.greenAccent,
-                      title: Text(strings?.get('enableNotifications') ?? 'Enable notifications',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),),
-                      value: _enableNotifications,
-                      onChanged: (bool value) {
-                        setState(() => _enableNotifications = value);
-                        Common().savePreference('enableNotifications', value);
-                      },
+                SwitchListTile(
+                  inactiveThumbColor: Colors.black,
+                  inactiveTrackColor:
+                      !_enableNotifications ? Colors.white24 : Colors.grey,
+                  activeThumbColor: Colors.greenAccent,
+                  title: Text(
+                    strings?.get('trendingNotifications') ??
+                        'Trending notifications',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
                     ),
-                    SwitchListTile(
-                      inactiveThumbColor: Colors.black,
-                      inactiveTrackColor: !_enableNotifications ? Colors.white24 : Colors.grey,
-                      activeThumbColor: Colors.greenAccent,
-                      title: Text(strings?.get('trendingNotifications') ?? 'Trending notifications',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),),
-                      value: _trendingNotifications && _enableNotifications,
-                      onChanged: (bool value) {
-                        if (_enableNotifications){
-                          setState(() => _trendingNotifications = value);
-                          Common().savePreference('trendingNotifications', value);
-                        }
-                      },
+                  ),
+                  value: _trendingNotifications && _enableNotifications,
+                  onChanged: (bool value) {
+                    if (_enableNotifications) {
+                      setState(() => _trendingNotifications = value);
+                      Common().savePreference('trendingNotifications', value);
+                    }
+                  },
+                ),
+                SwitchListTile(
+                  inactiveThumbColor: Colors.black,
+                  inactiveTrackColor:
+                      !_enableNotifications ? Colors.white24 : Colors.grey,
+                  activeThumbColor: Colors.greenAccent,
+                  title: Text(
+                    strings?.get('bettingNotifications') ??
+                        'Betting notifications',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
                     ),
-                    SwitchListTile(
-                      inactiveThumbColor: Colors.black,
-                      inactiveTrackColor: !_enableNotifications ? Colors.white24 : Colors.grey,
-                      activeThumbColor: Colors.greenAccent,
-                      title: Text(strings?.get('bettingNotifications') ?? 'Betting notifications',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),),
-                      value: _bettingNotifications && _enableNotifications,
-                      onChanged: (bool value) {
-                        if (_enableNotifications){
-                          setState(() => _bettingNotifications = value);
-                          Common().savePreference('bettingNotifications', value);
-                        }
-                      },
+                  ),
+                  value: _bettingNotifications && _enableNotifications,
+                  onChanged: (bool value) {
+                    if (_enableNotifications) {
+                      setState(() => _bettingNotifications = value);
+                      Common().savePreference('bettingNotifications', value);
+                    }
+                  },
+                ),
+                SwitchListTile(
+                  inactiveThumbColor: Colors.black,
+                  inactiveTrackColor:
+                      !_enableNotifications ? Colors.white24 : Colors.grey,
+                  activeThumbColor: Colors.greenAccent,
+                  title: Text(
+                    strings?.get('newsNotifications') ?? 'News notifications',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
                     ),
-                    SwitchListTile(
-                      inactiveThumbColor: Colors.black,
-                      inactiveTrackColor: !_enableNotifications ? Colors.white24 : Colors.grey,
-                      activeThumbColor: Colors.greenAccent,
-                      title: Text(strings?.get('newsNotifications') ?? 'News notifications',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),),
-                      value: _newsNotifications && _enableNotifications,
-                      onChanged: (bool value) {
-                        if (_enableNotifications){
-                          setState(() => _newsNotifications = value);
-                          Common().savePreference('newsNotifications', value);
-                        }
-                      },
+                  ),
+                  value: _newsNotifications && _enableNotifications,
+                  onChanged: (bool value) {
+                    if (_enableNotifications) {
+                      setState(() => _newsNotifications = value);
+                      Common().savePreference('newsNotifications', value);
+                    }
+                  },
+                ),
+                ListTile(
+                  title: Text(
+                    'Test!',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
                     ),
-                    ListTile(
-                      title: Text('Test!',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),),
-                      trailing: const Icon(Icons.notification_important, size: 40),
-                      onTap: () async {
-                        await Common().showLocalNotification("other", "Betrader" , "Test",  {"key":"value"});
-                      },
-                    ),
-                  ]
-              ).toList(),
-            ),
-          ],
-        )
+                  ),
+                  trailing:
+                      const Icon(Icons.notification_important, size: 40),
+                  onTap: () async {
+                    await Common().showLocalNotification(
+                      "other",
+                      "Betrader",
+                      "Test",
+                      {"key": "value"},
+                    );
+                  },
+                ),
+              ],
+            ).toList(),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,8 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -15,6 +13,8 @@ import '../services/bets_service.dart';
 import 'copy_trading_confirm_page.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
+import 'web/web_layout.dart';
 
 /// Pantalla de rendimiento y últimas apuestas de un usuario (Copy-Betting).
 class CopyBettingProfilePage extends StatefulWidget {
@@ -625,8 +625,8 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
     final pnlStr = totalPl >= 0 ? '+${_formatCoinsCompactK(totalPl)}' : _formatCoinsCompactK(totalPl);
 
     return Scaffold(
+      backgroundColor: StatusBackgroundColors.top,
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -649,16 +649,11 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
       ),
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset('assets/android12splash.png', fit: BoxFit.cover),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(color: Colors.transparent.withValues(alpha: .2)),
-            ),
-          ),
-          Padding(
+          const Positioned.fill(child: StatusBackground()),
+          webNarrowBody(
+            context: context,
+            maxWidth: kWebPhoneMaxWidth,
+            child: Padding(
             padding: EdgeInsets.fromLTRB(
               12,
               MediaQuery.of(context).padding.top + kToolbarHeight + 2,
@@ -949,6 +944,7 @@ class _CopyBettingProfilePageState extends State<CopyBettingProfilePage> {
                   ),
               ],
             ),
+          ),
           ),
         ],
       ),

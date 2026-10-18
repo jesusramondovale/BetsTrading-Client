@@ -22,11 +22,13 @@ if (-not (Test-Path (Join-Path $ClientRoot "pubspec.yaml"))) {
 $Dest = Join-Path $ServiceRoot "BetsTrading.API\wwwroot\betrader"
 Write-Host "==> Cliente:  $ClientRoot"
 Write-Host "==> Destino:  $Dest"
-Write-Host "==> flutter build web --release --base-href /betrader/"
+# --pwa-strategy=none: sin service worker. Evita que el navegador se quede
+# con main.dart.js antiguo tras publish (vaciar caché no siempre basta).
+Write-Host "==> flutter build web --release --base-href /betrader/ --pwa-strategy=none"
 
 Push-Location $ClientRoot
 try {
-    flutter build web --release --base-href /betrader/
+    flutter build web --release --base-href /betrader/ --pwa-strategy=none
     if ($LASTEXITCODE -ne 0) {
         throw "flutter build web falló con código $LASTEXITCODE"
     }

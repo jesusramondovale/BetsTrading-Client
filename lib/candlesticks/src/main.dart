@@ -12,7 +12,6 @@ import 'widgets/desktop_chart.dart';
 import 'widgets/toolbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:io' show Platform;
 
 enum ChartAdjust {
   /// Will adjust chart size by max and min value from visible area
@@ -219,10 +218,12 @@ class CandlesticksState extends State<Candlesticks> {
               tween: Tween(begin: 10.toDouble(), end: candleWidth),
               duration: const Duration(milliseconds: 120),
               builder: (_, double width, __) {
-                if (kIsWeb ||
-                    Platform.isMacOS ||
-                    Platform.isWindows ||
-                    Platform.isLinux) {
+                // Web y móvil usan MobileChart: incluye rectangleZones / apuestas.
+                // DesktopChart nativo no pinta zonas de apuesta.
+                if (!kIsWeb &&
+                    (defaultTargetPlatform == TargetPlatform.macOS ||
+                        defaultTargetPlatform == TargetPlatform.windows ||
+                        defaultTargetPlatform == TargetPlatform.linux)) {
                   return DesktopChart(
                     style: style,
                     onRemoveIndicator: widget.onRemoveIndicator,

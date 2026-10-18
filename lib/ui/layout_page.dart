@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/markets_page.dart';
@@ -15,6 +14,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/common.dart';
 import '../helpers/preload_cache.dart';
+import '../helpers/status_background.dart';
 import 'daily_reward_dialog.dart';
 import 'exchange_page.dart';
 import 'home_page.dart';
@@ -24,6 +24,7 @@ import '../services/mandatory_interstitial_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'notifications_page.dart';
+import 'web/web_layout.dart';
 
 /// Claves en los iconos de la barra inferior para tutoriales (0–4: Inicio, Exchange, Mercados, Premios, Perfil).
 class MainMenuBottomNavKeys {
@@ -342,161 +343,163 @@ class MainMenuPageState extends State<MainMenuPage> {
       )
     ];
 
-    return Scaffold(
-        extendBody: true,
-        body: Stack(children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/android12splash.png',
-              fit: BoxFit.cover,
-            ),
-          ),
+    final web = useWebShell(context);
 
+    Widget pageBody = _showNotificationsPage
+        ? NotificationsPage(
+            onBack: () {
+              setState(() {
+                _showNotificationsPage = false;
+              });
+            },
+          )
+        : ValueListenableBuilder<int>(
+            valueListenable: _controller.selectedIndexNotifier,
+            builder: (context, index, _) {
+              return IndexedStack(
+                index: _controller.selectedIndexNotifier.value,
+                children: _pages,
+              );
+            },
+          );
+
+    if (web) {
+      pageBody = webConstrainedBody(context: context, child: pageBody);
+    }
+
+    return Scaffold(
+      backgroundColor: StatusBackgroundColors.top,
+      extendBody: !web,
+      body: Stack(
+        children: [
+          const Positioned.fill(child: StatusBackground()),
           Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.2),
+            child: SafeArea(
+              bottom: !web,
+              child: Column(
+                children: [
+                  if (web)
+                    WebTopNavBar(
+                      controller: _controller,
+                      bottomNavKeys: _bottomNavKeys,
+                      profilePicBytes: _profilePicBytes,
+                      username: _username,
+                      onProfileSelected: _loadProfilePic,
+                    )
+                  else
+                    Container(height: 1.0, color: Colors.black45),
+                  Expanded(child: pageBody),
+                ],
               ),
             ),
           ),
-
-          Positioned.fill(
-            child: SafeArea(
-                child: Column(
-                      children: [
-                        Container(
-                          height: 1.0,
-                          color: Colors.black45,
+        ],
+      ),
+      bottomNavigationBar: web
+          ? null
+          : ValueListenableBuilder<int>(
+              valueListenable: _controller.selectedIndexNotifier,
+              builder: (context, index, _) {
+                return Container(
+                  height: 70,
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.transparent.withValues(alpha: 0.1),
+                        spreadRadius: 10,
+                        blurRadius: 10,
+                        offset: Offset(0, 0),
+                      ),
+                    ],
+                  ),
+                  child: BottomNavigationBar(
+                    backgroundColor:
+                        Colors.transparent.withValues(alpha: 0.1),
+                    selectedItemColor: Colors.white,
+                    unselectedItemColor: Colors.white30,
+                    showUnselectedLabels: false,
+                    showSelectedLabels: true,
+                    iconSize: 28,
+                    selectedLabelStyle: TextStyle(fontSize: 11),
+                    unselectedLabelStyle: TextStyle(fontSize: 11),
+                    items: <BottomNavigationBarItem>[
+                      BottomNavigationBarItem(
+                        icon: KeyedSubtree(
+                          key: _bottomNavKeys.home,
+                          child: Icon(FontAwesomeIcons.house),
                         ),
-                        Expanded(
-                          child: _showNotificationsPage
-                              ? NotificationsPage(
-                                  onBack: () {
-                                    setState(() {
-                                      _showNotificationsPage = false;
-                                    });
-                                  },
-                                )
-                              : ValueListenableBuilder<int>(
-                                  valueListenable:
-                                      _controller.selectedIndexNotifier,
-                                  builder: (context, index, _) {
-                                    return IndexedStack(
-                                      index: _controller
-                                          .selectedIndexNotifier.value,
-                                      children: _pages,
-                                    );
-                                  },
-                                ),
+                        label: strings?.get('home') ?? "Home",
+                      ),
+                      BottomNavigationBarItem(
+                        icon: KeyedSubtree(
+                          key: _bottomNavKeys.exchange,
+                          child: Icon(FontAwesomeIcons.landmark),
                         ),
-                      ],
-                    )),
-          )
-        ]),
-
-        bottomNavigationBar:
-            ValueListenableBuilder<int>(
-                valueListenable: _controller.selectedIndexNotifier,
-                builder: (context, index, _) {
-                  return Container(
-                    height: 70,
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.transparent.withValues(alpha: 0.1),
-                          spreadRadius: 10,
-                          blurRadius: 10,
-                          offset: Offset(0, 0),
-                        ),
-                      ],
-                    ),
-                    child: BottomNavigationBar(
-                      backgroundColor: Colors.transparent.withValues(alpha: 0.1),
-                      selectedItemColor: Colors.white,
-                      unselectedItemColor: Colors.white30,
-                      showUnselectedLabels: false,
-                      showSelectedLabels: true,
-                      iconSize: 28,
-                      selectedLabelStyle: TextStyle(fontSize: 11),
-                      unselectedLabelStyle: TextStyle(fontSize: 11),
-                      items: <BottomNavigationBarItem>[
-                        BottomNavigationBarItem(
-                          icon: KeyedSubtree(
-                            key: _bottomNavKeys.home,
-                            child: Icon(FontAwesomeIcons.house),
-                          ),
-                          label: strings?.get('home') ?? "Home",
-                        ),
-                        BottomNavigationBarItem(
-                          icon: KeyedSubtree(
-                            key: _bottomNavKeys.exchange,
-                            child: Icon(FontAwesomeIcons.landmark),
-                          ),
-                          label: 'Exchange',
-                        ),
-                        BottomNavigationBarItem(
-                          icon: KeyedSubtree(
-                            key: _bottomNavKeys.markets,
-                            child: SizedBox(
-                              width: 40,
-                              child: Image.asset('assets/new_icon.png'),
-                            ),
-                          ),
-                          activeIcon: SizedBox(
-                            width: 34,
+                        label: 'Exchange',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: KeyedSubtree(
+                          key: _bottomNavKeys.markets,
+                          child: SizedBox(
+                            width: 40,
                             child: Image.asset('assets/new_icon.png'),
                           ),
-                          label: strings?.get('liveMarkets') ?? 'Live Markets',
                         ),
-                        BottomNavigationBarItem(
-                          icon: KeyedSubtree(
-                            key: _bottomNavKeys.awards,
-                            child: Icon(FontAwesomeIcons.trophy),
-                          ),
-                          label: strings!.get('awards') ?? "Awards",
+                        activeIcon: SizedBox(
+                          width: 34,
+                          child: Image.asset('assets/new_icon.png'),
                         ),
-                        BottomNavigationBarItem(
-                          icon: KeyedSubtree(
-                            key: _bottomNavKeys.profile,
-                            child: (_profilePicBytes != null
-                                ? CircleAvatar(
-                                    backgroundImage:
-                                        MemoryImage(_profilePicBytes!),
-                                    radius: 20,
-                                  )
-                                : Icon(Icons.account_circle_outlined)),
-                          ),
-                          activeIcon: (_profilePicBytes != null
+                        label:
+                            strings?.get('liveMarkets') ?? 'Live Markets',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: KeyedSubtree(
+                          key: _bottomNavKeys.awards,
+                          child: Icon(FontAwesomeIcons.trophy),
+                        ),
+                        label: strings!.get('awards') ?? "Awards",
+                      ),
+                      BottomNavigationBarItem(
+                        icon: KeyedSubtree(
+                          key: _bottomNavKeys.profile,
+                          child: (_profilePicBytes != null
                               ? CircleAvatar(
                                   backgroundImage:
                                       MemoryImage(_profilePicBytes!),
-                                  radius: 15,
+                                  radius: 20,
                                 )
                               : Icon(Icons.account_circle_outlined)),
-                          label: strings.get('profileTitle') ?? "Your profile",
                         ),
-                      ],
-                      currentIndex: _controller.selectedIndexNotifier.value,
-                      onTap: (index) {
-                        if (_showNotificationsPage) {
-                          setState(() {
-                            _showNotificationsPage = false;
-                            _controller.updateIndex(index);
-                          });
-                        } else {
+                        activeIcon: (_profilePicBytes != null
+                            ? CircleAvatar(
+                                backgroundImage:
+                                    MemoryImage(_profilePicBytes!),
+                                radius: 15,
+                              )
+                            : Icon(Icons.account_circle_outlined)),
+                        label:
+                            strings.get('profileTitle') ?? "Your profile",
+                      ),
+                    ],
+                    currentIndex: _controller.selectedIndexNotifier.value,
+                    onTap: (index) {
+                      if (_showNotificationsPage) {
+                        setState(() {
+                          _showNotificationsPage = false;
                           _controller.updateIndex(index);
-                        }
-                        // Recargar la imagen de perfil cuando se selecciona el tab de perfil
-                        if (index == 4) {
-                          _loadProfilePic();
-                        }
-                      },
-                      type: BottomNavigationBarType.fixed,
-                    ),
-                  );
-                },
-              ),
-      );
+                        });
+                      } else {
+                        _controller.updateIndex(index);
+                      }
+                      if (index == 4) {
+                        _loadProfilePic();
+                      }
+                    },
+                    type: BottomNavigationBarType.fixed,
+                  ),
+                );
+              },
+            ),
+    );
   }
 }

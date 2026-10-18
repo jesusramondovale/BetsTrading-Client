@@ -1,12 +1,12 @@
 {
-    "name": "betrader",
-    "short_name": "betrader",
+    "name": "Betrader",
+    "short_name": "Betrader",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#0f0f23",
+    "theme_color": "#0f0f23",
+    "description": "Betrader – Bets Trading web client",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ui';
 import 'package:betrader/candlesticks/candlesticks.dart';
 import 'package:betrader/helpers/slider.dart';
@@ -34,6 +33,7 @@ import 'package:vibration/vibration.dart';
 import 'package:intl/intl.dart' as intl;
 import '../ui/login_page.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'web_console_log.dart';
 
 class Common {
 
@@ -59,14 +59,24 @@ class Common {
       surface: Colors.black,
       onSurface: Colors.white,
     ),
-    scaffoldBackgroundColor: Colors.black,
+    scaffoldBackgroundColor: const Color(0xFF0F0F23),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
       iconTheme: IconThemeData(color: Colors.white),
       titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
     ),
     textTheme: const TextTheme(
       bodyLarge: TextStyle(color: Colors.white),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      constraints: const BoxConstraints(maxWidth: 440),
+    ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: Color(0xFF1A1A2E),
+      constraints: BoxConstraints(maxWidth: 560),
     ),
     // Mismo estilo que Settings: activado en verde (thumb), pista gris apagada.
     switchTheme: SwitchThemeData(
@@ -123,9 +133,10 @@ class Common {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
+          constraints: const BoxConstraints(maxWidth: 440),
           backgroundColor: Colors.grey[900],
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             aTitle,
             textAlign: TextAlign.center,
@@ -182,9 +193,10 @@ class Common {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
+          constraints: const BoxConstraints(maxWidth: 440),
           backgroundColor: Colors.grey[900],
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             aTitle,
             textAlign: TextAlign.center,
@@ -339,9 +351,10 @@ class Common {
             }
           },
           child: AlertDialog(
+            constraints: const BoxConstraints(maxWidth: 440),
             backgroundColor: Colors.grey[900],
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Text(
               LocalizedStrings.of(context)!.get('confirmOperation') ??
                   "Confirm operation",
@@ -383,9 +396,10 @@ class Common {
       context: aContext,
       builder: (BuildContext context) {
         return AlertDialog(
+          constraints: const BoxConstraints(maxWidth: 440),
           backgroundColor: Colors.grey[900],
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             aTitle,
             textAlign: TextAlign.center,
@@ -1146,9 +1160,10 @@ class Common {
     if (croppedFile == null) {
       return ''; // usuario canceló
     }
-    
-    final File file = File(croppedFile.path);
-    img.Image original = img.decodeImage(await file.readAsBytes())!;
+
+    // Evitar dart:io File (no disponible en web).
+    final bytes = await croppedFile.readAsBytes();
+    img.Image original = img.decodeImage(bytes)!;
     img.Image resized = img.copyResize(original, width: 75, height: 75);
 
     return base64Encode(img.encodeJpg(resized, quality: 90));
@@ -1209,76 +1224,151 @@ class Common {
     return words[0];
   }
 
+  Map<String, dynamic> _sanitizeForLog(Map<String, dynamic> data) {
+    const sensitive = {
+      'password',
+      'currentPassword',
+      'newPassword',
+      'creditCard',
+      'idToken',
+      'profilePic',
+      'fcm',
+    };
+    final out = <String, dynamic>{};
+    data.forEach((key, value) {
+      if (sensitive.contains(key)) {
+        if (value == null) {
+          out[key] = null;
+        } else {
+          final s = value.toString();
+          out[key] = s.isEmpty ? '(empty)' : '(redacted len=${s.length})';
+        }
+      } else {
+        out[key] = value;
+      }
+    });
+    return out;
+  }
+
   Future<Map<String, dynamic>> postRequestWrapper(
       String controller,
       String endpoint,
       Map<String, dynamic> data,
       {clearingOnForbidden = true, includeJwt = true}
       ) async {
-    final client = HttpClient();
+    // package:http funciona en web y móvil; dart:io HttpClient lanza
+    // UnsupportedError(Platform._version) en Flutter Web.
+    final isAuth = controller == 'Auth';
     try {
-      final url = Uri.parse(
-          "https://${Config.publicDomain}/api/$controller/$endpoint");
-      final HttpClientRequest request = await client.postUrl(url);
-
-      request.headers.set('Content-Type', 'application/json; charset=utf-8');
+      final url = Config.apiUri('/api/$controller/$endpoint');
+      final headers = <String, String>{
+        'Content-Type': 'application/json; charset=utf-8',
+      };
 
       final jwtToken = await _storage.read(key: 'jwtToken');
-      if (includeJwt && jwtToken != null && jwtToken.isNotEmpty) {
-        request.headers.set('Authorization', 'Bearer $jwtToken');
+      final hasJwt = includeJwt && jwtToken != null && jwtToken.isNotEmpty;
+      if (hasJwt) {
+        headers['Authorization'] = 'Bearer $jwtToken';
       }
 
-      try {
-        request.write(jsonEncode(data));
-      } on StateError catch (e){
-        return {'statusCode': 500, 'body': {'message': 'Connection closed before send. Exception: ${e.message}'}};
+      if (isAuth) {
+        final line =
+            '[HTTP] POST $url includeJwt=$includeJwt hasJwt=$hasJwt '
+            'payload=${_sanitizeForLog(data)}';
+        webConsoleLog(line);
+        // ignore: avoid_print
+        print(line);
       }
 
-      final HttpClientResponse response = await request.close();
-      final String responseBody = await response.transform(utf8.decoder).join();
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: jsonEncode(data),
+      );
 
-      // Handle empty or invalid JSON responses
       dynamic body;
+      final responseBody = response.body;
       if (responseBody.isEmpty || responseBody.trim().isEmpty) {
         body = {'message': 'Empty response from server'};
       } else {
         try {
           body = jsonDecode(responseBody);
-          // If body is a List, wrap it or keep it as is (client expects it directly in response['body'])
         } catch (e) {
-          body = {'message': 'Invalid JSON response from server', 'error': e.toString()};
+          body = {
+            'message': 'Invalid JSON response from server',
+            'error': e.toString(),
+            'rawPreview': responseBody.length > 300
+                ? '${responseBody.substring(0, 300)}…'
+                : responseBody,
+          };
         }
+      }
+
+      if (isAuth) {
+        final line =
+            '[HTTP] RESP $url → HTTP ${response.statusCode} body=$body';
+        webConsoleLog(line);
+        // ignore: avoid_print
+        print(line);
       }
 
       if (response.statusCode == 503 &&
           body is Map &&
           body['accessLocked'] == true) {
-        final storage = FlutterSecureStorage();
+        final storage = const FlutterSecureStorage();
         await storage.deleteAll();
         showMaintenanceLogoutFromAccessLock();
       } else if (clearingOnForbidden &&
           (response.statusCode == 401 || response.statusCode == 403)) {
-        final storage = FlutterSecureStorage();
+        if (isAuth) {
+          final line =
+              '[HTTP] Auth $endpoint got ${response.statusCode} → clearing session / navigate login';
+          webConsoleLog(line);
+          // ignore: avoid_print
+          print(line);
+        }
+        final storage = const FlutterSecureStorage();
         await storage.deleteAll();
-
         LoginPage.navigateToLogin(null);
       }
 
       return {
         'statusCode': response.statusCode,
-        'body': body
+        'body': body,
       };
-    } on SocketException catch (e) {
-      if (e.osError?.errorCode == 111 || e.osError?.errorCode == 7) {
-        return {'statusCode': 503, 'body': {'message': 'Service unavailable'}};
+    } on http.ClientException catch (e) {
+      if (isAuth) {
+        final line = '[HTTP] ClientException Auth/$endpoint: ${e.message}';
+        webConsoleLog(line);
+        // ignore: avoid_print
+        print(line);
       }
-      return {'statusCode': 500, 'body': {'message': 'Network error'}};
+      return {
+        'statusCode': 500,
+        'body': {'message': 'Network error: ${e.message}'},
+      };
     } on StateError catch (e) {
-      return {'statusCode': 500, 'body': {'message': 'Connection error: ${e.message}'}};
+      if (isAuth) {
+        final line = '[HTTP] StateError Auth/$endpoint: ${e.message}';
+        webConsoleLog(line);
+        // ignore: avoid_print
+        print(line);
+      }
+      return {
+        'statusCode': 500,
+        'body': {'message': 'Connection error: ${e.message}'},
+      };
     } catch (e) {
-      return {'statusCode': 500, 'body': {'message': 'Unexpected error'}};
-    } finally {
-      client.close(force: true);
+      if (isAuth) {
+        final line = '[HTTP] Unexpected Auth/$endpoint: $e';
+        webConsoleLog(line);
+        // ignore: avoid_print
+        print(line);
+      }
+      return {
+        'statusCode': 500,
+        'body': {'message': 'Unexpected error: $e'},
+      };
     }
   }
 
@@ -1365,8 +1455,10 @@ class Common {
 
     overlay.insert(overlayEntry);
 
-    Future.delayed(Duration(milliseconds: theDuration*1000 + 400), () {
-      overlayEntry.remove();
+    Future.delayed(Duration(milliseconds: theDuration * 1000 + 400), () {
+      if (overlayEntry.mounted) {
+        overlayEntry.remove();
+      }
     });
   }
 
@@ -1514,6 +1606,7 @@ class _FloatingSnackState extends State<_FloatingSnack> with SingleTickerProvide
     _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
     _controller.forward(); // Empieza fade in
     Future.delayed(Duration(seconds: widget.duration), () {
+      if (!mounted) return;
       _controller.reverse(); // Comienza fade out justo antes de eliminarse
     });
   }

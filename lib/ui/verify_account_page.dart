@@ -1,9 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
 import '../locale/localized_texts.dart';
 import 'login_page.dart';
 
@@ -133,7 +133,7 @@ class VerifyAccountPageState extends State<VerifyAccountPage> {
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: StatusBackgroundColors.top,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -143,18 +143,7 @@ class VerifyAccountPageState extends State<VerifyAccountPage> {
       ),
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/android12splash.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(color: Colors.black.withAlpha(50)),
-            ),
-          ),
+          const Positioned.fill(child: StatusBackground()),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),

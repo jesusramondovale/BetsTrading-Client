@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../helpers/status_background.dart';
 import '../locale/localized_texts.dart';
 
 /// Shows the 6-day daily login reward journey and allows claiming the current day's coins.
@@ -154,12 +155,7 @@ class _DailyRewardDialogState extends State<DailyRewardDialog>
 
     return Stack(
       children: [
-        Positioned.fill(
-          child: Image.asset(
-            'assets/backgn.png',
-            fit: BoxFit.cover,
-          ),
-        ),
+        const Positioned.fill(child: StatusBackground()),
         Center(
           child: AnimatedBuilder(
             animation: Listenable.merge([_entryController, _fadeAnimation]),
@@ -174,11 +170,14 @@ class _DailyRewardDialogState extends State<DailyRewardDialog>
             },
             child: Dialog(
               elevation: 0,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
               backgroundColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0),
               ),
-              child: ClipRRect(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: ClipRRect(
                 borderRadius: BorderRadius.circular(20.0),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -265,6 +264,7 @@ class _DailyRewardDialogState extends State<DailyRewardDialog>
                       ],
                     ),
                   ),
+                ),
                 ),
               ),
             ),

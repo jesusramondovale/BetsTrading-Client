@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
 import '../locale/localized_texts.dart';
 
 /// A page displaying the history of user withdrawals.
@@ -324,8 +325,8 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
     final strings = LocalizedStrings.of(context);
 
     return Scaffold(
+      backgroundColor: StatusBackgroundColors.top,
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -340,15 +341,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
       ),
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset('assets/android12splash.png', fit: BoxFit.cover),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(color: Colors.transparent.withValues(alpha: 0.2)),
-            ),
-          ),
+          const Positioned.fill(child: StatusBackground()),
           Padding(
             padding: EdgeInsets.fromLTRB(
               16,

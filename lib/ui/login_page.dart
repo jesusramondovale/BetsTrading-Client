@@ -1,17 +1,23 @@
 import 'dart:async';
-import 'dart:ui';
+import 'dart:math' as math;
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:betrader/services/auth_service.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/helpers/common.dart';
+import 'package:betrader/helpers/status_background.dart';
 import 'package:betrader/ui/signin_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart' hide Config;
 import '../config/config.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import '../helpers/google_sign_in_button.dart';
 import '../helpers/preload_cache.dart';
+import '../helpers/web_console_log.dart';
 import '../services/bets_service.dart';
 import 'first_time_page.dart';
 import 'layout_page.dart';
@@ -83,25 +89,20 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
-  late AnimationController _blurController;
   late AnimationController _contentController;
   late AnimationController _dotsController;
   late AnimationController _pulseController;
-  late Animation<double> _blurAnimation;
   late Animation<double> _pulseAnimation;
   Timer? _contentDelayTimer;
   bool _isLoading = false; // Bandera para controlar cuando mostrar la animación de carga
+  /// Placeholder hasta conectar un contador real de usuarios en línea.
+  late final int _onlineUsers;
 
   @override
   void initState() {
     super.initState();
-    
-    // Controlador para el blur del fondo
-    _blurController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    
+    _onlineUsers = 40 + math.Random().nextInt(161); // 40–200
+
     // Controlador para el contenido (con delay)
     _contentController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -120,14 +121,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       vsync: this,
     )..repeat(reverse: true);
 
-    _blurAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _blurController,
-      curve: Curves.easeOut,
-    ));
-
     _pulseAnimation = Tween<double>(
       begin: 0.85,
       end: 1.0,
@@ -136,9 +129,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       curve: Curves.easeInOut,
     ));
 
-    // Iniciar animación del blur inmediatamente
-    _blurController.forward();
-    
     // Si es auto-login, ocultar botones y cargar datos
     if (widget.isAutoLogin) {
       // Ocultar botones inmediatamente
@@ -207,25 +197,252 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     _contentDelayTimer = null;
     
     // Detener y resetear las animaciones antes de hacer dispose
-    if (_blurController.isAnimating) {
-      _blurController.stop();
-    }
     if (_contentController.isAnimating) {
       _contentController.stop();
     }
-    _blurController.reset();
     _contentController.reset();
     _dotsController.dispose();
     _pulseController.dispose();
-    _blurController.dispose();
     _contentController.dispose();
     super.dispose();
   }
 
+  void _onLoadingChanged(bool isLoading) {
+    if (mounted) {
+      setState(() {
+        _isLoading = isLoading;
+      });
+    }
+  }
+
+  Widget _webTopBar() {
+    return Material(
+      color: Colors.black.withValues(alpha: 0.55),
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+        ),
+        child: Row(
+          children: [
+            Image.asset('assets/new_icon.png', width: 28, height: 28),
+            const SizedBox(width: 10),
+            Text(
+              'Betrader',
+              style: GoogleFonts.syncopate(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Web',
+              style: GoogleFonts.montserrat(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.white54,
+              ),
+            ),
+            const Spacer(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _webLoginCard(LocalizedStrings? strings) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 440),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 40),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.12),
+          ),
+        ),
+        // Intrinsic height: el borde se ajusta al contenido (sin hueco vacío).
+        child: LoginForm(
+          animationController: _contentController,
+          onLoadingStateChanged: _onLoadingChanged,
+          webMode: true,
+        ),
+      ),
+    );
+  }
+
+  Widget _webHeroCopy(LocalizedStrings? strings, {bool compact = false}) {
+    final onlineLabel = strings?.get('usersOnline') ??
+        '$_onlineUsers usuarios en línea';
+    final onlineText = onlineLabel.contains('{count}')
+        ? onlineLabel.replaceAll('{count}', '$_onlineUsers')
+        : '$_onlineUsers usuarios en línea';
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment:
+          compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Re-descubre el juego de la bolsa',
+          textAlign: compact ? TextAlign.center : TextAlign.left,
+          style: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontSize: compact ? 28 : 42,
+            fontWeight: FontWeight.w700,
+            height: 1.15,
+          ),
+        ),
+        SizedBox(height: compact ? 14 : 20),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: compact ? 9 : 10,
+              height: compact ? 9 : 10,
+              decoration: BoxDecoration(
+                color: const Color(0xFF22C55E),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF22C55E).withValues(alpha: 0.55),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              onlineText,
+              style: GoogleFonts.montserrat(
+                color: Colors.white70,
+                fontSize: compact ? 14 : 16,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _webLoginBody(LocalizedStrings? strings) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 880;
+        final padH = wide ? 40.0 : 24.0;
+
+        if (wide) {
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1120),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: padH, vertical: 32),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 48),
+                        child: _webHeroCopy(strings),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 4,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: _webLoginCard(strings),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        // Vista estrecha: bloque centrado en vertical y horizontal.
+        final minH = constraints.maxHeight > 48
+            ? constraints.maxHeight - 48
+            : constraints.maxHeight;
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: padH, vertical: 24),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minH),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _webHeroCopy(strings, compact: true),
+                  const SizedBox(height: 36),
+                  _webLoginCard(strings),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final strings = LocalizedStrings.of(context);
+    final isWeb = kIsWeb;
+
+    if (isWeb) {
+      return Scaffold(
+        backgroundColor: StatusBackgroundColors.top,
+        body: Stack(
+          children: [
+            const Positioned.fill(child: StatusBackground()),
+            Column(
+              children: [
+                _webTopBar(),
+                Expanded(
+                  child: FadeTransition(
+                    opacity: _contentController,
+                    child: _webLoginBody(strings),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    Config.codeVersion,
+                    style: GoogleFonts.montserrat(
+                      color: Colors.white38,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (_isLoading && _contentController.value < 0.1)
+              Positioned.fill(
+                child: ColoredBox(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: StatusBackgroundColors.top,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
@@ -235,57 +452,20 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       ),
       body: Stack(
         children: [
-          // Fondo principal intacto
-          Positioned.fill(
-            child: ColorFiltered(
-              colorFilter: ColorFilter.mode(
-                Colors.black.withValues(alpha: 0.1),
-                BlendMode.darken,
-              ),
-              child: Image.asset(
-                'assets/android12splash-clean.png',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(color: Colors.black);
-                },
-              ),
-            ),
-          ),
-          // Blur con animación progresiva (ligero emborronamiento)
-          AnimatedBuilder(
-            animation: _blurAnimation,
-            builder: (context, child) {
-              if (!mounted) {
-                return const SizedBox.shrink();
-              }
-              return Positioned.fill(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: 0.0 + (5.0 * _blurAnimation.value),
-                    sigmaY: 0.0 + (5.0 * _blurAnimation.value),
-                  ),
-                  child: Container(color: Colors.transparent),
-                ),
-              );
-            },
-          ),
+          const Positioned.fill(child: StatusBackground()),
           // Contenido con animaciones escalonadas
           FadeTransition(
             opacity: _contentController,
             child: Center(
               child: SingleChildScrollView(
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  padding: const EdgeInsets.all(16.0),
-                  child: LoginForm(
-                    animationController: _contentController,
-                    onLoadingStateChanged: (isLoading) {
-                      if (mounted) {
-                        setState(() {
-                          _isLoading = isLoading;
-                        });
-                      }
-                    },
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: LoginForm(
+                      animationController: _contentController,
+                      onLoadingStateChanged: _onLoadingChanged,
+                    ),
                   ),
                 ),
               ),
@@ -490,11 +670,15 @@ class LoginForm extends StatefulWidget {
   
   /// Callback invoked when loading state changes.
   final Function(bool) onLoadingStateChanged;
+
+  /// Layout compacto de escritorio (estilo Polymarket / web).
+  final bool webMode;
   
   const LoginForm({
     super.key, 
     required this.animationController,
     required this.onLoadingStateChanged,
+    this.webMode = false,
   });
 
   @override
@@ -502,6 +686,12 @@ class LoginForm extends StatefulWidget {
 }
 
 class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
+  Widget _constrainAuthControl(Widget child) {
+    return SizedBox(width: double.infinity, child: child);
+  }
+
+  double get _authRadius => widget.webMode ? 8.0 : 30.0;
+
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -510,6 +700,156 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
 
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  bool _googleAuthBusy = false;
+  GoogleSignIn? _webGoogle;
+  StreamSubscription<GoogleSignInAccount?>? _webGoogleSub;
+
+  Future<void> _handleGoogleAuthResult(
+    int? result,
+    LocalizedStrings strings,
+  ) async {
+    if (!mounted) return;
+
+    if (result != null && result == 0) {
+      String? id = await _storage.read(key: 'sessionToken');
+      await BetsService().getUserInfo(id!);
+      if (!mounted) return;
+
+      widget.onLoadingStateChanged(true);
+      await widget.animationController.reverse();
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      await _waitForNextFrame();
+      if (!mounted) return;
+
+      await _waitForNextFrame();
+      if (!mounted) return;
+
+      String? username = await _storage.read(key: 'username');
+      Common().showFloatingSnack(
+        context,
+        "${strings.get('welcome') ?? "Welcome"} $username!",
+      );
+
+      await MarketsView.preloadAllMarketData();
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainMenuPage()),
+      );
+    } else if (result != null && result == 3) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const FirstTimePage()),
+      );
+    } else if (result != null && result == 2) {
+      String? id = await _storage.read(key: 'sessionToken');
+      await BetsService().getUserInfo(id!);
+      if (!mounted) return;
+      String? username = await _storage.read(key: 'username');
+      Common().showFloatingSnack(
+        context,
+        "${strings.get('welcome') ?? "Welcome"} $username!",
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const FirstTimePage()),
+      );
+    } else {
+      if (!mounted) return;
+      final detail =
+          AuthService.lastError ?? 'Google login failed (result=$result)';
+      // ignore: avoid_print
+      print('[LoginPage] FAIL $detail');
+      Common().showFloatingSnack(
+        context,
+        detail,
+        backgroundColor: Colors.red,
+        theDuration: 10,
+      );
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Google login'),
+          content: SingleChildScrollView(child: Text(detail)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Future<void> _runGoogleAuth(Future<int?> Function() authCall) async {
+    if (_googleAuthBusy) return;
+    _googleAuthBusy = true;
+    Common().applyImmersive();
+    if (!mounted) {
+      _googleAuthBusy = false;
+      return;
+    }
+    showDialog(
+      barrierColor: Colors.black.withAlpha(100),
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return const Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.white,
+          ),
+        );
+      },
+    );
+    int? result;
+    try {
+      result = await authCall();
+    } finally {
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    }
+    try {
+      if (!mounted) return;
+      final strings = LocalizedStrings.of(context);
+      if (strings == null) return;
+      await _handleGoogleAuthResult(result, strings);
+    } finally {
+      _googleAuthBusy = false;
+    }
+  }
+
+  Future<void> _onGoogleSignInPressed() async {
+    // Móvil / desktop: popup nativo.
+    await _runGoogleAuth(() => AuthService().googleSignIn());
+  }
+
+  Future<void> _onWebGoogleAccount(GoogleSignInAccount? account) async {
+    if (!kIsWeb || account == null || _googleAuthBusy) return;
+    final auth = await account.authentication;
+    final idToken = auth.idToken;
+    webConsoleLog(
+      '[GoogleWeb] account=${account.email} idToken=${idToken != null && idToken.isNotEmpty}',
+    );
+    if (idToken == null || idToken.isEmpty) {
+      if (!mounted) return;
+      Common().showFloatingSnack(
+        context,
+        'Google no entregó idToken. Recarga e inténtalo de nuevo.',
+        backgroundColor: Colors.red,
+        theDuration: 8,
+      );
+      return;
+    }
+    await _runGoogleAuth(
+      () => AuthService().googleSignInWithIdToken(idToken),
+    );
+  }
 
   /// Handles the login process with email and password.
   ///
@@ -519,6 +859,17 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
   /// [strings] Localized strings for UI messages.
   void logInHelper(LocalizedStrings strings) async {
     if (!mounted) return;
+    final user = _usernameController.text.trim();
+    // No trim de password: espacios finales pueden ser parte de la clave.
+    final pass = _passwordController.text;
+    void uiLog(String msg) {
+      final line = '[LoginUI] $msg';
+      webConsoleLog(line);
+      // ignore: avoid_print
+      print(line);
+    }
+
+    uiLog('email login tapped user="$user" passwordLen=${pass.length}');
     showDialog(
       barrierColor: Colors.black.withAlpha(100),
       context: context,
@@ -528,17 +879,17 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
       },
     );
 
-    final pass = _passwordController.text.trim();
-
     try {
-      final result = await AuthService()
-          .logIn(_usernameController.text.trim(), pass.toString());
+      final result = await AuthService().logIn(user, pass);
+      uiLog('AuthService.logIn returned success=${result['success']} message=${result['message']}');
       if (!mounted) return;
       Navigator.of(context).pop();
 
       if (result['success']) {
         String? id = await _storage.read(key: 'sessionToken');
+        uiLog('sessionToken=${id == null || id.isEmpty ? "(null/empty)" : "ok len=${id.length}"}');
         await BetsService().getUserInfo(id!);
+        uiLog('getUserInfo done → navigating MainMenu');
         if (!mounted) return;
         
         // Activar bandera de carga y ocultar botones con animación inversa
@@ -555,7 +906,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
         if (!mounted) return;
         
         // Mostrar notificación de bienvenido durante la carga
-        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"}  ${_usernameController.text.trim()}!");
+        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"}  $user!");
         
         // Cargar TODOS los datos durante "Cargando..." antes de abandonar la vista
         await Future.wait([
@@ -568,13 +919,24 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
             MaterialPageRoute(builder: (context) => const MainMenuPage()));
 
       } else {
+        final msg = (result['message'] ?? 'Login failed').toString();
+        uiLog('login failed → $msg');
         if (!mounted) return;
-        Common().showErrorSnack(context);
+        Common().showFloatingSnack(
+          context,
+          msg,
+          backgroundColor: Colors.red,
+        );
       }
-    } catch (e) {
+    } catch (e, st) {
+      uiLog('EXCEPTION: $e\n$st');
       if (!mounted) return;
       Navigator.of(context).pop();
-      Common().popDialog("Error", "An unexpected error occurred.", context);
+      Common().showFloatingSnack(
+        context,
+        e.toString(),
+        backgroundColor: Colors.red,
+      );
     }
   }
 
@@ -686,13 +1048,15 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
   }
 
   Widget _buildUsernameField(LocalizedStrings strings) {
+    final fieldSize = widget.webMode ? 15.0 : 25.0;
+    final labelSize = widget.webMode ? 14.0 : 25.0;
     return TextFormField(
       cursorColor: Colors.black,
       controller: _usernameController,
       decoration: InputDecoration(
           border: OutlineInputBorder(borderSide: BorderSide.none),
           labelText: "E-mail / ${strings.get('username') ?? 'User name'}",
-          labelStyle: GoogleFonts.syncopate(fontSize: 25),
+          labelStyle: GoogleFonts.syncopate(fontSize: labelSize),
           errorStyle: GoogleFonts.montserrat(
             color: Colors.red,
             fontWeight: FontWeight.w500,
@@ -704,7 +1068,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
           ),
 
       ),
-      style: GoogleFonts.montserrat(fontSize: 25),
+      style: GoogleFonts.montserrat(fontSize: fieldSize),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return strings.get('pleaseEnterUsername') ??
@@ -716,6 +1080,8 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
   }
 
   Widget _buildPasswordField(LocalizedStrings strings) {
+    final fieldSize = widget.webMode ? 15.0 : 25.0;
+    final labelSize = widget.webMode ? 14.0 : 25.0;
     return TextFormField(
       cursorColor: Colors.black,
       controller: _passwordController,
@@ -723,7 +1089,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
       decoration: InputDecoration(
           border: OutlineInputBorder(borderSide: BorderSide.none),
           labelText: (strings.get('password') ?? 'Password'),
-          labelStyle: GoogleFonts.syncopate(fontSize: 25),
+          labelStyle: GoogleFonts.syncopate(fontSize: labelSize),
           errorStyle: GoogleFonts.montserrat(
             color: Colors.red,
             fontWeight: FontWeight.w500,
@@ -734,7 +1100,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
               fontWeight: FontWeight.w500,
           ),
       ),
-      style: GoogleFonts.montserrat(fontSize: 25),
+      style: GoogleFonts.montserrat(fontSize: fieldSize),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return strings.get('pleaseEnterPassword') ??
@@ -745,142 +1111,111 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildGoogleSignInButton(LocalizedStrings strings) {
-    return ElevatedButton(
+  static const double _authBtnHeight = 50;
 
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.black,
-        backgroundColor: Colors.white,
-        minimumSize: const Size(50,50),
-        maximumSize: Size(
-            MediaQuery.of(context).size.width*0.85,
-            50),
+  ButtonStyle _authButtonStyle({
+    required Color foreground,
+    required Color background,
+  }) {
+    return ElevatedButton.styleFrom(
+      foregroundColor: foreground,
+      backgroundColor: background,
+      elevation: 0,
+      fixedSize: const Size(double.infinity, _authBtnHeight),
+      minimumSize: const Size(double.infinity, _authBtnHeight),
+      maximumSize: const Size(double.infinity, _authBtnHeight),
+      padding: EdgeInsets.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_authRadius),
       ),
-      onPressed: () async {
-        Common().applyImmersive();
-        if (!mounted) return;
-        showDialog(
-          barrierColor: Colors.black.withAlpha(100),
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext dialogContext) {
-            return const Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            );
-          },
-        );
-        int? result;
-        try {
-          result = await AuthService().googleSignIn();
-        } finally {
-          if (mounted && Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          }
-        }
-        if (!mounted) return;
+    );
+  }
 
-        if (result != null && result == 0)
-        {
-          // Validated
-          String? id = await _storage.read(key: 'sessionToken');
-          await BetsService().getUserInfo(id!);
-          if (!mounted) return;
-          
-        // Activar bandera de carga y ocultar botones con animación inversa
-        widget.onLoadingStateChanged(true);
-        await widget.animationController.reverse();
-        await Future.delayed(const Duration(milliseconds: 300));
-        
-        // Esperar a que el frame se renderice para asegurar que el widget de carga esté visible
-        await _waitForNextFrame();
-        if (!mounted) return;
-        
-        // Esperar un frame adicional para asegurar renderizado completo
-        await _waitForNextFrame();
-        if (!mounted) return;
-        
-        // Mostrar notificación de bienvenido durante la carga
-        String? username = await _storage.read(key: 'username');
-        Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
-        
-        // Cargar todos los datos mientras se muestra el login
-        await MarketsView.preloadAllMarketData();
-        
-        if (!mounted) return;
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const MainMenuPage()));
-        }
-        else if (result != null && result == 3) {
-          if (!mounted) return;
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const FirstTimePage()));
-        }
-        // First Google login
-        else if (result != null && result == 2) {
-          // Validated
-          String? id = await _storage.read(key: 'sessionToken');
-          await BetsService().getUserInfo(id!);
-          if (!mounted) return;
-          String? username = await _storage.read(key: 'username');
-          Common().showFloatingSnack(context, "${strings.get('welcome') ?? "Welcome"} $username!");
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const FirstTimePage()));
-        }
-        else {
-          if (!mounted) return;
-          Common().showErrorSnack(context);
-          if (kDebugMode) {
-            print("Error on Google LogIn.");
-          }
-        }
-      },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset('assets/google.png', height: 30),
-          Padding(
-            padding: const EdgeInsets.only(left: 10),
-            child: Text(strings.get('googleSignIn') ?? 'Continue with Google',
-                style:
-                    GoogleFonts.montserrat(fontSize: 16, color: Colors.black)),
+  Widget _buildGoogleSignInButton(LocalizedStrings strings) {
+    final visual = SizedBox(
+      height: _authBtnHeight,
+      width: double.infinity,
+      child: ElevatedButton(
+        style: _authButtonStyle(
+          foreground: Colors.black,
+          background: Colors.white,
+        ),
+        onPressed: () async {
+          if (kIsWeb) return; // Clic real: capa GIS transparente encima.
+          await _onGoogleSignInPressed();
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/google.png', height: 24, width: 24),
+            const SizedBox(width: 10),
+            Text(
+              strings.get('googleSignIn') ?? 'Continue with Google',
+              style: GoogleFonts.montserrat(fontSize: 16, color: Colors.black),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!kIsWeb) {
+      return _constrainAuthControl(visual);
+    }
+
+    // Mismo look + GIS invisible encima (idToken). Misma altura que e-mail.
+    return _constrainAuthControl(
+      SizedBox(
+        height: _authBtnHeight,
+        width: double.infinity,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(_authRadius),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              IgnorePointer(child: visual),
+              Opacity(
+                opacity: 0.02,
+                child: buildGoogleSignInWebButton(minimumWidth: 400),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildManualLogInButton(LocalizedStrings strings) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        minimumSize: const Size(50,50),
-        maximumSize: Size(
-            MediaQuery.of(context).size.width*0.85,
-            50),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-      ),
-      onPressed: () {
-        Common().applyImmersive();
-        if (mounted) {
-          setState(() {
-            _showSocialSignIn = !_showSocialSignIn;
-          });
-        }
-      },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.email, color: Colors.white, size: 25),
-          const SizedBox(width: 10),
-          Text(
-            strings.get('commonSignIn') ?? 'Log In',
-            style: GoogleFonts.montserrat(fontSize: 16),
+    return _constrainAuthControl(
+      SizedBox(
+        height: _authBtnHeight,
+        width: double.infinity,
+        child: ElevatedButton(
+          style: _authButtonStyle(
+            foreground: Colors.white,
+            background: Colors.black,
           ),
-        ],
+          onPressed: () {
+            Common().applyImmersive();
+            if (mounted) {
+              setState(() {
+                _showSocialSignIn = !_showSocialSignIn;
+              });
+            }
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.email, color: Colors.white, size: 24),
+              const SizedBox(width: 10),
+              Text(
+                strings.get('commonSignIn') ?? 'Log In',
+                style: GoogleFonts.montserrat(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -896,8 +1231,9 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
             foregroundColor: Colors.white,
             textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600).copyWith(inherit: false),
 
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(_authRadius),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
           ),
           onPressed: () {
@@ -914,8 +1250,9 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
             backgroundColor: Colors.grey[800],
             foregroundColor: Colors.white,
             textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600).copyWith(inherit: false),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(_authRadius),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
           ),
           onPressed: () {
@@ -930,12 +1267,16 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
   }
 
   Widget _buildToggleButton(LocalizedStrings strings) {
-    return ElevatedButton(
+    return _constrainAuthControl(
+      ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.grey[850],
         foregroundColor: Colors.white,
         textStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600).copyWith(inherit: false),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_authRadius),
+        ),
+        minimumSize: const Size.fromHeight(48),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       ),
       onPressed: () {
@@ -952,6 +1293,7 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
             : (strings.get('backToSocialsLogin') ?? "Back to Social Logins"),
         textAlign: TextAlign.center,
       ),
+    ),
     );
   }
 
@@ -1007,6 +1349,15 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (kIsWeb) {
+      _webGoogle = GoogleSignIn(
+        clientId: Config.googleWebClientId,
+        scopes: const <String>['openid', 'email', 'profile'],
+      );
+      _webGoogleSub = _webGoogle!.onCurrentUserChanged.listen(_onWebGoogleAccount);
+      // Inicializa el plugin GIS (necesario antes del renderButton).
+      _webGoogle!.isSignedIn();
+    }
   }
 
   Widget _buildAnimatedWidget({
@@ -1052,39 +1403,66 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
+    final web = widget.webMode;
+    final logoSize = web ? 96.0 : 200.0;
+    final titleSize = web ? 26.0 : 38.0;
 
     return Form(
       key: _formKey,
       child: Column(
+        // Sin esto el Column se estira a toda la altura del card y deja
+        // un hueco vacío debajo del contenido.
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Texto que se oculta con el teclado
-          AnimatedOpacity(
-            opacity: _isKeyboardVisible ? 0.0 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            child: _buildAnimatedWidget(
+          if (!web)
+            AnimatedOpacity(
+              opacity: _isKeyboardVisible ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              child: _buildAnimatedWidget(
+                index: 0,
+                total: _showSocialSignIn ? 5 : 6,
+                child: AutoSizeText(
+                  "betrader.v1",
+                  textAlign: TextAlign.center,
+                  minFontSize: 20,
+                  maxLines: 1,
+                  style: GoogleFonts.syncopate(
+                    fontWeight: FontWeight.w500,
+                    fontSize: titleSize,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            )
+          else
+            _buildAnimatedWidget(
               index: 0,
               total: _showSocialSignIn ? 5 : 6,
-              child: AutoSizeText(
-                "betrader.v1",
+              child: Text(
+                strings?.get('logIn') ?? 'Log in',
                 textAlign: TextAlign.center,
-                minFontSize: 20,
-                maxLines: 1,
-                style: GoogleFonts.syncopate(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 38,
+                style: GoogleFonts.montserrat(
+                  fontWeight: FontWeight.w700,
+                  fontSize: titleSize,
                   color: Colors.white,
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
+          SizedBox(height: web ? 20 : 20),
           _buildAnimatedWidget(
             index: 1,
             total: _showSocialSignIn ? 5 : 6,
-            child: Image.asset('assets/new_icon.png', width: 200, fit: BoxFit.cover),
+            child: Image.asset(
+              'assets/new_icon.png',
+              width: logoSize,
+              height: web ? logoSize : null,
+              fit: BoxFit.contain,
+            ),
           ),
-          const SizedBox(height: 30),
+          SizedBox(height: web ? 28 : 30),
 
           if (_showSocialSignIn) ...[
             _buildAnimatedWidget(
@@ -1092,13 +1470,13 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
               total: 5,
               child: _buildGoogleSignInButton(strings!),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: web ? 14 : 8),
             _buildAnimatedWidget(
               index: 3,
               total: 5,
               child: _buildManualLogInButton(strings),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: web ? 24 : 16),
             _buildAnimatedWidget(
               index: 4,
               total: 5,
@@ -1147,8 +1525,8 @@ class LoginFormState extends State<LoginForm> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    // Remover observer ANTES de cualquier otra operación
-    // No verificamos mounted aquí porque dispose() se llama cuando el widget ya no está montado
+    _webGoogleSub?.cancel();
+    _webGoogleSub = null;
     try {
       WidgetsBinding.instance.removeObserver(this);
     } catch (e) {

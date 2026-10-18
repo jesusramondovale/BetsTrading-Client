@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../helpers/status_background.dart';
 import '../locale/localized_texts.dart';
 
 /// A utility class for displaying GDPR consent dialogs.
@@ -25,14 +26,10 @@ class ConsentPage {
       builder: (BuildContext dialogContext) {
         return Stack(
           children : [
-            Positioned.fill(
-              child: Image.asset(
-                'assets/backgn.png',
-                fit: BoxFit.cover,
-              ),
-            ),
+            const Positioned.fill(child: StatusBackground()),
             Center(
               child: AlertDialog(
+                constraints: const BoxConstraints(maxWidth: 440),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0),
                 ),

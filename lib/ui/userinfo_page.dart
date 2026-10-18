@@ -20,6 +20,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'layout_page.dart';
 import 'login_page.dart';
+import 'web/web_layout.dart';
 
 /// A page displaying and managing user profile information.
 ///
@@ -645,7 +646,11 @@ class UserInfoPageState extends State<UserInfoPage> {
       ),
     );
 
-    return ListView(children: listItems);
+    return webNarrowBody(
+      context: context,
+      maxWidth: kWebPanelMaxWidth,
+      child: ListView(children: listItems),
+    );
   }
 
   @override

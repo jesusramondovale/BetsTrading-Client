@@ -33,7 +33,8 @@ class MandatoryInterstitialService {
   /// POST anónimo a la API; guarda umbrales en SharedPreferences.
   Future<void> refreshRemoteConfig() async {
     try {
-      final url = Uri.https(Config.publicDomain, '/api/Info/ClientRuntimeConfig');
+      // Misma origin en local (localhost:5000) / producción; evita CORS cruzado.
+      final url = Config.apiUri('/api/Info/ClientRuntimeConfig');
       final res = await http.post(
         url,
         headers: const {'Content-Type': 'application/json'},

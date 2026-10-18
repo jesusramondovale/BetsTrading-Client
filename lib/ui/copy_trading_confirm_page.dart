@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
 import '../helpers/slider.dart';
 import '../locale/localized_texts.dart';
 import '../models/users.dart';
@@ -233,8 +232,8 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
         : (strings?.get('confirmBet') ?? 'Slide to confirm the operation');
 
     return Scaffold(
+      backgroundColor: StatusBackgroundColors.top,
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -256,15 +255,7 @@ class _CopyTradingConfirmPageState extends State<CopyTradingConfirmPage> {
       ),
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset('assets/android12splash.png', fit: BoxFit.cover),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(color: Colors.transparent.withValues(alpha: .2)),
-            ),
-          ),
+          const Positioned.fill(child: StatusBackground()),
           Padding(
             padding: EdgeInsets.fromLTRB(
               24,

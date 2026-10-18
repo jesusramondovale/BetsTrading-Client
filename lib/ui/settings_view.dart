@@ -1,20 +1,21 @@
-import 'dart:io';
-import 'dart:ui';
-
 import 'package:app_settings/app_settings.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/ui/retire_methods.dart';
 import 'package:betrader/ui/notifications_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../helpers/app_exit.dart';
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
 import '../config/config.dart';
 import '../services/auth_service.dart';
 import '../services/secure_auth_service.dart';
 import 'layout_page.dart';
+import 'web/web_layout.dart';
 
 /// A settings view widget for managing app preferences and user account.
 ///
@@ -80,8 +81,9 @@ class SettingsViewState extends State<SettingsView> {
             if (!didPop) Navigator.pop(dialogContext, false);
           },
           child: AlertDialog(
+            constraints: const BoxConstraints(maxWidth: 440),
             backgroundColor: bgColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Text(
               strings?.get('changePassword') ?? "Change Password",
               textAlign: TextAlign.center,
@@ -289,12 +291,13 @@ class SettingsViewState extends State<SettingsView> {
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, result) {
-            if (!didPop) exit(0);
+            if (!didPop) quitApp();
           },
           child: AlertDialog(
+            constraints: const BoxConstraints(maxWidth: 440),
             backgroundColor: bgColor,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
             ),
             title: Text(
               strings?.get('needToRestart') ?? "The application needs to be restarted. Please enter again",
@@ -309,7 +312,7 @@ class SettingsViewState extends State<SettingsView> {
             actions: [
               ElevatedButton(
                 onPressed: () {
-                  exit(0);
+                  quitApp();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
@@ -375,8 +378,9 @@ class SettingsViewState extends State<SettingsView> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        constraints: const BoxConstraints(maxWidth: 440),
         backgroundColor: Colors.grey[900],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           strings?.get('biometricUnavailableTitle') ?? 'Biometrics unavailable',
           style: GoogleFonts.montserrat(color: Colors.white),
@@ -427,6 +431,7 @@ class SettingsViewState extends State<SettingsView> {
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return Scaffold(
+      backgroundColor: StatusBackgroundColors.top,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor : Colors.transparent.withValues(alpha: 0.0),
@@ -436,56 +441,43 @@ class SettingsViewState extends State<SettingsView> {
               fontWeight: FontWeight.w400,
             )),
       ),
-      body: Stack(
-        children: [
-          // Fondo
-          Positioned.fill(
-            child: Image.asset(
-              'assets/android12splash.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.2),
-              ),
-            ),
-          ),
-          ListView(
+      body: StatusPageScaffoldBody(
+        child: webNarrowBody(
+          context: context,
+          child: ListView(
             children: ListTile.divideTiles(
               color: Colors.white70.withValues(alpha: 0.25),
               context: context,
               tiles: [
-                // Notifications
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    splashColor: Colors.white.withValues(alpha: 0.1),
-                    highlightColor: Colors.white.withValues(alpha: 0.05),
-                    onTap: () {
-                      Common().applyImmersive();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => NotificationsPage(
-                            onBack: () {
-                              Navigator.pop(context);
-                            },
+                // Notifications (móvil/app; no aplica en web)
+                if (!kIsWeb)
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      splashColor: Colors.white.withValues(alpha: 0.1),
+                      highlightColor: Colors.white.withValues(alpha: 0.05),
+                      onTap: () {
+                        Common().applyImmersive();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => NotificationsPage(
+                              onBack: () {
+                                Navigator.pop(context);
+                              },
+                            ),
                           ),
+                        );
+                      },
+                      child: ListTile(
+                        title: Text(
+                          strings?.get('notifications') ?? 'Notifications',
+                          style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
                         ),
-                      );
-                    },
-                    child: ListTile(
-                      title: Text(
-                        strings?.get('notifications') ?? 'Notifications',
-                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                        trailing: const Icon(Icons.chevron_right),
                       ),
-                      trailing: const Icon(Icons.chevron_right),
                     ),
                   ),
-                ),
 
                 // Configure Withdrawal Methods (disabled)
                 Material(
@@ -608,44 +600,46 @@ class SettingsViewState extends State<SettingsView> {
                   ),
                 ),
 
-                // Enable Vibration
-                SwitchListTile(
-                  title: Text(
-                    strings?.get('enableVibration') ?? "Enable vibration",
-                    style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
-                  ),
-                  value: enableVibration,
-                  inactiveThumbColor: Colors.black,
-                  inactiveTrackColor: Colors.grey,
-                  activeThumbColor: Colors.greenAccent,
-                  onChanged: (bool value) async {
-                    Common().vibrate();
-                    Common().applyImmersive();
-                    setState(() => enableVibration = value);
-                    _saveEnableVibration(value);
-                  },
-                ),
-
-                ListTile(
-                  title: Text(
-                    strings?.get('enableBiometricAuth') ?? "Enable biometrics",
-                    style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
-                  ),
-                  onTap: () async {
-                    await _toggleBiometricWithSecurity(context, !enableBiometricAuth);
-                  },
-                  trailing: Switch(
-                    value: biometricSupported ? enableBiometricAuth : false,
+                // Vibración / biometría (solo nativo)
+                if (!kIsWeb)
+                  SwitchListTile(
+                    title: Text(
+                      strings?.get('enableVibration') ?? "Enable vibration",
+                      style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                    ),
+                    value: enableVibration,
                     inactiveThumbColor: Colors.black,
                     inactiveTrackColor: Colors.grey,
                     activeThumbColor: Colors.greenAccent,
-                    onChanged: biometricSupported
-                        ? (value) async {
-                            await _toggleBiometricWithSecurity(context, value);
-                          }
-                        : null,
+                    onChanged: (bool value) async {
+                      Common().vibrate();
+                      Common().applyImmersive();
+                      setState(() => enableVibration = value);
+                      _saveEnableVibration(value);
+                    },
                   ),
-                ),
+
+                if (!kIsWeb)
+                  ListTile(
+                    title: Text(
+                      strings?.get('enableBiometricAuth') ?? "Enable biometrics",
+                      style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                    ),
+                    onTap: () async {
+                      await _toggleBiometricWithSecurity(context, !enableBiometricAuth);
+                    },
+                    trailing: Switch(
+                      value: biometricSupported ? enableBiometricAuth : false,
+                      inactiveThumbColor: Colors.black,
+                      inactiveTrackColor: Colors.grey,
+                      activeThumbColor: Colors.greenAccent,
+                      onChanged: biometricSupported
+                          ? (value) async {
+                              await _toggleBiometricWithSecurity(context, value);
+                            }
+                          : null,
+                    ),
+                  ),
 
                 // Switch currency EUR-USD
                 ListTile(
@@ -667,30 +661,29 @@ class SettingsViewState extends State<SettingsView> {
                   ),
                 ),
 
-                // Advanced App Settings
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    splashColor: Colors.white.withValues(alpha: 0.1),
-                    highlightColor: Colors.white.withValues(alpha: 0.05),
-                    onTap: () {
-                      AppSettings.openAppSettings();
-                    },
-                    child: ListTile(
-                      title: Text(
-                        strings?.get('advancedSettings') ?? 'Advanced app settings',
-                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                // Ajustes de sistema del SO (solo nativo)
+                if (!kIsWeb)
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      splashColor: Colors.white.withValues(alpha: 0.1),
+                      highlightColor: Colors.white.withValues(alpha: 0.05),
+                      onTap: () {
+                        AppSettings.openAppSettings();
+                      },
+                      child: ListTile(
+                        title: Text(
+                          strings?.get('advancedSettings') ?? 'Advanced app settings',
+                          style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                        ),
+                        trailing: const Icon(FontAwesomeIcons.gears, size: 40),
                       ),
-                      trailing: const Icon(FontAwesomeIcons.gears, size: 40),
                     ),
                   ),
-                ),
               ],
-
             ).toList(),
           ),
-
-        ],
+        ),
       ),
       bottomSheet: Container(
         padding: const EdgeInsets.all(16.0),

@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -9,6 +7,7 @@ import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/bets_service.dart';
@@ -16,8 +15,10 @@ import '../services/mandatory_interstitial_service.dart';
 import '../services/secure_auth_service.dart';
 import '../config/config.dart';
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
 import '../locale/localized_texts.dart';
 import 'layout_page.dart';
+import 'web/web_layout.dart';
 
 /// A page for purchasing coins and viewing ad reward options.
 ///
@@ -339,8 +340,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
     String? purpose,
     int? coins,
   }) async {
-    final url =
-    Uri.parse("https://${Config.publicDomain}/api/Rewards/RequestAdNonce");
+    final url = Config.apiUri('/api/Rewards/RequestAdNonce');
 
     final payload = {
       'adUnitId': adUnitId,
@@ -350,37 +350,32 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
 
     debugPrint('StorePage requestRewardNonce: Enviando payload: $payload');
 
-    final client = HttpClient();
-    try {
-      final req = await client.postUrl(url);
-      req.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
-
-      final jwtToken = await _storage.read(key: 'jwtToken');
-      if (jwtToken != null && jwtToken.isNotEmpty) {
-        req.headers.set('Authorization', 'Bearer $jwtToken');
-      }
-
-      final jsonBody = jsonEncode(payload);
-      req.add(utf8.encode(jsonBody));
-
-      final res = await req.close();
-      final body = await res.transform(utf8.decoder).join();
-
-      if (res.statusCode == 200) {
-        final data = jsonDecode(body) as Map<String, dynamic>;
-        final nonce = data['nonce'] as String?;
-        if (nonce == null || nonce.isEmpty) {
-          throw Exception('Nonce vacío del servidor');
-        }
-        debugPrint('StorePage requestRewardNonce: Respuesta del servidor: $data');
-        return nonce;
-      }
-
-      debugPrint('StorePage requestRewardNonce: Error ${res.statusCode}: $body');
-      throw Exception('requestRewardNonce failed: ${res.statusCode} $body');
-    } finally {
-      client.close(force: true);
+    final headers = <String, String>{
+      'Content-Type': 'application/json; charset=utf-8',
+    };
+    final jwtToken = await _storage.read(key: 'jwtToken');
+    if (jwtToken != null && jwtToken.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $jwtToken';
     }
+
+    final res = await http.post(
+      url,
+      headers: headers,
+      body: jsonEncode(payload),
+    );
+
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      final nonce = data['nonce'] as String?;
+      if (nonce == null || nonce.isEmpty) {
+        throw Exception('Nonce vacío del servidor');
+      }
+      debugPrint('StorePage requestRewardNonce: Respuesta del servidor: $data');
+      return nonce;
+    }
+
+    debugPrint('StorePage requestRewardNonce: Error ${res.statusCode}: ${res.body}');
+    throw Exception('requestRewardNonce failed: ${res.statusCode} ${res.body}');
   }
 
   Future<void> _showRewardedAd(String localizedWarning) async {
@@ -695,6 +690,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
     final strings = LocalizedStrings.of(context);
 
     return Scaffold(
+      backgroundColor: StatusBackgroundColors.top,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent.withAlpha(0),
@@ -704,18 +700,11 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
           style: GoogleFonts.syncopate(fontSize: 24, fontWeight: FontWeight.w400),
         ),
       ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset('assets/android12splash.png', fit: BoxFit.cover),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(color: Colors.black.withAlpha(50)),
-            ),
-          ),
-          Padding(
+      body: StatusPageScaffoldBody(
+        child: webNarrowBody(
+          context: context,
+          maxWidth: kWebFormMaxWidth,
+          child: Padding(
             padding: const EdgeInsets.fromLTRB(16.0, 90.0, 16.0, 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1064,7 +1053,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

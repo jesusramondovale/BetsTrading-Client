@@ -526,36 +526,89 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
       _scrollControllers[tabIndex] = ScrollController();
     }
 
-    return NotificationListener<ScrollNotification>(
-      onNotification: (_) => false,
-      child: CustomScrollView(
-        controller: _scrollControllers[tabIndex],
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final asset = assets[index];
-                  final isFav = _isFavTicker(asset.ticker);
-                  Widget row = _buildMarketListRow(asset, index, tabIndex, isFav);
-                  if (index == 0) {
-                    _anyAssetRef = asset;
-                    final key = tabIndex < _kAnyAssetByTab.length ? _kAnyAssetByTab[tabIndex] : null;
-                    if (key != null) row = KeyedSubtree(key: key, child: row);
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: row,
-                  );
-                },
-                childCount: assets.length,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useGrid = kIsWeb && constraints.maxWidth >= 720;
+        final crossAxisCount = constraints.maxWidth >= 1100
+            ? 3
+            : (constraints.maxWidth >= 720 ? 2 : 1);
+
+        return NotificationListener<ScrollNotification>(
+          onNotification: (_) => false,
+          child: CustomScrollView(
+            controller: _scrollControllers[tabIndex],
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: useGrid ? 16 : 12,
+                  vertical: 8,
+                ),
+                sliver: useGrid
+                    ? SliverGrid(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          mainAxisExtent: 88,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 10,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final asset = assets[index];
+                            final isFav = _isFavTicker(asset.ticker);
+                            Widget row = _buildMarketListRow(
+                              asset,
+                              index,
+                              tabIndex,
+                              isFav,
+                            );
+                            if (index == 0) {
+                              _anyAssetRef = asset;
+                              final key = tabIndex < _kAnyAssetByTab.length
+                                  ? _kAnyAssetByTab[tabIndex]
+                                  : null;
+                              if (key != null) {
+                                row = KeyedSubtree(key: key, child: row);
+                              }
+                            }
+                            return row;
+                          },
+                          childCount: assets.length,
+                        ),
+                      )
+                    : SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final asset = assets[index];
+                            final isFav = _isFavTicker(asset.ticker);
+                            Widget row = _buildMarketListRow(
+                              asset,
+                              index,
+                              tabIndex,
+                              isFav,
+                            );
+                            if (index == 0) {
+                              _anyAssetRef = asset;
+                              final key = tabIndex < _kAnyAssetByTab.length
+                                  ? _kAnyAssetByTab[tabIndex]
+                                  : null;
+                              if (key != null) {
+                                row = KeyedSubtree(key: key, child: row);
+                              }
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: row,
+                            );
+                          },
+                          childCount: assets.length,
+                        ),
+                      ),
               ),
-            ),
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            ],
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 16)),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -869,20 +922,20 @@ class MarketsViewState extends State<MarketsView> with SingleTickerProviderState
         TabBar(
           key: _kTabs,
           onTap: (_) => Common().applyImmersive(),
-          indicatorColor: Colors.purple,
+          indicatorColor: kIsWeb ? Colors.greenAccent : Colors.purple,
           labelColor: Colors.white,
           dividerColor: Colors.white30,
-          tabAlignment: TabAlignment.center,
+          tabAlignment: kIsWeb ? TabAlignment.start : TabAlignment.center,
           isScrollable: true,
           controller: _tabController,
           labelStyle: GoogleFonts.montserrat(
-            fontSize: 26,
-            fontWeight: FontWeight.w400,
+            fontSize: kIsWeb ? 14 : 26,
+            fontWeight: FontWeight.w600,
           ),
-          labelPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
+          labelPadding: EdgeInsets.fromLTRB(kIsWeb ? 12.0 : 0.0, 0.0, 12.0, 0.0),
           unselectedLabelStyle: GoogleFonts.montserrat(
-            fontSize: 20,
-            fontWeight: FontWeight.w300,
+            fontSize: kIsWeb ? 14 : 20,
+            fontWeight: FontWeight.w400,
           ),
           tabs: groups.map((String group) => Tab(text: group)).toList(),
         ),

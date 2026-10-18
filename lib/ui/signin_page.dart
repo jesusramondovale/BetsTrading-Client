@@ -15,6 +15,8 @@ import 'package:country_flags/country_flags.dart';
 import 'package:betrader/services/auth_service.dart';
 
 import '../helpers/common.dart';
+import '../helpers/status_background.dart';
+import '../helpers/web_console_log.dart';
 
 /// A multi-step registration form for creating new user accounts.
 ///
@@ -49,12 +51,35 @@ class _SignInState extends State<SignIn> {
   ///
   /// Validates current step data, saves form data, and sends verification
   /// code when reaching the final step.
+  void _regLog(String message) {
+    final line = '[RegisterUI] $message';
+    webConsoleLog(line);
+    // ignore: avoid_print
+    print(line);
+  }
+
   Future<void> _onStepContinue() async {
     if (_validateAndSaveCurrentStep()) {
       _updateFormData(context);
       if (_currentStep == 2) {
         String countryCode = Common().getCountryCode(_country);
-        Common().postRequestWrapper('Auth', 'SendCode', {'email': _email, 'country': countryCode});
+        _regLog(
+          'step 2 → SendCode email="$_email" country="$countryCode" '
+          'username="$_username"',
+        );
+        try {
+          final sendResult = await Common().postRequestWrapper(
+            'Auth',
+            'SendCode',
+            {'email': _email, 'country': countryCode},
+            includeJwt: false,
+          );
+          _regLog(
+            'SendCode done HTTP ${sendResult['statusCode']} body=${sendResult['body']}',
+          );
+        } catch (e, st) {
+          _regLog('SendCode EXCEPTION: $e\n$st');
+        }
         popCodeDialog(context, _fullName, _password, _address, countryCode, _gender, _email, _birthday, _cardNumberController, _username, _profilePic);
       }
       if (_currentStep < 2) {
@@ -146,21 +171,32 @@ class _SignInState extends State<SignIn> {
                           ? () async {
                         Navigator.of(context).pop();
                         Common().vibrate();
+                        final code = codeController.text.trim();
+                        final fcm = FirebaseService().firebaseToken ?? '';
+                        _regLog(
+                          'verify+register tapped email="$email" '
+                          'username="$username" codeLen=${code.length} '
+                          'fcm=${fcm.isEmpty ? "(null/empty)" : "len=${fcm.length}"}',
+                        );
 
                         try {
                           final result = await AuthService().register(
-                            FirebaseService().firebaseToken!,
+                            fcm.isEmpty ? '-' : fcm,
                             fullName,
                             password,
                             address,
                             countryCode,
                             gender,
                             email,
-                            codeController.text,
+                            code,
                             birthday,
                             cardNumberController.text,
                             username,
                             profilePic,
+                          );
+                          _regLog(
+                            'register returned success=${result['success']} '
+                            'message=${result['message']}',
                           );
 
                           if (result['success'] == true) {
@@ -170,10 +206,23 @@ class _SignInState extends State<SignIn> {
                               aContext,
                             );
                           } else {
-                            Common().showErrorSnack(aContext);
+                            final msg =
+                                (result['message'] ?? 'Registration failed')
+                                    .toString();
+                            _regLog('register failed → $msg');
+                            Common().showFloatingSnack(
+                              aContext,
+                              msg,
+                              backgroundColor: Colors.red,
+                            );
                           }
-                        } catch (e) {
-                          Common().showErrorSnack(aContext);
+                        } catch (e, st) {
+                          _regLog('register EXCEPTION: $e\n$st');
+                          Common().showFloatingSnack(
+                            aContext,
+                            e.toString(),
+                            backgroundColor: Colors.red,
+                          );
                         }
                       }
                           : null,
@@ -701,6 +750,7 @@ class _SignInState extends State<SignIn> {
   Widget build(BuildContext context) {
     final strings = LocalizedStrings.of(context);
     return Scaffold(
+      backgroundColor: StatusBackgroundColors.top,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -709,20 +759,7 @@ class _SignInState extends State<SignIn> {
       ),
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/android12splash.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.2),
-              ),
-            ),
-          ),
+          const Positioned.fill(child: StatusBackground()),
           Column(
             children: [
               Container(

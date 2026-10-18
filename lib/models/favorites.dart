@@ -110,9 +110,12 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
 
     return Dialog(
       elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
       backgroundColor: Colors.transparent.withValues(alpha: 0.1),
-      child: ClipRRect(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: ClipRRect(
         borderRadius: BorderRadius.circular(40),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
@@ -391,6 +394,7 @@ class _FavoriteDialogState extends State<FavoriteDialog> with SingleTickerProvid
               ],
             ),
           ),
+        ),
         ),
       ),
     );
@@ -787,9 +791,13 @@ class SkeletonFavoriteContainer extends StatelessWidget {
         final availableHeight = constraints.maxHeight > 0 
             ? constraints.maxHeight - 40 
             : null;
-        final minWidth = availableHeight != null 
+        double? minWidth = availableHeight != null 
             ? (availableHeight * 2 / 3) 
             : null;
+        // En web, evitar tarjetas que se estiran a todo el ancho.
+        if (minWidth != null && minWidth > 220) {
+          minWidth = 220;
+        }
         
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
