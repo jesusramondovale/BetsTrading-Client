@@ -13,6 +13,7 @@ import '../helpers/slider.dart';
 import '../services/firebase_service.dart';
 import '../services/secure_auth_service.dart';
 import 'layout_page.dart';
+import 'web/web_layout.dart';
 import 'package:intl/intl.dart';
 
 /// A page for withdrawing coins to external payment methods.
@@ -293,7 +294,10 @@ class _WithdrawPageState extends State<WithdrawPage> {
             child: SafeArea(
               child: _coinIconBase64 == null
                   ? const Center(child: CircularProgressIndicator())
-                  : Padding(
+                  : webNarrowBody(
+                      context: context,
+                      maxWidth: kWebFormMaxWidth,
+                      child: Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 6),
                       child: Column(
@@ -621,6 +625,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                               : [const SizedBox(height: 80)]),
                         ],
                       ),
+                    ),
                     ),
             ),
           ),

@@ -61,6 +61,7 @@ class MandatoryInterstitialService {
 
   /// Llamar desde [MainMenuPage] al entrar al menú principal (sesión autenticada).
   void startForegroundUsageTracking() {
+    if (kIsWeb) return;
     _foregroundObserver ??= _ForegroundLifecycleObserver(this);
     WidgetsBinding.instance.addObserver(_foregroundObserver!);
     _foregroundObserver!.beginSession();
@@ -140,6 +141,7 @@ class MandatoryInterstitialService {
 
   /// Devuelve [true] si el anuncio se mostró y cerró (o timeout de cierre).
   Future<bool> requestShow(MandatoryInterstitialReason reason) async {
+    if (kIsWeb) return false;
     if (await _userHasNoAds()) return false;
     if (await _inCooldown()) return false;
     if (_showInProgress) return false;
@@ -228,6 +230,7 @@ class MandatoryInterstitialService {
   }
 
   void schedulePreload() {
+    if (kIsWeb) return;
     unawaited(_preload());
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
@@ -18,6 +19,7 @@ import '../helpers/common.dart';
 import '../helpers/status_background.dart';
 import '../locale/localized_texts.dart';
 import 'layout_page.dart';
+import 'web/store_web_checkout.dart';
 import 'web/web_layout.dart';
 
 /// A page for purchasing coins and viewing ad reward options.
@@ -139,8 +141,12 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(seconds: 3),
     )..forward();
-    MobileAds.instance.initialize();
-    _loadRewardedAd();
+    if (kIsWeb) {
+      _adPermanentlyDisabled = true;
+    } else {
+      MobileAds.instance.initialize();
+      _loadRewardedAd();
+    }
     unawaited(
       MandatoryInterstitialService.instance
           .refreshRemoteConfig()
@@ -487,6 +493,11 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       );
       final clientSecret = await _getClientSecret(price, userId!, coins);
       final paymentIntentId = _paymentIntentIdFromSecret(clientSecret);
+      if (!mounted) return;
+      if (kIsWeb) {
+        final ok = await confirmWebCardPayment(context, clientSecret);
+        if (!ok || !mounted) return;
+      } else {
       await stripe.Stripe.instance.initPaymentSheet(
         paymentSheetParameters: stripe.SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
@@ -496,6 +507,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         ),
       );
       await stripe.Stripe.instance.presentPaymentSheet();
+      }
       await _confirmPaymentIntent(paymentIntentId);
       await BetsService().getUserInfo(userId);
       if (!mounted) return;
@@ -570,6 +582,11 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
       );
       final clientSecret = await _getNoAdsClientSecret(userId);
       final paymentIntentId = _paymentIntentIdFromSecret(clientSecret);
+      if (!mounted) return;
+      if (kIsWeb) {
+        final ok = await confirmWebCardPayment(context, clientSecret);
+        if (!ok || !mounted) return;
+      } else {
       await stripe.Stripe.instance.initPaymentSheet(
         paymentSheetParameters: stripe.SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
@@ -579,6 +596,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
         ),
       );
       await stripe.Stripe.instance.presentPaymentSheet();
+      }
       await _confirmPaymentIntent(paymentIntentId);
       await BetsService().getUserInfo(userId);
       await _loadNoAdsState();
@@ -743,7 +761,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                       },
                     );
                   }),
-                if (!_userHasNoAds)
+                if (!kIsWeb && !_userHasNoAds)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
                     child: Material(
@@ -870,6 +888,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                     ],
                   ),
                 ),
+                if (!kIsWeb) ...[
                 const Spacer(),
                 Container(
                   margin: const EdgeInsets.only(top: 8),
@@ -1049,6 +1068,7 @@ class StorePageState extends State<StorePage> with TickerProviderStateMixin {
                     ],
                   ),
                 ),
+                ],
 
               ],
             ),
