@@ -9,6 +9,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/app_exit.dart';
+import '../helpers/app_theme.dart';
 import '../helpers/common.dart';
 import '../helpers/status_background.dart';
 import '../config/config.dart';
@@ -640,6 +641,34 @@ class SettingsViewState extends State<SettingsView> {
                           : null,
                     ),
                   ),
+
+                // Botón de tema: alterna entre el tema azul oscuro y el negro puro.
+                ValueListenableBuilder<bool>(
+                  valueListenable: AppTheme.pureBlack,
+                  builder: (context, pureBlack, _) => ListTile(
+                    leading: Icon(
+                      pureBlack ? Icons.dark_mode : Icons.dark_mode_outlined,
+                    ),
+                    title: Text(
+                      strings?.get('blackTheme') ?? 'Black theme',
+                      style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
+                    ),
+                    onTap: () {
+                      Common().vibrate();
+                      AppTheme.toggle();
+                    },
+                    trailing: Switch(
+                      value: pureBlack,
+                      inactiveThumbColor: Colors.black,
+                      inactiveTrackColor: Colors.grey,
+                      activeThumbColor: Colors.greenAccent,
+                      onChanged: (bool value) {
+                        Common().vibrate();
+                        AppTheme.setPureBlack(value);
+                      },
+                    ),
+                  ),
+                ),
 
                 // Switch currency EUR-USD
                 ListTile(

@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'config/config.dart';
 import 'app_navigator.dart';
 import 'local_notifications.dart';
-import 'helpers/common.dart';
+import 'helpers/app_theme.dart';
 import 'helpers/forced_logout_ui.dart';
 import 'helpers/status_background.dart';
 import 'ui/login_page.dart';
@@ -63,6 +63,9 @@ Future<void> main() async {
 
   await initializeDateFormatting();
 
+  // Cargar el tema guardado antes de pintar el primer frame.
+  await AppTheme.load();
+
   // Configurar Google Fonts para evitar errores con AssetManifest.json
   // La versión 6.3.3+ maneja automáticamente este problema
   _configureGoogleFonts();
@@ -79,7 +82,12 @@ Future<void> main() async {
 
   // En web: no Ads / notificaciones locales / Stripe (cuelgan el arranque).
   if (!kIsWeb) {
-    await FirebaseService().initFirebase();
+    try {
+      await FirebaseService().initFirebase();
+    } catch (e, st) {
+      debugPrint('FirebaseService init skipped/failed: $e');
+      if (kDebugMode) debugPrint('$st');
+    }
 
     FirebaseMessaging.onMessage.listen(handleForcedLogoutFirebaseMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(handleForcedLogoutFirebaseMessage);
@@ -120,9 +128,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.pureBlack,
+      builder: (context, pureBlack, _) => _buildApp(pureBlack),
+    );
+  }
+
+  Widget _buildApp(bool pureBlack) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      theme: Common().themeDark,
+      theme: AppTheme.themeFor(pureBlack),
       title: 'Betrader',
       builder: (context, child) {
         final mq = MediaQuery.of(context);
@@ -241,9 +256,9 @@ class SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     // En web usamos el mismo fondo que /status (sin splash de ticker).
     if (kIsWeb) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: StatusBackgroundColors.top,
-        body: StatusBackground(),
+        body: const StatusBackground(),
       );
     }
 

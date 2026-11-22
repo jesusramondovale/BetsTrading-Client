@@ -29,9 +29,17 @@ class FirebaseService {
       userId = null;
     }
 
-    _firebaseToken = await messaging.getToken();
-    if (kDebugMode) {
-      print("Firebase Instance ID (Token): $_firebaseToken");
+    try {
+      _firebaseToken = await messaging.getToken();
+      if (kDebugMode) {
+        print("Firebase Instance ID (Token): $_firebaseToken");
+      }
+    } catch (e, st) {
+      debugPrint('FCM getToken failed (app continues without push token): $e');
+      if (kDebugMode) {
+        debugPrint('$st');
+      }
+      _firebaseToken = null;
     }
 
     await _tokenRefreshSubscription?.cancel();

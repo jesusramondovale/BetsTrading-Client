@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 
+import 'app_theme.dart';
+
 /// Colores del fondo de `/status` (StatusPage.html).
+///
+/// Con el tema negro activo ([AppTheme.pureBlack]) todos los tonos pasan a
+/// negro puro y la rejilla desaparece.
 abstract final class StatusBackgroundColors {
-  static const Color top = Color(0xFF0F0F23);
-  static const Color mid = Color(0xFF1A1A2E);
-  static const Color bottom = Color(0xFF16213E);
-  static const Color gridLine = Color(0x0822D3EE); // cyan ~3% alpha
+  static bool get _black => AppTheme.pureBlack.value;
+
+  static Color get top => _black ? AppTheme.blackBackground : const Color(0xFF0F0F23);
+  static Color get mid => _black ? AppTheme.blackBackground : const Color(0xFF1A1A2E);
+  static Color get bottom => _black ? AppTheme.blackBackground : const Color(0xFF16213E);
+  static Color get gridLine =>
+      _black ? Colors.transparent : const Color(0x0822D3EE); // cyan ~3% alpha
 }
 
 /// Gradiente + rejilla idénticos a la página `/status` del API.
@@ -16,26 +24,31 @@ class StatusBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                StatusBackgroundColors.top,
-                StatusBackgroundColors.mid,
-                StatusBackgroundColors.bottom,
-              ],
-              stops: [0.0, 0.5, 1.0],
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.pureBlack,
+      builder: (context, pureBlack, _) {
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    StatusBackgroundColors.top,
+                    StatusBackgroundColors.mid,
+                    StatusBackgroundColors.bottom,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
             ),
-          ),
-        ),
-        const CustomPaint(painter: _StatusGridPainter()),
-        if (child != null) child!,
-      ],
+            if (!pureBlack) const CustomPaint(painter: _StatusGridPainter()),
+            if (child != null) child!,
+          ],
+        );
+      },
     );
   }
 }
