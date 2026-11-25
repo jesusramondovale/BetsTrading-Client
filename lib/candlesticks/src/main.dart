@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:betrader/candlesticks/src/constant/view_constants.dart';
 import '../../helpers/common.dart';
 import '../../models/rectangle_zone.dart';
+import '../../services/bet_zone_refresher.dart';
 import '../../ui/layout_page.dart';
 import '../candlesticks.dart';
 import 'models/main_window_indicator.dart';
@@ -95,10 +96,17 @@ class CandlesticksState extends State<Candlesticks> {
   ///  range: [2...10]
   double candleWidth = 10;
 
+  static const double minCandleWidth = 2;
+  static const double maxCandleWidth = 48;
+
   /// true when widget.onLoadMoreCandles is fetching new candles.
   bool isCallingLoadMore = false;
 
   MainWindowDataContainer? mainWindowDataContainer;
+
+  bool _needsHorizontalFit = true;
+  int _fitRequest = 0;
+  String _zonesSignature = '';
 
   @override
   void initState() {
@@ -106,11 +114,76 @@ class CandlesticksState extends State<Candlesticks> {
     indexMarginRight = -widget.extraHours;
     index = indexMarginRight;
     lastIndex = indexMarginRight;
+    widget.rectangleZones.addListener(_onZonesChanged);
+    _zonesSignature = _signatureOf(widget.rectangleZones.value);
     if (widget.candles.isEmpty) {
       return;
     }
     mainWindowDataContainer ??=
         MainWindowDataContainer(widget.indicators ?? [], widget.candles);
+  }
+
+  @override
+  void dispose() {
+    widget.rectangleZones.removeListener(_onZonesChanged);
+    super.dispose();
+  }
+
+  String _signatureOf(List<RectangleZone> zones) {
+    if (zones.isEmpty) return '';
+    var minStart = zones.first.startDate;
+    var maxEnd = zones.first.endDate;
+    for (final z in zones) {
+      if (z.startDate.isBefore(minStart)) minStart = z.startDate;
+      if (z.endDate.isAfter(maxEnd)) maxEnd = z.endDate;
+    }
+    return '${zones.length}|${minStart.millisecondsSinceEpoch}|${maxEnd.millisecondsSinceEpoch}';
+  }
+
+  void _onZonesChanged() {
+    final signature = _signatureOf(widget.rectangleZones.value);
+    if (signature == _zonesSignature) return;
+    _zonesSignature = signature;
+    requestFit();
+  }
+
+  /// Encaja zoom y desplazamiento para que las zonas de apuesta se vean grandes.
+  void requestFit() {
+    if (!mounted) return;
+    setState(() {
+      _needsHorizontalFit = true;
+      _fitRequest++;
+    });
+  }
+
+  void _applyHorizontalFit(double chartWidth) {
+    _needsHorizontalFit = false;
+    if (widget.candles.isEmpty || chartWidth <= 0) return;
+
+    final zones = widget.rectangleZones.value;
+    final int timeframe = max(1, TimeframeManager.current.value);
+    final DateTime lastCandleDate = widget.candles.first.date;
+
+    int futureSlots = 0;
+    if (zones.isNotEmpty) {
+      final latestEnd = zones
+          .map((z) => z.endDate)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
+      final hours = latestEnd.difference(lastCandleDate).inMinutes / 60.0;
+      futureSlots = max(0, (hours / timeframe).ceil());
+    }
+
+    final int historySlots = max(16, (futureSlots * 0.5).round());
+    final int totalSlots = futureSlots + historySlots + 4;
+
+    candleWidth = (chartWidth / totalSlots)
+        .clamp(minCandleWidth, maxCandleWidth)
+        .toDouble();
+
+    final int fittedIndex = futureSlots > 0 ? -1 - futureSlots : 0;
+    index = fittedIndex;
+    lastIndex = fittedIndex;
+    indexMarginRight = min(fittedIndex - 2, -widget.extraHours);
   }
 
   @override
@@ -120,10 +193,18 @@ class CandlesticksState extends State<Candlesticks> {
       return;
     }
 
-    if (oldWidget.extraHours != widget.extraHours) {
-      indexMarginRight = -widget.extraHours;
-      index = indexMarginRight;
-      lastIndex = indexMarginRight;
+    if (oldWidget.rectangleZones != widget.rectangleZones) {
+      oldWidget.rectangleZones.removeListener(_onZonesChanged);
+      widget.rectangleZones.addListener(_onZonesChanged);
+      _zonesSignature = _signatureOf(widget.rectangleZones.value);
+      _needsHorizontalFit = true;
+      _fitRequest++;
+    }
+
+    if (oldWidget.extraHours != widget.extraHours ||
+        oldWidget.candles.isEmpty) {
+      _needsHorizontalFit = true;
+      _fitRequest++;
     }
 
     if (mainWindowDataContainer == null) {
@@ -163,37 +244,45 @@ class CandlesticksState extends State<Candlesticks> {
     return Column(
       children: [
         if (widget.displayZoomActions == true || widget.actions.isNotEmpty) ...[
-          Row(
+          SizedBox(
+            height: 48,
+            child: Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Spacer(),
               ToolBar(
                 color: style.toolBarColor,
                 children: [
                   if (widget.displayZoomActions) ...[
                     ToolBarAction(
+                      onPressed: requestFit,
+                      child: Icon(
+                        Icons.center_focus_strong,
+                        color: Colors.white,
+                      ),
+                    ),
+                    ToolBarAction(
                       onPressed: () {
                         setState(() {
                           candleWidth -= 2;
-                          candleWidth = max(candleWidth, 2);
+                          candleWidth = max(candleWidth, minCandleWidth);
                         });
                       },
                       child: Icon(
                         Icons.remove,
-                        color: style.borderColor,
+                        color: Colors.white,
                       ),
                     ),
                     ToolBarAction(
                       onPressed: () {
                         setState(() {
                           candleWidth += 2;
-                          candleWidth = min(candleWidth, 20);
+                          candleWidth = min(candleWidth, maxCandleWidth);
                         });
                       },
                       child: Icon(
                         Icons.add,
-                        color: style.borderColor,
+                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -201,6 +290,7 @@ class CandlesticksState extends State<Candlesticks> {
                 ],
               ),
             ],
+            ),
           ),
 
 
@@ -214,9 +304,14 @@ class CandlesticksState extends State<Candlesticks> {
           )
         else
           Expanded(
-            child: TweenAnimationBuilder(
-              tween: Tween(begin: 10.toDouble(), end: candleWidth),
-              duration: const Duration(milliseconds: 120),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+            if (_needsHorizontalFit) {
+              _applyHorizontalFit(constraints.maxWidth - priceBarWidth);
+            }
+            return TweenAnimationBuilder(
+              tween: Tween(begin: candleWidth, end: candleWidth),
+              duration: const Duration(milliseconds: 200),
               builder: (_, double width, __) {
                 // Web y móvil usan MobileChart: incluye rectangleZones / apuestas.
                 // DesktopChart nativo no pinta zonas de apuesta.
@@ -280,10 +375,9 @@ class CandlesticksState extends State<Candlesticks> {
                         scale = min(1.1, scale);
                         widget.onScaleUpdate(scale);
                         setState(() {
-                          /// if (blockZooming) BLOCK ZOOMING HERE
                           candleWidth *= scale;
-                          candleWidth = min(candleWidth, 20);
-                          candleWidth = max(candleWidth, 2);
+                          candleWidth = min(candleWidth, maxCandleWidth);
+                          candleWidth = max(candleWidth, minCandleWidth);
                         });
                       },
                       onPanEnd: () {
@@ -319,8 +413,12 @@ class CandlesticksState extends State<Candlesticks> {
                       chartTitle: widget.chartTitle,
                       iconPath: widget.iconPath,
                       finishedIcon: widget.finishedIcon,
-                      menuController: widget.controller);
+                      menuController: widget.controller,
+                      fitRequest: _fitRequest,
+                      onRequestFit: requestFit);
                 }
+              },
+            );
               },
             ),
           ),

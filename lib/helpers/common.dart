@@ -551,13 +551,13 @@ class Common {
       Color fillColor;
 
       if (zoneType == BetZoneType.extreme) {
-        fillColor = const Color(0xFFB400FF).withValues(alpha: 1);
+        fillColor = const Color(0xFF8B5CFF);
       } else if (lowerBound > current) {
-        fillColor = Colors.green.withValues(alpha: 1);
+        fillColor = const Color(0xFF00C9A7);
       } else if (upperBound < current) {
-        fillColor = Colors.red.withValues(alpha: 1);
+        fillColor = const Color(0xFFFF2D6A);
       } else {
-        fillColor = Colors.orange.withValues(alpha: 1);
+        fillColor = const Color(0xFFFFC107);
       }
 
       return RectangleZone(

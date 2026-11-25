@@ -1198,7 +1198,7 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                         else ...[
                           if (p.isExtremeZone && !p.finished) ...[
                             Icon(FontAwesomeIcons.bullseye,
-                                color: const Color(0xFFB400FF), size: 14),
+                                color: const Color(0xFF8B5CFF), size: 14),
                             const SizedBox(width: 4),
                             if (!p.zoneStarted) ...[
                               Icon(FontAwesomeIcons.hourglassHalf, size: 12),
@@ -1365,16 +1365,20 @@ class RecentBetContainerState extends State<RecentBetContainer> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 if (p.showBottomCountdownRow) ...[
-                                  Text(
-                                    (!p.windowEnded && !p.isAlreadyLost
-                                        ? (p.hoursUntilFinal > 0
-                                            ? "${p.hoursUntilFinal} ${strings?.get('hours') ?? "hour/s"}"
-                                            : "${p.minutesUntilFinal}min.")
-                                        : strings?.get('finished') ??
-                                            "Finished"),
-                                    style: GoogleFonts.rajdhani(
-                                      fontSize: 14,
-                                      color: Colors.white,
+                                  Flexible(
+                                    child: Text(
+                                      (!p.windowEnded && !p.isAlreadyLost
+                                          ? (p.hoursUntilFinal > 0
+                                              ? "${p.hoursUntilFinal} ${strings?.get('hours') ?? "hour/s"}"
+                                              : "${p.minutesUntilFinal}min.")
+                                          : strings?.get('finished') ??
+                                              "Finished"),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.rajdhani(
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 5),

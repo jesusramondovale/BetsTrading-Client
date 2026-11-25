@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import '../helpers/app_ui.dart';
 import '../helpers/common.dart';
 import '../helpers/tutorial_nav_hint.dart';
 import 'exchange_slider_shapes.dart';
@@ -444,54 +445,57 @@ class ExchangePageState extends State<ExchangePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(key: _kCoinsTag,
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+              decoration: BoxDecoration(
+                color: AppUi.surface(context),
+                borderRadius: BorderRadius.circular(AppUi.radius + 4),
+                border: Border.all(color: AppUi.border(context)),
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    strings?.get('yourCoins') ?? 'Your coins',
+                    style: AppUi.body(size: 13, color: Colors.white54),
+                  ),
+                  const SizedBox(height: 6),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        strings?.get('yourCoins') ?? 'Your coins',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 25,
-                          fontWeight: FontWeight.w200,
-                          color: Colors.white,
+                      Image.asset(
+                        'assets/coin.png',
+                        width: 34,
+                        height: 34,
+                      ),
+                      const SizedBox(width: 10),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 200),
+                            style: AppUi.number(
+                              size: 40,
+                              color: _isUserPointsHighlighted ? AppUi.loss : Colors.white,
+                            ),
+                            child: Text(userPoints),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  Center(
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              userPoints,
-                              style: GoogleFonts.roboto(
-                                fontSize: 42,
-                                fontWeight: FontWeight.w200,
-                                color: _isUserPointsHighlighted ? Colors.red : Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Image.asset(
-                              'assets/coin.png',
-                              width: 35,
-                              height: 35,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton(
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
                     key: _kGetMoreBtn,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent.withValues(alpha: 0.3),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
+                      backgroundColor: AppUi.accent(context),
+                      foregroundColor: Colors.black,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     onPressed: _isLoadingStore ? null : () async {
@@ -533,38 +537,38 @@ class ExchangePageState extends State<ExchangePage> {
                       }
                     },
                     child: _isLoadingStore
-                        ? SizedBox(
+                        ? const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                             ),
                           )
-                        : Text(
-                            strings?.get('buyMoreCoins') ?? 'Buy more coins',
-                            style: GoogleFonts.syncopate(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.add_rounded, size: 20),
+                              const SizedBox(width: 6),
+                              Text(
+                                strings?.get('buyMoreCoins') ?? 'Buy more coins',
+                                style: AppUi.body(
+                                  size: 15,
+                                  weight: FontWeight.w700,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
                           ),
+                  ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  strings?.get('exchangeCoinsTitle') ?? 'Exchange coins',
-                  style: GoogleFonts.syncopate(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w100,
-                    color: Colors.white,
-                  ),
-                )
-              ],
+            const SizedBox(height: 8),
+            SectionHeader(
+              title: strings?.get('exchangeCoinsTitle') ?? 'Exchange coins',
+              padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
             ),
             Expanded(
               key: _kWithdrawGroup,
@@ -713,38 +717,43 @@ class ExchangePageState extends State<ExchangePage> {
                 },
               ),
             ),
-            Center(
-              child: Container(
-                key: _kPendingBalance,
-                margin: const EdgeInsetsGeometry.fromLTRB(0, 10, 0, 10),
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(20),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white24, width: 1),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
+            Container(
+              key: _kPendingBalance,
+              margin: const EdgeInsets.fromLTRB(0, 10, 0, 12),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppUi.surface(context),
+                borderRadius: BorderRadius.circular(AppUi.radius),
+                border: Border.all(color: AppUi.border(context)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.schedule_rounded,
+                        size: 20, color: Colors.amber),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
                       strings?.get('pendingBalance') ?? 'Pending points to send',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w300,
-                        color: Colors.white,
-                      ),
+                      style: AppUi.body(size: 14, color: Colors.white70),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      NumberFormat('#,###', 'es_ES').format(_pendingBalance) + (_currency == 'eur' ? ' EUR' : ' USD'),
-                      style: GoogleFonts.montserrat(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.amber,
-                      ),
+                  ),
+                  Text(
+                    NumberFormat('#,###', 'es_ES').format(_pendingBalance) + (_currency == 'eur' ? ' EUR' : ' USD'),
+                    style: AppUi.body(
+                      size: 16,
+                      weight: FontWeight.w700,
+                      color: Colors.amber,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             )
           ],
@@ -869,27 +878,17 @@ class _ExchangeSliderState extends State<_ExchangeSlider> with SingleTickerProvi
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 4),
+      margin: const EdgeInsets.symmetric(vertical: 5.0),
       child: Container(
         height: 72,
         decoration: BoxDecoration(
-          color: Colors.transparent.withAlpha(30),
+          color: AppUi.surface(context),
           borderRadius: BorderRadius.circular(50.0),
-          boxShadow: [
-            BoxShadow(
-              color: (widget.canExchange ? Colors.green : Colors.red)
-                  .withAlpha(60),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: Colors.black.withAlpha(40),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-              spreadRadius: 0,
-            ),
-          ],
+          border: Border.all(
+            color: widget.canExchange
+                ? AppUi.gain.withValues(alpha: 0.35)
+                : AppUi.border(context),
+          ),
         ),
         child: Stack(
           children: [

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 import 'package:betrader/candlesticks/src/widgets/vertical_grid_painter.dart';
 import 'package:betrader/locale/localized_texts.dart';
@@ -46,6 +45,10 @@ class MobileChart extends StatefulWidget {
   final int finishedIcon;
   final MainMenuPageController menuController;
 
+  /// Cambia cada vez que hay que reencuadrar las zonas (zoom/desplazamiento).
+  final int fitRequest;
+  final VoidCallback? onRequestFit;
+
   const MobileChart(
       {super.key,
         required this.style,
@@ -67,6 +70,8 @@ class MobileChart extends StatefulWidget {
         required this.inactiveZone,
         this.finishedIcon = 0,
         required this.menuController,
+        this.fitRequest = 0,
+        this.onRequestFit,
       });
 
   @override
@@ -91,6 +96,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
   int? lastCandleIndex;
   bool _dollarCurrency = false;
   bool _isZooming = false; // Rastrea si estamos haciendo zoom horizontal
+  double _lastChartWidth = 0;
 
   void _syncUiTimeframeFromManager() {
     final v = TimeframeManager.current.value;
@@ -135,7 +141,15 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
       );
     }
 
-    _ensureZonesVisible();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fitVertical());
+  }
+
+  @override
+  void didUpdateWidget(covariant MobileChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.fitRequest != widget.fitRequest) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fitVertical());
+    }
   }
 
   void _openZone(RectangleZone zone) {
@@ -159,34 +173,84 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
     );
   }
 
-  void _ensureZonesVisible() {
-    if (widget.rectangleZones.value.isEmpty) return;
+  /// Encaja el eje de precios en las zonas y las velas que quedan a la vista,
+  /// dejando margen para que los rectángulos no queden estirados.
+  void _fitVertical() {
+    if (!mounted || widget.candles.isEmpty) return;
 
-    List<Candle> last30Candles = widget.candles.length > 30
-        ? widget.candles.sublist(0, 30)
-        : widget.candles;
+    final zones = widget.rectangleZones.value;
+    final double chartWidth = _lastChartWidth > 0
+        ? _lastChartWidth
+        : MediaQuery.of(context).size.width - priceBarWidth;
 
-    double minPrice = min(
-        widget.rectangleZones.value
-            .map((zone) => zone.lowPrice)
-            .reduce((value, element) => value < element ? value : element),
-        last30Candles
-            .map((candle) => candle.low)
-            .reduce((value, element) => value < element ? value : element));
+    final int start = min(max(widget.index, 0), widget.candles.length - 1);
+    final int visibleSlots =
+        max(1, (chartWidth / widget.candleWidth).floor() + widget.index.clamp(-100000, 0));
+    final int end = min(start + visibleSlots, widget.candles.length - 1);
+    final visible = widget.candles.getRange(start, end + 1);
 
-    double maxPrice = max(
-        widget.rectangleZones.value
-            .map((zone) => zone.highPrice)
-            .reduce((value, element) => value > element ? value : element),
-        last30Candles
-            .map((candle) => candle.high)
-            .reduce((value, element) => value > element ? value : element));
+    double high = visible.map((c) => c.high).reduce(max);
+    double low = visible.map((c) => c.low).reduce(min);
+    final DateTime lastCandleDate = widget.candles
+        .map((c) => c.date)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+    final int timeframe = _mapTimeframe(_currentRangeTime);
+    final double futureOriginX =
+        chartWidth + (widget.index - 2) * widget.candleWidth;
+    double? zonesHigh;
+    double? zonesLow;
+    for (final zone in zones) {
+      final double startX = futureOriginX +
+          zone.startDate.difference(lastCandleDate).inHours /
+              timeframe *
+              widget.candleWidth;
+      final double durationSlots =
+          max(1.0, zone.endDate.difference(zone.startDate).inHours.abs() / timeframe);
+      final double endX = startX + durationSlots * widget.candleWidth;
+      if (endX <= 0 || startX >= chartWidth) continue;
+      zonesHigh = max(zonesHigh ?? zone.highPrice, zone.highPrice);
+      zonesLow = min(zonesLow ?? zone.lowPrice, zone.lowPrice);
+    }
+
+    if (zonesHigh != null && zonesLow != null) {
+      final double currentPrice = widget.candles.first.close;
+      final double bandHigh = max(zonesHigh, currentPrice);
+      final double bandLow = min(zonesLow, currentPrice);
+      final double bandRange = max(bandHigh - bandLow, 1e-9);
+      // Las zonas deben ocupar al menos ~1/3 de la altura tras el margen.
+      final double maxRange = bandRange * 1.6;
+
+      high = max(high, bandHigh);
+      low = min(low, bandLow);
+      if (high - low > maxRange) {
+        final double extraUp = high - bandHigh;
+        final double extraDown = bandLow - low;
+        final double budget = maxRange - bandRange;
+        final double totalExtra = extraUp + extraDown;
+        high = bandHigh + budget * extraUp / totalExtra;
+        low = bandLow - budget * extraDown / totalExtra;
+      }
+    }
+
+    final double reference = widget.candles.first.close.abs();
+    final double minRange = max(reference * 0.004, 1e-9);
+    if (high - low < minRange) {
+      final double center = (high + low) / 2;
+      high = center + minRange / 2;
+      low = center - minRange / 2;
+    }
+    final double range = high - low;
+    final double fittedHigh = high + range * 0.45;
+    final double fittedLow = low - range * 0.4;
+    // 20% menos de zoom vertical al abrir: el rango visible es 1/0.80 del ajustado.
+    const double openVerticalZoom = 0.80;
+    final double center = (fittedHigh + fittedLow) / 2;
+    final double halfSpan =
+        (fittedHigh - fittedLow) / 2 / openVerticalZoom;
 
     setState(() {
-      manualScaleHigh = maxPrice * 1;
-      manualScaleLow = minPrice * 1;
-      scaleX = 1.0;
-      offsetY = 0.0;
+      manualScaleHigh = center + halfSpan;
+      manualScaleLow = center - halfSpan;
     });
   }
 
@@ -247,87 +311,6 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
   }
 
 
-  /// Ajusta el desplazamiento vertical para mantener las velas visibles
-  /// sin cambiar el nivel de zoom si ya hay uno establecido
-  void _ensureVisibleRange() {
-    if (widget.candles.isEmpty) return;
-
-    final RenderBox? renderBox =
-    _customPaintKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-
-    final double maxWidth =
-        renderBox.size.width - priceBarWidth + widget.candleWidth * 2;
-
-    final int candlesStartIndex = widget.candles.isEmpty
-        ? 0
-        : min(max(widget.index, 0), widget.candles.length - 1);
-
-    final int candlesEndIndex = widget.candles.isEmpty
-        ? 0
-        : min(
-      (maxWidth ~/ widget.candleWidth) + candlesStartIndex,
-      widget.candles.length - 1,
-    );
-
-    if (candlesEndIndex <= candlesStartIndex) return;
-
-    List<Candle> visibleCandles = widget.candles
-        .getRange(candlesStartIndex, candlesEndIndex - 10)
-        .toList();
-
-    double candlesHigh = visibleCandles.map((c) => c.high).reduce(max);
-    double candlesLow = visibleCandles.map((c) => c.low).reduce(min);
-
-    // Si hay zoom manual, solo ajustar si las velas se salen del rango visible
-    if (manualScaleHigh != null && manualScaleLow != null) {
-      // Verificar si las velas están completamente fuera del rango visible
-      bool needsAdjustment = false;
-      double newHigh = manualScaleHigh!;
-      double newLow = manualScaleLow!;
-      double currentRange = newHigh - newLow;
-
-      // Si las velas se salen por arriba o por abajo, ajustar manteniendo el rango
-      if (candlesHigh > newHigh) {
-        needsAdjustment = true;
-        newHigh = candlesHigh;
-        newLow = newHigh - currentRange;
-      }
-      if (candlesLow < newLow) {
-        needsAdjustment = true;
-        newLow = candlesLow;
-        newHigh = newLow + currentRange;
-      }
-
-      // Si las velas están completamente fuera en ambas direcciones, ajustar al centro
-      if (candlesHigh > newHigh && candlesLow < newLow) {
-        double candlesRange = candlesHigh - candlesLow;
-        double center = (candlesHigh + candlesLow) / 2;
-        newHigh = center + currentRange / 2;
-        newLow = center - currentRange / 2;
-        // Asegurar que el rango mínimo sea suficiente
-        if (currentRange < candlesRange) {
-          newHigh = candlesHigh;
-          newLow = candlesLow;
-        }
-        needsAdjustment = true;
-      }
-
-      if (needsAdjustment) {
-        setState(() {
-          manualScaleHigh = newHigh;
-          manualScaleLow = newLow;
-        });
-      }
-    } else {
-      // Si no hay zoom manual, ajustar normalmente (como _autoAdjustVerticalRange)
-      setState(() {
-        manualScaleHigh = candlesHigh;
-        manualScaleLow = candlesLow;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final noBetsText = LocalizedStrings.of(context)!.get('noBetsAvailable') ?? "No Bets available!";
@@ -336,6 +319,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
         final double maxWidth =
             constraints.maxWidth - priceBarWidth + widget.candleWidth * 2;
         final double chartWidth = constraints.maxWidth - priceBarWidth;
+        _lastChartWidth = chartWidth;
         final double maxHeight = constraints.maxHeight - dateBarHeight;
 
         final int candlesStartIndex = widget.candles.isEmpty
@@ -375,18 +359,32 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
           candlesLowPrice = widget.mainWindowDataContainer.lows.reduce(min);
         }
 
-        double priceRange = candlesHighPrice - candlesLowPrice;
-        candlesHighPrice += priceRange;
-        candlesLowPrice -= priceRange;
-
-        if (candlesHighPrice == candlesLowPrice) {
-          candlesHighPrice += 10;
-          candlesLowPrice -= 10;
+        if (manualScaleHigh == null) {
+          final double priceRange = candlesHighPrice - candlesLowPrice;
+          candlesHighPrice += priceRange * 0.1;
+          candlesLowPrice -= priceRange * 0.1;
         }
 
-        double chartHeight = maxHeight * 0.75 - 2 * mainChartVerticalPadding;
+        if (!candlesHighPrice.isFinite ||
+            !candlesLowPrice.isFinite ||
+            candlesHighPrice <= candlesLowPrice) {
+          final double basis = candlesHighPrice.isFinite
+              ? candlesHighPrice.abs()
+              : 1;
+          final double pad = max(basis * 0.01, 1e-6);
+          final double mid = (candlesHighPrice.isFinite && candlesLowPrice.isFinite)
+              ? (candlesHighPrice + candlesLowPrice) / 2
+              : 0;
+          candlesHighPrice = mid + pad;
+          candlesLowPrice = mid - pad;
+        }
 
-        double volumeHigh = inRangeCandles.map((e) => e.volume).reduce(max);
+        double chartHeight = maxHeight * 0.75 - mainChartVerticalPadding;
+
+        double volumeHigh = inRangeCandles.isEmpty
+            ? 1
+            : inRangeCandles.map((e) => e.volume).reduce(max);
+        if (!volumeHigh.isFinite || volumeHigh <= 0) volumeHigh = 1;
 
         if (longPressX != null && longPressY != null) {
           longPressX = max(longPressX!, 0);
@@ -395,7 +393,10 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
           longPressY = min(longPressY!, maxHeight);
         }
 
-        if (widget.rectangleZones.value.isNotEmpty) {
+        if (manualScaleHigh != null) {
+          tweenBegin = candlesLowPrice;
+          tweenEnd = candlesHighPrice;
+        } else if (widget.rectangleZones.value.isNotEmpty) {
           tweenBegin = min(
               widget.rectangleZones.value.map((zone) => zone.lowPrice).reduce(
                       (value, element) => value < element ? value : element),
@@ -404,9 +405,19 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
               widget.rectangleZones.value.map((zone) => zone.highPrice).reduce(
                       (value, element) => value > element ? value : element),
               candlesHighPrice);
+          final double zonesPad = (tweenEnd - tweenBegin) * 0.04;
+          tweenBegin -= zonesPad;
+          tweenEnd += zonesPad;
         } else {
           tweenBegin = candlesLowPrice;
           tweenEnd = candlesHighPrice;
+        }
+        if (!tweenEnd.isFinite ||
+            !tweenBegin.isFinite ||
+            tweenEnd <= tweenBegin) {
+          final double pad = 1e-6;
+          tweenEnd = (tweenEnd.isFinite ? tweenEnd : 0) + pad;
+          tweenBegin = (tweenBegin.isFinite ? tweenBegin : 0) - pad;
         }
         final double painterBottomPrice = tweenBegin;
         final double painterTopPrice = tweenEnd;
@@ -430,13 +441,12 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
         }
 
         return TweenAnimationBuilder(
-          tween: Tween(begin: tweenBegin, end: tweenEnd),
-          duration: Duration(milliseconds: manualScaleHigh == null ? 300 : 0),
+          tween: Tween(begin: tweenEnd, end: tweenEnd),
+          duration: const Duration(milliseconds: 0),
           builder: (context, double high, _) {
             return TweenAnimationBuilder(
-              tween: Tween(begin: candlesLowPrice, end: candlesLowPrice),
-              duration:
-              Duration(milliseconds: manualScaleHigh == null ? 300 : 0),
+              tween: Tween(begin: tweenBegin, end: tweenBegin),
+              duration: const Duration(milliseconds: 0),
               builder: (context, double low, _) {
                 final currentCandle =
                 (longPressX == null || widget.candles.isEmpty)
@@ -453,70 +463,6 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                 return Container(
                   color: widget.style.background,
                   child: Stack(children: [
-                    Positioned(
-                      top: 10.0,
-                      left: 20.0,
-                      right: 20.0,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(height: 10),
-                          if (widget.iconPath != "null" &&
-                              !widget.iconPath.contains("http")) ...[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(18),
-                              child: Image.memory(
-                                base64Decode(widget.iconPath),
-                                height: 120,
-                                width: 120,
-                                gaplessPlayback: true,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Text(
-                                      widget.chartTitle,
-                                      maxLines: 1,
-                                      style: GoogleFonts.roboto(
-                                          fontSize: 36,
-                                          fontWeight: FontWeight.w100),
-                                      textAlign: TextAlign.center,
-                                    ),
-                              ),
-                            )
-                          ] else if (widget.iconPath.contains("http")) ...[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(18),
-                              child: Image.network(
-                                widget.iconPath,
-                                height: 120,
-                                width: 120,
-                                gaplessPlayback: true,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Text(
-                                      widget.chartTitle,
-                                      maxLines: 1,
-                                      style: GoogleFonts.roboto(
-                                          fontSize: 36,
-                                          fontWeight: FontWeight.w100),
-                                      textAlign: TextAlign.center,
-                                    ),
-                              ),
-                            )
-                          ] else ...[
-                            Text(
-                              widget.chartTitle.length > 15
-                                  ? '${widget.chartTitle.substring(0, 15)}...'
-                                  : widget.chartTitle,
-                              style: GoogleFonts.openSans(
-                                fontSize: 26.0,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
                     Column(
                       children: [
                         Expanded(
@@ -538,23 +484,24 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                       child: AnimatedPadding(
                                         duration:
                                         const Duration(milliseconds: 300),
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical:
-                                            mainChartVerticalPadding),
+                                        padding: const EdgeInsets.only(
+                                            bottom: mainChartVerticalPadding),
                                         child: RepaintBoundary(
                                           child: Stack(
                                             children: [
                                               Positioned.fill(
                                                 child: CustomPaint(
                                                   painter: GreyFixedGridPainter(
-                                                    spacingPx:
+                                                    targetSpacingPx:
                                                     MediaQuery.of(context)
                                                         .size
                                                         .width /
                                                         9,
-                                                    priceBarWidth: 0,
-                                                    topPadding: 0,
-                                                    bottomPadding: 0,
+                                                    candleWidth:
+                                                    widget.candleWidth,
+                                                    index: widget.index,
+                                                    high: high,
+                                                    low: low,
                                                   ),
                                                 ),
                                               ),
@@ -592,10 +539,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                               Positioned.fill(
                                 child: LayoutBuilder(
                                   builder: (context, boxConstraints) {
-                                    final double painterTop =
-                                        tweenEnd;
-                                    final double painterBottom =
-                                        tweenBegin;
+                                    final double painterTop = high;
+                                    final double painterBottom = low;
                                     final int painterTimeframe =
                                     _mapTimeframe(_currentRangeTime);
 
@@ -624,22 +569,23 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   width: priceBarWidth,
                                   child: PriceColumn(
                                     style: widget.style,
-                                    low: tweenBegin,
-                                    high: tweenEnd,
+                                    low: low,
+                                    high: high,
                                     width: priceBarWidth,
                                     paintCurrency: (
                                         Common().isTickerForex(widget.ticker)
                                             ? 0
                                             : (_dollarCurrency ? 2 : 1) ),
                                     chartHeight: chartHeight,
+                                    plotTopPadding: 0,
                                     lastCandle: widget.candles[min(
                                         max(widget.index, 0),
                                         widget.candles.length - 1)],
                                     onScale: (delta) {
                                       if (manualScaleHigh == null ||
                                           manualScaleLow == null) {
-                                        manualScaleHigh = candlesHighPrice;
-                                        manualScaleLow = candlesLowPrice;
+                                        manualScaleHigh = tweenEnd;
+                                        manualScaleLow = tweenBegin;
                                       }
                                       setState(() {
                                         double deltaPrice = delta /
@@ -768,7 +714,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                           // Ajustar desplazamiento vertical solo si fue pan (no zoom)
                           // para mantener las velas visibles sin cambiar el nivel de zoom
                           if (!_isZooming) {
-                            _ensureVisibleRange();
+                            _fitVertical();
                           }
                           _isZooming = false;
                         },
@@ -798,7 +744,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   context,
                                   zoneLongPressed,
                                   widget.chartTitle,
-                                  widget.candles.last.close,
+                                  widget.candles.first.close,
                                   widget.iconPath,
                                   originRect,
                                   _dollarCurrency,
@@ -810,7 +756,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                   context,
                                   zoneLongPressed,
                                   widget.chartTitle,
-                                  widget.candles.last.close,
+                                  widget.candles.first.close,
                                   widget.iconPath,
                                   originRect,
                                   _dollarCurrency,
@@ -856,11 +802,11 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                       ),
                     ),
                     Positioned(
-                      top: (constraints.maxHeight / 2),
-                      left: 40.0,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 12),
+                      top: 56,
+                      left: 0,
+                      right: priceBarWidth,
+                      child: Align(
+                        alignment: Alignment.topCenter,
                         child: TopPanel(
                           style: widget.style,
                           onRemoveIndicator: widget.onRemoveIndicator,
@@ -903,7 +849,7 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                                 context,
                                 zoneClicked,
                                 widget.chartTitle,
-                                widget.candles.last.close,
+                                widget.candles.first.close,
                                 widget.iconPath,
                                 Rect.fromLTWH(details.globalPosition.dx,
                                     details.globalPosition.dy, 50, 50),
@@ -957,12 +903,12 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                       ),
                     ),
                     Positioned(
-                      top: (constraints.maxHeight / 2) * 0.97,
+                      top: (constraints.maxHeight / 2) * 0.97 - 36,
                       left: 4.0,
                       child: Container(
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: widget.style.background,
+                          color: Colors.transparent,
                         ),
                         height: 50.0,
                         width: 50.0,
@@ -988,42 +934,8 @@ class MobileChartState extends State<MobileChart> with WidgetsBindingObserver {
                               TimeframeManager.set(timeframe);
                               await _reloadData(
                                   timeframe, _dollarCurrency ? 'USD' : 'EUR');
-                              if (widget.candles.isNotEmpty) {
-                                final highs =
-                                widget.candles.map((c) => c.high).toList();
-                                final lows =
-                                widget.candles.map((c) => c.low).toList();
-
-                                final double newHigh = highs.reduce(max);
-                                final double newLow = lows.reduce(min);
-
-                                setState(() {
-                                  manualScaleHigh = newHigh;
-                                  manualScaleLow = newLow;
-                                  scaleX = 1.0;
-                                  scaleY = 1.0;
-                                  offsetX = 0.0;
-                                  offsetY = 0.0;
-                                });
-                                _ensureZonesVisible();
-                              }
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                final extra = (Common()
-                                    .hoursUntilLatestEndDate(
-                                    widget.rectangleZones.value,
-                                    widget.candles.first.date,
-                                    timeframe));
-
-                                final nuevoIndex = extra;
-                                widget.onHorizontalDragUpdate(
-                                  ScaleUpdateDetails(
-                                    focalPoint: Offset(
-                                        -nuevoIndex * widget.candleWidth, 0),
-                                    localFocalPoint: Offset.zero,
-                                    scale: 1.0,
-                                  ),
-                                );
-                              });
+                              if (!mounted) return;
+                              widget.onRequestFit?.call();
                             }
                           },
                         ),

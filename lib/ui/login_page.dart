@@ -290,7 +290,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
         Text(
-          'Re-descubre el juego de la bolsa',
+          strings?.get('rediscoverStockGame') ??
+              'Re-descubre el juego de la bolsa',
           textAlign: compact ? TextAlign.center : TextAlign.left,
           style: GoogleFonts.montserrat(
             color: Colors.white,
@@ -441,8 +442,17 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       );
     }
 
+    // El inset real de la ventana: dentro del body el Scaffold lo anula
+    // cuando encoge la vista, y padding.bottom pasa a 0 con el teclado.
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final bottomSafe = MediaQuery.viewPaddingOf(context).bottom;
+
     return Scaffold(
       backgroundColor: StatusBackgroundColors.top,
+      // Si el cuerpo encoge, los botones de las esquinas y la versión
+      // (bottomSheet) suben y tapan el formulario. Se quedan en el borde
+      // físico; solo el formulario se reserva el hueco del teclado.
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
@@ -454,17 +464,20 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         children: [
           const Positioned.fill(child: StatusBackground()),
           // Contenido con animaciones escalonadas
-          FadeTransition(
-            opacity: _contentController,
-            child: Center(
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: LoginForm(
-                      animationController: _contentController,
-                      onLoadingStateChanged: _onLoadingChanged,
+          Padding(
+            padding: EdgeInsets.only(bottom: keyboardInset),
+            child: FadeTransition(
+              opacity: _contentController,
+              child: Center(
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: LoginForm(
+                        animationController: _contentController,
+                        onLoadingStateChanged: _onLoadingChanged,
+                      ),
                     ),
                   ),
                 ),
@@ -576,7 +589,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           ),
           // Botón izquierdo
           Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 20,
+            bottom: bottomSafe + 20,
             left: 16,
             child: FadeTransition(
               opacity: _contentController,
@@ -614,7 +627,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           ),
           // Botón derecho
           Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 20,
+            bottom: bottomSafe + 20,
             right: 16,
             child: FadeTransition(
               opacity: _contentController,

@@ -28,7 +28,7 @@ class HelperFunctions {
     }
   }
 
-  static String priceToString(double price, {int currency = 0}) {
+  static String priceToString(double price, {int currency = 0, int extraDecimals = 0}) {
     final abs = price.abs();
 
     // límite superior de decimales según magnitud (tu misma lógica, pero centralizada)
@@ -41,6 +41,9 @@ class HelperFunctions {
     7;
 
     int decimals = _decimalsBySecondSignificant(abs, maxDecimals);
+    if (extraDecimals > 0) {
+      decimals = math.min(decimals + extraDecimals, maxDecimals + extraDecimals);
+    }
 
     final formatted = price.toStringAsFixed(decimals);
     final suffix = currency == 0 ? '' : (currency == 1 ? '€' : '\$');
@@ -77,15 +80,42 @@ class HelperFunctions {
     return decimals;
   }
 
+  /// Decimales extra para que dos precios separados por [step] no se vean iguales.
+  static int extraDecimalsForStep(double price, double step) {
+    if (!step.isFinite || step.abs() < 1e-12) return 0;
+    var extra = 0;
+    while (extra < 3 &&
+        priceToString(price, extraDecimals: extra) ==
+            priceToString(price - step, extraDecimals: extra)) {
+      extra++;
+    }
+    return extra;
+  }
+
+  /// Paso de la escala de precios. Nunca devuelve 0, infinito ni NaN:
+  /// el primer frame del gráfico puede llegar con high == low.
   static double calculatePriceScale(double height, double high, double low) {
-    int minTiles = (height / minPricetileHeight).floor();
+    final double safeHeight =
+        height.isFinite && height > 0 ? height : minPricetileHeight * 2;
+    int minTiles = (safeHeight / minPricetileHeight).floor();
     minTiles = max(2, minTiles);
+
     double sizeRange = high - low;
-    assert(sizeRange != 0,
-        "highest highs and lowest lows of visible candles are equal.");
+    if (!sizeRange.isFinite || sizeRange <= 0) {
+      final double basis = high.isFinite
+          ? high.abs()
+          : (low.isFinite ? low.abs() : 1);
+      sizeRange = max(basis * 0.01, 1e-6);
+    }
+
     double minStepSize = sizeRange / minTiles;
-    double base =
-        pow(10, HelperFunctions.log10(minStepSize).floor()).toDouble();
+    if (!minStepSize.isFinite || minStepSize <= 0) minStepSize = 1e-6;
+
+    final double logStep = log10(minStepSize);
+    if (!logStep.isFinite) return minStepSize;
+
+    final double base = pow(10, logStep.floor()).toDouble();
+    if (!base.isFinite || base <= 0) return minStepSize;
 
     if (2 * base > minStepSize) return 2 * base;
     if (5 * base > minStepSize) return 5 * base;

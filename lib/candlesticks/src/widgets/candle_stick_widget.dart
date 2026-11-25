@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../models/candle.dart';
 import 'package:flutter/material.dart';
 
@@ -104,37 +106,43 @@ class CandleStickRenderObject extends RenderBox {
       Candle candle, double range) {
     Color color = candle.isBull ? _bullColor : _bearColor;
 
+    double x = size.width + offset.dx - (index + 0.5) * _candleWidth;
+    final Offset wickTop = Offset(x, offset.dy + (_high - candle.high) / range);
+    final Offset wickBottom = Offset(x, offset.dy + (_high - candle.low) / range);
+
+    final Paint glow = Paint()
+      ..color = color.withValues(alpha: 0.22)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = max(2.2, _candleWidth * 0.28)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.6);
+    context.canvas.drawLine(wickTop, wickBottom, glow);
+
     Paint paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 1.6;
 
-    double x = size.width + offset.dx - (index + 0.5) * _candleWidth;
-
-    context.canvas.drawLine(
-      Offset(x, offset.dy + (_high - candle.high) / range),
-      Offset(x, offset.dy + (_high - candle.low) / range),
-      paint,
-    );
+    context.canvas.drawLine(wickTop, wickBottom, paint);
 
     final double openCandleY = offset.dy + (_high - candle.open) / range;
     final double closeCandleY = offset.dy + (_high - candle.close) / range;
 
-    if ((openCandleY - closeCandleY).abs() > 1) {
-      context.canvas.drawLine(
-        Offset(x, openCandleY),
-        Offset(x, closeCandleY),
-        paint..strokeWidth = _candleWidth * 0.8,
-      );
-    } else {
-      // if the candle body is too small
-      final double mid = (closeCandleY + openCandleY) / 2;
-      context.canvas.drawLine(
-        Offset(x, mid - 0.5),
-        Offset(x, mid + 0.5),
-        paint..strokeWidth = _candleWidth * 0.8,
-      );
-    }
+    final double bodyTop = min(openCandleY, closeCandleY);
+    final double bodyBottom = max(closeCandleY, openCandleY);
+    final double bodyHeight = max(1.0, bodyBottom - bodyTop);
+    final double bodyWidth = max(2.4, _candleWidth * 0.92);
+    context.canvas.drawLine(
+      Offset(x, bodyTop),
+      Offset(x, bodyTop + bodyHeight),
+      glow..strokeWidth = bodyWidth + 1.2,
+    );
+    context.canvas.drawLine(
+      Offset(x, bodyTop),
+      Offset(x, bodyTop + bodyHeight),
+      paint..strokeWidth = bodyWidth,
+    );
   }
 
   @override

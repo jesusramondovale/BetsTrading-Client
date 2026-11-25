@@ -9,6 +9,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/app_ui.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../services/bets_service.dart';
@@ -538,6 +539,51 @@ class FavoriteContainer extends StatefulWidget {
 class FavoriteContainerState extends State<FavoriteContainer> {
   String _currencyChar = '€';
 
+  static final Map<String, ({DateTime fetchedAt, List<double> points})> _sparkCache = {};
+  static const Duration _sparkTtl = Duration(minutes: 5);
+  List<double>? _sparkPoints;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSparkline();
+  }
+
+  @override
+  void didUpdateWidget(covariant FavoriteContainer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.favorite.ticker != widget.favorite.ticker) {
+      _sparkPoints = null;
+      _loadSparkline();
+    }
+  }
+
+  Future<void> _loadSparkline() async {
+    final ticker = widget.favorite.ticker;
+    final cached = _sparkCache[ticker];
+    if (cached != null) {
+      _sparkPoints = cached.points;
+      if (DateTime.now().difference(cached.fetchedAt) < _sparkTtl) return;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final currency = (prefs.getBool('dollarCurrency') ?? false) ? 'USD' : 'EUR';
+      final candles = await BetsService().fetchCandles(ticker, 1, currency);
+      final sorted = [...candles]..sort((a, b) => a.date.compareTo(b.date));
+      final cutoff = sorted.isEmpty
+          ? DateTime.now()
+          : sorted.last.date.subtract(const Duration(hours: 24));
+      final points = sorted
+          .where((c) => !c.date.isBefore(cutoff))
+          .map((c) => c.close)
+          .toList();
+      _sparkCache[ticker] = (fetchedAt: DateTime.now(), points: points);
+      if (mounted && widget.favorite.ticker == ticker) {
+        setState(() => _sparkPoints = points);
+      }
+    } catch (_) {}
+  }
+
   Future<void> loadCurrency() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('dollarCurrency') ?? false) {
@@ -592,8 +638,11 @@ class FavoriteContainerState extends State<FavoriteContainer> {
 
   @override
   Widget build(BuildContext context) {
+    final gainColor =
+        widget.favorite.dailyGain >= 0 ? AppUi.gain : AppUi.loss;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+      width: 128,
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
@@ -637,22 +686,24 @@ class FavoriteContainerState extends State<FavoriteContainer> {
             );
           },
           splashColor: Colors.white12,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppUi.radius),
           child: Ink(
             decoration: BoxDecoration(
-              color: calculateShadowColor(widget.favorite.dailyGain),
-              borderRadius: BorderRadius.circular(8),
+              color: AppUi.surface(context),
+              borderRadius: BorderRadius.circular(AppUi.radius),
+              border: Border.all(color: gainColor.withValues(alpha: 0.35)),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 0.8, sigmaY: 0.8),
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
+              borderRadius: BorderRadius.circular(AppUi.radius),
+              child: Padding(
+                  padding: const EdgeInsets.all(12.0),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
                       if (widget.favorite.icon != "null" &&
                           !widget.favorite.icon.startsWith("http")) ...[
                         ClipRRect(
@@ -693,58 +744,46 @@ class FavoriteContainerState extends State<FavoriteContainer> {
                           ),
                         )
                       ] else ...[
-                        AutoSizeText(
-                          Common().createFavViewName(widget.favorite),
-                          maxLines: 1,
-                          style: GoogleFonts.josefinSans(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
+                        Flexible(
+                          child: AutoSizeText(
+                            Common().createFavViewName(widget.favorite),
+                            maxLines: 1,
+                            style: GoogleFonts.josefinSans(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ],
-                      const SizedBox(height: 6),
-                      AutoSizeText(
-                        widget.favorite.name,
-                        maxLines: 1,
-                        style: GoogleFonts.robotoCondensed(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          (widget.favorite.dailyGain >= 0.0)
-                              ? const Icon(
-                            FontAwesomeIcons.arrowTrendUp,
-                            color: Colors.green,
-                            size: 12,
-                          )
-                              : const Icon(
-                            FontAwesomeIcons.arrowTrendDown,
-                            color: Colors.red,
-                            size: 12,
-                          ),
-                          Text(
-                            (widget.favorite.dailyGain >= 0.0)
-                                ? ' ${(widget.favorite.dailyGain).toStringAsFixed(2)}%'
-                                : ' ${(widget.favorite.dailyGain.abs()).toStringAsFixed(2)}%',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w300,
-                              color: widget.favorite.dailyGain >= 0.0
-                                  ? Colors.green
-                                  : Colors.red,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: SizedBox(
+                              height: 32,
+                              child: _Sparkline(
+                                points: _sparkPoints,
+                                color: gainColor,
+                              ),
                             ),
                           ),
                         ],
                       ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AutoSizeText(
+                            widget.favorite.name,
+                            maxLines: 1,
+                            minFontSize: 10,
+                            style: AppUi.body(size: 14, weight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 6),
+                          GainPill(gain: widget.favorite.dailyGain),
+                        ],
+                      ),
                     ],
                   ),
-                ),
               ),
             ),
           ),
@@ -755,6 +794,77 @@ class FavoriteContainerState extends State<FavoriteContainer> {
 
 
 
+}
+
+class _Sparkline extends StatelessWidget {
+  final List<double>? points;
+  final Color color;
+
+  const _Sparkline({required this.points, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = points;
+    final hasData = p != null && p.length >= 2 && p.any((v) => v != p.first);
+    return AnimatedOpacity(
+      opacity: hasData ? 1 : 0,
+      duration: const Duration(milliseconds: 400),
+      child: hasData
+          ? CustomPaint(painter: _SparklinePainter(p, color), size: Size.infinite)
+          : const SizedBox.expand(),
+    );
+  }
+}
+
+class _SparklinePainter extends CustomPainter {
+  final List<double> points;
+  final Color color;
+
+  _SparklinePainter(this.points, this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final minV = points.reduce(min);
+    final maxV = points.reduce(max);
+    final range = (maxV - minV) == 0 ? 1.0 : (maxV - minV);
+    const pad = 2.0;
+    final h = size.height - pad * 2;
+    final dx = size.width / (points.length - 1);
+
+    final line = Path();
+    for (var i = 0; i < points.length; i++) {
+      final x = i * dx;
+      final y = pad + h - ((points[i] - minV) / range) * h;
+      i == 0 ? line.moveTo(x, y) : line.lineTo(x, y);
+    }
+
+    final fill = Path.from(line)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(
+      fill,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [color.withValues(alpha: 0.30), color.withValues(alpha: 0.0)],
+        ).createShader(Offset.zero & size),
+    );
+    canvas.drawPath(
+      line,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SparklinePainter old) =>
+      old.points != points || old.color != color;
 }
 
 //------- SKELETON
@@ -800,20 +910,21 @@ class SkeletonFavoriteContainer extends StatelessWidget {
         }
         
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
-          width: minWidth,
+          margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+          width: minWidth == null ? 128 : min(minWidth, 128),
           child: Material(
             type: MaterialType.transparency,
             child: InkWell(
               splashColor: Colors.white12,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppUi.radius),
               child: Ink(
                 decoration: BoxDecoration(
-                  color: shadowColor,
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppUi.surface(context),
+                  borderRadius: BorderRadius.circular(AppUi.radius),
+                  border: Border.all(color: shadowColor),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppUi.radius),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 0.8, sigmaY: 0.8),
                     child: SizedBox(

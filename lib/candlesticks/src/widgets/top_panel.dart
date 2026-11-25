@@ -34,20 +34,18 @@ class _TopPanelState extends State<TopPanel> {
     return DefaultTextStyle(
       style: TextStyle(color: widget.style.primaryTextColor),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            height: 20,
-            child: widget.currentCandle != null
-                ? CandleInfoText(
-                    candle: widget.currentCandle!,
-                    bullColor: widget.style.primaryBull,
-                    bearColor: widget.style.primaryBear,
-                    defaultStyle: TextStyle(
-                        color: widget.style.borderColor, fontSize: 10),
-                  )
-                : Container(),
-          ),
+          widget.currentCandle != null
+              ? CandleInfoText(
+                  candle: widget.currentCandle!,
+                  bullColor: widget.style.primaryBull,
+                  bearColor: widget.style.primaryBear,
+                  defaultStyle: TextStyle(
+                      color: widget.style.borderColor, fontSize: 10),
+                )
+              : const SizedBox(height: 20),
           showIndicatorNames || widget.indicators.length == 1
               ? Column(
                   children: widget.indicators

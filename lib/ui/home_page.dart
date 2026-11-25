@@ -15,6 +15,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
+import '../helpers/app_ui.dart';
 import '../helpers/common.dart';
 import '../helpers/preload_cache.dart';
 import '../helpers/tutorial_nav_hint.dart';
@@ -706,14 +707,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           children: <Widget>[
             Row(
               children: [
-                IconButton(
-                  // Padding simétrico: con LTRB(10,0,0,0) el icono quedaba desplazado
-                  // respecto al splash material (centrado en el área del botón).
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.center,
-                  icon: Icon(key: _kSettings, Icons.settings),
-                  iconSize: 25,
-                  color: Colors.white70,
+                RoundIconButton(
+                  icon: Icon(key: _kSettings, Icons.settings_rounded),
                   onPressed: () {
                     Common().vibrate();
                     Common().applyImmersive();
@@ -744,21 +739,27 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     );
                   },
                 ),
-                const Spacer(flex: 5),
-                Text(
-                  "betrader.v1",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.syncopate(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white,
+                Expanded(
+                  child: Text(
+                    "betrader.v1",
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    style: GoogleFonts.syncopate(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                const Spacer(flex: 4),
-                IconButton(
+                Material(
                   key: _kStore,
-                  padding: const EdgeInsets.all(2.5),
-                  onPressed: _isLoadingStore ? null : () async {
+                  color: AppUi.surface(context),
+                  shape: StadiumBorder(
+                    side: BorderSide(color: AppUi.border(context)),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                  onTap: _isLoadingStore ? null : () async {
                     Common().vibrate();
                     Common().applyImmersive();
                     
@@ -796,52 +797,43 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       }
                     }
                   },
-                  icon: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.1),
-                          Colors.grey.shade800.withValues(alpha: 1.0),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                  child: SizedBox(
+                    height: 44,
                     child: Padding(
-                      padding: const EdgeInsets.all(6.0),
+                      padding: const EdgeInsets.fromLTRB(8, 0, 14, 0),
                       child: _isLoadingStore
-                          ? SizedBox(
-                              width: 25,
-                              height: 25,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ? const Center(
+                              child: SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
                               ),
                             )
                           : Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Container(
-                                  margin: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                                  child: Image.asset(
-                                    'assets/coin.png',
-                                    width: 25,
-                                    height: 25,
-                                  ),
+                                Image.asset(
+                                  'assets/coin.png',
+                                  width: 26,
+                                  height: 26,
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 8),
                                 Text(
                                   NumberFormat.compact().format(_userPoints),
-                                  style: GoogleFonts.montserrat(color: Colors.white),
+                                  style: AppUi.body(size: 15, weight: FontWeight.w700),
                                 ),
                               ],
                             ),
                     ),
                   ),
+                  ),
                 ),
               ],
             ),
+            const SizedBox(height: 4),
             Expanded(
               flex: 9,
               child: Container(
@@ -849,26 +841,14 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              strings?.get('trends') ?? 'Trends',
-                              style: GoogleFonts.syncopate(
-                                  fontSize: 18, fontWeight: FontWeight.w200),
-                            ),
-                            const SizedBox(width: 8),
-                            const FaIcon(
-                              FontAwesomeIcons.fireFlameSimple,
-                              size: 16,
-                              color: Color(0xFFE25822),
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        IconButton(
+                    SectionHeader(
+                      title: strings?.get('trends') ?? 'Trends',
+                      leadingIcon: const FaIcon(
+                        FontAwesomeIcons.fireFlameSimple,
+                        size: 15,
+                        color: Color(0xFFE25822),
+                      ),
+                      trailing: IconButton(
                           style: IconButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: Size.zero,
@@ -895,9 +875,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             });
                           },
                         ),
-                      ],
                     ),
-                    const Divider(color: Colors.white, thickness: 0.5, height: 0.5),
                     Expanded(
                       child: _userId == null
                           ? Center(
@@ -1162,17 +1140,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          strings?.get('favs') ?? 'Favs',
-                          style: GoogleFonts.syncopate(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                        const Spacer(),
-                        IconButton(
+                    SectionHeader(
+                      title: strings?.get('favs') ?? 'Favs',
+                      trailing: IconButton(
                           style: IconButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: Size.zero,
@@ -1199,9 +1169,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             });
                           },
                         ),
-                      ],
                     ),
-                    const Divider(color: Colors.white, thickness: 0.5, height: 0.5),
                     Expanded(
                       flex: 8,
                       child: _userId == null
@@ -1533,16 +1501,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          strings?.get('recentBets') ?? 'Recent Bets',
-                          style: GoogleFonts.syncopate(
-                              fontSize: 16, fontWeight: FontWeight.w200),
-                        ),
-                      ],
+                    SectionHeader(
+                      title: strings?.get('recentBets') ?? 'Recent Bets',
                     ),
-                    const Divider(color: Colors.white, thickness: 0.5, height: 0.5),
                     Expanded(
                       flex: 12,
                       child: _userId == null
@@ -1623,9 +1584,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 child: Transform.translate(
                                   offset: const Offset(14, 14),
                                   child: FloatingActionButton(
-                                    backgroundColor: Colors.transparent
-                                        .withValues(alpha: 0.1),
-                                    splashColor: Colors.grey,
+                                    backgroundColor: AppUi.surface(context), elevation: 0, splashColor: Colors.white24,
                                     onPressed: () {
                                       Common().vibrate();
                                       Common().applyImmersive();
@@ -1662,11 +1621,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         strings!.get('noLiveBets') ??
                                             'You have no live bets at the moment, go to the markets tab to create a new one',
                                         textAlign: TextAlign.center,
-                                        style: GoogleFonts.syncopate(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w400,
-                                          color: Colors.white,
-                                        ),
+                                        style: AppUi.body(
+                                          size: 15,
+                                          color: Colors.white70,
+                                        ).copyWith(height: 1.4),
                                       ),
                                       const SizedBox(height: 10),
                                       Row(
@@ -1695,9 +1653,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   extendedPadding:
                                   const EdgeInsets.fromLTRB(
                                       6, 6, 6, 6),
-                                  backgroundColor: Colors.transparent
-                                      .withValues(alpha: 0.1),
-                                  splashColor: Colors.grey,
+                                  backgroundColor: AppUi.surface(context), elevation: 0, splashColor: Colors.white24,
                                   onPressed: () {
                                     Common().vibrate();
                                     Common().applyImmersive();
@@ -1773,9 +1729,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               child: Transform.translate(
                                 offset: const Offset(14, 14),
                                 child: FloatingActionButton(
-                                  backgroundColor: Colors.transparent
-                                      .withValues(alpha: 0.1),
-                                  splashColor: Colors.grey,
+                                  backgroundColor: AppUi.surface(context), elevation: 0, splashColor: Colors.white24,
                                   onPressed: () {
                                     Common().vibrate();
                                     Common().applyImmersive();

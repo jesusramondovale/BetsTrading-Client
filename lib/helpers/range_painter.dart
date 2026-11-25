@@ -65,8 +65,8 @@ class RangePainter extends CustomPainter {
     final double clamped =
     odds.clamp(minOdds, maxOdds).toDouble();
 
-    const double minAlpha = 0.65;
-    const double maxAlpha = 0.85;
+    const double minAlpha = 0.9;
+    const double maxAlpha = 1.0;
 
     final double t = (clamped - minOdds) / (maxOdds - minOdds);
     final double alpha = minAlpha + (maxAlpha - minAlpha) * t;
@@ -85,11 +85,10 @@ class RangePainter extends CustomPainter {
     // lightness base
     final double baseLight = hsl.lightness;
 
-    final double darkFactor = lerpDouble(0.65, 0.8, t)!;
-    final double lightFactor = lerpDouble(1.02, 1.15, t)!;
+    final double darkFactor = lerpDouble(0.92, 1.0, t)!;
+    final double lightFactor = lerpDouble(1.0, 1.08, t)!;
 
-    // Aplicar transparencia sutil para mantener translucidez sin perder intensidad
-    const double transparencyFactor = 0.92;
+    const double transparencyFactor = 1.0;
 
     final Color startColor = hsl
         .withLightness((baseLight * darkFactor).clamp(0.0, 1.0))

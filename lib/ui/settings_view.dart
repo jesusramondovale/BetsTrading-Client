@@ -650,7 +650,7 @@ class SettingsViewState extends State<SettingsView> {
                       pureBlack ? Icons.dark_mode : Icons.dark_mode_outlined,
                     ),
                     title: Text(
-                      strings?.get('blackTheme') ?? 'Black theme',
+                      strings?.get('blackTheme') ?? 'Dark theme',
                       style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w400),
                     ),
                     onTap: () {

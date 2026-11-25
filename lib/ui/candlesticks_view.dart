@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:betrader/candlesticks/candlesticks.dart';
+import 'package:betrader/candlesticks/src/utils/helper_functions.dart';
 import 'package:betrader/locale/localized_texts.dart';
 import 'package:betrader/models/bet_zone.dart';
 import 'package:betrader/models/zone_type.dart';
 import 'package:betrader/services/bets_service.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'dart:math' as math;
@@ -369,9 +372,9 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
     required LocalizedStrings? strings,
   }) {
     final color = switch (zoneType) {
-      BetZoneType.standard => const Color(0xFFDA3C3C),
-      BetZoneType.extreme => const Color(0xFFB400FF),
-      BetZoneType.limit => const Color(0xFFC74646),
+      BetZoneType.standard => const Color(0xFFFF2D6A),
+      BetZoneType.extreme => const Color(0xFF8B5CFF),
+      BetZoneType.limit => const Color(0xFFFF2D6A),
     };
 
     final title = switch (zoneType) {
@@ -1027,6 +1030,15 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
                           )
                         ],
                         Positioned(
+                          top: 0,
+                          left: 46,
+                          right: 102,
+                          height: 48,
+                          child: IgnorePointer(
+                            child: Center(child: _assetTitle()),
+                          ),
+                        ),
+                        Positioned(
                           child: IconButton(
                             key: _kBack,
                             icon: const Icon(
@@ -1046,18 +1058,18 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
                         ),
                         Positioned(
                           left: 8,
-                          top: 48,
+                          top: 68,
                           child: Material(
-                            color: Colors.black.withValues(alpha: 0.35),
+                            color: Colors.black.withValues(alpha: 0.7),
                             shape: const CircleBorder(),
                             child: IconButton(
                               tooltip: strings?.get('howItWorks') ?? 'How does it work?',
-                              iconSize: 19.2,
+                              iconSize: 16,
                               constraints: const BoxConstraints(
-                                minWidth: 38,
-                                minHeight: 38,
+                                minWidth: 30,
+                                minHeight: 30,
                               ),
-                              padding: const EdgeInsets.all(6),
+                              padding: const EdgeInsets.all(4),
                               icon: const Icon(
                                 Icons.info_outline,
                                 color: Colors.white,
@@ -1084,6 +1096,85 @@ class CandlesticksViewState extends State<CandlesticksView> with WidgetsBindingO
           ),
         ),
       ),
+    );
+  }
+
+  Widget _assetTitle() {
+    final ticker = widget.ticker.trim();
+    final icon = _assetIcon(26);
+    final quote = _currentQuote();
+    final titleStyle = GoogleFonts.montserrat(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      color: Colors.white,
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null) ...[
+          icon,
+          const SizedBox(width: 8),
+        ],
+        if (ticker.isNotEmpty)
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 72),
+            child: Text(
+              ticker,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: titleStyle,
+            ),
+          ),
+        if (quote != null) ...[
+          const SizedBox(width: 10),
+          Text(quote, maxLines: 1, style: titleStyle),
+        ],
+      ],
+    );
+  }
+
+  String? _currentQuote() {
+    if (_candles.isEmpty) return null;
+    final close = _candles.first.close;
+    if (!close.isFinite) return null;
+    final currency = Common().isTickerForex(widget.ticker)
+        ? 0
+        : (_dollarCurrency ? 2 : 1);
+    return HelperFunctions.priceToString(close, currency: currency);
+  }
+
+  Widget? _assetIcon(double size) {
+    final path = widget.iconPath;
+    if (path.isEmpty || path == 'null') return null;
+
+    final Widget image;
+    if (path.contains('http')) {
+      image = Image.network(
+        path,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+      );
+    } else {
+      try {
+        image = Image.memory(
+          base64Decode(path),
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+        );
+      } catch (_) {
+        return null;
+      }
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(6),
+      child: image,
     );
   }
 

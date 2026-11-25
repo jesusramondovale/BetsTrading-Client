@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../constant/view_constants.dart';
 import '../models/candle.dart';
 import '../models/candle_sticks_style.dart';
@@ -15,6 +17,7 @@ class PriceColumn extends StatefulWidget {
     required this.lastCandle,
     required this.onScale,
     required this.style,
+    this.plotTopPadding = mainChartVerticalPadding,
   });
 
   final double low;
@@ -25,6 +28,7 @@ class PriceColumn extends StatefulWidget {
   final void Function(double) onScale;
   final CandleSticksStyle style;
   final int paintCurrency;
+  final double plotTopPadding;
 
   @override
   State<PriceColumn> createState() => _PriceColumnState();
@@ -43,14 +47,38 @@ class _PriceColumnState extends State<PriceColumn> {
 
   @override
   Widget build(BuildContext context) {
-    final double priceScale = HelperFunctions.calculatePriceScale(
-        widget.chartHeight, widget.high, widget.low);
-    final double priceTileHeight =
-        widget.chartHeight / ((widget.high - widget.low) / priceScale);
-    final double newHigh = (widget.high ~/ priceScale + 1) * priceScale;
-    final double top = -priceTileHeight / priceScale * (newHigh - widget.high) +
-        mainChartVerticalPadding -
-        priceTileHeight / 2 ;
+    double high = widget.high;
+    double low = widget.low;
+    if (!high.isFinite || !low.isFinite || high <= low) {
+      final double basis = high.isFinite
+          ? high.abs()
+          : (low.isFinite ? low.abs() : 1);
+      final double pad = max(basis * 0.01, 1e-6);
+      final double mid =
+          (high.isFinite && low.isFinite) ? (high + low) / 2 : 0;
+      high = mid + pad;
+      low = mid - pad;
+    }
+    final double chartHeight = widget.chartHeight.isFinite && widget.chartHeight > 1
+        ? widget.chartHeight
+        : minPricetileHeight * 4;
+
+    final double priceScale =
+        HelperFunctions.calculatePriceScale(chartHeight, high, low);
+    double priceTileHeight = chartHeight / ((high - low) / priceScale);
+    if (!priceTileHeight.isFinite || priceTileHeight <= 0) {
+      priceTileHeight = minPricetileHeight;
+    }
+    final double newHigh = (high / priceScale).floor() * priceScale + priceScale;
+    double top = -priceTileHeight / priceScale * (newHigh - high) +
+        widget.plotTopPadding -
+        priceTileHeight / 2;
+    if (!top.isFinite) top = 0;
+    final double columnHeight =
+        max(0, chartHeight + 2 * mainChartVerticalPadding - top);
+    final int tileCount = max(8, (columnHeight / priceTileHeight).ceil() + 2);
+    final int extraDecimals =
+        HelperFunctions.extraDecimalsForStep(newHigh, priceScale);
     return GestureDetector(
       onVerticalDragUpdate: (details) {
         /// DISPARA SOLO AL PELLIZCAR BARRA LATERAL
@@ -64,12 +92,14 @@ class _PriceColumnState extends State<PriceColumn> {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               top: top,
-              height:
-                  widget.chartHeight + 2 * mainChartVerticalPadding - top,
+              height: max(
+                  0,
+                  chartHeight + 2 * mainChartVerticalPadding - top,
+                ),
               width: widget.width,
               child: ListView(
                 controller: scrollController,
-                children: List<Widget>.generate(20, (i) {
+                children: List<Widget>.generate(tileCount, (i) {
                   return AnimatedContainer(
 
                     duration: const Duration(milliseconds: 300),
@@ -88,12 +118,15 @@ class _PriceColumnState extends State<PriceColumn> {
                           Expanded(
                             child: Text(
                               HelperFunctions.priceToString(newHigh - priceScale * i,
-                                  currency: widget.paintCurrency),
+                                  currency: widget.paintCurrency,
+                                  extraDecimals: extraDecimals),
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: widget.style.primaryTextColor,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
                                 fontSize: HelperFunctions.priceToString(newHigh - priceScale * i,
-                                    currency: widget.paintCurrency).length > 9 ? 9 : 11,
+                                    currency: widget.paintCurrency,
+                                    extraDecimals: extraDecimals).length > 9 ? 9 : 11,
                               ),
                             ),
                           ),
@@ -109,9 +142,9 @@ class _PriceColumnState extends State<PriceColumn> {
               duration: const Duration(milliseconds: 300),
               right: 0,
               top: calculatePriceIndicatorTopPadding(
-                widget.chartHeight,
-                widget.low,
-                widget.high,
+                chartHeight,
+                low,
+                high,
               ),
               child: Row(
                 children: [
@@ -123,7 +156,9 @@ class _PriceColumnState extends State<PriceColumn> {
                     height: priceIndicatorHeight,
                     child: Center(
                       child: Text(
-                        HelperFunctions.priceToString(widget.lastCandle.close, currency: widget.paintCurrency),
+                        HelperFunctions.priceToString(widget.lastCandle.close,
+                            currency: widget.paintCurrency,
+                            extraDecimals: extraDecimals),
                         style: TextStyle(
                           color: widget.style.secondaryTextColor,
                           fontSize: 11,

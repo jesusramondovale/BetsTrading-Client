@@ -226,7 +226,6 @@ class SplashScreenState extends State<SplashScreen> {
     try {
       // Precargar imágenes del LoginPage
       await Future.wait([
-        precacheImage(const AssetImage('assets/android12splash-clean.png'), context),
         precacheImage(const AssetImage('assets/new_icon.png'), context),
         precacheImage(const AssetImage('assets/google.png'), context),
       ]);
@@ -254,33 +253,32 @@ class SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // En web usamos el mismo fondo que /status (sin splash de ticker).
-    if (kIsWeb) {
-      return Scaffold(
-        backgroundColor: StatusBackgroundColors.top,
-        body: const StatusBackground(),
-      );
-    }
-
-    final locale = Localizations.maybeLocaleOf(context) ??
-        WidgetsBinding.instance.platformDispatcher.locale;
-    String languageCode = locale.languageCode;
-    const supportedLanguages = ['en', 'es', 'fr', 'it', 'de'];
-    if (!supportedLanguages.contains(languageCode)) {
-      languageCode = 'en';
-    }
-    final splashAsset = 'assets/android12splash-$languageCode.png';
+    final strings = LocalizedStrings.of(context);
+    final slogan = strings?.get('rediscoverStockGame') ??
+        'Re-descubre el juego de la bolsa';
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(splashAsset),
-            fit: BoxFit.fill,
+      backgroundColor: StatusBackgroundColors.top,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const StatusBackground(),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                slogan,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  color: Colors.white,
+                  fontSize: 32.2,
+                  fontWeight: FontWeight.w700,
+                  height: 1.15,
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

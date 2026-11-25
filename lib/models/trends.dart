@@ -10,6 +10,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/app_ui.dart';
 import '../helpers/common.dart';
 import '../locale/localized_texts.dart';
 import '../ui/bets_page.dart';
@@ -649,20 +650,14 @@ class TrendContainerState extends State<TrendContainer> {
               },
               splashColor: Colors.white24,
               highlightColor: Colors.white12,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppUi.radius),
               child: Container(
-                width: 120,
+                width: 132,
+                clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
-                  color: Colors.white12,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      spreadRadius: 1,
-                      blurRadius: 1,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppUi.surface(context),
+                  border: Border.all(color: AppUi.border(context)),
+                  borderRadius: BorderRadius.circular(AppUi.radius),
                 ),
                 child: Stack(
                   children: [
@@ -739,33 +734,11 @@ class TrendContainerState extends State<TrendContainer> {
                           AutoSizeText(
                             widget.trend.name,
                             maxLines: 1,
-                            style: GoogleFonts.robotoCondensed(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ),
+                            minFontSize: 10,
+                            style: AppUi.body(size: 14, weight: FontWeight.w600),
                           ),
-                          Row(
-                            children: [
-                              (widget.trend.dailyGain >= 0.0)
-                                  ? Icon(FontAwesomeIcons.arrowTrendUp,
-                                      color: Colors.green, size: 12)
-                                  : Icon(FontAwesomeIcons.arrowTrendDown,
-                                      color: Colors.red, size: 12),
-                              Text(
-                                (widget.trend.dailyGain >= 0.0)
-                                    ? ' ${(widget.trend.dailyGain).toStringAsFixed(2)}%'
-                                    : ' ${(widget.trend.dailyGain.abs()).toStringAsFixed(2)}%',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w300,
-                                  color: widget.trend.dailyGain >= 0.0
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
-                              )
-                            ],
-                          ),
+                          const SizedBox(height: 6),
+                          GainPill(gain: widget.trend.dailyGain),
                         ],
                       ),
                     ),
@@ -1190,18 +1163,11 @@ class SkeletonTrendContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-      width: 120,
+      width: 132,
       decoration: BoxDecoration(
-        color: Colors.white12,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            spreadRadius: 1,
-            blurRadius: 1,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        color: AppUi.surface(context),
+        borderRadius: BorderRadius.circular(AppUi.radius),
+        border: Border.all(color: AppUi.border(context)),
       ),
       child: Stack(
         children: [

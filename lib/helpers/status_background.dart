@@ -18,9 +18,24 @@ abstract final class StatusBackgroundColors {
 
 /// Gradiente + rejilla idénticos a la página `/status` del API.
 class StatusBackground extends StatelessWidget {
-  const StatusBackground({super.key, this.child});
+  const StatusBackground({
+    super.key,
+    this.child,
+    this.showImage = false,
+    this.imageOpacity = 0.35,
+  });
 
   final Widget? child;
+
+  /// Dibuja la imagen del splash (tickers rojo/verde) bajo un velo con los
+  /// colores del gradiente. Se ignora con el tema negro puro.
+  final bool showImage;
+
+  /// Cuánto se ve la imagen (0 = nada, 1 = sin velo). Con 0.35 queda sutil y
+  /// el texto sigue siendo legible.
+  final double imageOpacity;
+
+  static const String splashImageAsset = 'assets/android12splash-clean.png';
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +59,15 @@ class StatusBackground extends StatelessWidget {
                 ),
               ),
             ),
+            if (showImage && !pureBlack)
+              Opacity(
+                opacity: imageOpacity.clamp(0.0, 1.0),
+                child: Image.asset(
+                  splashImageAsset,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                ),
+              ),
             if (!pureBlack) const CustomPaint(painter: _StatusGridPainter()),
             if (child != null) child!,
           ],
